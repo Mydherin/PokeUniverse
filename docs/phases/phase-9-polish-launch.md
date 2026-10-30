@@ -8,7 +8,7 @@
 - Complete PWA (install, icons, offline loading screen).
 - Logs, metrics and monitoring.
 - Admin tools for the `admin` role.
-- Production deployment.
+- Production deployment, with automatic PostgreSQL and Redis backups.
 
 ## Done When
 

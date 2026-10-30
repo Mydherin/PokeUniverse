@@ -1,4 +1,5 @@
 // mic-core is the main game server: player connections, auth and (later) the world.
+// It delegates battles to mic-battles over NATS.
 package main
 
 import (
@@ -18,6 +19,7 @@ import (
 
 	"pokeuniverse/mic-core/internal/account"
 	"pokeuniverse/mic-core/internal/auth"
+	"pokeuniverse/mic-core/internal/battles"
 	"pokeuniverse/mic-core/internal/config"
 	"pokeuniverse/mic-core/internal/health"
 	"pokeuniverse/mic-core/internal/httpx"
@@ -72,6 +74,7 @@ func run(log *slog.Logger) error {
 		return fmt.Errorf("nats: %w", err)
 	}
 	defer nc.Drain()
+	go (&battles.Client{NATS: nc}).WaitReachable(ctx, log)
 
 	tokens := auth.NewTokens(cfg.JWTKeyID, cfg.JWTPrivateKey)
 	authHandler := &auth.Handler{

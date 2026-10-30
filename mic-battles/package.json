@@ -1,0 +1,21 @@
+{
+  "name": "mic-battles",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --outfile=dist/main.js --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.16.0",
+    "@nats-io/transport-node": "3.4.0",
+    "@pkmn/sim": "0.10.11",
+    "@pokeuniverse/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "esbuild": "0.28.2",
+    "typescript": "6.0.3"
+  }
+}

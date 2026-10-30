@@ -64,6 +64,11 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 - Smooth gameplay in the browser on desktop and mobile.
 - Client-server architecture that is **efficient, scalable and maintainable** (see [tech-stack.md](tech-stack.md)).
 
+### No Lost Progress
+
+- A crash or restart **never loses a change a player has seen**: a caught Pokémon, a trade, a step, a battle turn.
+- Every change is saved as it happens, not periodically or on logout (see [tech-stack.md](tech-stack.md#saving-state-resilience)).
+
 ### Full AI Development
 
 - Everything is built by AI: code, maps, content and configuration.

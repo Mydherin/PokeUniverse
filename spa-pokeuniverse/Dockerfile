@@ -7,7 +7,7 @@ WORKDIR /src
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY lib-contracts/gen/ts/package.json lib-contracts/gen/ts/
 COPY spa-pokeuniverse/package.json spa-pokeuniverse/
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter spa-pokeuniverse...
 COPY lib-contracts/gen/ts lib-contracts/gen/ts
 COPY spa-pokeuniverse spa-pokeuniverse
 RUN pnpm --filter spa-pokeuniverse build

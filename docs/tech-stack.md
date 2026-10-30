@@ -155,8 +155,35 @@ Runs battles only. Never talks to players; only `mic-core` talks to it.
 | **@pkmn/data** + **@pkmn/dex** | Pokémon, moves, abilities, items and learnsets, filtered to Gen 4 |
 | **@nats-io/transport-node** | NATS client |
 | **@bufbuild/protobuf** | Protocol Buffers runtime |
+| **redis** (node-redis) | Redis client, to save battles after every turn |
+| **esbuild** | Bundles the service into one file, so the image needs no `node_modules` |
 
-- Battles use Showdown's **Gen 4 format**: 493 Pokémon, Gen 4 moves, abilities, items and the physical/special split.
+- Battles use Showdown's **Gen 4 format** (`gen4customgame`): 493 Pokémon, Gen 4 moves, abilities, items and the physical/special split.
+
+### Behavior
+
+- **`mic-core` decides, `mic-battles` resolves.** `mic-core` starts a battle (wild, trainer or player vs player) and sends the Pokémon on each side. `mic-battles` returns what happened.
+- **One turn at a time per battle.** `mic-core` collects every player's choice (and enforces the turn timer), then sends them in one request. `mic-battles` picks for wild Pokémon and NPC trainers. No two requests touch the same battle at once, so no locks are needed.
+- **Stateless, saved every turn:** each battle is a Redis hash (`battle:<id>`: serialized Showdown battle, turn number, last turn's reply). For each turn, `mic-battles` loads it, plays the turn, then saves it **before replying**, with an atomic check on the turn number. Any copy can play any turn, and a crash resumes at the last saved turn.
+- Battles in progress use Redis, not PostgreSQL: they are rewritten every turn and deleted when the battle ends, which Redis does in microseconds.
+- **Safe retries:** every turn request carries its turn number. A request for a turn already played returns the saved reply instead of playing it again, so `mic-core` retries when a reply doesn't arrive.
+- **Replies are compact turn events** (`MoveUsed`, `Damage{target, hp}`), forwarded by `mic-core` to the players in the battle. When the battle ends, the reply also carries the outcome: winner, each Pokémon's HP, PP and status, catch result and experience.
+- **Catching and experience** are not in Showdown. `mic-battles` computes them with Gen 4 formulas written by us.
+- **`mic-core` saves the outcome** to the players' data in one transaction, keyed by battle ID so it's applied only once. `mic-core` also saves each player's active battle ID in Redis, so a battle survives a crash of `mic-core` too.
+- **Own keys only:** `mic-battles` connects to Redis with its own ACL user, limited to `battle:*` keys. It never touches PostgreSQL.
+
+### Subjects
+
+All are request/reply, with messages from `pokeuniverse.battle.v1`. Every copy joins the `mic-battles` queue group, so NATS spreads requests between them.
+
+| Subject | Purpose | Status |
+|---|---|---|
+| `battles.ping` | Round-trip check; `mic-core` logs `mic-battles reachable` at startup | Done (Phase 0) |
+| `battles.start` | Create a battle from both sides; reply: battle ID and first turn | Phase 6 |
+| `battles.turn` | Every side's choice for the turn; reply: turn events, plus the outcome when it ends | Phase 6 |
+| `battles.forfeit` | End a battle early (disconnect, timeout); reply: outcome | Phase 6 |
+
+- The NATS user `mic-battles` can only subscribe to `battles.>` and answer requests; it can't publish anything else.
 
 ## lib-contracts
 
@@ -175,7 +202,7 @@ Rules:
 - Generated code is **never edited by hand**; it is regenerated with `buf generate`.
 - `buf breaking` runs on every change so existing clients never break silently.
 - Layout: `proto/` (sources), `gen/go` (Go module `pokeuniverse/lib-contracts`), `gen/ts` (package `@pokeuniverse/contracts`).
-- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**) and `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`).
+- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**), `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`) and `pokeuniverse.battle.v1` (NATS messages between `mic-core` and `mic-battles`).
 
 ## Communication
 
@@ -333,18 +360,40 @@ Authentication uses plain **HTTPS** endpoints on `mic-core` (not WebSocket), bec
 - **Multiple tabs:** refreshes are serialized across tabs (Web Locks API), so rotation never looks like token reuse; signing out in one tab signs out all.
 - Google must report a **verified email**. Expired refresh tokens are deleted hourly.
 
+## Saving State (Resilience)
+
+Goal: **a crash never loses a change a player has seen.** Any container can die at any moment; the game continues from what was saved.
+
+- **Saved before shown:** every change is saved before the server confirms it to anyone. No periodic saves, no "save on logout", no state that lives only in a service's memory.
+- **Each change goes to the store that fits it:**
+
+  | State | Saved in | When | Why |
+  |---|---|---|---|
+  | Permanent and valuable: accounts, Pokémon, items, money, progress, trades, battle outcomes | **PostgreSQL**, one transaction per action | On every change | Rare and must never be lost; relational queries |
+  | Live and frequent: positions, battles in progress, online players | **Redis** | On every change | Changes many times per second; Redis writes take microseconds |
+
+- **Redis is durable too:** AOF with `appendfsync always` writes every change to disk before Redis answers, so a crash of Redis itself loses nothing confirmed. Redis batches the disk writes of each loop, so this stays fast.
+- **Live state flows to PostgreSQL** for long-term storage: `mic-core` copies positions on map change, logout and every 30 seconds for players who moved (tracked in a Redis set). Redis is the truth while a player is online; PostgreSQL afterwards.
+- **One action, one transaction:** everything an action changes is saved together or not at all (e.g. a catch adds the Pokémon and uses the ball; a trade moves both Pokémon). Redis changes that belong together use `MULTI` or a Lua script.
+- **Movement:** each zone saves the moves of its tick to Redis in one pipeline, then broadcasts them. A crash can only drop moves no one saw yet.
+- **Retries are safe (idempotent):** every request carries an ID or sequence number, and an already-applied request returns its saved result instead of running twice. A crashed request is simply retried.
+- **Recovery:** on restart a service loads live state from Redis and everything else from PostgreSQL. Clients reconnect, get a fresh snapshot and continue.
+- **PostgreSQL durability:** `synchronous_commit` stays on. Backups of PostgreSQL and Redis come with production deployment (Phase 9).
+
+**Why:** players' progress is the game. Redis keeps the frequent saves cheap; PostgreSQL keeps what matters forever.
+
 ## Infrastructure Dependencies
 
 | Dependency | Purpose | Data lifetime |
 |---|---|---|
 | **NATS** | Messaging between microservices | In transit only |
-| **PostgreSQL** | Permanent data: accounts, roles, refresh tokens, Pokémon, items, progress | Permanent |
-| **Redis** | Fast live data: online players, cache, rate limits, pending logins | Temporary |
+| **PostgreSQL** | Permanent data: accounts, roles, refresh tokens, Pokémon, items, progress, last saved positions | Permanent |
+| **Redis** | Live data, saved on every change: positions, battles in progress, online players; plus cache, rate limits, pending logins | Live (durable, AOF on every write) |
 
 - **NATS:** the "post office" between microservices. Players never connect to it.
-- **PostgreSQL:** the source of truth. Anything that must survive a restart lives here.
-- **Redis:** in-memory and very fast. Holds data that changes constantly or can be rebuilt, keeping load off PostgreSQL.
-- Images: `postgres:18-alpine`, `redis:8-alpine` (password, AOF persistence), `nats:2.12-alpine` (one user per microservice, no persistence). NATS TLS is added with production deployment (Phase 9).
+- **PostgreSQL:** the source of truth. Anything that must survive a crash lives here ([Saving State](#saving-state-resilience)).
+- **Redis:** in-memory and very fast, and durable (every write reaches disk). Holds live state that changes constantly, keeping load off PostgreSQL.
+- Images: `postgres:18-alpine`, `redis:8-alpine` (password, AOF with `appendfsync always`), `nats:2.12-alpine` (one user per microservice, no persistence). NATS TLS is added with production deployment (Phase 9).
 
 ## Containers
 
@@ -353,9 +402,9 @@ Everything runs in Docker.
 - **One `Dockerfile` per artifact** (`spa-pokeuniverse`, `mic-core`, `mic-battles`), using multi-stage builds for small images.
 - `spa-pokeuniverse` is built to static files and served from its own container.
 - **Docker Compose** runs the whole stack: artifacts plus NATS, PostgreSQL and Redis.
-- **Images:** `mic-core` is a static binary on distroless (non-root, no shell); the SPA runs on unprivileged nginx.
+- **Images:** `mic-core` is a static binary on distroless (non-root, no shell); `mic-battles` is one bundled file on `node:26-alpine` (non-root); the SPA runs on unprivileged nginx.
 - **Only the SPA port is published**; every other service stays on the internal network.
-- **Health checks** on every container; services start only when their dependencies are healthy (`mic-core` exposes `/healthz` and `/readyz`).
+- **Health checks** on every container; services start only when their dependencies are healthy (`mic-core` and `mic-battles` expose `/healthz` and `/readyz`).
 - **Configuration** comes from `.env` (never committed); `.env.example` documents every variable.
 
 ### Stateless Services

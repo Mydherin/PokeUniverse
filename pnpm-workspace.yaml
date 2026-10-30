@@ -1,5 +1,6 @@
 packages:
   - spa-pokeuniverse
+  - mic-battles
   - lib-contracts/gen/ts
 
 # Packages allowed to run install scripts.
