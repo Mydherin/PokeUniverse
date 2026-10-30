@@ -15,6 +15,22 @@ Instructions for AI agents working on PokeUniverse.
 - Check the relevant doc **before** making any decision or change.
 - Follow what the docs say; don't introduce technologies or patterns that contradict them.
 
+## Reference Repositories
+
+Git submodules in `references/`, read only. Empty? Run `git submodule update --init`.
+
+| Path | Repository | What's inside | Check when |
+|---|---|---|---|
+| `references/pokefirered/` | [pret/pokefirered](https://github.com/pret/pokefirered) | FireRed decompilation (C). `src/`: game logic (movement, overworld, menus, battle). `data/maps/`, `data/layouts/`: maps, events, warps, connections. `data/tilesets/`, `graphics/`: art. `data/scripts/`, `data/text/`: events and dialogue. `src/data/`: species, trainers, wild encounters. `include/constants/`: IDs and flags | How a FireRed behavior, map, event or formula works |
+| `references/pokemon-showdown/` | [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown) | Battle engine (TypeScript). `sim/`: battle flow, actions, Pokémon state. `data/`: moves, abilities, items, species, learnsets, conditions. `data/mods/gen4/`: Gen 4 overrides | How a Gen 4 battle rule or edge case works |
+
+Rules:
+
+- **Read only.** Never modify, build or commit anything inside `references/`. Only update a submodule's pinned commit when the user asks.
+- **Never copy code.** Understand the behavior, then write it from zero with our design ([tech-stack.md](docs/tech-stack.md#code-principles)).
+- **Our docs win** when they disagree with a reference.
+- Only exception: `tool-maps` reads `pokefirered` data as **input** for the map conversion ([maps.md](docs/maps.md)).
+
 ## Guidelines
 
 ### Living Documentation

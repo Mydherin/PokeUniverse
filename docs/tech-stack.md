@@ -13,7 +13,16 @@
 |---|---|
 | [pret/pokefirered](https://github.com/pret/pokefirered) | FireRed decompilation: **reference only** for game behavior; source for the one-time map conversion |
 | [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown) | Showdown battle engine: reference for battle rules |
-| [pkmn/ps](https://github.com/pkmn/ps) | Source of `@pkmn/sim`, `@pkmn/data`, `@pkmn/dex`: **used as dependencies** in `mic-battles` |
+| [pkmn/ps](https://github.com/pkmn/ps) | Source of `@pkmn/sim`, `@pkmn/data`, `@pkmn/dex`: **used as dependencies** in `mic-battles` (installed via npm, not cloned) |
+
+### How References Are Kept
+
+- **Git submodules:** one per repo in `references/<name>/`, declared in `.gitmodules` with `shallow = true`.
+- **Pinned:** each submodule points to an exact commit; updating it is a one-line, reviewable change (`git submodule update --remote <path>`).
+- **Fetch:** `git clone --recursive`, or `git submodule update --init` after cloning.
+- **Excluded from builds:** `references/` is in `.dockerignore` and skipped by CI.
+- **Why:** no third-party code or Nintendo assets in our history, native Git pinning with no custom scripts, reproducible map conversion, small and fast to fetch.
+- Agent usage rules: [AGENTS.md](../AGENTS.md#reference-repositories).
 
 ## FireRed as Reference
 
@@ -40,6 +49,7 @@ PokeUniverse/
 ├── mic-battles/        # Battle service (Node + Pokémon Showdown)
 ├── lib-contracts/      # Protocol Buffers contracts
 ├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
+├── references/         # Read-only reference repos (Git submodules)
 └── docs/
 ```
 

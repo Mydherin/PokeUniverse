@@ -1,0 +1,10 @@
+[submodule "references/pokefirered"]
+	path = references/pokefirered
+	url = https://github.com/pret/pokefirered.git
+	branch = master
+	shallow = true
+[submodule "references/pokemon-showdown"]
+	path = references/pokemon-showdown
+	url = https://github.com/smogon/pokemon-showdown.git
+	branch = master
+	shallow = true
