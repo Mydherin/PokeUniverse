@@ -14,7 +14,7 @@ High-level plan to build the **MVP: all of Kanto, including social features**.
 | # | Phase | Done when |
 |---|---|---|
 | 0 | [Foundations](phase-0-foundations.md) ✅ | Whole stack starts with one command; SPA ↔ `mic-core` WebSocket works |
-| 1 | [Web App and Auth](phase-1-web-app-auth.md) | Log in with Google and reach an empty game screen |
+| 1 | [Web App and Auth](phase-1-web-app-auth.md) ✅ | Log in with Google and reach an empty game screen |
 | 2 | [Map and Asset Pipeline](phase-2-map-pipeline.md) | AI edits a text map and sees the compiled result |
 | 3 | [Single-Player World](phase-3-single-player-world.md) | Walk between maps on desktop and mobile |
 | 4 | [Multiplayer World](phase-4-multiplayer-world.md) | Many players move together smoothly, with chat |
