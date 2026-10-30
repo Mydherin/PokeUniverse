@@ -6,7 +6,7 @@
 
 - Select and import public resource packs ([vision.md](../vision.md#art-direction)).
 - Tile catalogs and labeled tileset previews.
-- `tool-maps`: `convert`, `validate`, `compile`, `preview`, `catalog-preview`.
+- Create `tool-maps` (Go CLI): `convert`, `validate`, `compile`, `preview`, `catalog-preview`.
 - Convert FireRed's maps into the text format.
 - One map polished end to end (e.g. Pallet Town).
 
