@@ -1,0 +1,95 @@
+# PokeUniverse stack. Start everything with `make up`.
+# Only spa-pokeuniverse is published to the host; everything else stays on the internal network.
+name: pokeuniverse
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  nats:
+    image: nats:2.12-alpine
+    restart: unless-stopped
+    command: ["-c", "/etc/nats/nats.conf"]
+    environment:
+      NATS_MIC_CORE_PASSWORD: ${NATS_MIC_CORE_PASSWORD}
+    volumes:
+      - ./infra/nats/nats.conf:/etc/nats/nats.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mic-core:
+    build:
+      context: .
+      dockerfile: mic-core/Dockerfile
+    restart: unless-stopped
+    environment:
+      HTTP_ADDR: ":8081"
+      PUBLIC_URL: ${PUBLIC_URL}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      NATS_URL: nats://nats:4222
+      NATS_USER: mic-core
+      NATS_PASSWORD: ${NATS_MIC_CORE_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      JWT_KEY_ID: ${JWT_KEY_ID}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/mic-core", "healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  spa-pokeuniverse:
+    build:
+      context: .
+      dockerfile: spa-pokeuniverse/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${SPA_PORT:-8080}:8080"
+    depends_on:
+      mic-core:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:

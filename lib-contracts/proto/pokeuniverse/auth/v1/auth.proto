@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+// Authentication payloads, sent as Protocol Buffers JSON over the HTTPS auth endpoints.
+package pokeuniverse.auth.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/auth/v1;authv1";
+
+// Response of POST /auth/refresh.
+message RefreshResponse {
+  // Signed JWT, kept in client memory only.
+  string access_token = 1;
+  // Seconds until access_token expires.
+  uint32 expires_in_seconds = 2;
+  Account account = 3;
+}
+
+// The signed-in player's account, as shown in the web app.
+message Account {
+  uint64 id = 1;
+  string display_name = 2;
+  string email = 3;
+  string picture_url = 4;
+  // Role names (e.g. "user", "admin"). New roles are data, not contract changes.
+  repeated string roles = 5;
+  // Account creation time, Unix seconds.
+  int64 created_at = 6;
+}

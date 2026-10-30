@@ -12,6 +12,14 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
   - Respect `prefers-reduced-motion`.
 - **Consistent design system:** shared colors, typography, spacing and components (Tailwind theme tokens) across web app and in-game UI.
 
+### Visual Identity
+
+- **Theme:** a pixel night sky over Kanto: deep indigo surfaces, twinkling pixel stars, stepped pixel hills.
+- **Colors:** `night` surfaces, `ink` text, `volt` yellow for primary actions (Play), `aqua` for links and focus, `leaf` for success, `berry` for errors.
+- **Type:** Pixelify Sans for headings and the wordmark; Outfit for body text.
+- **Shapes:** glass panels with soft corners; **pixel-cut corners** for the most important actions.
+- Tokens live in `spa-pokeuniverse/src/styles/app.css`.
+
 ## Responsive
 
 - **Mobile-first**, with a dedicated, polished design for both **mobile** and **desktop** (not just a stretched layout).

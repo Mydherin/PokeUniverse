@@ -1,0 +1,8 @@
+packages:
+  - spa-pokeuniverse
+  - lib-contracts/gen/ts
+
+# Packages allowed to run install scripts.
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

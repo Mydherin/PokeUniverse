@@ -50,8 +50,20 @@ PokeUniverse/
 ├── lib-contracts/      # Protocol Buffers contracts
 ├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
 ├── references/         # Read-only reference repos (Git submodules)
-└── docs/
+├── infra/              # Infrastructure config (e.g. nats/nats.conf)
+├── docs/
+├── compose.yaml        # Whole stack
+├── Makefile            # Shared commands
+├── .env.example        # Configuration template (.env is never committed)
+└── package.json, pnpm-workspace.yaml, pnpm-lock.yaml   # TypeScript workspace
 ```
+
+### Shared Commands
+
+- **Make** runs every shared command; each tool runs in Docker, so only **Docker and Make** are needed on the host.
+- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`. `make help` lists them.
+- **pnpm workspaces** for TypeScript packages; Go modules linked with `replace`.
+- **Generated code is committed** (Protocol Buffers, sqlc), so builds never need the generators.
 
 ## Naming
 
@@ -75,6 +87,13 @@ Shows the game and sends player actions. Contains **no game rules**. Talks only 
 | **Phaser 3** | Game renderer (world, characters, battles) |
 | **Tailwind CSS** | Styling for HTML UI outside the game canvas (login, account screens, overlays) |
 | **@bufbuild/protobuf** | Protocol Buffers runtime |
+| **vite-plugin-pwa** | Web manifest, icons and service worker (Workbox) |
+| **@fontsource-variable** | Self-hosted fonts: Pixelify Sans (display), Outfit (text) |
+
+- **No UI framework:** plain TypeScript with a tiny DOM helper (`ui/dom.ts`); text is never parsed as HTML.
+- **Routing:** History API router; signed-in sections share one layout.
+- **Phaser is lazy-loaded** only when the player opens the game.
+- **Served by nginx**, which also proxies `/auth` and `/ws` to `mic-core` on the **same origin**: first-party cookies, no CORS, strict Content Security Policy.
 
 ### Decoupled Presentation
 
@@ -101,6 +120,9 @@ Main server: player connections, world, movement, NPCs, items, quests, trades, c
 | **google.golang.org/protobuf** | Protocol Buffers runtime | Official Go implementation |
 | **golang.org/x/oauth2** + **coreos/go-oidc** | Google sign-in | Standard OAuth 2.0 and Google ID token verification |
 | **golang-jwt/jwt v5** | Access tokens | Most used Go JWT library; supports EdDSA |
+| **golang.org/x/time/rate** | Per-connection message rate limit | Official, in-memory token bucket |
+
+- **Go 1.27.** Layout: `cmd/mic-core` (wiring), `internal/<module>` (one responsibility each: `auth`, `account`, `realtime`, `ratelimit`, `health`, `store`), `migrations/`, `queries/`.
 
 ### Database Access: sqlc
 
@@ -152,16 +174,30 @@ Rules:
 - Contracts are grouped by domain and versioned: `pokeuniverse.world.v1`, `pokeuniverse.battle.v1`.
 - Generated code is **never edited by hand**; it is regenerated with `buf generate`.
 - `buf breaking` runs on every change so existing clients never break silently.
+- Layout: `proto/` (sources), `gen/go` (Go module `pokeuniverse/lib-contracts`), `gen/ts` (package `@pokeuniverse/contracts`).
+- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**) and `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`).
 
 ## Communication
 
 ```
 spa-pokeuniverse ──► mic-core ──► NATS ──► mic-battles
-     (Protocol Buffers           (Protocol Buffers
-      over WebSocket)             over NATS)
+   gameplay: Protocol Buffers     (Protocol Buffers
+     over WebSocket                over NATS)
+   everything else: HTTP + JSON
 ```
 
-- **Frontend ↔ `mic-core`:** Protocol Buffers messages over **WebSocket**, a persistent two-way connection so the server can push updates instantly.
+- **Frontend ↔ `mic-core`, two transports by use case:**
+
+  | Use case | Transport | Why |
+  |---|---|---|
+  | **Gameplay** (movement, battles, chat, world events) | Protocol Buffers (binary) over **WebSocket** | Constant two-way traffic; the server pushes updates instantly; every byte counts |
+  | **Ordinary use cases** (auth, admin: ban, remove, kick; publishing news; profile; settings; lists) | **HTTP endpoints (REST-style) + JSON** | One request, one response; works without the game open; status codes, caching, simple to debug |
+
+- **HTTP endpoints:**
+  - Payloads are **Protocol Buffers messages from `lib-contracts`, encoded as JSON** (`protojson`): one source of truth, typed in Go and TypeScript.
+  - Authenticated with the access token in `Authorization: Bearer`, verified locally; permissions checked per route against roles (e.g. `admin`).
+  - Rate-limited per route; resources named by noun (`/admin/players/{id}/ban`, `/news`).
+- **When an HTTP action affects the game**, `mic-core` applies it over the live connection (e.g. a kick closes the player's WebSocket; a ban also revokes their sessions).
 - **Microservice ↔ microservice:** Protocol Buffers messages over **NATS**. Services never call each other directly.
 
 **Why Protocol Buffers:**
@@ -264,7 +300,7 @@ The login screen has **one button**. One use case covers both sign-up and login:
 
 ### Across Microservices
 
-- **WebSocket:** the access token is checked when the connection opens. The client sends each refreshed token over the open socket; if it expires without renewal, the server closes the connection.
+- **WebSocket:** browsers can't set headers on a WebSocket, and tokens never go in URLs, so the first message must be `Authenticate{access_token}` within 5 seconds. The client sends each refreshed token the same way; if it expires without renewal, the server closes the connection (close codes `4001` unauthenticated, `4002` expired, `4003` bad message). Only the app's own `Origin` may connect.
 - **NATS:** players never reach NATS. `mic-core` includes the verified player ID (and roles when needed) in each message.
 - **Service-to-service trust:** each microservice connects to NATS with its own credentials (NATS accounts + TLS), so only our services can publish or subscribe.
 - Any future service exposed to players verifies the same JWT with the same public key.
@@ -288,17 +324,27 @@ Authentication uses plain **HTTPS** endpoints on `mic-core` (not WebSocket), bec
 | `POST /auth/refresh` | Rotate refresh token, return new access token |
 | `POST /auth/logout` | Revoke current session |
 
+### Auth Security Details
+
+- **Login state:** `state`, `nonce` and the PKCE verifier live in Redis for 10 minutes; a `pu_login` cookie (`SameSite=Lax`) binds the login to the browser that started it.
+- **Refresh cookie:** `pu_session`, `HttpOnly`, `SameSite=Strict`, `Path=/auth`, `Secure` on HTTPS. Only its SHA-256 hash is stored.
+- **CSRF:** `refresh` and `logout` require the app's exact `Origin`.
+- **Rate limits** per IP in Redis (shared by every replica): 20/min for sign-in and logout, 60/min for refresh.
+- **Multiple tabs:** refreshes are serialized across tabs (Web Locks API), so rotation never looks like token reuse; signing out in one tab signs out all.
+- Google must report a **verified email**. Expired refresh tokens are deleted hourly.
+
 ## Infrastructure Dependencies
 
 | Dependency | Purpose | Data lifetime |
 |---|---|---|
 | **NATS** | Messaging between microservices | In transit only |
 | **PostgreSQL** | Permanent data: accounts, roles, refresh tokens, Pokémon, items, progress | Permanent |
-| **Redis** | Fast live data: online players, cache, rate limits | Temporary |
+| **Redis** | Fast live data: online players, cache, rate limits, pending logins | Temporary |
 
 - **NATS:** the "post office" between microservices. Players never connect to it.
 - **PostgreSQL:** the source of truth. Anything that must survive a restart lives here.
 - **Redis:** in-memory and very fast. Holds data that changes constantly or can be rebuilt, keeping load off PostgreSQL.
+- Images: `postgres:18-alpine`, `redis:8-alpine` (password, AOF persistence), `nats:2.12-alpine` (one user per microservice, no persistence). NATS TLS is added with production deployment (Phase 9).
 
 ## Containers
 
@@ -307,6 +353,10 @@ Everything runs in Docker.
 - **One `Dockerfile` per artifact** (`spa-pokeuniverse`, `mic-core`, `mic-battles`), using multi-stage builds for small images.
 - `spa-pokeuniverse` is built to static files and served from its own container.
 - **Docker Compose** runs the whole stack: artifacts plus NATS, PostgreSQL and Redis.
+- **Images:** `mic-core` is a static binary on distroless (non-root, no shell); the SPA runs on unprivileged nginx.
+- **Only the SPA port is published**; every other service stays on the internal network.
+- **Health checks** on every container; services start only when their dependencies are healthy (`mic-core` exposes `/healthz` and `/readyz`).
+- **Configuration** comes from `.env` (never committed); `.env.example` documents every variable.
 
 ### Stateless Services
 

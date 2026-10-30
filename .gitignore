@@ -1,0 +1,15 @@
+# Secrets
+.env
+*.pem
+
+# Dependencies and builds
+node_modules/
+dist/
+dev-dist/
+bin/
+*.tsbuildinfo
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
