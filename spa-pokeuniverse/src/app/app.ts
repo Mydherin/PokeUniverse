@@ -1,6 +1,6 @@
 import { getSession, onSessionChange, OfflineError, refresh } from "../auth/session";
 import { loginPage } from "../pages/login";
-import { homeShell, sections } from "../pages/home/shell";
+import { canOpenSection, homeShell, sections } from "../pages/home/shell";
 import { playPage } from "../pages/play";
 import { Router } from "./router";
 
@@ -13,10 +13,11 @@ export async function startApp(root: HTMLElement): Promise<void> {
       { paths: ["/play"], auth: true, title: "Play", render: playPage },
     ],
     "/",
-    (route) => {
-      const signedIn = getSession() !== null;
-      if (route.auth && !signedIn) return "/login";
-      if (!route.auth && signedIn) return "/";
+    (route, path) => {
+      const session = getSession();
+      if (route.auth && !session) return "/login";
+      if (!route.auth && session) return "/";
+      if (!canOpenSection(path, session?.account)) return "/";
       return null;
     },
   );

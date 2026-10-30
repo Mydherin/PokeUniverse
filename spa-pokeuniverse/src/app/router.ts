@@ -15,7 +15,7 @@ export type Route = {
   render: (path: string) => View | Promise<View>;
 };
 
-type Guard = (route: Route) => string | null;
+type Guard = (route: Route, path: string) => string | null;
 
 export class Router {
   private view: View | null = null;
@@ -48,7 +48,7 @@ export class Router {
     const route = this.routes.find((r) => r.paths.includes(path));
     if (!route) return this.go(this.fallback, true);
 
-    const redirect = this.guard(route);
+    const redirect = this.guard(route, path);
     if (redirect) return this.go(redirect, true);
 
     document.title = route.title === "PokeUniverse" ? route.title : `${route.title} · PokeUniverse`;

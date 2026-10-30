@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -30,6 +31,9 @@ type Config struct {
 
 	JWTKeyID      string
 	JWTPrivateKey ed25519.PrivateKey
+
+	// AdminEmails get the admin role on sign-in and at startup (lowercase).
+	AdminEmails []string
 }
 
 // Load reads and validates the configuration.
@@ -54,6 +58,7 @@ func Load() (Config, error) {
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		JWTKeyID:           required("JWT_KEY_ID"),
+		AdminEmails:        emailList(os.Getenv("ADMIN_EMAILS")),
 	}
 
 	if raw := required("PUBLIC_URL"); raw != "" {
@@ -88,4 +93,15 @@ func envOr(name, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// emailList parses a comma-separated list of emails, lowercased.
+func emailList(raw string) []string {
+	var emails []string
+	for _, e := range strings.Split(raw, ",") {
+		if e = strings.ToLower(strings.TrimSpace(e)); e != "" {
+			emails = append(emails, e)
+		}
+	}
+	return emails
 }

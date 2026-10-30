@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -14,8 +15,12 @@ import (
 	"pokeuniverse/mic-core/internal/db"
 )
 
-// DefaultRole is given to every new account.
-const DefaultRole = "user"
+const (
+	// DefaultRole is given to every new account.
+	DefaultRole = "user"
+	// AdminRole is given to the accounts listed in ADMIN_EMAILS.
+	AdminRole = "admin"
+)
 
 var ErrNotFound = errors.New("account not found")
 
@@ -37,11 +42,26 @@ type GoogleProfile struct {
 }
 
 type Service struct {
-	pool *pgxpool.Pool
+	pool        *pgxpool.Pool
+	adminEmails []string
 }
 
-func NewService(pool *pgxpool.Pool) *Service {
-	return &Service{pool: pool}
+// NewService takes the lowercase emails that get the admin role.
+func NewService(pool *pgxpool.Pool, adminEmails []string) *Service {
+	return &Service{pool: pool, adminEmails: adminEmails}
+}
+
+// GrantConfiguredAdmins gives the admin role to existing accounts listed in ADMIN_EMAILS.
+// New accounts get it on sign-in. Removing an email doesn't revoke the role.
+func (s *Service) GrantConfiguredAdmins(ctx context.Context) (int64, error) {
+	if len(s.adminEmails) == 0 {
+		return 0, nil
+	}
+	n, err := db.New(s.pool).AssignRoleByEmail(ctx, db.AssignRoleByEmailParams{Role: AdminRole, Emails: s.adminEmails})
+	if err != nil {
+		return 0, fmt.Errorf("grant configured admins: %w", err)
+	}
+	return n, nil
 }
 
 // SignInWithGoogle loads the account for a Google identity, creating it on first sign-in.
@@ -62,6 +82,11 @@ func (s *Service) SignInWithGoogle(ctx context.Context, p GoogleProfile) (Accoun
 		if row.Created {
 			if err := q.AssignRole(ctx, db.AssignRoleParams{AccountID: row.ID, Name: DefaultRole}); err != nil {
 				return fmt.Errorf("assign default role: %w", err)
+			}
+		}
+		if slices.Contains(s.adminEmails, strings.ToLower(row.Email)) {
+			if err := q.AssignRole(ctx, db.AssignRoleParams{AccountID: row.ID, Name: AdminRole}); err != nil {
+				return fmt.Errorf("assign admin role: %w", err)
 			}
 		}
 		roles, err := q.ListAccountRoles(ctx, row.ID)

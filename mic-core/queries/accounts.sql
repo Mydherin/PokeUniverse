@@ -25,3 +25,12 @@ FROM account_roles ar
 JOIN roles r ON r.id = ar.role_id
 WHERE ar.account_id = $1
 ORDER BY r.name;
+
+-- name: AssignRoleByEmail :execrows
+-- Gives a role to every existing account whose email is in the list (lowercase).
+INSERT INTO account_roles (account_id, role_id)
+SELECT a.id, r.id
+FROM accounts a
+JOIN roles r ON r.name = sqlc.arg(role)::text
+WHERE lower(a.email) = ANY(sqlc.arg(emails)::text[])
+ON CONFLICT DO NOTHING;

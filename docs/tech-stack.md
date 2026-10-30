@@ -91,7 +91,8 @@ Shows the game and sends player actions. Contains **no game rules**. Talks only 
 | **@fontsource-variable** | Self-hosted fonts: Pixelify Sans (display), Outfit (text) |
 
 - **No UI framework:** plain TypeScript with a tiny DOM helper (`ui/dom.ts`); text is never parsed as HTML.
-- **Routing:** History API router; signed-in sections share one layout.
+- **Routing:** History API router; signed-in sections share one layout. A section can require a role (e.g. **Admin**, `admin` only): hidden from the navigation and blocked by the route guard for everyone else.
+- **API calls:** one client (`src/api/client.ts`) adds the access token, refreshes once on `401` and retries.
 - **Phaser is lazy-loaded** only when the player opens the game.
 - **Served by nginx**, which also proxies `/auth` and `/ws` to `mic-core` on the **same origin**: first-party cookies, no CORS, strict Content Security Policy.
 
@@ -222,8 +223,10 @@ spa-pokeuniverse ──► mic-core ──► NATS ──► mic-battles
 
 - **HTTP endpoints:**
   - Payloads are **Protocol Buffers messages from `lib-contracts`, encoded as JSON** (`protojson`): one source of truth, typed in Go and TypeScript.
-  - Authenticated with the access token in `Authorization: Bearer`, verified locally; permissions checked per route against roles (e.g. `admin`).
-  - Rate-limited per route; resources named by noun (`/admin/players/{id}/ban`, `/news`).
+  - Under **`/api/`** (proxied by the SPA's nginx like `/auth` and `/ws`).
+  - Authenticated with the access token in `Authorization: Bearer`, verified locally; permissions checked per route against roles with one shared check (`auth.Tokens.Require`): `401` no or invalid token, `403` missing role.
+  - Rate-limited per route; resources named by noun (`/api/admin/players/{id}/ban`, `/api/news`).
+  - Endpoints so far: `GET /api/admin/access` (`admin`; `204` confirms access, used by the Admin page).
 - **When an HTTP action affects the game**, `mic-core` applies it over the live connection (e.g. a kick closes the player's WebSocket; a ban also revokes their sessions).
 - **Microservice ↔ microservice:** Protocol Buffers messages over **NATS**. Services never call each other directly.
 
@@ -336,6 +339,7 @@ The login screen has **one button**. One use case covers both sign-up and login:
 
 - Roles are stored in PostgreSQL and included in the access token (`roles` claim).
 - Initial roles: **`user`** (default for every new account) and **`admin`**.
+- **`ADMIN_EMAILS`** (comma-separated, in `.env`) gets `admin` on sign-in, and at `mic-core` startup for existing accounts. Default: `mydherin@gmail.com`. Removing an email doesn't revoke the role (done in the database).
 - New roles are added as data, without changing the auth design.
 - Permissions are checked per action against roles (role-based access control).
 - A role change takes effect at the next refresh (max 15 minutes), or immediately by revoking the player's sessions.

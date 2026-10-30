@@ -1,6 +1,7 @@
 // Signed-in layout: header, section navigation (top on desktop, bottom tabs on mobile) and content.
 
 import type { View } from "../../app/router";
+import type { Account } from "@pokeuniverse/contracts/auth/v1/auth";
 import { getSession } from "../../auth/session";
 import { h } from "../../ui/dom";
 import { starfield, wordmark } from "../../ui/art";
@@ -8,21 +9,31 @@ import { onSwipe } from "../../ui/gesture";
 import { icon, type IconName } from "../../ui/icons";
 import { avatar } from "./avatar";
 import { aboutSection } from "./about";
+import { adminSection } from "./admin";
 import { newsSection } from "./news";
 import { overviewSection } from "./overview";
 import { trainerSection } from "./trainer";
 
-type Section = { path: string; label: string; icon: IconName; render: () => HTMLElement };
+/** `role`: only accounts with it see the section. The server enforces it again on every API call. */
+type Section = { path: string; label: string; icon: IconName; role?: string; render: () => HTMLElement };
 
 export const sections: Section[] = [
   { path: "/", label: "Home", icon: "home", render: overviewSection },
   { path: "/news", label: "News", icon: "news", render: newsSection },
   { path: "/trainer", label: "Trainer", icon: "trainer", render: trainerSection },
   { path: "/about", label: "About", icon: "about", render: aboutSection },
+  { path: "/admin", label: "Admin", icon: "shield", role: "admin", render: adminSection },
 ];
+
+/** Whether an account may open a section path. Unknown paths are left to the router. */
+export function canOpenSection(path: string, account: Account | undefined): boolean {
+  const role = sections.find((s) => s.path === path)?.role;
+  return !role || (account?.roles.includes(role) ?? false);
+}
 
 export function homeShell(path: string, navigate: (path: string) => void): View {
   const account = getSession()!.account;
+  const visible = sections.filter((s) => canOpenSection(s.path, account));
   const content = h("div", { class: "mx-auto w-full max-w-6xl" });
   const links: HTMLAnchorElement[] = [];
 
@@ -51,7 +62,7 @@ export function homeShell(path: string, navigate: (path: string) => void): View 
       "div",
       { class: "safe-x mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4" },
       h("a", { href: "/", "data-link": true, class: "shrink-0 rounded-lg", "aria-label": "PokeUniverse home" }, wordmark("text-2xl")),
-      h("nav", { class: "hidden items-center gap-1 md:flex", "aria-label": "Sections" }, ...sections.map((s) => navLink(s, false))),
+      h("nav", { class: "hidden items-center gap-1 md:flex", "aria-label": "Sections" }, ...visible.map((s) => navLink(s, false))),
       h(
         "a",
         {
@@ -72,13 +83,13 @@ export function homeShell(path: string, navigate: (path: string) => void): View 
       class: "safe-x fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-night-900/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden",
       "aria-label": "Sections",
     },
-    h("div", { class: "mx-auto flex max-w-md" }, ...sections.map((s) => navLink(s, true))),
+    h("div", { class: "mx-auto flex max-w-md" }, ...visible.map((s) => navLink(s, true))),
   );
 
   const main = h("main", { id: "content", class: "safe-x relative z-10 flex-1 pb-28 pt-6 md:pb-16 md:pt-10" }, content);
 
   const show = (p: string) => {
-    const section = sections.find((s) => s.path === p);
+    const section = visible.find((s) => s.path === p);
     if (!section) return false;
     const el = section.render();
     el.classList.add("animate-rise");
@@ -93,8 +104,8 @@ export function homeShell(path: string, navigate: (path: string) => void): View 
 
   // Swipe between sections on touch screens.
   onSwipe(main, (direction) => {
-    const i = sections.findIndex((s) => s.path === location.pathname);
-    const next = sections[i + (direction === "left" ? 1 : -1)];
+    const i = visible.findIndex((s) => s.path === location.pathname);
+    const next = visible[i + (direction === "left" ? 1 : -1)];
     if (next) navigate(next.path);
   });
 

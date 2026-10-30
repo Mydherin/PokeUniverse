@@ -63,6 +63,6 @@ Runs directly in the browser, and installable as a **PWA**.
 | Android | **Chrome** (browser and installed PWA) |
 | Desktop | Chrome, Safari, Edge, Firefox |
 
-- **PWA:** web manifest, app icons, splash screen, standalone display mode, service worker for fast loading.
+- **PWA:** web manifest, app icons, splash screen, standalone display mode, service worker for fast loading. A new release takes over at once (the page reloads), never waiting for every tab to close.
 - Test Safari-specific behavior (viewport, keyboard, audio unlock, PWA limits) explicitly; it differs from Chrome.
 - In-game, support **fullscreen** and orientation handling where the platform allows it.

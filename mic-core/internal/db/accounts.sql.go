@@ -26,6 +26,29 @@ func (q *Queries) AssignRole(ctx context.Context, arg AssignRoleParams) error {
 	return err
 }
 
+const assignRoleByEmail = `-- name: AssignRoleByEmail :execrows
+INSERT INTO account_roles (account_id, role_id)
+SELECT a.id, r.id
+FROM accounts a
+JOIN roles r ON r.name = $1::text
+WHERE lower(a.email) = ANY($2::text[])
+ON CONFLICT DO NOTHING
+`
+
+type AssignRoleByEmailParams struct {
+	Role   string
+	Emails []string
+}
+
+// Gives a role to every existing account whose email is in the list (lowercase).
+func (q *Queries) AssignRoleByEmail(ctx context.Context, arg AssignRoleByEmailParams) (int64, error) {
+	result, err := q.db.Exec(ctx, assignRoleByEmail, arg.Role, arg.Emails)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getAccount = `-- name: GetAccount :one
 SELECT id, email, display_name, picture_url, created_at
 FROM accounts

@@ -18,6 +18,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"pokeuniverse/mic-core/internal/account"
+	"pokeuniverse/mic-core/internal/admin"
 	"pokeuniverse/mic-core/internal/auth"
 	"pokeuniverse/mic-core/internal/battles"
 	"pokeuniverse/mic-core/internal/config"
@@ -76,10 +77,17 @@ func run(log *slog.Logger) error {
 	defer nc.Drain()
 	go (&battles.Client{NATS: nc}).WaitReachable(ctx, log)
 
+	accounts := account.NewService(pool, cfg.AdminEmails)
+	if n, err := accounts.GrantConfiguredAdmins(ctx); err != nil {
+		return err
+	} else if n > 0 {
+		log.Info("admin role granted from ADMIN_EMAILS", "count", n)
+	}
+
 	tokens := auth.NewTokens(cfg.JWTKeyID, cfg.JWTPrivateKey)
 	authHandler := &auth.Handler{
 		Google:        auth.NewGoogle(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.Origin()+"/auth/google/callback"),
-		Accounts:      account.NewService(pool),
+		Accounts:      accounts,
 		Sessions:      auth.NewSessions(pool),
 		Tokens:        tokens,
 		Redis:         rdb,
@@ -94,7 +102,9 @@ func run(log *slog.Logger) error {
 
 	mux := http.NewServeMux()
 	(&health.Checker{Postgres: pool, Redis: rdb, NATS: nc}).Register(mux)
-	authHandler.Register(mux, ratelimit.New(rdb, log).PerIP)
+	limit := ratelimit.New(rdb, log).PerIP
+	authHandler.Register(mux, limit)
+	(&admin.Handler{Tokens: tokens}).Register(mux, limit)
 	mux.Handle("GET /ws", realtime.NewHandler(tokens, cfg.Origin(), log))
 
 	srv := &http.Server{

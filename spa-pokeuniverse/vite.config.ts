@@ -2,7 +2,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-// In `pnpm dev`, auth and WebSocket calls go to a mic-core running on the host.
+// In `pnpm dev`, auth, API and WebSocket calls go to a mic-core running on the host.
 const core = process.env.MIC_CORE_URL ?? "http://localhost:8081";
 
 export default defineConfig({
@@ -25,8 +25,11 @@ export default defineConfig({
         theme_color: "#0b0920",
       },
       workbox: {
+        // autoUpdate: a new release takes over at once (the page reloads) instead of waiting for every tab to close.
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/auth\//, /^\/ws/],
+        navigateFallbackDenylist: [/^\/auth\//, /^\/api\//, /^\/ws/],
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         // Phaser is large; it is cached on first play instead of on install.
         globIgnores: ["**/game-*.js"],
@@ -48,6 +51,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/auth": core,
+      "/api": core,
       "/ws": { target: core, ws: true },
     },
   },
