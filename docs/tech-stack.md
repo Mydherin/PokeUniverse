@@ -404,7 +404,7 @@ Everything runs in Docker.
 - **Docker Compose** runs the whole stack: artifacts plus NATS, PostgreSQL and Redis.
 - **Images:** `mic-core` is a static binary on distroless (non-root, no shell); `mic-battles` is one bundled file on `node:26-alpine` (non-root); the SPA runs on unprivileged nginx.
 - **Only the SPA port is published**; every other service stays on the internal network.
-- **Health checks** on every container; services start only when their dependencies are healthy (`mic-core` and `mic-battles` expose `/healthz` and `/readyz`).
+- **Health checks** on every container; services start only when their dependencies are healthy (`mic-core` and `mic-battles` expose `/healthz` and `/readyz`; the SPA's nginx exposes `/healthz`).
 - **Configuration** comes from `.env` (never committed); `.env.example` documents every variable.
 
 ### Stateless Services

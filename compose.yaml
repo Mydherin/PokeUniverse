@@ -108,6 +108,12 @@ services:
     restart: unless-stopped
     ports:
       - "${SPA_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     depends_on:
       mic-core:
         condition: service_healthy

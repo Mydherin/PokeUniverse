@@ -36,7 +36,9 @@ func (c *Client) Ping(ctx context.Context) (*battlev1.Pong, error) {
 
 // WaitReachable pings mic-battles until it answers, then logs the round trip.
 // mic-core doesn't need mic-battles to start, so this runs in the background.
+// Both start together, so it only warns if mic-battles is still missing after 30 seconds.
 func (c *Client) WaitReachable(ctx context.Context, log *slog.Logger) {
+	warnAt := time.Now().Add(30 * time.Second)
 	warned := false
 	for {
 		start := time.Now()
@@ -47,7 +49,7 @@ func (c *Client) WaitReachable(ctx context.Context, log *slog.Logger) {
 			log.Info("mic-battles reachable", "rtt_ms", time.Since(start).Milliseconds(), "format", pong.GetFormat())
 			return
 		}
-		if !warned {
+		if !warned && time.Now().After(warnAt) {
 			log.Warn("mic-battles not reachable yet", "err", err)
 			warned = true
 		}
