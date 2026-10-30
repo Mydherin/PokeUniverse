@@ -30,6 +30,7 @@
 - Used **only to understand behavior**: how actions and events work (movement, collisions, encounters, menus, scripts, formulas).
 - **Never copy code.** Everything is rebuilt from zero with our own code, architecture and patterns.
 - When the reference and our design disagree, **our design wins**; we replicate the behavior, not the implementation.
+- **Assets exception:** `tool-maps extract` reads FireRed's graphics, music and text from the submodule into a **gitignored** folder at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
 
 ## Code Principles
 
@@ -48,7 +49,7 @@ PokeUniverse/
 ├── mic-core/           # Main game server (Go)
 ├── mic-battles/        # Battle service (Node + Pokémon Showdown)
 ├── lib-contracts/      # Protocol Buffers contracts
-├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
+├── tool-maps/          # FireRed asset extractor; map converter, validator, compiler, previewer (Go)
 ├── references/         # Read-only reference repos (Git submodules)
 ├── infra/              # Infrastructure config (e.g. nats/nats.conf)
 ├── docs/
@@ -180,9 +181,9 @@ All are request/reply, with messages from `pokeuniverse.battle.v1`. Every copy j
 | Subject | Purpose | Status |
 |---|---|---|
 | `battles.ping` | Round-trip check; `mic-core` logs `mic-battles reachable` at startup | Done (Phase 0) |
-| `battles.start` | Create a battle from both sides; reply: battle ID and first turn | Phase 6 |
-| `battles.turn` | Every side's choice for the turn; reply: turn events, plus the outcome when it ends | Phase 6 |
-| `battles.forfeit` | End a battle early (disconnect, timeout); reply: outcome | Phase 6 |
+| `battles.start` | Create a battle from both sides; reply: battle ID and first turn | Phase 9 |
+| `battles.turn` | Every side's choice for the turn; reply: turn events, plus the outcome when it ends | Phase 9 |
+| `battles.forfeit` | End a battle early (disconnect, timeout); reply: outcome | Phase 9 |
 
 - The NATS user `mic-battles` can only subscribe to `battles.>` and answer requests; it can't publish anything else.
 
@@ -382,7 +383,7 @@ Goal: **a crash never loses a change a player has seen.** Any container can die 
 - **Movement:** each zone saves the moves of its tick to Redis in one pipeline, then broadcasts them. A crash can only drop moves no one saw yet.
 - **Retries are safe (idempotent):** every request carries an ID or sequence number, and an already-applied request returns its saved result instead of running twice. A crashed request is simply retried.
 - **Recovery:** on restart a service loads live state from Redis and everything else from PostgreSQL. Clients reconnect, get a fresh snapshot and continue.
-- **PostgreSQL durability:** `synchronous_commit` stays on. Backups of PostgreSQL and Redis come with production deployment (Phase 9).
+- **PostgreSQL durability:** `synchronous_commit` stays on. Backups of PostgreSQL and Redis come with production deployment (Phase 12).
 
 **Why:** players' progress is the game. Redis keeps the frequent saves cheap; PostgreSQL keeps what matters forever.
 
@@ -397,7 +398,7 @@ Goal: **a crash never loses a change a player has seen.** Any container can die 
 - **NATS:** the "post office" between microservices. Players never connect to it.
 - **PostgreSQL:** the source of truth. Anything that must survive a crash lives here ([Saving State](#saving-state-resilience)).
 - **Redis:** in-memory and very fast, and durable (every write reaches disk). Holds live state that changes constantly, keeping load off PostgreSQL.
-- Images: `postgres:18-alpine`, `redis:8-alpine` (password, AOF with `appendfsync always`), `nats:2.12-alpine` (one user per microservice, no persistence). NATS TLS is added with production deployment (Phase 9).
+- Images: `postgres:18-alpine`, `redis:8-alpine` (password, AOF with `appendfsync always`), `nats:2.12-alpine` (one user per microservice, no persistence). NATS TLS is added with production deployment (Phase 12).
 
 ## Containers
 

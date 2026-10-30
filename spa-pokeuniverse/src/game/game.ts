@@ -1,5 +1,5 @@
 // Phaser only renders: it reads client state and sends player intents (tech-stack.md#decoupled-presentation).
-// This is the empty game screen; the world arrives in Phase 3.
+// This is the empty game screen; the FireRed intro arrives in Phase 2.
 
 import Phaser from "phaser";
 import { Species, frontSprite } from "../assets/sprites";

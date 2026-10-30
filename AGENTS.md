@@ -29,7 +29,7 @@ Rules:
 - **Read only.** Never modify, build or commit anything inside `references/`. Only update a submodule's pinned commit when the user asks.
 - **Never copy code.** Understand the behavior, then write it from zero with our design ([tech-stack.md](docs/tech-stack.md#code-principles)).
 - **Our docs win** when they disagree with a reference.
-- Only exception: `tool-maps` reads `pokefirered` data as **input** for the map conversion ([maps.md](docs/maps.md)).
+- Only exception: `tool-maps` reads `pokefirered` data as **input** for the map conversion and to extract FireRed's graphics, music and text into a gitignored folder, never committed ([maps.md](docs/maps.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
 
 ## Guidelines
 

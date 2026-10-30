@@ -36,6 +36,7 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 ### FireRed as Reference
 
 - FireRed is used to understand **how things work** (movement, rules, maps, menus).
+- The start of the game (intro, Oak's speech, room, Pallet Town) is rebuilt **exactly like FireRed**, with its original graphics, music and text.
 - **All code is new:** Go on the server, Phaser on the frontend. No FireRed code is reused (see [tech-stack.md](tech-stack.md#firered-as-reference)).
 - The FireRed map is the starting world; it is kept and **extended** with new areas.
 
@@ -46,8 +47,10 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 
 ## Art Direction
 
-- **References:** Pokémon Hoenn Adventures and Pokémon Azul Agua.
-- **No custom art:** only public resource packs, for efficiency.
+- **Start faithful:** the intro, Oak's speech, the player's room and Pallet Town first use **FireRed's original graphics and music**, taken from the decompilation at build time and never committed ([tech-stack.md](tech-stack.md#firered-as-reference)).
+- **Then upgrade:** public resource packs replace them, starting with Pallet Town ([phases](phases/README.md)).
+- **References for the upgrade:** Pokémon Hoenn Adventures and Pokémon Azul Agua.
+- **No custom art:** only FireRed's art and public resource packs, for efficiency.
 - Goal: the most beautiful result possible from those packs.
 - Respect each pack's license and credit requirements.
 

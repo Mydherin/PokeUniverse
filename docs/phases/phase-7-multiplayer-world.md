@@ -1,4 +1,4 @@
-# Phase 4: Multiplayer World
+# Phase 7: Multiplayer World
 
 **Goal:** many players sharing the world efficiently ([tech-stack.md](../tech-stack.md#efficient-event-model)).
 

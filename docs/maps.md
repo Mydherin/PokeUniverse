@@ -87,6 +87,7 @@ objects:
 
 - The compiler uses it for auto-tiling, collision and behavior (grass, water, ledges, doors).
 - Built once per tileset; the AI labels tiles by viewing a **labeled preview** (each tile with its index drawn on it).
+- **Art styles share tile names:** maps start with FireRed's tilesets; a public pack gets its own catalog with the same names, so text maps don't change when the art does.
 
 ## Tools
 
@@ -94,6 +95,7 @@ All tools live in `tool-maps` (Go) and run from the command line.
 
 | Command | Purpose |
 |---|---|
+| `extract` | **At build:** copies FireRed's graphics, music and text from the decompilation into a gitignored folder (never committed) |
 | `convert` | **Once:** reads FireRed's decompilation (`map.json`, `map.bin`, tilesets) and writes text maps, PNG tilesets and catalogs |
 | `validate` | Checks every map: valid IDs, warps lead somewhere, connections match, no object inside a wall, every area reachable |
 | `compile` | Turns text maps into compact runtime maps for `spa-pokeuniverse` and `mic-core`, applying auto-tiling |

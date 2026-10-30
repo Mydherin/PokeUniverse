@@ -1,4 +1,4 @@
-# Phase 9: Polish and Launch
+# Phase 12: Polish and Launch
 
 **Goal:** a stable, public MVP.
 

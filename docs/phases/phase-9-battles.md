@@ -1,4 +1,4 @@
-# Phase 6: Battles
+# Phase 9: Battles
 
 **Goal:** Gen 4 battles through `mic-battles`.
 
@@ -9,7 +9,7 @@
 - Wild encounters in grass, caves and water.
 - Battle UI on desktop and mobile; animations and sounds triggered by name.
 - Catching, experience, leveling, evolution, learning moves.
-- Trainer battles (NPCs).
+- Trainer battles (NPCs), starting with the first rival battle in Oak's lab (deferred from [Phase 5](phase-5-pallet-town.md)).
 
 ## Done When
 
