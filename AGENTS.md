@@ -45,3 +45,8 @@ Documentation must always reflect the current state of the project.
   3. Never silently ignore the request or leave the doc outdated.
 - Keep docs **concise and consistent**: bullets, tables, short "Why" lines. Full coverage, minimal words.
 - Don't create new docs unless the user asks.
+
+### Testing
+
+- **No automated tests in the repository:** no unit, integration or end-to-end test suites.
+- **Manual tests only when the user explicitly asks** (e.g. run the app and check a behavior). Don't commit anything they leave behind.

@@ -8,8 +8,7 @@
 - Reference repositories as shallow Git submodules in `references/` ([tech-stack.md](../tech-stack.md#how-references-are-kept)).
 - Docker Compose with PostgreSQL, Redis and NATS; one Dockerfile per artifact.
 - `lib-contracts` with Buf, generating Go and TypeScript code.
-- Shared commands to build, test and run everything.
-- Test setup for Go and TypeScript.
+- Shared commands to build and run everything.
 - `mic-core` ↔ `mic-battles` test message over NATS.
 
 ## Done When
