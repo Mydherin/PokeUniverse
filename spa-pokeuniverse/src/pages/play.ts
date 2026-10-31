@@ -40,55 +40,41 @@ export function playPage(): View {
       connecting: ["bg-volt-400 animate-twinkle", "Connecting…"],
       online: ["bg-leaf-400", s.state === "online" && s.latencyMs !== undefined ? `Online · ${s.latencyMs} ms` : "Online"],
       offline: ["bg-berry-400", "Reconnecting…"],
-      replaced: ["bg-berry-400", "Playing in another tab"],
+      replaced: ["bg-berry-400", "Playing somewhere else"],
       "signed-out": ["bg-berry-400", "Signed out"],
     }[s.state];
     dot.className = `size-2.5 rounded-full ${color}`;
     label.textContent = text;
   };
 
-  // Another copy of the game plays this trainer: continue here only if the player agrees.
-  const conflict = h(
+  let stopGame: (() => void) | undefined;
+  let destroyed = false;
+
+  // Another copy of the game took the trainer (CONTINUE or New Game there): this game stops
+  // for good, and the only way on is back home, where PLAY starts it again.
+  const replaced = h(
     "div",
-    { class: "absolute inset-0 z-20 flex items-center justify-center bg-night-900/85 p-6 backdrop-blur", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "conflict-title", hidden: true },
+    { class: "absolute inset-0 z-20 flex items-center justify-center bg-night-900/85 p-6 backdrop-blur", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "replaced-title", hidden: true },
     h(
       "div",
       { class: "panel max-w-sm space-y-4 p-6 text-center" },
-      h("h2", { id: "conflict-title", class: "font-display text-xl" }, "Playing somewhere else"),
-      h("p", { class: "text-ink-soft" }, "Your trainer is being played in another window or device. If you continue here, that session will be disconnected."),
-      h(
-        "div",
-        { class: "flex flex-wrap justify-center gap-3" },
-        h("a", { href: "/", "data-link": true, class: "btn btn-ghost" }, "Back to home"),
-        h(
-          "button",
-          {
-            type: "button",
-            class: "btn btn-play min-h-12 px-6 text-xl",
-            on: {
-              click: () => {
-                conflict.hidden = true;
-                connection.takeOver();
-              },
-            },
-          },
-          "Continue here",
-        ),
-      ),
+      h("h2", { id: "replaced-title", class: "font-display text-xl" }, "Playing somewhere else"),
+      h("p", { class: "text-ink-soft" }, "Your trainer is now being played in another window or device, so the game stopped here."),
+      h("a", { href: "/", "data-link": true, class: "btn btn-play min-h-12 px-6 text-xl" }, "Back to home"),
     ),
   );
-  el.append(conflict);
-  const askTakeOver = () => {
-    if (!conflict.hidden) return;
-    conflict.hidden = false;
-    conflict.querySelector<HTMLButtonElement>("button")?.focus();
+  el.append(replaced);
+  const stop = () => {
+    destroyed = true;
+    stopGame?.();
+    stopGame = undefined;
+    replaced.hidden = false;
+    replaced.querySelector<HTMLAnchorElement>("a")?.focus();
   };
 
-  const connection = new Connection(show, askTakeOver);
+  const connection = new Connection(show, stop);
   connection.connect();
 
-  let stopGame: (() => void) | undefined;
-  let destroyed = false;
   // Phaser is loaded only when the player opens the game. It starts once the stage is
   // on screen with a real size (screen transitions attach it later).
   const hasSize = new Promise<void>((resolve) => {

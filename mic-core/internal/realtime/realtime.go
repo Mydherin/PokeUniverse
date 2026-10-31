@@ -50,7 +50,6 @@ type Verifier interface {
 type World interface {
 	Join(ctx context.Context, accountID int64, s live.Session, takeOver bool, sink world.Sink) (*world.Player, *worldv1.WorldSnapshot, error)
 	Leave(p *world.Player)
-	PlayingElsewhere(ctx context.Context, accountID int64, instance string) bool
 }
 
 // maxInstance bounds the client's instance ID (a UUID).
@@ -257,7 +256,7 @@ func (c *conn) enterWorld(takeOver bool) bool {
 	defer cancel()
 	p, snapshot, err := c.h.world.Join(ctx, c.principal.AccountID, live.Session{Instance: c.instance, Conn: c.id}, takeOver, sink{c})
 	if code, ok := joinErrors[err]; ok {
-		// The connection stays: the client may ask again (New Game, or take over).
+		// The connection stays: the client may ask again (New Game), or stops (replaced).
 		c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Error{Error: &realtimev1.Error{Code: code}}})
 		return true
 	}
@@ -292,8 +291,7 @@ func (s sink) Send(msg *realtimev1.ServerMessage) { s.c.write(msg) }
 func (s sink) Kick() { s.c.fail(realtimev1.ErrorCode_ERROR_CODE_REPLACED, closeReplaced) }
 
 // authenticate accepts the first token and every refreshed one for the same account. The
-// first one names the copy of the game (instance), answered in Welcome with whether another
-// copy plays the trainer now.
+// first one names the copy of the game (instance), which tells its reconnects from other copies.
 func (c *conn) authenticate(token, instance string) bool {
 	p, err := c.h.verifier.Verify(token)
 	first := c.expiry == nil
@@ -315,12 +313,7 @@ func (c *conn) authenticate(token, instance string) bool {
 	c.expiry = time.AfterFunc(time.Until(p.ExpiresAt), func() {
 		c.fail(realtimev1.ErrorCode_ERROR_CODE_TOKEN_EXPIRED, closeTokenExpired)
 	})
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Welcome{Welcome: &realtimev1.Welcome{
-		AccountId:        uint64(p.AccountID),
-		PlayingElsewhere: c.h.world.PlayingElsewhere(ctx, p.AccountID, instance),
-	}}})
+	c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Welcome{Welcome: &realtimev1.Welcome{AccountId: uint64(p.AccountID)}}})
 	c.h.log.Info("player connected", "account_id", p.AccountID)
 	return true
 }

@@ -32,7 +32,9 @@ const (
 // SESSION_ACTIVE when another copy of the game plays the trainer and take_over isn't set.
 type EnterWorld struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The player agreed to disconnect the other copy.
+	// Entering from the game (CONTINUE, New Game): plays here, disconnecting any other copy of the
+	// game. False when re-entering after a reconnect, so a copy that was replaced meanwhile gets
+	// SESSION_ACTIVE instead of taking the trainer back.
 	TakeOver      bool `protobuf:"varint,1,opt,name=take_over,json=takeOver,proto3" json:"take_over,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

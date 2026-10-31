@@ -37,9 +37,10 @@ const (
 	ErrorCode_ERROR_CODE_BAD_MESSAGE ErrorCode = 3
 	// EnterWorld for an account with no trainer (New Game creates it).
 	ErrorCode_ERROR_CODE_NO_TRAINER ErrorCode = 4
-	// The account entered the world from another connection; this one is closed.
+	// Another copy of the game entered the world with the trainer; this connection is closed.
 	ErrorCode_ERROR_CODE_REPLACED ErrorCode = 5
-	// EnterWorld without take_over while another copy of the game plays the trainer.
+	// EnterWorld without take_over (a reconnect) while another copy plays the trainer: this copy
+	// was replaced meanwhile.
 	ErrorCode_ERROR_CODE_SESSION_ACTIVE ErrorCode = 6
 )
 
@@ -474,12 +475,10 @@ func (x *Authenticate) GetInstance() string {
 
 // Reply to the first valid Authenticate.
 type Welcome struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	AccountId uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	// Another copy of the game is playing this account's trainer in the world right now.
-	PlayingElsewhere bool `protobuf:"varint,2,opt,name=playing_elsewhere,json=playingElsewhere,proto3" json:"playing_elsewhere,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccountId     uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Welcome) Reset() {
@@ -517,13 +516,6 @@ func (x *Welcome) GetAccountId() uint64 {
 		return x.AccountId
 	}
 	return 0
-}
-
-func (x *Welcome) GetPlayingElsewhere() bool {
-	if x != nil {
-		return x.PlayingElsewhere
-	}
-	return false
 }
 
 // Round-trip check.
@@ -700,11 +692,10 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
-	"\binstance\x18\x02 \x01(\tR\binstance\"U\n" +
+	"\binstance\x18\x02 \x01(\tR\binstance\"A\n" +
 	"\aWelcome\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x01 \x01(\x04R\taccountId\x12+\n" +
-	"\x11playing_elsewhere\x18\x02 \x01(\bR\x10playingElsewhere\"'\n" +
+	"account_id\x18\x01 \x01(\x04R\taccountIdJ\x04\b\x02\x10\x03R\x11playing_elsewhere\"'\n" +
 	"\x04Ping\x12\x1f\n" +
 	"\vclient_time\x18\x01 \x01(\x04R\n" +
 	"clientTime\"H\n" +

@@ -29,7 +29,9 @@ export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
  */
 export type EnterWorld = Message$1<"pokeuniverse.world.v1.EnterWorld"> & {
   /**
-   * The player agreed to disconnect the other copy.
+   * Entering from the game (CONTINUE, New Game): plays here, disconnecting any other copy of the
+   * game. False when re-entering after a reconnect, so a copy that was replaced meanwhile gets
+   * SESSION_ACTIVE instead of taking the trainer back.
    *
    * @generated from field: bool take_over = 1;
    */

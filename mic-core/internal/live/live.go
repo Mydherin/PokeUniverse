@@ -179,15 +179,6 @@ func (s *Store) Claim(ctx context.Context, accountID int64, sess Session, takeOv
 	return p, previous, nil
 }
 
-// PlayingElsewhere reports whether another instance than `instance` plays the player now.
-func (s *Store) PlayingElsewhere(ctx context.Context, accountID int64, instance string) (bool, error) {
-	cur, err := s.rdb.HGet(ctx, sessionKey(accountID), "instance").Result()
-	if errors.Is(err, redis.Nil) {
-		return false, nil
-	}
-	return err == nil && cur != instance, err
-}
-
 // KeepAlive renews the sessions and adds their play time in one round trip; owned[i] is false
 // when owners[i] lost its player (taken over, or New Game).
 func (s *Store) KeepAlive(ctx context.Context, owners []Owner) ([]bool, error) {

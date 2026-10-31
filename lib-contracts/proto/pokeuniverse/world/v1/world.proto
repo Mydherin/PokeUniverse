@@ -14,7 +14,9 @@ option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1;wor
 // after every reconnect; answered with a WorldSnapshot, or Error NO_TRAINER, or Error
 // SESSION_ACTIVE when another copy of the game plays the trainer and take_over isn't set.
 message EnterWorld {
-  // The player agreed to disconnect the other copy.
+  // Entering from the game (CONTINUE, New Game): plays here, disconnecting any other copy of the
+  // game. False when re-entering after a reconnect, so a copy that was replaced meanwhile gets
+  // SESSION_ACTIVE instead of taking the trainer back.
   bool take_over = 1;
 }
 

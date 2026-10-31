@@ -32,7 +32,7 @@ var Start = struct {
 // ErrNoTrainer: the account has no trainer yet (New Game creates it).
 var ErrNoTrainer = errors.New("no trainer")
 
-// ErrSessionActive: another copy of the game plays the trainer; Join again with takeOver.
+// ErrSessionActive: another copy of the game plays the trainer (this one, reconnecting, was replaced).
 var ErrSessionActive = live.ErrSessionActive
 
 // Bus reaches the other replicas: a connection there lost its player to a take-over here.
@@ -163,15 +163,6 @@ func (w *World) SessionTaken(accountID int64, conn string) {
 	if p != nil && p.conn == conn {
 		p.sink.Kick()
 	}
-}
-
-// PlayingElsewhere reports whether another copy of the game than `instance` plays the trainer.
-func (w *World) PlayingElsewhere(ctx context.Context, accountID int64, instance string) bool {
-	elsewhere, err := w.live.PlayingElsewhere(ctx, accountID, instance)
-	if err != nil {
-		w.log.Error("check session", "account_id", accountID, "err", err)
-	}
-	return elsewhere
 }
 
 // keepAlive renews this replica's sessions; one that was lost (taken over, New Game) is

@@ -18,7 +18,7 @@
 - **Bedroom PC** after the boot message: ITEM STORAGE (WITHDRAW ITEM, DEPOSIT ITEM, TOSS ITEM), MAILBOX (empty) and TURN OFF, with FireRed's screens, texts and sounds. It starts with one POTION, like the original.
 - **Items, minimal model:** bag pockets, PC item storage and money (starts at 3000) per trainer in PostgreSQL; `mic-core` decides every change ([Phase 10](phase-10-world-content.md) adds the rest of the items and their effects).
 - Warps between maps: the stairs lead down to the house's first floor.
-- ✅ Position saved to Redis every tick and copied to PostgreSQL; after a crash the player continues on the same tile. One copy of the game plays a trainer at a time: another copy asks before taking it over.
+- ✅ Position saved to Redis every tick and copied to PostgreSQL; after a crash the player continues on the same tile. One copy of the game plays a trainer at a time: CONTINUE (or New Game) in a new copy takes it over, and the old copy stops with a dialog that only goes back home.
 - Keyboard controls (desktop) and touch controls (mobile).
 
 ## Done When
