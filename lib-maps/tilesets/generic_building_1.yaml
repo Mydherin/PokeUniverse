@@ -1,0 +1,28 @@
+id: generic_building_1
+base: building
+firered: data/tilesets/secondary/generic_building_1
+tiles:
+  solid_640: { index: 640, walkable: false, elevation: 0 }
+  solid_641: { index: 641, walkable: false, elevation: 0 }
+  ground_642: { index: 642, walkable: true, elevation: 3 }
+  ground_643: { index: 643, walkable: true, elevation: 3 }
+  impassable_south_644: { index: 644, walkable: true, elevation: 3, behavior: impassable_south }
+  ground_645: { index: 645, walkable: true, elevation: 3 }
+  ground_646: { index: 646, walkable: true, elevation: 3 }
+  solid_647: { index: 647, walkable: false, elevation: 0 }
+  solid_648: { index: 648, walkable: false, elevation: 0 }
+  solid_649: { index: 649, walkable: false, elevation: 0 }
+  solid_650: { index: 650, walkable: false, elevation: 0 }
+  ground_651: { index: 651, walkable: true, elevation: 0 }
+  impassable_north_652: { index: 652, walkable: true, elevation: 3, behavior: impassable_north }
+  ground_653: { index: 653, walkable: true, elevation: 0 }
+  solid_654: { index: 654, walkable: false, elevation: 0 }
+  solid_655: { index: 655, walkable: false, elevation: 0 }
+  ground_656: { index: 656, walkable: true, elevation: 3 }
+  ground_657: { index: 657, walkable: true, elevation: 3 }
+  solid_658: { index: 658, walkable: false, elevation: 0 }
+  ground_659: { index: 659, walkable: true, elevation: 4 }
+  solid_660: { index: 660, walkable: false, elevation: 0 }
+  ground_661: { index: 661, walkable: true, elevation: 4 }
+  ground_662: { index: 662, walkable: true, elevation: 3 }
+  ground_663: { index: 663, walkable: true, elevation: 3 }

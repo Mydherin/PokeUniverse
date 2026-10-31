@@ -1,0 +1,223 @@
+syntax = "proto3";
+
+// Runtime maps: compiled by tool-maps from the text maps in lib-maps (docs/maps.md), one file
+// per map and side. Generated output, never edited by hand.
+package pokeuniverse.map.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1;mapv1";
+
+// What spa-pokeuniverse draws: the visual layers only.
+message ClientMap {
+  string id = 1;
+  uint32 width = 2;
+  uint32 height = 3;
+  // Tileset art to draw with, by ID (each art style maps it to its images).
+  string tileset = 4;
+  // One tile index per cell, row by row.
+  repeated uint32 tiles = 5;
+  // Tiles repeated outside the map where no connection is drawn, row by row.
+  uint32 border_width = 6;
+  repeated uint32 border = 7;
+  repeated Connection connections = 8;
+  string music = 9;
+  string weather = 10;
+  bool show_name = 11;
+}
+
+// What mic-core plays: collision, behaviors, warps and objects.
+message ServerMap {
+  string id = 1;
+  uint32 width = 2;
+  uint32 height = 3;
+  MapType type = 4;
+  // One entry per cell, row by row: 1 when it can be walked on, else 0.
+  bytes walkable = 5;
+  // One entry per cell: 0-15; 0 and 15 connect every elevation.
+  bytes elevation = 6;
+  repeated TileBehavior behaviors = 7;
+  // One entry per cell.
+  repeated EncounterType encounters = 8;
+  repeated Connection connections = 9;
+  repeated Warp warps = 10;
+  repeated MapObject objects = 11;
+  bool allow_running = 12;
+  bool allow_cycling = 13;
+  bool allow_escaping = 14;
+  bool requires_flash = 15;
+  string region = 16;
+}
+
+enum MapType {
+  MAP_TYPE_UNSPECIFIED = 0;
+  MAP_TYPE_TOWN = 1;
+  MAP_TYPE_ROUTE = 2;
+  MAP_TYPE_INDOOR = 3;
+  MAP_TYPE_UNDERGROUND = 4;
+}
+
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_NORTH = 1;
+  DIRECTION_SOUTH = 2;
+  DIRECTION_WEST = 3;
+  DIRECTION_EAST = 4;
+}
+
+// Another map joined along one edge; offset shifts it along that edge, in tiles.
+message Connection {
+  Direction direction = 1;
+  string map = 2;
+  int32 offset = 3;
+}
+
+message Warp {
+  string id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  // Destination map, or empty for a dynamic warp (the map the player came from).
+  string to_map = 4;
+  // Warp of the destination map the player appears on.
+  string to_warp = 5;
+}
+
+message MapObject {
+  string id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  oneof kind {
+    Npc npc = 4;
+    Sign sign = 5;
+    HiddenItem hidden_item = 6;
+    Trigger trigger = 7;
+  }
+}
+
+message Npc {
+  string sprite = 1;
+  string movement = 2;
+  uint32 range_x = 3;
+  uint32 range_y = 4;
+  string script = 5;
+  // Story flag that hides it while set; empty when always shown.
+  string flag = 6;
+  // Set for trainers: how they spot the player.
+  string trainer_type = 7;
+  uint32 trainer_sight = 8;
+}
+
+// A spot checked with A (signs, PCs, shelves).
+message Sign {
+  string script = 1;
+  // Direction the player must face; unspecified for any.
+  Direction facing = 2;
+}
+
+message HiddenItem {
+  string item = 1;
+  uint32 quantity = 2;
+  string flag = 3;
+  // Found by standing on it rather than facing it.
+  bool underfoot = 4;
+}
+
+// Runs its script when the player steps on it while the variable has the value.
+message Trigger {
+  string script = 1;
+  string var = 2;
+  int32 value = 3;
+}
+
+enum EncounterType {
+  ENCOUNTER_TYPE_UNSPECIFIED = 0;
+  ENCOUNTER_TYPE_LAND = 1;
+  ENCOUNTER_TYPE_WATER = 2;
+}
+
+// What stepping on, or facing, a tile does. Unspecified is a plain tile.
+enum TileBehavior {
+  TILE_BEHAVIOR_UNSPECIFIED = 0;
+  TILE_BEHAVIOR_TALL_GRASS = 1;
+  TILE_BEHAVIOR_CAVE = 2;
+  TILE_BEHAVIOR_MOUNTAIN_TOP = 3;
+  TILE_BEHAVIOR_POND_WATER = 4;
+  TILE_BEHAVIOR_FAST_WATER = 5;
+  TILE_BEHAVIOR_WATERFALL = 6;
+  TILE_BEHAVIOR_OCEAN_WATER = 7;
+  TILE_BEHAVIOR_PUDDLE = 8;
+  TILE_BEHAVIOR_SHALLOW_WATER = 9;
+  TILE_BEHAVIOR_CYCLING_ROAD_WATER = 10;
+  TILE_BEHAVIOR_STRENGTH_BUTTON = 11;
+  TILE_BEHAVIOR_SAND = 12;
+  TILE_BEHAVIOR_ICE = 13;
+  TILE_BEHAVIOR_THIN_ICE = 14;
+  TILE_BEHAVIOR_CRACKED_ICE = 15;
+  TILE_BEHAVIOR_ROCK_STAIRS = 16;
+  TILE_BEHAVIOR_SAND_CAVE = 17;
+  TILE_BEHAVIOR_IMPASSABLE_EAST = 18;
+  TILE_BEHAVIOR_IMPASSABLE_WEST = 19;
+  TILE_BEHAVIOR_IMPASSABLE_NORTH = 20;
+  TILE_BEHAVIOR_IMPASSABLE_SOUTH = 21;
+  TILE_BEHAVIOR_JUMP_EAST = 22;
+  TILE_BEHAVIOR_JUMP_WEST = 23;
+  TILE_BEHAVIOR_JUMP_SOUTH = 24;
+  TILE_BEHAVIOR_EASTWARD_CURRENT = 25;
+  TILE_BEHAVIOR_WESTWARD_CURRENT = 26;
+  TILE_BEHAVIOR_NORTHWARD_CURRENT = 27;
+  TILE_BEHAVIOR_SOUTHWARD_CURRENT = 28;
+  TILE_BEHAVIOR_SPIN_RIGHT = 29;
+  TILE_BEHAVIOR_SPIN_LEFT = 30;
+  TILE_BEHAVIOR_SPIN_UP = 31;
+  TILE_BEHAVIOR_SPIN_DOWN = 32;
+  TILE_BEHAVIOR_STOP_SPINNING = 33;
+  TILE_BEHAVIOR_CAVE_DOOR = 34;
+  TILE_BEHAVIOR_LADDER = 35;
+  TILE_BEHAVIOR_EAST_ARROW_WARP = 36;
+  TILE_BEHAVIOR_WEST_ARROW_WARP = 37;
+  TILE_BEHAVIOR_NORTH_ARROW_WARP = 38;
+  TILE_BEHAVIOR_SOUTH_ARROW_WARP = 39;
+  TILE_BEHAVIOR_FALL_WARP = 40;
+  TILE_BEHAVIOR_REGULAR_WARP = 41;
+  TILE_BEHAVIOR_WARP_DOOR = 42;
+  TILE_BEHAVIOR_UP_ESCALATOR = 43;
+  TILE_BEHAVIOR_DOWN_ESCALATOR = 44;
+  TILE_BEHAVIOR_UP_RIGHT_STAIR_WARP = 45;
+  TILE_BEHAVIOR_UP_LEFT_STAIR_WARP = 46;
+  TILE_BEHAVIOR_DOWN_RIGHT_STAIR_WARP = 47;
+  TILE_BEHAVIOR_DOWN_LEFT_STAIR_WARP = 48;
+  TILE_BEHAVIOR_UNION_ROOM_WARP = 49;
+  TILE_BEHAVIOR_COUNTER = 50;
+  TILE_BEHAVIOR_BOOKSHELF = 51;
+  TILE_BEHAVIOR_POKEMART_SHELF = 52;
+  TILE_BEHAVIOR_PC = 53;
+  TILE_BEHAVIOR_SIGNPOST = 54;
+  TILE_BEHAVIOR_REGION_MAP = 55;
+  TILE_BEHAVIOR_TELEVISION = 56;
+  TILE_BEHAVIOR_POKEMON_CENTER_SIGN = 57;
+  TILE_BEHAVIOR_POKEMART_SIGN = 58;
+  TILE_BEHAVIOR_CABINET = 59;
+  TILE_BEHAVIOR_KITCHEN = 60;
+  TILE_BEHAVIOR_DRESSER = 61;
+  TILE_BEHAVIOR_CABLE_CLUB_WIRELESS_MONITOR = 62;
+  TILE_BEHAVIOR_BATTLE_RECORDS = 63;
+  TILE_BEHAVIOR_QUESTIONNAIRE = 64;
+  TILE_BEHAVIOR_FOOD = 65;
+  TILE_BEHAVIOR_INDIGO_PLATEAU_SIGN_1 = 66;
+  TILE_BEHAVIOR_INDIGO_PLATEAU_SIGN_2 = 67;
+  TILE_BEHAVIOR_BLUEPRINTS = 68;
+  TILE_BEHAVIOR_PAINTING = 69;
+  TILE_BEHAVIOR_POWER_PLANT_MACHINE = 70;
+  TILE_BEHAVIOR_TELEPHONE = 71;
+  TILE_BEHAVIOR_COMPUTER = 72;
+  TILE_BEHAVIOR_ADVERTISING_POSTER = 73;
+  TILE_BEHAVIOR_FOOD_SMELLS_TASTY = 74;
+  TILE_BEHAVIOR_TRASH_BIN = 75;
+  TILE_BEHAVIOR_CUP = 76;
+  TILE_BEHAVIOR_PORTHOLE = 77;
+  TILE_BEHAVIOR_WINDOW = 78;
+  TILE_BEHAVIOR_BLINKING_LIGHTS = 79;
+  TILE_BEHAVIOR_NEATLY_LINED_UP_TOOLS = 80;
+  TILE_BEHAVIOR_BURGLARY = 81;
+  TILE_BEHAVIOR_TRAINER_TOWER_MONITOR = 82;
+  TILE_BEHAVIOR_CYCLING_ROAD_PULL_DOWN = 83;
+  TILE_BEHAVIOR_CYCLING_ROAD_PULL_DOWN_GRASS = 84;
+}

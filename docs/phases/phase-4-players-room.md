@@ -4,7 +4,7 @@
 
 ## Scope
 
-- Create `tool-maps` map commands (Go CLI): `convert`, `validate`, `compile`, `preview`, `catalog-preview` ([maps.md](../maps.md)).
+- ✅ Create `tool-maps` map commands (Go CLI): `convert`, `validate`, `compile`, `tilesets`, `preview`, `catalog-preview`, `rename` ([maps.md](../maps.md)); tested on the player's room.
 - Convert FireRed's maps into the text format, with FireRed's tilesets and their tile catalogs.
 - Phaser renders compiled maps (pixel-perfect) with a camera following the player.
 - Player sprite (boy or girl) with walk and run animations.

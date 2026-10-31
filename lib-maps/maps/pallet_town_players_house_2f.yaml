@@ -1,0 +1,89 @@
+id: pallet_town_players_house_2f
+type: indoor
+region: pallet_town
+music: mus_pallet
+tileset: generic_building_1
+size: [12, 9]
+border:
+  - [solid_008, solid_008]
+  - [solid_008, solid_008]
+legend:
+  "!": solid_006
+  "#": solid_008
+  "$": solid_005
+  "%": solid_032
+  "&": solid_040
+  "'": ground_086
+  "(": solid_654
+  ")": solid_655
+  "*": signpost_166
+  "+": dresser_048
+  ",": ground_009
+  "-": ground_068
+  ".": ground_001
+  "/": solid_043
+  ":": ground_069
+  ";": ground_092
+  "<": solid_044
+  "=": bookshelf_052
+  ">": solid_134
+  "?": solid_013
+  "@": bookshelf_051
+  "[": solid_150
+  "]": solid_647
+  "^": solid_014
+  "_": ground_083
+  "`": down_left_stair_warp_007
+  "a": ground_015
+  "b": ground_056
+  "c": ground_059
+  "d": ground_060
+  "e": ground_067
+  "f": ground_070
+  "g": ground_090
+  "h": ground_091
+  "i": ground_094
+  "j": ground_643
+  "k": ground_645
+  "l": ground_646
+  "m": ground_651
+  "n": ground_653
+  "o": ground_659
+  "p": ground_661
+  "q": ground_662
+  "r": ground_663
+  "s": impassable_north_652
+  "t": impassable_south_644
+  "{": solid_660
+  "|": solid_021
+  "}": television_053
+ground: |
+  #   0         1
+  #   012345678901
+  00  #]%%/<%%%%%[
+  01  #)>+@=&&|&&*
+  02  #rgbcd,,$!`,
+  03  #,....l.?^a.
+  04  #jtke-}-f...
+  05  #msn_:(:'...
+  06  #o{p_:q:'...
+  07  #,..h;;;i...
+  08  #,..........
+elevation: |
+  #   0         1
+  #   012345678901
+  00  ............
+  01  ............
+  02  ............
+  03  ............
+  04  ............
+  05  ............
+  06  ....0.......
+  07  .0.0........
+  08  ............
+warps:
+  - { id: 1f, at: [10, 2], to: pallet_town_players_house_1f, spawn: 2f }
+objects:
+  - { type: sign, id: nes, at: [6, 5], script: nes }
+  - { type: sign, id: pc, at: [1, 1], script: pc }
+  - { type: sign, id: sign, at: [11, 1], script: sign }

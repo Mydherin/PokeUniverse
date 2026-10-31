@@ -30,7 +30,7 @@
 - Used **only to understand behavior**: how actions and events work (movement, collisions, encounters, menus, scripts, formulas).
 - **Never copy code.** Everything is rebuilt from zero with our own code, architecture and patterns.
 - When the reference and our design disagree, **our design wins**; we replicate the behavior, not the implementation.
-- **Assets exception:** FireRed's graphics are copied as they are by `make graphics` (no tool; drawn with their palettes and tilemaps at runtime; the fonts' glyph widths are read from `src/text.c` into JSON files), `make text` encodes the strings the game shows (dialogue, menus) with the game's `charmap.txt`, as its own build does (`infra/text/extract.mjs`; the list is `src/game/firered/texts.json`), and `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
+- **Assets exception:** FireRed's graphics are copied as they are by `make graphics` (no tool; drawn with their palettes and tilemaps at runtime; the fonts' glyph widths are read from `src/text.c` into JSON files), `make text` encodes the strings the game shows (dialogue, menus) with the game's `charmap.txt`, as its own build does (`infra/text/extract.mjs`; the list is `src/game/firered/texts.json`), `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), and `make maps` renders its tilesets to PNG ([maps.md](maps.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
 
 ### Original Game (Emulator)
 
@@ -56,6 +56,7 @@ PokeUniverse/
 ├── mic-core/           # Main game server (Go)
 ├── mic-battles/        # Battle service (Node + Pokémon Showdown)
 ├── lib-contracts/      # Protocol Buffers contracts
+├── lib-maps/           # Text maps, shared layouts and tile catalogs: world source, compiled for the client and mic-core
 ├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
 ├── tool-emulator/      # The original FireRed in the browser, to compare with ours (`make emulator`)
 ├── references/         # Read-only reference repos (Git submodules)
@@ -70,7 +71,7 @@ PokeUniverse/
 ### Shared Commands
 
 - **Make** runs every shared command; each tool runs in Docker, so only **Docker and Make** are needed on the host.
-- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make audio`: FireRed's art, text and sound into gitignored folders). `make emulator` (the original game, see below). `make up` runs `make assets` first. `make help` lists them.
+- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make audio`: FireRed's art, text and sound into gitignored folders). `make maps` (render the maps' tileset art, validate and compile `lib-maps`) and `make tool-maps CMD="..."` (any map command, [maps.md](maps.md#tools)). `make emulator` (the original game, see below). `make up` runs `make assets` first. `make help` lists them.
 - **pnpm workspaces** for TypeScript packages; Go modules linked with `replace`.
 - **Generated code is committed** (Protocol Buffers, sqlc), so builds never need the generators.
 
@@ -199,6 +200,18 @@ All are request/reply, with messages from `pokeuniverse.battle.v1`. Every copy j
 
 - The NATS user `mic-battles` can only subscribe to `battles.>` and answer requests; it can't publish anything else.
 
+## tool-maps (Go)
+
+Converts, validates, compiles and previews the text maps of `lib-maps` ([maps.md](maps.md)). Development tool, run through Make in Docker; not deployed.
+
+| Library | Purpose |
+|---|---|
+| **go.yaml.in/yaml/v3** | Reads the text maps strictly (unknown fields are errors) |
+| **google.golang.org/protobuf** + `lib-contracts` | Writes the runtime maps (`pokeuniverse.map.v1`) |
+| Standard library | PNG art and previews, FireRed's binary data |
+
+- Layout: `cmd/tool-maps` (commands), `internal/<module>`: `format` (text files), `world` (loading, resolving cells), `validate`, `compile`, `firered` (decompilation reader, metatile renderer), `convert`, `art`, `preview`, `rename`.
+
 ## lib-contracts
 
 Single source of truth for every message between artifacts.
@@ -216,7 +229,7 @@ Rules:
 - Generated code is **never edited by hand**; it is regenerated with `buf generate`.
 - `buf breaking` runs on every change so existing clients never break silently.
 - Layout: `proto/` (sources), `gen/go` (Go module `pokeuniverse/lib-contracts`), `gen/ts` (package `@pokeuniverse/contracts`).
-- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**), `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`) and `pokeuniverse.battle.v1` (NATS messages between `mic-core` and `mic-battles`).
+- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**), `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`), `pokeuniverse.battle.v1` (NATS messages between `mic-core` and `mic-battles`) and `pokeuniverse.map.v1` (runtime maps compiled by `tool-maps`: `ClientMap`, `ServerMap`, and `TileBehavior`, the list of tile behaviors).
 
 ## Communication
 

@@ -9,7 +9,7 @@ PNPM       := npm install -g pnpm@10 >/dev/null 2>&1 && pnpm
 RUN := docker run --rm -v "$(CURDIR)":/repo
 GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build
 
-.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text audio emulator
+.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text audio emulator maps tool-maps
 
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
@@ -72,6 +72,17 @@ audio: ## Render FireRed's music, sound effects and cries (docs/audio.md)
 	@docker build -q -t pokeuniverse-audio infra/audio >/dev/null
 	$(RUN) --user "$$(id -u):$$(id -g)" pokeuniverse-audio sh /repo/infra/audio/render.sh
 
+# Maps: text sources in lib-maps, compiled and rendered by tool-maps into gitignored folders (docs/maps.md).
+MAPS := $(RUN) $(GO_CACHE) -w /repo/tool-maps $(GO_IMAGE) go run ./cmd/tool-maps
+
+maps: ## Render the maps' tileset art, then validate and compile lib-maps for the client and mic-core
+	$(NEED_FIRERED)
+	$(MAPS) tilesets
+	$(MAPS) compile
+
+tool-maps: ## Run a tool-maps command (docs/maps.md#tools), e.g. make tool-maps CMD="preview pallet_town --objects"
+	$(MAPS) $(CMD)
+
 # The original game in the browser (EmulatorJS + mGBA), to compare with ours. The ROM, EmulatorJS and the states are gitignored.
 EMU          := tool-emulator
 EMU_PORT     ?= 8090
@@ -101,6 +112,7 @@ sqlc: ## Generate type-safe Go database code
 tidy: ## Tidy Go modules
 	$(RUN) $(GO_CACHE) -w /repo/lib-contracts $(GO_IMAGE) go mod tidy
 	$(RUN) $(GO_CACHE) -w /repo/mic-core $(GO_IMAGE) go mod tidy
+	$(RUN) $(GO_CACHE) -w /repo/tool-maps $(GO_IMAGE) go mod tidy
 
 lock: ## Update pnpm-lock.yaml after changing a package.json
 	$(RUN) -w /repo $(NODE_IMAGE) sh -c "$(PNPM) install --lockfile-only"
