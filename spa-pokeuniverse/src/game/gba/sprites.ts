@@ -1,5 +1,5 @@
 // Sprites as the games manage them: 64 slots with callbacks, frame animations,
-// scale animations (affine) and a priority sort that builds the OAM list each frame.
+// scale and rotation animations (affine) and a priority sort that builds the OAM list each frame.
 
 import type { Palettes } from "./palette";
 import { HEIGHT, type ObjEntry } from "./video";
@@ -7,9 +7,12 @@ import { HEIGHT, type ObjEntry } from "./video";
 export const MAX_SPRITES = 64;
 
 /** A frame: tile offset in the sheet and how many frames it shows (0 = forever). */
-export type AnimCmd = { image: number; duration: number; hFlip?: boolean } | { jump: number } | "end";
-/** A scale step: absolute when duration is 0, otherwise added once per frame for `duration` frames. */
-export type AffineCmd = { xScale: number; yScale: number; duration: number } | "end";
+export type AnimCmd = { image: number; duration: number; hFlip?: boolean; vFlip?: boolean } | { jump: number } | "end";
+/**
+ * A scale and rotation step: absolute when duration is 0, otherwise added once per frame for
+ * `duration` frames. Rotation is in 1/256 of a turn (the command's s8, shifted by 8 in the game).
+ */
+export type AffineCmd = { xScale: number; yScale: number; rotation?: number; duration: number } | "end";
 
 export const enum ObjMode {
   Normal = 0,
@@ -58,6 +61,7 @@ export class Sprite {
   /** With `affine`: drawn in a double-size box. */
   affineDouble = true;
   hFlip = false;
+  vFlip = false;
   /** Moved by the shared sprite offset (gSpriteCoordOffsetX/Y). */
   coordOffsetEnabled = false;
   animPaused = false;
@@ -83,8 +87,12 @@ export class Sprite {
   affineEnded = false;
   xScale = 0x100;
   yScale = 0x100;
-  /** Matrix diagonal (8.8); no rotation is used. */
+  /** 0x10000 per turn. */
+  rotation = 0;
+  /** OAM matrix (8.8). */
   matrixA = 0x100;
+  matrixB = 0;
+  matrixC = 0;
   matrixD = 0x100;
   anchored = false;
   anchorX = 0;
@@ -123,6 +131,7 @@ export class Sprite {
     this.affineAnimNum = num;
     this.affineCmdIndex = this.affineDelay = 0;
     this.xScale = this.yScale = 0x100;
+    this.rotation = 0;
     this.affineBeginning = true;
     this.affineEnded = false;
   }
@@ -179,8 +188,10 @@ export class Sprites {
     s.setSize(template.width, template.height);
     s.tiles = this.sheets.get(template.sheet) ?? new Uint8Array(0);
     const first = s.anims[0][0];
-    s.tileNum = typeof first === "object" && "image" in first ? first.image : 0;
-    s.hFlip = typeof first === "object" && "image" in first ? (first.hFlip ?? false) : false;
+    const frame = typeof first === "object" && "image" in first ? first : null;
+    s.tileNum = frame?.image ?? 0;
+    s.hFlip = frame?.hFlip ?? false;
+    s.vFlip = frame?.vFlip ?? false;
     s.paletteNum = this.palettes.spritePaletteSlot(template.palette) & 15;
     return s;
   }
@@ -266,8 +277,8 @@ export class Sprites {
         priority: s.priority,
         mode: s.mode,
         hFlip: s.hFlip,
-        vFlip: false,
-        matrix: s.affine ? { a: s.matrixA, b: 0, c: 0, d: s.matrixD } : null,
+        vFlip: s.vFlip,
+        matrix: s.affine ? { a: s.matrixA, b: s.matrixB, c: s.matrixC, d: s.matrixD } : null,
         double: s.affine && s.affineDouble,
       });
     }
@@ -275,10 +286,11 @@ export class Sprites {
   }
 }
 
-function applyFrame(s: Sprite, cmd: { image: number; duration: number; hFlip?: boolean }): void {
+function applyFrame(s: Sprite, cmd: { image: number; duration: number; hFlip?: boolean; vFlip?: boolean }): void {
   s.animDelay = cmd.duration ? cmd.duration - 1 : 0;
   s.tileNum = cmd.image;
   s.hFlip = cmd.hFlip ?? false;
+  s.vFlip = cmd.vFlip ?? false;
 }
 
 function beginAnim(s: Sprite): void {
@@ -307,21 +319,34 @@ function continueAnim(s: Sprite): void {
   } else applyFrame(s, cmd);
 }
 
-function updateMatrix(s: Sprite, dx: number, dy: number): void {
+/** Sine and cosine of a 1/256 turn, 1.14 fixed point like the BIOS table. */
+const AFFINE_SIN = Int16Array.from({ length: 256 }, (_, i) => Math.round(Math.sin((i * 2 * Math.PI) / 256) * 0x4000));
+
+/** The relative step, then the OAM matrix (ObjAffineSet: the inverse scale, rotated). */
+function updateMatrix(s: Sprite, dx: number, dy: number, dRotation = 0): void {
   s.xScale = (s.xScale + dx) << 16 >> 16;
   s.yScale = (s.yScale + dy) << 16 >> 16;
-  s.matrixA = s.xScale ? Math.trunc(0x10000 / s.xScale) << 16 >> 16 : 0;
-  s.matrixD = s.yScale ? Math.trunc(0x10000 / s.yScale) << 16 >> 16 : 0;
+  s.rotation = (s.rotation + (dRotation << 8)) & 0xffff;
+  const sx = s.xScale ? Math.trunc(0x10000 / s.xScale) << 16 >> 16 : 0;
+  const sy = s.yScale ? Math.trunc(0x10000 / s.yScale) << 16 >> 16 : 0;
+  const turn = s.rotation >> 8;
+  const sin = AFFINE_SIN[turn];
+  const cos = AFFINE_SIN[(turn + 64) & 0xff];
+  s.matrixA = (sx * cos) >> 14;
+  s.matrixB = -(sx * sin) >> 14;
+  s.matrixC = (sy * sin) >> 14;
+  s.matrixD = (sy * cos) >> 14;
 }
 
 /** Absolute when the duration is 0; otherwise one relative step. Returns the frames left. */
-function applyAffineFrame(s: Sprite, cmd: { xScale: number; yScale: number; duration: number }): number {
+function applyAffineFrame(s: Sprite, cmd: { xScale: number; yScale: number; rotation?: number; duration: number }): number {
   if (cmd.duration) {
-    updateMatrix(s, cmd.xScale, cmd.yScale);
+    updateMatrix(s, cmd.xScale, cmd.yScale, cmd.rotation);
     return cmd.duration - 1;
   }
   s.xScale = cmd.xScale;
   s.yScale = cmd.yScale;
+  s.rotation = (cmd.rotation ?? 0) << 8;
   updateMatrix(s, 0, 0);
   return 0;
 }
@@ -339,7 +364,7 @@ function continueAffineAnim(s: Sprite): void {
   const current = s.affineAnims[s.affineAnimNum][s.affineCmdIndex];
   if (s.affineDelay) {
     s.affineDelay--;
-    if (current !== "end") updateMatrix(s, current.xScale, current.yScale);
+    if (current !== "end") updateMatrix(s, current.xScale, current.yScale, current.rotation);
   } else {
     const cmd = s.affineAnims[s.affineAnimNum][++s.affineCmdIndex];
     if (cmd === "end" || cmd === undefined) {

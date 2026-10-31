@@ -77,6 +77,7 @@ Measured on `mus_title` (45 s: intro + one pass):
 - The game uses **sound IDs** (`mus_title`, `se_select`), never file names; the FireRed manifest maps them to files ([tech-stack.md](tech-stack.md#decoupled-presentation)).
 - Phaser's Web Audio context, each sound decoded once and kept in memory (`src/game/gba/sound.ts`). The browser gets `.webm` if it can play Opus (`canPlayType`), otherwise `.m4a`.
 - **Players** like the game's: one **BGM** at a time (starting a song stops the one playing, as FireRed's music player does); sound effects and cries on their own players, over the music.
+- **Mono or stereo** by the trainer's SOUND option: every player goes through one output, downmixed to mono by default (FireRed's MONO), stereo as rendered with STEREO.
 - **Fade out** as in the game: the BGM volume drops 1/16 every *n* frames, then it stops; the title screen waits for it.
 - Audio is unlocked on the first tap or key (required by Safari and iOS): opening `/play` directly shows "Tap or press any key to start" first ([ui.md](ui.md#audio-unlock)).
 - Paused with the tab hidden.
@@ -106,4 +107,6 @@ Loaded in the background after boot (with the New Game art and text), so the int
 | `se_ball`, `se_win_open` | Sound effects (naming screen: delete, page swap; `se_win_open` also opens the START menu) | SE |
 | `se_warp_in` | Sound effect (the player shrinks) | SE |
 | `se_card_open`, `se_card_flip`, `se_card_flipping` | Sound effects (Trainer Card: shown, flip, mid-flip) | SE |
+| `se_bag_cursor`, `se_bag_pocket` | Sound effects (Bag: cursor moved, pocket switched) | SE |
+| `se_repel`, `se_glass_flute` | Sound effects (a REPEL used; the WHITE or BLACK FLUTE) | SE |
 | `cry_nidoran_f` | Cry 28 | Cry |

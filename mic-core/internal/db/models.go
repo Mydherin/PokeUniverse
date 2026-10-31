@@ -50,4 +50,23 @@ type Trainer struct {
 	Facing          string
 	TrainerID       int64
 	Money           int32
+	TextSpeed       string
+	BattleScene     string
+	BattleStyle     string
+	Sound           string
+	ButtonMode      string
+	Frame           int16
+	RegisteredItem  int16
+	RepelSteps      int16
+	Flute           string
+	Coins           int32
+	BerryPowder     int32
+}
+
+type TrainerItem struct {
+	AccountID int64
+	Pocket    int16
+	Slot      int16
+	Item      int16
+	Quantity  int16
 }

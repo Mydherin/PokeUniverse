@@ -5,6 +5,8 @@
 // Re-entering after a reconnect never takes it back: a copy replaced meanwhile stops too.
 
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
+import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
 import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
@@ -23,6 +25,10 @@ export interface WorldEvents {
   snapshot(s: WorldSnapshot): void;
   correction(c: Correction): void;
   script(s: Script): void;
+  /** Bag pockets that changed (before the ItemResult that changed them), or a correction. */
+  bagChanged(b: BagChanged): void;
+  /** What using, giving or tossing an item did. */
+  itemResult(r: ItemResult): void;
   /** The account has no trainer (New Game creates it). */
   noTrainer(): void;
 }
@@ -38,6 +44,12 @@ export interface WorldLink {
   turn(direction: Direction): void;
   interact(walkInto: boolean): void;
   scriptDone(script: number): void;
+  /** USE from the bag, or the registered item with SELECT (`field`); answered with an ItemResult. */
+  useItem(item: Item, field: boolean): void;
+  giveItem(item: Item): void;
+  tossItem(item: Item, quantity: number): void;
+  registerItem(item: Item): void;
+  moveItem(pocket: Pocket, from: number, to: number): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -133,6 +145,26 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "scriptDone", value: { script } });
   }
 
+  useItem(item: Item, field: boolean): void {
+    if (this.inWorld) this.send({ case: "useItem", value: { item, field } });
+  }
+
+  giveItem(item: Item): void {
+    if (this.inWorld) this.send({ case: "giveItem", value: { item } });
+  }
+
+  tossItem(item: Item, quantity: number): void {
+    if (this.inWorld) this.send({ case: "tossItem", value: { item, quantity } });
+  }
+
+  registerItem(item: Item): void {
+    if (this.inWorld) this.send({ case: "registerItem", value: { item } });
+  }
+
+  moveItem(pocket: Pocket, from: number, to: number): void {
+    if (this.inWorld) this.send({ case: "moveItem", value: { pocket, from, to } });
+  }
+
   private receive(data: Uint8Array): void {
     const msg = fromBinary(ServerMessageSchema, data);
     switch (msg.payload.case) {
@@ -163,6 +195,12 @@ export class Connection implements WorldLink {
         break;
       case "script":
         this.world?.script(msg.payload.value);
+        break;
+      case "bagChanged":
+        this.world?.bagChanged(msg.payload.value);
+        break;
+      case "itemResult":
+        this.world?.itemResult(msg.payload.value);
         break;
       case "error":
         if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();

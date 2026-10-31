@@ -3,8 +3,8 @@
 // The title's timeout plays the intro again; B on the main menu goes back to the title.
 
 import { create, fromJson, toJson } from "@bufbuild/protobuf";
-import { NewTrainerSchema, TrainerSummarySchema, type TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
-import { api } from "../../api/client";
+import { ButtonMode, NewTrainerSchema, OptionsSchema, SoundMode, TrainerSummarySchema, type TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
+import { api, ApiError } from "../../api/client";
 import type { WorldLink } from "../../realtime/connection";
 import type { Gba } from "../gba/gba";
 import type { WorldView } from "../world/view";
@@ -15,6 +15,7 @@ import { startIntro } from "./intro";
 import { startMainMenu } from "./main-menu";
 import { Assets, NEW_GAME_SOUNDS, type SoundId } from "./manifest";
 import { startNewGame } from "./new-game";
+import { textScrollSpeed, validOptions, type Options } from "./options";
 import { startOverworld } from "./overworld";
 import { PlayTime } from "./play-time";
 import { startTitle } from "./title";
@@ -29,8 +30,6 @@ export async function fetchTrainer(): Promise<TrainerSummary | null> {
   }
 }
 
-/** Text speed MID (4 frames per character) scrolls 2 pixels per frame. */
-const SCROLL_SPEED = 2;
 const RETRY_MS = 2000;
 
 /** PUT /api/trainer until the server saved it (the same trainer twice is the same result). */
@@ -49,9 +48,50 @@ async function putTrainer(assets: Assets, trainer: NewTrainer): Promise<TrainerS
   }
 }
 
+/**
+ * PUT /api/trainer/options, one request at a time: the newest options win, a failed save is
+ * retried unless newer options replaced it, and options the server refuses are dropped.
+ */
+class OptionsSaver {
+  private pending: Options | null = null;
+  private running = false;
+
+  save(options: Options): void {
+    this.pending = options;
+    if (!this.running) void this.run();
+  }
+
+  private async run(): Promise<void> {
+    this.running = true;
+    while (this.pending) {
+      const options = this.pending;
+      this.pending = null;
+      try {
+        const body = JSON.stringify(toJson(OptionsSchema, options));
+        await api("/api/trainer/options", { method: "PUT", headers: { "Content-Type": "application/json" }, body });
+      } catch (e) {
+        if (e instanceof ApiError && e.status >= 400 && e.status < 500 && e.status !== 429) continue;
+        await new Promise((r) => setTimeout(r, RETRY_MS));
+        this.pending ??= options;
+      }
+    }
+    this.running = false;
+  }
+}
+
 export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: WorldLink, trainer: Promise<TrainerSummary | null>): void {
   let summary: TrainerSummary | null = null;
-  void trainer.then((t) => (summary = t));
+  let options = validOptions(undefined);
+  const saver = new OptionsSaver();
+  /** The options the game runs with: the trainer's, applied to the sound and the buttons. */
+  const useTrainer = (t: TrainerSummary | null) => {
+    summary = t;
+    options = validOptions(t?.options);
+    gba.sound.stereo = options.sound === SoundMode.STEREO;
+    gba.input.lEqualsA = options.buttonMode === ButtonMode.L_EQUALS_A;
+  };
+  useTrainer(null);
+  void trainer.then(useTrainer);
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
   let fonts: Record<FontId, Font> | null = null;
   let text: TextPrinters | null = null;
@@ -75,7 +115,9 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
       input: gba.input,
       playSelect: () => gba.sound.play("se_select"),
       canABSpeedUpPrint: false,
-      scrollSpeed: SCROLL_SPEED,
+      get scrollSpeed() {
+        return textScrollSpeed(options);
+      },
     });
   });
   void newGame.catch(() => {});
@@ -98,9 +140,17 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
     get trainer() {
       return summary;
     },
+    get options() {
+      return options;
+    },
+    setOptions: (o) => {
+      if (!summary) return;
+      useTrainer(Object.assign(summary, { options: o }));
+      saver.save(o);
+    },
     newGameReady: () => newGame,
     saveTrainer: async (t) => {
-      summary = await putTrainer(assets, t);
+      useTrainer(await putTrainer(assets, t));
     },
     encode: (s: string) => encodeText(assets.charmap, s),
     play: (id: SoundId, player?: string) => gba.sound.play(id, player),

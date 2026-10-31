@@ -46,8 +46,8 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
   | GBA button | Keys |
   |---|---|
   | D-pad | Arrow keys or `W` `A` `S` `D` |
-  | A | `X` or `Space` |
-  | B | `Z` or `Backspace` |
+  | A | `Z` or `Space` |
+  | B | `X` or `Backspace` |
   | Start | `Enter` |
   | Select | `Shift` |
 - **Mouse:** hover states, clickable elements, scroll where expected.

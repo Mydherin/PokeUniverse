@@ -11,7 +11,9 @@ import (
 )
 
 const getTrainer = `-- name: GetTrainer :one
-SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at
+SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
+       text_speed, battle_scene, battle_style, sound, button_mode, frame,
+       registered_item, repel_steps, flute, coins, berry_powder
 FROM trainers
 WHERE account_id = $1
 `
@@ -27,6 +29,17 @@ type GetTrainerRow struct {
 	TrainerID       int64
 	Money           int32
 	CreatedAt       time.Time
+	TextSpeed       string
+	BattleScene     string
+	BattleStyle     string
+	Sound           string
+	ButtonMode      string
+	Frame           int16
+	RegisteredItem  int16
+	RepelSteps      int16
+	Flute           string
+	Coins           int32
+	BerryPowder     int32
 }
 
 // created_at identifies the save: a New Game replaces it, so live positions of the old save are ignored.
@@ -44,6 +57,17 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.TrainerID,
 		&i.Money,
 		&i.CreatedAt,
+		&i.TextSpeed,
+		&i.BattleScene,
+		&i.BattleStyle,
+		&i.Sound,
+		&i.ButtonMode,
+		&i.Frame,
+		&i.RegisteredItem,
+		&i.RepelSteps,
+		&i.Flute,
+		&i.Coins,
+		&i.BerryPowder,
 	)
 	return i, err
 }
@@ -62,8 +86,21 @@ SET name = EXCLUDED.name,
     trainer_id = EXCLUDED.trainer_id,
     money = DEFAULT,
     play_time_seconds = 0,
+    text_speed = DEFAULT,
+    battle_scene = DEFAULT,
+    battle_style = DEFAULT,
+    sound = DEFAULT,
+    button_mode = DEFAULT,
+    frame = DEFAULT,
+    registered_item = DEFAULT,
+    repel_steps = DEFAULT,
+    flute = DEFAULT,
+    coins = DEFAULT,
+    berry_powder = DEFAULT,
     created_at = now()
-RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at
+RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
+          text_speed, battle_scene, battle_style, sound, button_mode, frame,
+          registered_item, repel_steps, flute, coins, berry_powder
 `
 
 type PutTrainerParams struct {
@@ -89,10 +126,22 @@ type PutTrainerRow struct {
 	TrainerID       int64
 	Money           int32
 	CreatedAt       time.Time
+	TextSpeed       string
+	BattleScene     string
+	BattleStyle     string
+	Sound           string
+	ButtonMode      string
+	Frame           int16
+	RegisteredItem  int16
+	RepelSteps      int16
+	Flute           string
+	Coins           int32
+	BerryPowder     int32
 }
 
 // New Game: the account's trainer, replaced if it already has one, at the start location, with a
-// new trainer ID and the starting money.
+// new trainer ID, the starting money, the default options and no item effects (the bag is
+// replaced in the same transaction).
 func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrainerRow, error) {
 	row := q.db.QueryRow(ctx, putTrainer,
 		arg.AccountID,
@@ -117,6 +166,17 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.TrainerID,
 		&i.Money,
 		&i.CreatedAt,
+		&i.TextSpeed,
+		&i.BattleScene,
+		&i.BattleStyle,
+		&i.Sound,
+		&i.ButtonMode,
+		&i.Frame,
+		&i.RegisteredItem,
+		&i.RepelSteps,
+		&i.Flute,
+		&i.Coins,
+		&i.BerryPowder,
 	)
 	return i, err
 }
@@ -147,6 +207,39 @@ func (q *Queries) UpdateTrainerLive(ctx context.Context, arg UpdateTrainerLivePa
 		arg.Facing,
 		arg.PlayTimeSeconds,
 		arg.CreatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const updateTrainerOptions = `-- name: UpdateTrainerOptions :execrows
+UPDATE trainers
+SET text_speed = $2, battle_scene = $3, battle_style = $4, sound = $5, button_mode = $6, frame = $7
+WHERE account_id = $1
+`
+
+type UpdateTrainerOptionsParams struct {
+	AccountID   int64
+	TextSpeed   string
+	BattleScene string
+	BattleStyle string
+	Sound       string
+	ButtonMode  string
+	Frame       int16
+}
+
+// The OPTION menu's choices, saved as the menu closes.
+func (q *Queries) UpdateTrainerOptions(ctx context.Context, arg UpdateTrainerOptionsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerOptions,
+		arg.AccountID,
+		arg.TextSpeed,
+		arg.BattleScene,
+		arg.BattleStyle,
+		arg.Sound,
+		arg.ButtonMode,
+		arg.Frame,
 	)
 	if err != nil {
 		return 0, err

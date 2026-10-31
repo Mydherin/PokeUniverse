@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+// The trainer's bag on the WebSocket (inside pokeuniverse.realtime.v1's envelopes): what it
+// holds, the player's intents on it and mic-core's answers. mic-core decides every change and
+// saves it before answering (tech-stack.md#saving-state-resilience).
+package pokeuniverse.item.v1;
+
+import "pokeuniverse/item/v1/catalog.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1";
+
+// Everything the trainer carries, in the world snapshot.
+message Bag {
+  // Every pocket that holds something; the others are empty.
+  repeated BagPocket pockets = 1;
+  // The item SELECT uses on the field; unspecified: none.
+  Item registered = 2;
+}
+
+// A pocket's items in the player's order.
+message BagPocket {
+  Pocket pocket = 1;
+  repeated BagSlot slots = 2;
+}
+
+message BagSlot {
+  Item item = 1;
+  // 1 to 999; always 1 for important items.
+  uint32 quantity = 2;
+}
+
+// Client -> server: USE (CHECK, OPEN) from the bag, or the registered item with SELECT on the
+// field. Answered with an ItemResult.
+message UseItem {
+  Item item = 1;
+  // Used from the field (SELECT), not from the bag.
+  bool field = 2;
+}
+
+// Client -> server: GIVE to a party Pokémon. Answered with an ItemResult.
+message GiveItem {
+  Item item = 1;
+}
+
+// Client -> server: TOSS, after the quantity and YES. Answered with an ItemResult.
+message TossItem {
+  Item item = 1;
+  uint32 quantity = 2;
+}
+
+// Client -> server: REGISTER (or DESELECT, with the registered item again: it toggles).
+// The client shows it at once; a refused one gets BagChanged with the truth.
+message RegisterItem {
+  Item item = 1;
+}
+
+// Client -> server: SELECT moved a pocket's item from one slot to before another (`to` can be
+// the slot count: last). The client shows it at once; a refused one gets BagChanged.
+message MoveItem {
+  Pocket pocket = 1;
+  uint32 from = 2;
+  uint32 to = 3;
+}
+
+// Server -> client: pockets that changed, whole, and the registered item. Sent before the
+// ItemResult that changed them, or alone to correct a refused RegisterItem or MoveItem.
+message BagChanged {
+  repeated BagPocket pockets = 1;
+  Item registered = 2;
+}
+
+// Server -> client: what using, giving or tossing an item did. Each art style shows it its way.
+message ItemResult {
+  ItemOutcome outcome = 1;
+  Item item = 2;
+  // TOSSED: the quantity; COINS and BERRY_POWDER: the amount.
+  uint32 value = 3;
+}
+
+enum ItemOutcome {
+  // Nothing happened (refused: the item isn't in the bag, or it has no such use).
+  ITEM_OUTCOME_UNSPECIFIED = 0;
+  // "This isn't the time to use that!"
+  ITEM_OUTCOME_NOT_NOW = 1;
+  // The item needs a party Pokémon and there is none.
+  ITEM_OUTCOME_NO_POKEMON = 2;
+  // GIVE: important items can't be held.
+  ITEM_OUTCOME_CANT_BE_HELD = 3;
+  ITEM_OUTCOME_TOSSED = 4;
+  // Used up with its effect (REPEL): "<player> used the <item>."
+  ITEM_OUTCOME_USED = 5;
+  // A REPEL still lasts: nothing used.
+  ITEM_OUTCOME_REPEL_LINGERS = 6;
+  ITEM_OUTCOME_COINS = 7;
+  ITEM_OUTCOME_BERRY_POWDER = 8;
+  // POKé FLUTE with no sleeping Pokémon.
+  ITEM_OUTCOME_CATCHY_TUNE = 9;
+  // WHITE FLUTE and BLACK FLUTE.
+  ITEM_OUTCOME_WILD_LURED = 10;
+  ITEM_OUTCOME_WILD_REPELLED = 11;
+  // ITEMFINDER with no hidden item around: shown on the field.
+  ITEM_OUTCOME_NO_RESPONSE = 12;
+  // The screen the item opens (FieldUse: mail, TOWN MAP, FAME CHECKER, TEACHY TV, TM CASE, BERRY POUCH).
+  ITEM_OUTCOME_OPEN = 13;
+  // The party menu opens to pick a Pokémon for the item.
+  ITEM_OUTCOME_PARTY_MENU = 14;
+  // The bag closes and the item works on the field (bike, rod, ESCAPE ROPE, VS SEEKER).
+  ITEM_OUTCOME_ON_FIELD = 15;
+}

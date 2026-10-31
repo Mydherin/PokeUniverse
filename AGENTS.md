@@ -30,7 +30,7 @@ Rules:
 - **Read only.** Never modify, build or commit anything inside `references/`. Only update a submodule's pinned commit when the user asks.
 - **Never copy code.** Understand the behavior, then write it from zero with our design ([tech-stack.md](docs/tech-stack.md#code-principles)).
 - **Our docs win** when they disagree with a reference.
-- Only exception: the build copies FireRed's graphics as they are (`make graphics`, plus the fonts' glyph widths read from `src/text.c`), `make text` encodes its strings with its charmap, `make audio` renders its sound, and `tool-maps` renders its tilesets (`make maps`); all write to gitignored folders, never committed. `tool-maps convert` also reads `pokefirered` maps as **input** once per map: the text maps it writes to `lib-maps/` are our source code and are committed ([maps.md](docs/maps.md), [audio.md](docs/audio.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
+- Only exception: the build copies FireRed's graphics as they are (`make graphics`, plus the fonts' glyph widths read from `src/text.c` and the item icon table), `make text` encodes its strings (and item names and descriptions) with its charmap, `make audio` renders its sound, and `tool-maps` renders its tilesets (`make maps`); all write to gitignored folders, never committed. `tool-maps convert` also reads `pokefirered` maps as **input** once per map: the text maps it writes to `lib-maps/` are our source code and are committed. The item catalog (`lib-contracts/proto/pokeuniverse/item/v1/catalog.proto`) was converted once from `src/data/items.json` the same way and is now our source ([maps.md](docs/maps.md), [audio.md](docs/audio.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
 
 ## Guidelines
 

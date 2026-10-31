@@ -7,6 +7,8 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { BagChanged, GiveItem, ItemResult, MoveItem, RegisterItem, TossItem, UseItem } from "../../item/v1/bag_pb";
+import { file_pokeuniverse_item_v1_bag } from "../../item/v1/bag_pb";
 import type { Correction, EnterWorld, Interact, Move, Script, ScriptDone, Turn, WorldSnapshot } from "../../world/v1/world_pb";
 import { file_pokeuniverse_world_v1_world } from "../../world/v1/world_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -15,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/realtime/v1/realtime.proto.
  */
 export const file_pokeuniverse_realtime_v1_realtime: GenFile = /*@__PURE__*/
-  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKaAwoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIAEIJCgdwYXlsb2FkIuMCCg1TZXJ2ZXJNZXNzYWdlEgsKA3NlcRgBIAEoDRI0Cgd3ZWxjb21lGAIgASgLMiEucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLldlbGNvbWVIABIuCgRwb25nGAMgASgLMh4ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLlBvbmdIABIwCgVlcnJvchgEIAEoCzIfLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckgAEjgKCHNuYXBzaG90GAUgASgLMiQucG9rZXVuaXZlcnNlLndvcmxkLnYxLldvcmxkU25hcHNob3RIABI3Cgpjb3JyZWN0aW9uGAYgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkNvcnJlY3Rpb25IABIvCgZzY3JpcHQYByABKAsyHS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0SABCCQoHcGF5bG9hZCI2CgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJEhAKCGluc3RhbmNlGAIgASgJIjYKB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBEoECAIQA1IRcGxheWluZ19lbHNld2hlcmUiGwoEUGluZxITCgtjbGllbnRfdGltZRgBIAEoBCIwCgRQb25nEhMKC2NsaWVudF90aW1lGAEgASgEEhMKC3NlcnZlcl90aW1lGAIgASgEIjoKBUVycm9yEjEKBGNvZGUYASABKA4yIy5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuRXJyb3JDb2RlKtQBCglFcnJvckNvZGUSGgoWRVJST1JfQ09ERV9VTlNQRUNJRklFRBAAEh4KGkVSUk9SX0NPREVfVU5BVVRIRU5USUNBVEVEEAESHAoYRVJST1JfQ09ERV9UT0tFTl9FWFBJUkVEEAISGgoWRVJST1JfQ09ERV9CQURfTUVTU0FHRRADEhkKFUVSUk9SX0NPREVfTk9fVFJBSU5FUhAEEhcKE0VSUk9SX0NPREVfUkVQTEFDRUQQBRIdChlFUlJPUl9DT0RFX1NFU1NJT05fQUNUSVZFEAZCR1pFcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9yZWFsdGltZS92MTtyZWFsdGltZXYxYgZwcm90bzM", [file_pokeuniverse_world_v1_world]);
+  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKpBQoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIABIxCgh1c2VfaXRlbRgJIAEoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLlVzZUl0ZW1IABIzCglnaXZlX2l0ZW0YCiABKAsyHi5wb2tldW5pdmVyc2UuaXRlbS52MS5HaXZlSXRlbUgAEjMKCXRvc3NfaXRlbRgLIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLlRvc3NJdGVtSAASOwoNcmVnaXN0ZXJfaXRlbRgMIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLlJlZ2lzdGVySXRlbUgAEjMKCW1vdmVfaXRlbRgNIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLk1vdmVJdGVtSABCCQoHcGF5bG9hZCLVAwoNU2VydmVyTWVzc2FnZRILCgNzZXEYASABKA0SNAoHd2VsY29tZRgCIAEoCzIhLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5XZWxjb21lSAASLgoEcG9uZxgDIAEoCzIeLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5Qb25nSAASMAoFZXJyb3IYBCABKAsyHy5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuRXJyb3JIABI4CghzbmFwc2hvdBgFIAEoCzIkLnBva2V1bml2ZXJzZS53b3JsZC52MS5Xb3JsZFNuYXBzaG90SAASNwoKY29ycmVjdGlvbhgGIAEoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5Db3JyZWN0aW9uSAASLwoGc2NyaXB0GAcgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdEgAEjcKC2JhZ19jaGFuZ2VkGAggASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnQ2hhbmdlZEgAEjcKC2l0ZW1fcmVzdWx0GAkgASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbVJlc3VsdEgAQgkKB3BheWxvYWQiNgoMQXV0aGVudGljYXRlEhQKDGFjY2Vzc190b2tlbhgBIAEoCRIQCghpbnN0YW5jZRgCIAEoCSI2CgdXZWxjb21lEhIKCmFjY291bnRfaWQYASABKARKBAgCEANSEXBsYXlpbmdfZWxzZXdoZXJlIhsKBFBpbmcSEwoLY2xpZW50X3RpbWUYASABKAQiMAoEUG9uZxITCgtjbGllbnRfdGltZRgBIAEoBBITCgtzZXJ2ZXJfdGltZRgCIAEoBCI6CgVFcnJvchIxCgRjb2RlGAEgASgOMiMucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9yQ29kZSrUAQoJRXJyb3JDb2RlEhoKFkVSUk9SX0NPREVfVU5TUEVDSUZJRUQQABIeChpFUlJPUl9DT0RFX1VOQVVUSEVOVElDQVRFRBABEhwKGEVSUk9SX0NPREVfVE9LRU5fRVhQSVJFRBACEhoKFkVSUk9SX0NPREVfQkFEX01FU1NBR0UQAxIZChVFUlJPUl9DT0RFX05PX1RSQUlORVIQBBIXChNFUlJPUl9DT0RFX1JFUExBQ0VEEAUSHQoZRVJST1JfQ09ERV9TRVNTSU9OX0FDVElWRRAGQkdaRXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcmVhbHRpbWUvdjE7cmVhbHRpbWV2MWIGcHJvdG8z", [file_pokeuniverse_item_v1_bag, file_pokeuniverse_world_v1_world]);
 
 /**
  * Client -> server: intents only.
@@ -73,6 +75,36 @@ export type ClientMessage = Message<"pokeuniverse.realtime.v1.ClientMessage"> & 
      */
     value: ScriptDone;
     case: "scriptDone";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.UseItem use_item = 9;
+     */
+    value: UseItem;
+    case: "useItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.GiveItem give_item = 10;
+     */
+    value: GiveItem;
+    case: "giveItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.TossItem toss_item = 11;
+     */
+    value: TossItem;
+    case: "tossItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.RegisterItem register_item = 12;
+     */
+    value: RegisterItem;
+    case: "registerItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.MoveItem move_item = 13;
+     */
+    value: MoveItem;
+    case: "moveItem";
   } | { case: undefined; value?: undefined };
 };
 
@@ -133,6 +165,18 @@ export type ServerMessage = Message<"pokeuniverse.realtime.v1.ServerMessage"> & 
      */
     value: Script;
     case: "script";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.BagChanged bag_changed = 8;
+     */
+    value: BagChanged;
+    case: "bagChanged";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.ItemResult item_result = 9;
+     */
+    value: ItemResult;
+    case: "itemResult";
   } | { case: undefined; value?: undefined };
 };
 

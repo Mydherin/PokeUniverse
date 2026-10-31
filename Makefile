@@ -14,7 +14,7 @@ GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.c
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
 FIRERED_OUT := spa-pokeuniverse/public/firered
-FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen
+FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items
 # Single files from shared folders, kept at their paths.
 FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
 	fonts/down_arrow_3.png fonts/keypad_icons.png interface/std_menu.pal interface/ball/poke.png \
@@ -24,7 +24,11 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	object_events/pics/people/red_surf_run.png object_events/pics/people/green_surf_run.png \
 	help_system/msg_window.png trainer_card/tiles.png trainer_card/front.bin trainer_card/back.bin trainer_card/bg.bin \
 	trainer_card/blue.pal trainer_card/female_bg.pal trainers/front_pics/red_front_pic.png trainers/front_pics/leaf_front_pic.png \
-	trainers/palettes/red.pal trainers/palettes/leaf.pal
+	trainers/palettes/red.pal trainers/palettes/leaf.pal \
+	item_menu/bg.png item_menu/bg.bin item_menu/bg_female.pal item_menu/list.bin item_menu/bag_window_pal.pal \
+	interface/bag_male.png interface/bag_female.png interface/bag.pal interface/red_arrow_other.png interface/red_arrow.pal \
+	interface/select_button.png interface/bag_swap.png \
+	misc/option_menu.pal
 # The fonts' glyph widths are data in the game's source, not in the images.
 FIRERED_FONTS := Normal:normal Male:male Small:small NormalCopy1:normal_copy_1
 NEED_FIRERED = @test -f $(FIRERED)/Makefile || { echo "$(FIRERED) is empty: run git submodule update --init"; exit 1; }
@@ -58,7 +62,7 @@ clean: ## Stop the stack and delete its data volumes
 
 assets: graphics text audio maps ## FireRed's graphics, text, sounds and maps for the game
 
-graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and tilemaps at runtime)
+graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and tilemaps at runtime), with the item icon table
 	$(NEED_FIRERED)
 	@mkdir -p $(FIRERED_OUT)/graphics
 	@for d in $(FIRERED_GFX); do rm -rf $(FIRERED_OUT)/graphics/$$d && cp -R $(FIRERED)/graphics/$$d $(FIRERED_OUT)/graphics/; done
@@ -66,6 +70,7 @@ graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and 
 	@for font in $(FIRERED_FONTS); do \
 		sed -n "/sFont$${font%%:*}LatinGlyphWidths\[\] =/,/};/{/=/d;p;}" $(FIRERED)/src/text.c | tr -cd '0-9,' | sed 's/^/[/; s/,*$$/]/' \
 			> $(FIRERED_OUT)/graphics/fonts/latin_$${font##*:}_widths.json; done
+	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/graphics/item-icons.mjs /repo/$(FIRERED) /repo/$(FIRERED_OUT)/graphics/items/icons.json
 
 text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lists the strings)
 	$(NEED_FIRERED)

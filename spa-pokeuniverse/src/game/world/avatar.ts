@@ -32,6 +32,8 @@ export interface AvatarInput {
   check: boolean;
   /** START pressed this frame. */
   menu: boolean;
+  /** SELECT pressed this frame. */
+  select: boolean;
 }
 
 /** What the avatar tells the server, and the sounds it makes. */
@@ -41,6 +43,8 @@ export interface AvatarLink {
   interact(walkInto: boolean): void;
   /** START, standing still between steps: the START menu opens. */
   openMenu(): void;
+  /** SELECT, standing still between steps: the item registered to it is used. */
+  useRegistered(): void;
   bump(): void;
 }
 
@@ -125,6 +129,11 @@ export class Avatar {
     if (input.menu) {
       this.running = Running.Still;
       this.link.openMenu();
+      return;
+    }
+    if (input.select) {
+      this.running = Running.Still;
+      this.link.useRegistered();
       return;
     }
     this.decide(input);

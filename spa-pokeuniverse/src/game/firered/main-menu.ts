@@ -12,6 +12,7 @@ import { Effect, Layer, RGB_BLACK, RGB_WHITE, rgb, WIN_EFFECTS } from "../gba/vi
 import { fillBgRect, initBg } from "./common";
 import type { Flow } from "./flow";
 import { setBlend } from "./intro";
+import { userFrame } from "./manifest";
 
 const WINDOWS = {
   continue: { left: 3, top: 1, width: 24, height: 10, palette: 15, baseBlock: 0x001 },
@@ -67,7 +68,7 @@ function initMainMenu(flow: Flow): void {
   tasks.create(() => current(), 0);
 
   const loadFrame = () => {
-    const frame = assets.get("textWindowFrame");
+    const frame = assets.get(userFrame(flow.options.frame));
     bg.tiles.set(frame.tiles, FRAME_TILE * 64);
     palettes.load(frame.palette, FRAME_PALETTE * 16, 16);
     eraseWindow(WINDOWS.error);

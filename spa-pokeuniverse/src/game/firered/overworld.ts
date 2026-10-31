@@ -3,27 +3,42 @@
 // and the player walks, predicted here and checked by the server step by step. The camera
 // keeps the player at FireRed's spot on screen. A checks what the player faces; the server
 // answers with a script (messages, sounds) during which the player can't move. START opens the
-// START menu; its screens (the Trainer Card) fade out of the world and back into it, menu open.
+// START menu; its screens (the BAG, the Trainer Card, OPTION) fade out of the world and back into it, menu open.
+// SELECT uses the item registered to it; an item used from the bag may work back on the field.
 
+import { create } from "@bufbuild/protobuf";
+import { ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
+import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { Correction, Script, ScriptStep, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
-import { expandPlaceholders, PLACEHOLDER_PLAYER, type Text } from "../gba/text";
-import { RGB_BLACK } from "../gba/video";
+import { expandPlaceholders, FontId, PLACEHOLDER_PLAYER, type Text } from "../gba/text";
+import { rgb, RGB_BLACK } from "../gba/video";
 import { Avatar, type AvatarInput } from "../world/avatar";
+import { BagState } from "../world/items";
 import { loadMap, TILE } from "../world/map";
 import { FieldMessage } from "./field-message";
 import type { Flow } from "./flow";
 import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
+import { startBag, type BagExit, type BagHost } from "./bag";
+import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-messages";
+import { startOptionMenu } from "./option-menu";
 import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
 
 /** The player's cell on screen: 7 tiles in, under the BG scrolled 40 pixels down (field_camera.c). */
 const PLAYER_X = 7 * TILE;
 const PLAYER_Y = 7 * TILE - 40;
+
+/**
+ * The field's backdrop, which screens that don't set their own color 0 (OPTION) show: the map's
+ * first palette, color 0. In the house it is the building tileset's (213, 213, 172).
+ */
+const FIELD_BACKDROP = rgb(213 >> 3, 213 >> 3, 172 >> 3);
 
 export function startOverworld(flow: Flow): void {
   const { gba, world, link } = flow;
@@ -62,6 +77,8 @@ export function startOverworld(flow: Flow): void {
     },
     correction: (c) => overworld?.correct(c),
     script: (s) => overworld?.run(s),
+    bagChanged: (b) => overworld?.bagChanged(b),
+    itemResult: (r) => overworld?.itemResult(r),
     noTrainer: leave,
   });
 }
@@ -118,6 +135,12 @@ class Overworld {
   /** Off in a screen opened from the START menu: the world waits under it. */
   private away = false;
   private readonly playerName: Text;
+  /** What the trainer carries, as mic-core last said. */
+  private bag: BagState;
+  /** Waiting for mic-core's ItemResults, in the order asked. */
+  private itemAnswers: ((r: ItemResult) => void)[] = [];
+  /** An item's message on the field (SELECT, or back from the bag); the player can't move. */
+  private fieldItem: ItemMessagePlayer | null = null;
 
   constructor(
     private readonly flow: Flow,
@@ -128,11 +151,13 @@ class Overworld {
     const p = snapshot.player!;
     this.mapId = map.id;
     this.playerName = flow.encode(flow.trainer?.name ?? "");
+    this.bag = new BagState(snapshot.bag);
     this.avatar = new Avatar(map, p.x, p.y, p.facing, snapshot.canRun, {
       move: (step, d, run, x, y) => link.move(step, d, run, x, y),
       turn: (d) => link.turn(d),
       interact: (walkInto) => link.interact(walkInto),
       openMenu: () => this.openMenu(false),
+      useRegistered: () => this.useRegistered(),
       bump: () => flow.play("se_wall_hit"),
     });
     this.sprite = new PlayerSprite(world, flow.assets, p.gender);
@@ -175,6 +200,81 @@ class Overworld {
     this.avatar.snap(p.x, p.y, p.facing);
     this.avatar.waiting = false;
     this.endScript(false);
+    this.bag = new BagState(s.bag);
+    // Answers lost with the connection: nothing happened.
+    for (const answer of this.itemAnswers.splice(0)) answer(create(ItemResultSchema));
+  }
+
+  bagChanged(b: BagChanged): void {
+    this.bag.apply(b);
+  }
+
+  itemResult(r: ItemResult): void {
+    this.itemAnswers.shift()?.(r);
+  }
+
+  /** Sends an item intent and waits for its ItemResult; offline, nothing happens. */
+  private askItem(send: () => void): Promise<ItemResult> {
+    if (!this.flow.link.inWorld) return Promise.resolve(create(ItemResultSchema));
+    return new Promise((resolve) => {
+      this.itemAnswers.push(resolve);
+      send();
+    });
+  }
+
+  /** The bag's way to the trainer's items. */
+  private bagHost(): BagHost {
+    const { link } = this.flow;
+    const self = this;
+    return {
+      get bag() {
+        return self.bag;
+      },
+      playerName: this.playerName,
+      use: (item) => this.askItem(() => link.useItem(item, false)),
+      give: (item) => this.askItem(() => link.giveItem(item)),
+      toss: (item, quantity) => this.askItem(() => link.tossItem(item, quantity)),
+      register: (item) => {
+        this.bag.toggleRegistered(item);
+        link.registerItem(item);
+      },
+      move: (pocket, from, to) => {
+        if (this.bag.move(pocket, from, to)) link.moveItem(pocket, from, to);
+      },
+    };
+  }
+
+  /**
+   * UseRegisteredKeyItemOnField: SELECT uses the registered item, mic-core says what it did;
+   * with none, a sign message: "An item in the BAG can be registered to SELECT for easy use."
+   */
+  private useRegistered(): void {
+    const { flow } = this;
+    const item = this.bag.registered;
+    if (item === Item.UNSPECIFIED) {
+      const text = flow.assets.text("Text_BagItemCanBeRegistered");
+      return this.showFieldMessage({ text, font: FontId.Normal, delay: 0, sound: null, waitSound: false, waitA: true, sign: true });
+    }
+    this.avatar.waiting = true;
+    void this.askItem(() => flow.link.useItem(item, true)).then((r) => {
+      this.avatar.waiting = false;
+      this.useOnField(r);
+    });
+  }
+
+  /** What an item does on the field: its message (effects like riding come with the outdoor maps). */
+  private useOnField(r: ItemResult): void {
+    const msg = itemMessage(this.flow, r, this.playerName);
+    if (msg) this.showFieldMessage(msg);
+  }
+
+  private showFieldMessage(msg: ItemMessage): void {
+    this.fieldItem = new ItemMessagePlayer(
+      this.flow,
+      msg,
+      (text, font, sign) => this.message.show(text, sign, font),
+      () => this.message.printing,
+    );
   }
 
   correct(c: Correction): void {
@@ -195,6 +295,10 @@ class Overworld {
   private frame(): void {
     const { input } = this.flow.gba;
     if (this.script) this.runScript();
+    if (this.fieldItem && !this.flow.gba.palettes.fadeActive && this.fieldItem.update()) {
+      this.fieldItem = null;
+      this.message.hide();
+    }
     // The button that closes the menu doesn't also act in the world.
     const menuOpen = this.menu !== null;
     if (this.menu) this.runMenu();
@@ -204,9 +308,10 @@ class Overworld {
       run: input.isHeld(Button.B),
       check: input.isPressed(Button.A),
       menu: input.isPressed(Button.Start),
+      select: input.isPressed(Button.Select),
     };
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
-    const locked = this.script !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
+    const locked = this.script !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
     this.draw();
   }
@@ -215,7 +320,8 @@ class Overworld {
   private openMenu(returning: boolean): void {
     const { flow } = this;
     if (!returning) flow.play("se_win_open");
-    const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: false, hasPokemon: false, helpBar: true });
+    const helpBar = flow.options.buttonMode === ButtonMode.HELP;
+    const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: false, hasPokemon: false, helpBar });
     this.menu = { menu, returning: returning ? Return.Drawing : Return.None, opening: null };
     menu.draw();
   }
@@ -243,20 +349,31 @@ class Overworld {
     else if (chosen === StartMenuEntry.Exit) {
       m.menu.close();
       this.menu = null;
-    } else if (chosen === StartMenuEntry.Player) this.openScreen((back) => startTrainerCard(this.flow, this.flow.trainer!, this.playerName, back));
-    // BAG, SAVE and OPTION come next (phase 4); until then choosing them does nothing more.
+    } else if (chosen === StartMenuEntry.Bag)
+      this.openScreen((back) =>
+        startBag(this.flow, this.flow.trainer!.gender, this.bagHost(), (exit: BagExit) => {
+          back(exit === null);
+          if (exit) this.useOnField(exit.field);
+        }),
+      );
+    else if (chosen === StartMenuEntry.Player) this.openScreen((back) => startTrainerCard(this.flow, this.flow.trainer!, this.playerName, back));
+    else if (chosen === StartMenuEntry.Option) this.openScreen((back) => startOptionMenu(this.flow, FIELD_BACKDROP, back));
+    // SAVE comes next (phase 4); until then choosing it does nothing more.
   }
 
-  /** StartMenu_FadeScreenIfLeavingOverworld, then the screen; back into the world with the menu open. */
-  private openScreen(open: (back: () => void) => void): void {
+  /**
+   * StartMenu_FadeScreenIfLeavingOverworld, then the screen; back into the world with the menu
+   * open, or closed when an item used from the bag works on the field.
+   */
+  private openScreen(open: (back: (withMenu?: boolean) => void) => void): void {
     const { gba } = this.flow;
     gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     this.menu!.opening = () => {
       this.menu = null;
       this.away = true;
-      open(() => {
+      open((withMenu = true) => {
         this.away = false;
-        this.enter(true);
+        this.enter(withMenu);
       });
     };
   }

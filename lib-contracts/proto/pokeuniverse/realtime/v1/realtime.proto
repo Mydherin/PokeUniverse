@@ -4,6 +4,7 @@ syntax = "proto3";
 // One envelope per direction; every message carries a sequence number.
 package pokeuniverse.realtime.v1;
 
+import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/world/v1/world.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1";
@@ -19,6 +20,11 @@ message ClientMessage {
     pokeuniverse.world.v1.Turn turn = 6;
     pokeuniverse.world.v1.Interact interact = 7;
     pokeuniverse.world.v1.ScriptDone script_done = 8;
+    pokeuniverse.item.v1.UseItem use_item = 9;
+    pokeuniverse.item.v1.GiveItem give_item = 10;
+    pokeuniverse.item.v1.TossItem toss_item = 11;
+    pokeuniverse.item.v1.RegisterItem register_item = 12;
+    pokeuniverse.item.v1.MoveItem move_item = 13;
   }
 }
 
@@ -32,6 +38,8 @@ message ServerMessage {
     pokeuniverse.world.v1.WorldSnapshot snapshot = 5;
     pokeuniverse.world.v1.Correction correction = 6;
     pokeuniverse.world.v1.Script script = 7;
+    pokeuniverse.item.v1.BagChanged bag_changed = 8;
+    pokeuniverse.item.v1.ItemResult item_result = 9;
   }
 }
 

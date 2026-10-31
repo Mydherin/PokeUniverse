@@ -1,5 +1,5 @@
 // Package trainer serves the player's trainer: the save the game's main menu continues from,
-// created by New Game.
+// created by New Game, and its options.
 package trainer
 
 import (
@@ -19,6 +19,7 @@ import (
 	"pokeuniverse/mic-core/internal/auth"
 	"pokeuniverse/mic-core/internal/db"
 	"pokeuniverse/mic-core/internal/httpx"
+	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/world"
 )
@@ -36,6 +37,7 @@ type Handler struct {
 func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
 	mux.Handle("GET /api/trainer", limit("trainer", 60, time.Minute, h.Tokens.Require(account.DefaultRole, http.HandlerFunc(h.get))))
 	mux.Handle("PUT /api/trainer", limit("trainer-put", 20, time.Minute, h.Tokens.Require(account.DefaultRole, http.HandlerFunc(h.put))))
+	mux.Handle("PUT /api/trainer/options", limit("trainer-options", 60, time.Minute, h.Tokens.Require(account.DefaultRole, http.HandlerFunc(h.putOptions))))
 }
 
 // maxBody bounds a NewTrainer request: two short names and a gender.
@@ -84,17 +86,27 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid trainer", http.StatusUnprocessableEntity)
 		return
 	}
-	row, err := db.New(h.Pool).PutTrainer(r.Context(), db.PutTrainerParams{
-		AccountID: p.AccountID,
-		Name:      req.Name,
-		Gender:    gender,
-		RivalName: req.RivalName,
-		MapID:     world.Start.Map,
-		X:         int32(world.Start.X),
-		Y:         int32(world.Start.Y),
-		Facing:    live.FacingName(world.Start.Facing),
-		// SetTrainerId(Random32()): a new ID every New Game.
-		TrainerID: int64(rand.Uint32()),
+	// The trainer and its starting bag, saved together.
+	var row db.PutTrainerRow
+	err = pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
+		q := db.New(tx)
+		var err error
+		row, err = q.PutTrainer(r.Context(), db.PutTrainerParams{
+			AccountID: p.AccountID,
+			Name:      req.Name,
+			Gender:    gender,
+			RivalName: req.RivalName,
+			MapID:     world.Start.Map,
+			X:         int32(world.Start.X),
+			Y:         int32(world.Start.Y),
+			Facing:    live.FacingName(world.Start.Facing),
+			// SetTrainerId(Random32()): a new ID every New Game.
+			TrainerID: int64(rand.Uint32()),
+		})
+		if err != nil {
+			return err
+		}
+		return item.Reset(r.Context(), q, p.AccountID)
 	})
 	if err != nil {
 		h.Log.Error("put trainer", "err", err)
@@ -130,5 +142,6 @@ func summary(row db.GetTrainerRow) *trainerv1.TrainerSummary {
 		Location: &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},
 		IdNo:     uint32(row.TrainerID & 0xffff),
 		Money:    uint32(row.Money),
+		Options:  options(row),
 	}
 }

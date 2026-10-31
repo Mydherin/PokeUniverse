@@ -1,8 +1,8 @@
 // The GBA buttons, read once per frame like the games do: `held` is what is down now,
 // `pressed` what went down since the last frame (a quick tap between frames still counts),
 // `repeated` adds the key repeat of a held combination (JOY_REPT).
-// Keyboard mapping (ui.md#input): arrows or WASD, X/Space = A, Z/Backspace = B,
-// Enter = Start, Shift = Select.
+// Keyboard mapping (ui.md#input): arrows or WASD, Z/Space = A, X/Backspace = B,
+// Enter = Start, Shift = Select. With the L=A button mode, L also presses A.
 
 export const Button = {
   A: 1,
@@ -26,9 +26,9 @@ const KEYS: Record<string, number> = {
   KeyS: Button.Down,
   KeyA: Button.Left,
   KeyD: Button.Right,
-  KeyX: Button.A,
+  KeyZ: Button.A,
   Space: Button.A,
-  KeyZ: Button.B,
+  KeyX: Button.B,
   Backspace: Button.B,
   Enter: Button.Start,
   NumpadEnter: Button.Start,
@@ -43,7 +43,11 @@ export class Input {
   /** Frames before a held combination repeats, then between repeats (gKeyRepeat*Delay). */
   repeatStartDelay = 40;
   repeatContinueDelay = 5;
+  /** The L=A button mode: L counts as A in `pressed` and `held`. */
+  lEqualsA = false;
   private repeatCounter = 0;
+  /** What is down without the L=A remap. */
+  private heldRaw = 0;
   private down = 0;
   private latched = 0;
   private readonly onKeyDown = (e: KeyboardEvent) => {
@@ -76,16 +80,21 @@ export class Input {
   /** Start of a frame. */
   update(): void {
     const keys = this.down | this.latched;
-    this.pressed = this.latched & ~this.held;
+    this.pressed = this.latched & ~this.heldRaw;
     this.repeated = this.pressed;
-    if (keys && keys === this.held) {
+    if (keys && keys === this.heldRaw) {
       if (--this.repeatCounter === 0) {
         this.repeated = keys;
         this.repeatCounter = this.repeatContinueDelay;
       }
     } else this.repeatCounter = this.repeatStartDelay;
-    this.held = this.down;
+    this.held = this.heldRaw = this.down;
     this.latched = 0;
+    // ReadKeys remaps after the key repeat, which stays as pressed.
+    if (this.lEqualsA) {
+      if (this.pressed & Button.L) this.pressed |= Button.A;
+      if (this.held & Button.L) this.held |= Button.A;
+    }
   }
 
   isPressed(buttons: number): boolean {

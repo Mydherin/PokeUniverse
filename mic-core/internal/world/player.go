@@ -7,6 +7,7 @@ import (
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
+	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
 )
 
@@ -41,6 +42,8 @@ type Player struct {
 	// The script the client is showing (0: none); the player can't act until it ends.
 	script     uint32
 	lastScript uint32
+	// The bag and what items keep; saved to PostgreSQL on every change.
+	items *item.State
 	// Messages waiting for the next tick, sent once the state they show is saved.
 	out []*realtimev1.ServerMessage
 }

@@ -1,7 +1,8 @@
 // Encodes FireRed's text the way the game's build does (charmap.txt), from the decompilation,
 // so the game prints the original bytes and no game text is committed (docs/tech-stack.md#firered-as-reference).
 // Run by `make text`: node extract.mjs <pokefirered> <labels.json> <out dir>.
-// Output: strings.json (label -> bytes, ending in 0xFF) and charmap.json (character <-> byte).
+// Output: strings.json (label -> bytes, ending in 0xFF), items.json (each item's name and
+// description by item ID, from src/data/items.json) and charmap.json (character <-> byte).
 
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -95,6 +96,15 @@ for (const label of labels) {
   strings[label] = get();
 }
 
+// Items: name and description by item ID; IDs FireRed leaves unused ("????????") are skipped.
+const itemIds = new Map([...readFileSync(join(src, "include/constants/items.h"), "utf8").matchAll(/#define (ITEM_\w+) (\d+)\n/g)].map((m) => [m[1], Number(m[2])]));
+const items = {};
+for (const item of JSON.parse(readFileSync(join(src, "src/data/items.json"), "utf8")).items) {
+  const id = itemIds.get(item.itemId);
+  if (!id || item.english === "????????") continue;
+  items[id] = { name: [...encode(item.english, item.itemId), 0xff], description: [...encode(item.description_english, item.itemId), 0xff] };
+}
+
 // Single characters, for names: the first byte of each, and back (ASCII preferred for duplicates).
 const charmap = { encode: {}, decode: {} };
 for (const [c, bytes] of chars)
@@ -106,5 +116,6 @@ for (const [c, bytes] of chars)
 
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, "strings.json"), JSON.stringify(strings));
+writeFileSync(join(out, "items.json"), JSON.stringify(items));
 writeFileSync(join(out, "charmap.json"), JSON.stringify(charmap));
-console.log(`text: ${labels.length} strings`);
+console.log(`text: ${labels.length} strings, ${Object.keys(items).length} items`);

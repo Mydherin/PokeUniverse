@@ -25,6 +25,7 @@ message TrainerSummary {
   uint32 id_no = 7;
   // ¥0 to ¥999999.
   uint32 money = 8;
+  Options options = 9;
 }
 
 // Where the trainer is: a map of lib-maps and a tile on it.
@@ -32,6 +33,54 @@ message Location {
   string map = 1;
   uint32 x = 2;
   uint32 y = 3;
+}
+
+// The OPTION menu's choices, saved per trainer; New Game resets them to FireRed's defaults
+// (MID, ON, SHIFT, MONO, HELP, TYPE1). Request of PUT /api/trainer/options, where every field
+// must be set.
+message Options {
+  TextSpeed text_speed = 1;
+  BattleScene battle_scene = 2;
+  BattleStyle battle_style = 3;
+  SoundMode sound = 4;
+  ButtonMode button_mode = 5;
+  // The window frame: 1 to 10 (TYPE1 to TYPE10).
+  uint32 frame = 6;
+}
+
+enum TextSpeed {
+  TEXT_SPEED_UNSPECIFIED = 0;
+  TEXT_SPEED_SLOW = 1;
+  TEXT_SPEED_MID = 2;
+  TEXT_SPEED_FAST = 3;
+}
+
+enum BattleScene {
+  BATTLE_SCENE_UNSPECIFIED = 0;
+  BATTLE_SCENE_ON = 1;
+  BATTLE_SCENE_OFF = 2;
+}
+
+enum BattleStyle {
+  BATTLE_STYLE_UNSPECIFIED = 0;
+  BATTLE_STYLE_SHIFT = 1;
+  BATTLE_STYLE_SET = 2;
+}
+
+enum SoundMode {
+  SOUND_MODE_UNSPECIFIED = 0;
+  SOUND_MODE_MONO = 1;
+  SOUND_MODE_STEREO = 2;
+}
+
+enum ButtonMode {
+  BUTTON_MODE_UNSPECIFIED = 0;
+  // The help bar under menus and the help system on L and R.
+  BUTTON_MODE_HELP = 1;
+  // L and R switch pages in some menus.
+  BUTTON_MODE_LR = 2;
+  // L works as A.
+  BUTTON_MODE_L_EQUALS_A = 3;
 }
 
 // Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.

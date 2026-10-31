@@ -61,7 +61,17 @@ const BOOT_GRAPHICS = {
   // Main menu
   menuBg: { pal: "main_menu/bg.pal" },
   menuTextbox: { pal: "main_menu/textbox.pal" },
-  textWindowFrame: { png: "text_window/type1.png" },
+  // The window frames the OPTION menu offers (TYPE1 to TYPE10), each with its own colors
+  textWindowFrame1: { png: "text_window/type1.png" },
+  textWindowFrame2: { png: "text_window/type2.png" },
+  textWindowFrame3: { png: "text_window/type3.png" },
+  textWindowFrame4: { png: "text_window/type4.png" },
+  textWindowFrame5: { png: "text_window/type5.png" },
+  textWindowFrame6: { png: "text_window/type6.png" },
+  textWindowFrame7: { png: "text_window/type7.png" },
+  textWindowFrame8: { png: "text_window/type8.png" },
+  textWindowFrame9: { png: "text_window/type9.png" },
+  textWindowFrame10: { png: "text_window/type10.png" },
   font: { png: "fonts/latin_normal.png" },
 } satisfies Record<string, GraphicFiles>;
 
@@ -139,9 +149,35 @@ const NEW_GAME_GRAPHICS = {
   tcFemaleBgPal: { pal: "trainer_card/female_bg.pal" },
   picRedFront: { png: "trainers/front_pics/red_front_pic.png", pal: "trainers/palettes/red.pal" },
   picLeafFront: { png: "trainers/front_pics/leaf_front_pic.png", pal: "trainers/palettes/leaf.pal" },
+  // Bag: background, list background, window colors, the bag (boy's or girl's), the red arrows and CANCEL's icon
+  bagBg: { png: "item_menu/bg.png", bin: "item_menu/bg.bin", bpp4: true },
+  bagBgFemalePal: { pal: "item_menu/bg_female.pal" },
+  bagListMap: { bin: "item_menu/list.bin" },
+  bagWindowPal: { pal: "item_menu/bag_window_pal.pal" },
+  bagMale: { png: "interface/bag_male.png", meta: [8, 8] },
+  bagFemale: { png: "interface/bag_female.png", meta: [8, 8] },
+  bagPal: { pal: "interface/bag.pal" },
+  redArrowOther: { png: "interface/red_arrow_other.png", meta: [2, 2] },
+  redArrowPal: { pal: "interface/red_arrow.pal" },
+  itemIconReturn: { png: "items/icons/return_to_field_arrow.png", pal: "items/icon_palettes/return_to_field_arrow.pal" },
+  // Bag: the SELECT mark of the registered item, and the line showing where a moved item goes
+  bagSelectButton: { png: "interface/select_button.png" },
+  bagSwapLine: { png: "interface/bag_swap.png", meta: [2, 2] },
+  // OPTION: its colors and the standard frame around its title
+  optionMenuPal: { pal: "misc/option_menu.pal" },
+  stdWindowFrame: { png: "text_window/std.png" },
+  textWindowPal3: { pal: "text_window/stdpal_3.pal" },
 } satisfies Record<string, GraphicFiles>;
 
 export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS;
+
+/** The window frames, TYPE1 to TYPE10. */
+export const FRAME_TYPES = 10;
+
+/** The user's window frame (GetUserWindowGraphics): `frame` is 1 to 10. */
+export function userFrame(frame: number): GraphicId {
+  return `textWindowFrame${frame >= 1 && frame <= FRAME_TYPES ? frame : 1}` as GraphicId;
+}
 
 /** The sounds `make audio` renders (src/game/firered/sounds.json). */
 export const SOUNDS = ["mus_game_freak", "mus_intro_fight", "mus_title", "se_select", "cry_nidorino_doubles", "cry_charizard"] as const;
@@ -161,6 +197,10 @@ export const NEW_GAME_SOUNDS = [
   "se_card_open",
   "se_card_flip",
   "se_card_flipping",
+  "se_bag_cursor",
+  "se_bag_pocket",
+  "se_repel",
+  "se_glass_flute",
 ] as const;
 export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number];
 
@@ -231,6 +271,15 @@ async function loadGraphics(files: Record<string, GraphicFiles>): Promise<[Graph
   );
 }
 
+/** An item's name and description (`make text`, by item ID). */
+interface ItemText {
+  name: number[];
+  description: number[];
+}
+
+/** An item's icon: 24×24 pixels and its palette. */
+export type ItemIcon = Pick<Graphic, "image" | "palette">;
+
 const json = <T>(path: string): Promise<T> =>
   fetch(`${ROOT}/${path}`).then((r) => {
     if (!r.ok) throw new Error(`asset ${path}: ${r.status}`);
@@ -240,6 +289,10 @@ const json = <T>(path: string): Promise<T> =>
 export class Assets {
   private newGame: Promise<void> | null = null;
   private strings: Record<string, number[]> = {};
+  private itemTexts: Record<string, ItemText> = {};
+  /** Each item's icon and palette files (`make graphics`, by item ID; "0" the question mark). */
+  private itemIconFiles: Record<string, [string, string]> = {};
+  private readonly itemIcons = new Map<number, Promise<ItemIcon>>();
   fontWidths!: FontWidths;
 
   private constructor(
@@ -268,10 +321,14 @@ export class Assets {
       json<number[]>("graphics/fonts/latin_male_widths.json"),
       json<number[]>("graphics/fonts/latin_small_widths.json"),
       json<Record<string, number[]>>("text/strings.json"),
-    ]).then(([entries, normalCopy1, male, small, strings]) => {
+      json<Record<string, ItemText>>("text/items.json"),
+      json<Record<string, [string, string]>>("graphics/items/icons.json"),
+    ]).then(([entries, normalCopy1, male, small, strings, itemTexts, itemIconFiles]) => {
       for (const [id, g] of entries) this.graphics.set(id, g);
       this.fontWidths = { normal: this.fontWidths.normal, normalCopy1, male, small };
       this.strings = strings;
+      this.itemTexts = itemTexts;
+      this.itemIconFiles = itemIconFiles;
     });
     return this.newGame;
   }
@@ -283,6 +340,28 @@ export class Assets {
   /** One of the game's strings, encoded; ends with EOS. */
   text(id: TextId): Text {
     return this.strings[id] ?? [0xff];
+  }
+
+  /** The item's name, encoded; ends with EOS. */
+  itemName(item: number): Text {
+    return this.itemTexts[item]?.name ?? [0xff];
+  }
+
+  /** The item's description, encoded; ends with EOS. */
+  itemDescription(item: number): Text {
+    return this.itemTexts[item]?.description ?? [0xff];
+  }
+
+  /** The item's icon (the question mark when it has none), loaded the first time it's asked for. */
+  itemIcon(item: number): Promise<ItemIcon> {
+    let icon = this.itemIcons.get(item);
+    if (!icon) {
+      const [png, pal] = this.itemIconFiles[item] ?? this.itemIconFiles[0];
+      icon = Promise.all([fetchPng(`${ROOT}/graphics/${png}`), fetchPal(`${ROOT}/graphics/${pal}`)]).then(([image, palette]) => ({ image, palette }));
+      icon.catch(() => this.itemIcons.delete(item));
+      this.itemIcons.set(item, icon);
+    }
+    return icon;
   }
 
   static soundUrl(id: string, ext: string): string {

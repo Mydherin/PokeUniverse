@@ -39,10 +39,14 @@ type Map struct {
 	Width        int
 	Height       int
 	AllowRunning bool
-	walkable     []byte
-	elevation    []byte
-	behaviors    []mapv1.TileBehavior
-	objects      []*mapv1.MapObject
+	// For items: where the bike rides, the ESCAPE ROPE works, the VS SEEKER works.
+	Type          mapv1.MapType
+	AllowCycling  bool
+	AllowEscaping bool
+	walkable      []byte
+	elevation     []byte
+	behaviors     []mapv1.TileBehavior
+	objects       []*mapv1.MapObject
 }
 
 func (m *Map) In(p Point) bool { return p.X >= 0 && p.Y >= 0 && p.X < m.Width && p.Y < m.Height }
@@ -75,6 +79,19 @@ func (m *Map) SignAt(p Point) *mapv1.Sign {
 	return nil
 }
 
+// HiddenItemNear reports whether a hidden item lies within the ITEMFINDER's range of p
+// (7 tiles across, 5 up or down). Found items are tracked with the story flags (Phase 5).
+func (m *Map) HiddenItemNear(p Point) bool {
+	for _, o := range m.objects {
+		if o.GetHiddenItem() != nil && abs(int(o.X)-p.X) <= 7 && abs(int(o.Y)-p.Y) <= 5 {
+			return true
+		}
+	}
+	return false
+}
+
+func abs(n int) int { return max(n, -n) }
+
 // Maps is the world: every map by ID.
 type Maps map[string]*Map
 
@@ -103,14 +120,17 @@ func LoadMaps(fsys fs.FS) (Maps, error) {
 			return nil, fmt.Errorf("maps: %s is malformed: run make maps", f)
 		}
 		maps[sm.Id] = &Map{
-			ID:           sm.Id,
-			Width:        int(sm.Width),
-			Height:       int(sm.Height),
-			AllowRunning: sm.AllowRunning,
-			walkable:     sm.Walkable,
-			elevation:    sm.Elevation,
-			behaviors:    sm.Behaviors,
-			objects:      sm.Objects,
+			ID:            sm.Id,
+			Width:         int(sm.Width),
+			Height:        int(sm.Height),
+			AllowRunning:  sm.AllowRunning,
+			Type:          sm.Type,
+			AllowCycling:  sm.AllowCycling,
+			AllowEscaping: sm.AllowEscaping,
+			walkable:      sm.Walkable,
+			elevation:     sm.Elevation,
+			behaviors:     sm.Behaviors,
+			objects:       sm.Objects,
 		}
 	}
 	return maps, nil

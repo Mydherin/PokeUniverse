@@ -5,6 +5,7 @@ syntax = "proto3";
 // one and corrects the client when it disagrees (tech-stack.md#movement).
 package pokeuniverse.world.v1;
 
+import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/map/v1/map.proto";
 import "pokeuniverse/trainer/v1/trainer.proto";
 
@@ -59,6 +60,8 @@ message WorldSnapshot {
   bool can_run = 3;
   // How long the trainer has played, up to 999:59:59; the client counts on from it.
   uint32 play_time_seconds = 4;
+  // What the trainer carries.
+  pokeuniverse.item.v1.Bag bag = 5;
 }
 
 message Avatar {

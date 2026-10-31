@@ -18,6 +18,7 @@ import (
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/db"
+	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
 )
 
@@ -83,6 +84,10 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}
 	saved := live.Position{Map: row.MapID, X: int(row.X), Y: int(row.Y), Facing: live.ParseFacing(row.Facing), Gen: row.CreatedAt.UnixMicro(),
 		Played: time.Duration(row.PlayTimeSeconds) * time.Second}
+	items, err := item.Load(ctx, db.New(w.pool), accountID, row)
+	if err != nil {
+		return nil, nil, fmt.Errorf("join: %w", err)
+	}
 	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
 		return nil, nil, err
@@ -90,7 +95,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	m, at, facing := w.place(pos)
 
 	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
-		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes,
+		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -127,6 +132,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		CanRun: p.canRun,
 		// The client counts on from here; each Join sends the server's count again.
 		PlayTimeSeconds: uint32(pos.Played / time.Second),
+		Bag:             items.Bag.Proto(),
 	}, nil
 }
 

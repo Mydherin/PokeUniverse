@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/trainer/v1/trainer.proto.
  */
 export const file_pokeuniverse_trainer_v1_trainer: GenFile = /*@__PURE__*/
-  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSL9AQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQESMwoIbG9jYXRpb24YBiABKAsyIS5wb2tldW5pdmVyc2UudHJhaW5lci52MS5Mb2NhdGlvbhINCgVpZF9ubxgHIAEoDRINCgVtb25leRgIIAEoDUIRCg9fcG9rZWRleF9jYXVnaHQiLQoITG9jYXRpb24SCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDSJfCgpOZXdUcmFpbmVyEi8KBmdlbmRlchgBIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlchIMCgRuYW1lGAIgASgJEhIKCnJpdmFsX25hbWUYAyABKAkqQQoGR2VuZGVyEhYKEkdFTkRFUl9VTlNQRUNJRklFRBAAEg4KCkdFTkRFUl9CT1kQARIPCgtHRU5ERVJfR0lSTBACQkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvdHJhaW5lci92MTt0cmFpbmVydjFiBnByb3RvMw");
+  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSKwAgoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQESMwoIbG9jYXRpb24YBiABKAsyIS5wb2tldW5pdmVyc2UudHJhaW5lci52MS5Mb2NhdGlvbhINCgVpZF9ubxgHIAEoDRINCgVtb25leRgIIAEoDRIxCgdvcHRpb25zGAkgASgLMiAucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuT3B0aW9uc0IRCg9fcG9rZWRleF9jYXVnaHQiLQoITG9jYXRpb24SCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDSK1AgoHT3B0aW9ucxI2Cgp0ZXh0X3NwZWVkGAEgASgOMiIucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuVGV4dFNwZWVkEjoKDGJhdHRsZV9zY2VuZRgCIAEoDjIkLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkJhdHRsZVNjZW5lEjoKDGJhdHRsZV9zdHlsZRgDIAEoDjIkLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkJhdHRsZVN0eWxlEjEKBXNvdW5kGAQgASgOMiIucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuU291bmRNb2RlEjgKC2J1dHRvbl9tb2RlGAUgASgOMiMucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuQnV0dG9uTW9kZRINCgVmcmFtZRgGIAEoDSJfCgpOZXdUcmFpbmVyEi8KBmdlbmRlchgBIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlchIMCgRuYW1lGAIgASgJEhIKCnJpdmFsX25hbWUYAyABKAkqQQoGR2VuZGVyEhYKEkdFTkRFUl9VTlNQRUNJRklFRBAAEg4KCkdFTkRFUl9CT1kQARIPCgtHRU5ERVJfR0lSTBACKmUKCVRleHRTcGVlZBIaChZURVhUX1NQRUVEX1VOU1BFQ0lGSUVEEAASEwoPVEVYVF9TUEVFRF9TTE9XEAESEgoOVEVYVF9TUEVFRF9NSUQQAhITCg9URVhUX1NQRUVEX0ZBU1QQAypWCgtCYXR0bGVTY2VuZRIcChhCQVRUTEVfU0NFTkVfVU5TUEVDSUZJRUQQABITCg9CQVRUTEVfU0NFTkVfT04QARIUChBCQVRUTEVfU0NFTkVfT0ZGEAIqWQoLQmF0dGxlU3R5bGUSHAoYQkFUVExFX1NUWUxFX1VOU1BFQ0lGSUVEEAASFgoSQkFUVExFX1NUWUxFX1NISUZUEAESFAoQQkFUVExFX1NUWUxFX1NFVBACKlMKCVNvdW5kTW9kZRIaChZTT1VORF9NT0RFX1VOU1BFQ0lGSUVEEAASEwoPU09VTkRfTU9ERV9NT05PEAESFQoRU09VTkRfTU9ERV9TVEVSRU8QAipvCgpCdXR0b25Nb2RlEhsKF0JVVFRPTl9NT0RFX1VOU1BFQ0lGSUVEEAASFAoQQlVUVE9OX01PREVfSEVMUBABEhIKDkJVVFRPTl9NT0RFX0xSEAISGgoWQlVUVE9OX01PREVfTF9FUVVBTFNfQRADQkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvdHJhaW5lci92MTt0cmFpbmVydjFiBnByb3RvMw");
 
 /**
  * Response of GET /api/trainer: what the main menu's CONTINUE window and the Trainer Card show,
@@ -66,6 +66,11 @@ export type TrainerSummary = Message<"pokeuniverse.trainer.v1.TrainerSummary"> &
    * @generated from field: uint32 money = 8;
    */
   money: number;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.Options options = 9;
+   */
+  options?: Options | undefined;
 };
 
 /**
@@ -105,6 +110,54 @@ export const LocationSchema: GenMessage<Location> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_trainer_v1_trainer, 1);
 
 /**
+ * The OPTION menu's choices, saved per trainer; New Game resets them to FireRed's defaults
+ * (MID, ON, SHIFT, MONO, HELP, TYPE1). Request of PUT /api/trainer/options, where every field
+ * must be set.
+ *
+ * @generated from message pokeuniverse.trainer.v1.Options
+ */
+export type Options = Message<"pokeuniverse.trainer.v1.Options"> & {
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.TextSpeed text_speed = 1;
+   */
+  textSpeed: TextSpeed;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.BattleScene battle_scene = 2;
+   */
+  battleScene: BattleScene;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.BattleStyle battle_style = 3;
+   */
+  battleStyle: BattleStyle;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.SoundMode sound = 4;
+   */
+  sound: SoundMode;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.ButtonMode button_mode = 5;
+   */
+  buttonMode: ButtonMode;
+
+  /**
+   * The window frame: 1 to 10 (TYPE1 to TYPE10).
+   *
+   * @generated from field: uint32 frame = 6;
+   */
+  frame: number;
+};
+
+/**
+ * Describes the message pokeuniverse.trainer.v1.Options.
+ * Use `create(OptionsSchema)` to create a new message.
+ */
+export const OptionsSchema: GenMessage<Options> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_trainer_v1_trainer, 2);
+
+/**
  * Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
  * It replaces the account's trainer, as starting a new game replaces the save.
  *
@@ -134,7 +187,7 @@ export type NewTrainer = Message<"pokeuniverse.trainer.v1.NewTrainer"> & {
  * Use `create(NewTrainerSchema)` to create a new message.
  */
 export const NewTrainerSchema: GenMessage<NewTrainer> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_trainer_v1_trainer, 2);
+  messageDesc(file_pokeuniverse_trainer_v1_trainer, 3);
 
 /**
  * @generated from enum pokeuniverse.trainer.v1.Gender
@@ -161,4 +214,150 @@ export enum Gender {
  */
 export const GenderSchema: GenEnum<Gender> = /*@__PURE__*/
   enumDesc(file_pokeuniverse_trainer_v1_trainer, 0);
+
+/**
+ * @generated from enum pokeuniverse.trainer.v1.TextSpeed
+ */
+export enum TextSpeed {
+  /**
+   * @generated from enum value: TEXT_SPEED_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: TEXT_SPEED_SLOW = 1;
+   */
+  SLOW = 1,
+
+  /**
+   * @generated from enum value: TEXT_SPEED_MID = 2;
+   */
+  MID = 2,
+
+  /**
+   * @generated from enum value: TEXT_SPEED_FAST = 3;
+   */
+  FAST = 3,
+}
+
+/**
+ * Describes the enum pokeuniverse.trainer.v1.TextSpeed.
+ */
+export const TextSpeedSchema: GenEnum<TextSpeed> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_trainer_v1_trainer, 1);
+
+/**
+ * @generated from enum pokeuniverse.trainer.v1.BattleScene
+ */
+export enum BattleScene {
+  /**
+   * @generated from enum value: BATTLE_SCENE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: BATTLE_SCENE_ON = 1;
+   */
+  ON = 1,
+
+  /**
+   * @generated from enum value: BATTLE_SCENE_OFF = 2;
+   */
+  OFF = 2,
+}
+
+/**
+ * Describes the enum pokeuniverse.trainer.v1.BattleScene.
+ */
+export const BattleSceneSchema: GenEnum<BattleScene> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_trainer_v1_trainer, 2);
+
+/**
+ * @generated from enum pokeuniverse.trainer.v1.BattleStyle
+ */
+export enum BattleStyle {
+  /**
+   * @generated from enum value: BATTLE_STYLE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: BATTLE_STYLE_SHIFT = 1;
+   */
+  SHIFT = 1,
+
+  /**
+   * @generated from enum value: BATTLE_STYLE_SET = 2;
+   */
+  SET = 2,
+}
+
+/**
+ * Describes the enum pokeuniverse.trainer.v1.BattleStyle.
+ */
+export const BattleStyleSchema: GenEnum<BattleStyle> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_trainer_v1_trainer, 3);
+
+/**
+ * @generated from enum pokeuniverse.trainer.v1.SoundMode
+ */
+export enum SoundMode {
+  /**
+   * @generated from enum value: SOUND_MODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: SOUND_MODE_MONO = 1;
+   */
+  MONO = 1,
+
+  /**
+   * @generated from enum value: SOUND_MODE_STEREO = 2;
+   */
+  STEREO = 2,
+}
+
+/**
+ * Describes the enum pokeuniverse.trainer.v1.SoundMode.
+ */
+export const SoundModeSchema: GenEnum<SoundMode> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_trainer_v1_trainer, 4);
+
+/**
+ * @generated from enum pokeuniverse.trainer.v1.ButtonMode
+ */
+export enum ButtonMode {
+  /**
+   * @generated from enum value: BUTTON_MODE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The help bar under menus and the help system on L and R.
+   *
+   * @generated from enum value: BUTTON_MODE_HELP = 1;
+   */
+  HELP = 1,
+
+  /**
+   * L and R switch pages in some menus.
+   *
+   * @generated from enum value: BUTTON_MODE_LR = 2;
+   */
+  LR = 2,
+
+  /**
+   * L works as A.
+   *
+   * @generated from enum value: BUTTON_MODE_L_EQUALS_A = 3;
+   */
+  L_EQUALS_A = 3,
+}
+
+/**
+ * Describes the enum pokeuniverse.trainer.v1.ButtonMode.
+ */
+export const ButtonModeSchema: GenEnum<ButtonMode> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_trainer_v1_trainer, 5);
 

@@ -1,6 +1,7 @@
 // Sound players on Web Audio, shaped like the games' music players: one BGM at a time
 // (with seamless loops and the per-frame fade out), and separate players for sound
-// effects and cries that play over it (audio.md#playback).
+// effects and cries that play over it (audio.md#playback). All of them go through one
+// output, mono or stereo.
 
 export interface SoundInfo {
   /** Loop start and end in samples at 48 kHz, for looping songs. */
@@ -22,11 +23,24 @@ export class Sound {
   private fadeSpeed = 0;
   private fadeCounter = 0;
   private fadeLevel = 16;
+  /** Every player's output, before the speakers. */
+  private readonly output: GainNode;
 
   constructor(
     private readonly ctx: AudioContext,
     private readonly manifest: Record<string, SoundInfo>,
-  ) {}
+  ) {
+    this.output = ctx.createGain();
+    this.output.channelInterpretation = "speakers";
+    this.output.connect(ctx.destination);
+    this.stereo = false;
+  }
+
+  /** The SOUND option: in mono (the game's default) both speakers play the same mix. */
+  set stereo(on: boolean) {
+    this.output.channelCountMode = on ? "max" : "explicit";
+    this.output.channelCount = on ? 2 : 1;
+  }
 
   /** Loads and decodes the sounds not loaded yet; `url(id, ext)` gives each file. */
   async load(ids: string[], url: (id: string, ext: string) => string): Promise<void> {
@@ -106,7 +120,7 @@ export class Sound {
       source.loopEnd = loop[1] / RATE;
     }
     const gain = this.ctx.createGain();
-    source.connect(gain).connect(this.ctx.destination);
+    source.connect(gain).connect(this.output);
     source.start();
     return { source, gain };
   }

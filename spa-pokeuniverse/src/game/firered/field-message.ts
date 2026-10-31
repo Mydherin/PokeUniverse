@@ -1,13 +1,12 @@
 // The overworld's message box (field_message_box.c): the dialogue frame, or the signpost frame
-// for signs, at the bottom of the screen on BG0, with the text printed letter by letter.
+// for signs, at the bottom of the screen on BG0, with the text printed letter by letter at the
+// player's text speed.
 
 import { FontId, Window, type Text } from "../gba/text";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { clearDialogWindowAndFrame, drawDialogueFrame, loadSignpostWindowFrameGfx, loadStdWindowFrameGfx, STANDARD_TEXT_BOX } from "./menu";
-
-/** Text speed MID: one character every 4 frames. */
-const TEXT_SPEED = 4;
+import { textSpeedDelay } from "./options";
 /** Tiles BG0 holds: the window's, then the frames'. */
 const BG0_TILES = 0x21d;
 
@@ -25,14 +24,14 @@ export class FieldMessage {
   }
 
   /** Shows the box (loading the frame it needs) and starts printing; A or B speeds it up. */
-  show(text: Text, signpost: boolean): void {
+  show(text: Text, signpost: boolean, fontId = FontId.Normal): void {
     const bg = this.win.bg;
     if (signpost) loadSignpostWindowFrameGfx(this.flow, bg);
     else loadStdWindowFrameGfx(this.flow, bg);
     drawDialogueFrame(this.win, signpost);
-    const font = this.flow.fonts[FontId.Normal];
+    const font = this.flow.fonts[fontId];
     this.flow.text.ctx.canABSpeedUpPrint = true;
-    this.flow.text.add(this.win, { font, x: 0, y: 1, letterSpacing: font.letterSpacing, lineSpacing: font.lineSpacing, colors: [1, 2, 3] }, TEXT_SPEED, text);
+    this.flow.text.add(this.win, { font, x: 0, y: 1, letterSpacing: font.letterSpacing, lineSpacing: font.lineSpacing, colors: [1, 2, 3] }, textSpeedDelay(this.flow.options), text);
     this.win.copyToVram();
     this.shown = true;
   }

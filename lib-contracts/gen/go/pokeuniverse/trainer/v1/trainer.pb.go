@@ -72,6 +72,260 @@ func (Gender) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{0}
 }
 
+type TextSpeed int32
+
+const (
+	TextSpeed_TEXT_SPEED_UNSPECIFIED TextSpeed = 0
+	TextSpeed_TEXT_SPEED_SLOW        TextSpeed = 1
+	TextSpeed_TEXT_SPEED_MID         TextSpeed = 2
+	TextSpeed_TEXT_SPEED_FAST        TextSpeed = 3
+)
+
+// Enum value maps for TextSpeed.
+var (
+	TextSpeed_name = map[int32]string{
+		0: "TEXT_SPEED_UNSPECIFIED",
+		1: "TEXT_SPEED_SLOW",
+		2: "TEXT_SPEED_MID",
+		3: "TEXT_SPEED_FAST",
+	}
+	TextSpeed_value = map[string]int32{
+		"TEXT_SPEED_UNSPECIFIED": 0,
+		"TEXT_SPEED_SLOW":        1,
+		"TEXT_SPEED_MID":         2,
+		"TEXT_SPEED_FAST":        3,
+	}
+)
+
+func (x TextSpeed) Enum() *TextSpeed {
+	p := new(TextSpeed)
+	*p = x
+	return p
+}
+
+func (x TextSpeed) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TextSpeed) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[1].Descriptor()
+}
+
+func (TextSpeed) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[1]
+}
+
+func (x TextSpeed) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TextSpeed.Descriptor instead.
+func (TextSpeed) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{1}
+}
+
+type BattleScene int32
+
+const (
+	BattleScene_BATTLE_SCENE_UNSPECIFIED BattleScene = 0
+	BattleScene_BATTLE_SCENE_ON          BattleScene = 1
+	BattleScene_BATTLE_SCENE_OFF         BattleScene = 2
+)
+
+// Enum value maps for BattleScene.
+var (
+	BattleScene_name = map[int32]string{
+		0: "BATTLE_SCENE_UNSPECIFIED",
+		1: "BATTLE_SCENE_ON",
+		2: "BATTLE_SCENE_OFF",
+	}
+	BattleScene_value = map[string]int32{
+		"BATTLE_SCENE_UNSPECIFIED": 0,
+		"BATTLE_SCENE_ON":          1,
+		"BATTLE_SCENE_OFF":         2,
+	}
+)
+
+func (x BattleScene) Enum() *BattleScene {
+	p := new(BattleScene)
+	*p = x
+	return p
+}
+
+func (x BattleScene) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BattleScene) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[2].Descriptor()
+}
+
+func (BattleScene) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[2]
+}
+
+func (x BattleScene) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BattleScene.Descriptor instead.
+func (BattleScene) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{2}
+}
+
+type BattleStyle int32
+
+const (
+	BattleStyle_BATTLE_STYLE_UNSPECIFIED BattleStyle = 0
+	BattleStyle_BATTLE_STYLE_SHIFT       BattleStyle = 1
+	BattleStyle_BATTLE_STYLE_SET         BattleStyle = 2
+)
+
+// Enum value maps for BattleStyle.
+var (
+	BattleStyle_name = map[int32]string{
+		0: "BATTLE_STYLE_UNSPECIFIED",
+		1: "BATTLE_STYLE_SHIFT",
+		2: "BATTLE_STYLE_SET",
+	}
+	BattleStyle_value = map[string]int32{
+		"BATTLE_STYLE_UNSPECIFIED": 0,
+		"BATTLE_STYLE_SHIFT":       1,
+		"BATTLE_STYLE_SET":         2,
+	}
+)
+
+func (x BattleStyle) Enum() *BattleStyle {
+	p := new(BattleStyle)
+	*p = x
+	return p
+}
+
+func (x BattleStyle) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BattleStyle) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[3].Descriptor()
+}
+
+func (BattleStyle) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[3]
+}
+
+func (x BattleStyle) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BattleStyle.Descriptor instead.
+func (BattleStyle) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{3}
+}
+
+type SoundMode int32
+
+const (
+	SoundMode_SOUND_MODE_UNSPECIFIED SoundMode = 0
+	SoundMode_SOUND_MODE_MONO        SoundMode = 1
+	SoundMode_SOUND_MODE_STEREO      SoundMode = 2
+)
+
+// Enum value maps for SoundMode.
+var (
+	SoundMode_name = map[int32]string{
+		0: "SOUND_MODE_UNSPECIFIED",
+		1: "SOUND_MODE_MONO",
+		2: "SOUND_MODE_STEREO",
+	}
+	SoundMode_value = map[string]int32{
+		"SOUND_MODE_UNSPECIFIED": 0,
+		"SOUND_MODE_MONO":        1,
+		"SOUND_MODE_STEREO":      2,
+	}
+)
+
+func (x SoundMode) Enum() *SoundMode {
+	p := new(SoundMode)
+	*p = x
+	return p
+}
+
+func (x SoundMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SoundMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[4].Descriptor()
+}
+
+func (SoundMode) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[4]
+}
+
+func (x SoundMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SoundMode.Descriptor instead.
+func (SoundMode) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{4}
+}
+
+type ButtonMode int32
+
+const (
+	ButtonMode_BUTTON_MODE_UNSPECIFIED ButtonMode = 0
+	// The help bar under menus and the help system on L and R.
+	ButtonMode_BUTTON_MODE_HELP ButtonMode = 1
+	// L and R switch pages in some menus.
+	ButtonMode_BUTTON_MODE_LR ButtonMode = 2
+	// L works as A.
+	ButtonMode_BUTTON_MODE_L_EQUALS_A ButtonMode = 3
+)
+
+// Enum value maps for ButtonMode.
+var (
+	ButtonMode_name = map[int32]string{
+		0: "BUTTON_MODE_UNSPECIFIED",
+		1: "BUTTON_MODE_HELP",
+		2: "BUTTON_MODE_LR",
+		3: "BUTTON_MODE_L_EQUALS_A",
+	}
+	ButtonMode_value = map[string]int32{
+		"BUTTON_MODE_UNSPECIFIED": 0,
+		"BUTTON_MODE_HELP":        1,
+		"BUTTON_MODE_LR":          2,
+		"BUTTON_MODE_L_EQUALS_A":  3,
+	}
+)
+
+func (x ButtonMode) Enum() *ButtonMode {
+	p := new(ButtonMode)
+	*p = x
+	return p
+}
+
+func (x ButtonMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ButtonMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[5].Descriptor()
+}
+
+func (ButtonMode) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_trainer_v1_trainer_proto_enumTypes[5]
+}
+
+func (x ButtonMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ButtonMode.Descriptor instead.
+func (ButtonMode) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{5}
+}
+
 // Response of GET /api/trainer: what the main menu's CONTINUE window and the Trainer Card show,
 // and where the game continues.
 type TrainerSummary struct {
@@ -86,7 +340,8 @@ type TrainerSummary struct {
 	// The ID No. on the Trainer Card: the public half (low 16 bits) of the trainer ID.
 	IdNo uint32 `protobuf:"varint,7,opt,name=id_no,json=idNo,proto3" json:"id_no,omitempty"`
 	// ¥0 to ¥999999.
-	Money         uint32 `protobuf:"varint,8,opt,name=money,proto3" json:"money,omitempty"`
+	Money         uint32   `protobuf:"varint,8,opt,name=money,proto3" json:"money,omitempty"`
+	Options       *Options `protobuf:"bytes,9,opt,name=options,proto3" json:"options,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -177,6 +432,13 @@ func (x *TrainerSummary) GetMoney() uint32 {
 	return 0
 }
 
+func (x *TrainerSummary) GetOptions() *Options {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
 // Where the trainer is: a map of lib-maps and a tile on it.
 type Location struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -238,6 +500,94 @@ func (x *Location) GetY() uint32 {
 	return 0
 }
 
+// The OPTION menu's choices, saved per trainer; New Game resets them to FireRed's defaults
+// (MID, ON, SHIFT, MONO, HELP, TYPE1). Request of PUT /api/trainer/options, where every field
+// must be set.
+type Options struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	TextSpeed   TextSpeed              `protobuf:"varint,1,opt,name=text_speed,json=textSpeed,proto3,enum=pokeuniverse.trainer.v1.TextSpeed" json:"text_speed,omitempty"`
+	BattleScene BattleScene            `protobuf:"varint,2,opt,name=battle_scene,json=battleScene,proto3,enum=pokeuniverse.trainer.v1.BattleScene" json:"battle_scene,omitempty"`
+	BattleStyle BattleStyle            `protobuf:"varint,3,opt,name=battle_style,json=battleStyle,proto3,enum=pokeuniverse.trainer.v1.BattleStyle" json:"battle_style,omitempty"`
+	Sound       SoundMode              `protobuf:"varint,4,opt,name=sound,proto3,enum=pokeuniverse.trainer.v1.SoundMode" json:"sound,omitempty"`
+	ButtonMode  ButtonMode             `protobuf:"varint,5,opt,name=button_mode,json=buttonMode,proto3,enum=pokeuniverse.trainer.v1.ButtonMode" json:"button_mode,omitempty"`
+	// The window frame: 1 to 10 (TYPE1 to TYPE10).
+	Frame         uint32 `protobuf:"varint,6,opt,name=frame,proto3" json:"frame,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Options) Reset() {
+	*x = Options{}
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Options) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Options) ProtoMessage() {}
+
+func (x *Options) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Options.ProtoReflect.Descriptor instead.
+func (*Options) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Options) GetTextSpeed() TextSpeed {
+	if x != nil {
+		return x.TextSpeed
+	}
+	return TextSpeed_TEXT_SPEED_UNSPECIFIED
+}
+
+func (x *Options) GetBattleScene() BattleScene {
+	if x != nil {
+		return x.BattleScene
+	}
+	return BattleScene_BATTLE_SCENE_UNSPECIFIED
+}
+
+func (x *Options) GetBattleStyle() BattleStyle {
+	if x != nil {
+		return x.BattleStyle
+	}
+	return BattleStyle_BATTLE_STYLE_UNSPECIFIED
+}
+
+func (x *Options) GetSound() SoundMode {
+	if x != nil {
+		return x.Sound
+	}
+	return SoundMode_SOUND_MODE_UNSPECIFIED
+}
+
+func (x *Options) GetButtonMode() ButtonMode {
+	if x != nil {
+		return x.ButtonMode
+	}
+	return ButtonMode_BUTTON_MODE_UNSPECIFIED
+}
+
+func (x *Options) GetFrame() uint32 {
+	if x != nil {
+		return x.Frame
+	}
+	return 0
+}
+
 // Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
 // It replaces the account's trainer, as starting a new game replaces the save.
 type NewTrainer struct {
@@ -252,7 +602,7 @@ type NewTrainer struct {
 
 func (x *NewTrainer) Reset() {
 	*x = NewTrainer{}
-	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[2]
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +614,7 @@ func (x *NewTrainer) String() string {
 func (*NewTrainer) ProtoMessage() {}
 
 func (x *NewTrainer) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[2]
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +627,7 @@ func (x *NewTrainer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewTrainer.ProtoReflect.Descriptor instead.
 func (*NewTrainer) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{2}
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *NewTrainer) GetGender() Gender {
@@ -305,7 +655,7 @@ var File_pokeuniverse_trainer_v1_trainer_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
 	"\n" +
-	"%pokeuniverse/trainer/v1/trainer.proto\x12\x17pokeuniverse.trainer.v1\"\xca\x02\n" +
+	"%pokeuniverse/trainer/v1/trainer.proto\x12\x17pokeuniverse.trainer.v1\"\x86\x03\n" +
 	"\x0eTrainerSummary\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x127\n" +
 	"\x06gender\x18\x02 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12*\n" +
@@ -314,12 +664,22 @@ const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
 	"\x0epokedex_caught\x18\x05 \x01(\rH\x00R\rpokedexCaught\x88\x01\x01\x12=\n" +
 	"\blocation\x18\x06 \x01(\v2!.pokeuniverse.trainer.v1.LocationR\blocation\x12\x13\n" +
 	"\x05id_no\x18\a \x01(\rR\x04idNo\x12\x14\n" +
-	"\x05money\x18\b \x01(\rR\x05moneyB\x11\n" +
+	"\x05money\x18\b \x01(\rR\x05money\x12:\n" +
+	"\aoptions\x18\t \x01(\v2 .pokeuniverse.trainer.v1.OptionsR\aoptionsB\x11\n" +
 	"\x0f_pokedex_caught\"8\n" +
 	"\bLocation\x12\x10\n" +
 	"\x03map\x18\x01 \x01(\tR\x03map\x12\f\n" +
 	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
-	"\x01y\x18\x03 \x01(\rR\x01y\"x\n" +
+	"\x01y\x18\x03 \x01(\rR\x01y\"\xf4\x02\n" +
+	"\aOptions\x12A\n" +
+	"\n" +
+	"text_speed\x18\x01 \x01(\x0e2\".pokeuniverse.trainer.v1.TextSpeedR\ttextSpeed\x12G\n" +
+	"\fbattle_scene\x18\x02 \x01(\x0e2$.pokeuniverse.trainer.v1.BattleSceneR\vbattleScene\x12G\n" +
+	"\fbattle_style\x18\x03 \x01(\x0e2$.pokeuniverse.trainer.v1.BattleStyleR\vbattleStyle\x128\n" +
+	"\x05sound\x18\x04 \x01(\x0e2\".pokeuniverse.trainer.v1.SoundModeR\x05sound\x12D\n" +
+	"\vbutton_mode\x18\x05 \x01(\x0e2#.pokeuniverse.trainer.v1.ButtonModeR\n" +
+	"buttonMode\x12\x14\n" +
+	"\x05frame\x18\x06 \x01(\rR\x05frame\"x\n" +
 	"\n" +
 	"NewTrainer\x127\n" +
 	"\x06gender\x18\x01 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12\x12\n" +
@@ -330,7 +690,30 @@ const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
 	"\x12GENDER_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"GENDER_BOY\x10\x01\x12\x0f\n" +
-	"\vGENDER_GIRL\x10\x02BEZCpokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1;trainerv1b\x06proto3"
+	"\vGENDER_GIRL\x10\x02*e\n" +
+	"\tTextSpeed\x12\x1a\n" +
+	"\x16TEXT_SPEED_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fTEXT_SPEED_SLOW\x10\x01\x12\x12\n" +
+	"\x0eTEXT_SPEED_MID\x10\x02\x12\x13\n" +
+	"\x0fTEXT_SPEED_FAST\x10\x03*V\n" +
+	"\vBattleScene\x12\x1c\n" +
+	"\x18BATTLE_SCENE_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fBATTLE_SCENE_ON\x10\x01\x12\x14\n" +
+	"\x10BATTLE_SCENE_OFF\x10\x02*Y\n" +
+	"\vBattleStyle\x12\x1c\n" +
+	"\x18BATTLE_STYLE_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12BATTLE_STYLE_SHIFT\x10\x01\x12\x14\n" +
+	"\x10BATTLE_STYLE_SET\x10\x02*S\n" +
+	"\tSoundMode\x12\x1a\n" +
+	"\x16SOUND_MODE_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fSOUND_MODE_MONO\x10\x01\x12\x15\n" +
+	"\x11SOUND_MODE_STEREO\x10\x02*o\n" +
+	"\n" +
+	"ButtonMode\x12\x1b\n" +
+	"\x17BUTTON_MODE_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10BUTTON_MODE_HELP\x10\x01\x12\x12\n" +
+	"\x0eBUTTON_MODE_LR\x10\x02\x12\x1a\n" +
+	"\x16BUTTON_MODE_L_EQUALS_A\x10\x03BEZCpokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1;trainerv1b\x06proto3"
 
 var (
 	file_pokeuniverse_trainer_v1_trainer_proto_rawDescOnce sync.Once
@@ -344,23 +727,35 @@ func file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescData
 }
 
-var file_pokeuniverse_trainer_v1_trainer_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_trainer_v1_trainer_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_pokeuniverse_trainer_v1_trainer_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_pokeuniverse_trainer_v1_trainer_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_pokeuniverse_trainer_v1_trainer_proto_goTypes = []any{
 	(Gender)(0),            // 0: pokeuniverse.trainer.v1.Gender
-	(*TrainerSummary)(nil), // 1: pokeuniverse.trainer.v1.TrainerSummary
-	(*Location)(nil),       // 2: pokeuniverse.trainer.v1.Location
-	(*NewTrainer)(nil),     // 3: pokeuniverse.trainer.v1.NewTrainer
+	(TextSpeed)(0),         // 1: pokeuniverse.trainer.v1.TextSpeed
+	(BattleScene)(0),       // 2: pokeuniverse.trainer.v1.BattleScene
+	(BattleStyle)(0),       // 3: pokeuniverse.trainer.v1.BattleStyle
+	(SoundMode)(0),         // 4: pokeuniverse.trainer.v1.SoundMode
+	(ButtonMode)(0),        // 5: pokeuniverse.trainer.v1.ButtonMode
+	(*TrainerSummary)(nil), // 6: pokeuniverse.trainer.v1.TrainerSummary
+	(*Location)(nil),       // 7: pokeuniverse.trainer.v1.Location
+	(*Options)(nil),        // 8: pokeuniverse.trainer.v1.Options
+	(*NewTrainer)(nil),     // 9: pokeuniverse.trainer.v1.NewTrainer
 }
 var file_pokeuniverse_trainer_v1_trainer_proto_depIdxs = []int32{
 	0, // 0: pokeuniverse.trainer.v1.TrainerSummary.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	2, // 1: pokeuniverse.trainer.v1.TrainerSummary.location:type_name -> pokeuniverse.trainer.v1.Location
-	0, // 2: pokeuniverse.trainer.v1.NewTrainer.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	7, // 1: pokeuniverse.trainer.v1.TrainerSummary.location:type_name -> pokeuniverse.trainer.v1.Location
+	8, // 2: pokeuniverse.trainer.v1.TrainerSummary.options:type_name -> pokeuniverse.trainer.v1.Options
+	1, // 3: pokeuniverse.trainer.v1.Options.text_speed:type_name -> pokeuniverse.trainer.v1.TextSpeed
+	2, // 4: pokeuniverse.trainer.v1.Options.battle_scene:type_name -> pokeuniverse.trainer.v1.BattleScene
+	3, // 5: pokeuniverse.trainer.v1.Options.battle_style:type_name -> pokeuniverse.trainer.v1.BattleStyle
+	4, // 6: pokeuniverse.trainer.v1.Options.sound:type_name -> pokeuniverse.trainer.v1.SoundMode
+	5, // 7: pokeuniverse.trainer.v1.Options.button_mode:type_name -> pokeuniverse.trainer.v1.ButtonMode
+	0, // 8: pokeuniverse.trainer.v1.NewTrainer.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_trainer_v1_trainer_proto_init() }
@@ -374,8 +769,8 @@ func file_pokeuniverse_trainer_v1_trainer_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_trainer_v1_trainer_proto_rawDesc), len(file_pokeuniverse_trainer_v1_trainer_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   3,
+			NumEnums:      6,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

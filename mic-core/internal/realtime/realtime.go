@@ -244,6 +244,21 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_ScriptDone:
 		c.player.ScriptDone(p.ScriptDone)
 		return true
+	case *realtimev1.ClientMessage_UseItem:
+		c.player.UseItem(p.UseItem)
+		return true
+	case *realtimev1.ClientMessage_GiveItem:
+		c.player.GiveItem(p.GiveItem)
+		return true
+	case *realtimev1.ClientMessage_TossItem:
+		c.player.TossItem(p.TossItem)
+		return true
+	case *realtimev1.ClientMessage_RegisterItem:
+		c.player.RegisterItem(p.RegisterItem)
+		return true
+	case *realtimev1.ClientMessage_MoveItem:
+		c.player.MoveItem(p.MoveItem)
+		return true
 	}
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 	return false

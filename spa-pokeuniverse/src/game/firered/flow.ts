@@ -6,6 +6,7 @@ import type { Gba } from "../gba/gba";
 import type { Font, FontId, Text, TextPrinters } from "../gba/text";
 import type { WorldView } from "../world/view";
 import type { Assets, SoundId } from "./manifest";
+import type { Options } from "./options";
 import type { PlayTime } from "./play-time";
 
 /** The trainer Oak's speech decides: names as the game's encoded text. */
@@ -31,6 +32,10 @@ export interface Flow {
   readonly trainer: TrainerSummary | null;
   /** The trainer's play time, counting once in the world. */
   readonly playTime: PlayTime;
+  /** The trainer's options; FireRed's defaults until there is a trainer. */
+  readonly options: Options;
+  /** New options from the OPTION menu: applied at once and saved on the server in the background. */
+  setOptions(options: Options): void;
   /** The New Game art, text and sounds (loading in the background since boot). */
   newGameReady(): Promise<void>;
   /** Saves New Game's trainer on the server, retrying until it is saved. */

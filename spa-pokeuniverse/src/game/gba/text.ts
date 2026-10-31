@@ -20,6 +20,8 @@ const CHAR_PROMPT_SCROLL = 0xfa;
 const CHAR_KEYPAD_ICON = 0xf8;
 const CHAR_EXTRA_SYMBOL = 0xf9;
 export const PLACEHOLDER_PLAYER = 0x01;
+export const PLACEHOLDER_STR_VAR_1 = 0x02;
+export const PLACEHOLDER_STR_VAR_2 = 0x03;
 export const PLACEHOLDER_RIVAL = 0x06;
 
 /** Character <-> byte, from the games' charmap (`make text`). */
@@ -41,7 +43,7 @@ export function decodeText(charmap: Charmap, text: Text): string {
   return s;
 }
 
-/** StringExpandPlaceholders for the names: {PLAYER} and {RIVAL} become the given text. */
+/** StringExpandPlaceholders: {PLAYER}, {RIVAL}, {STR_VAR_1}... become the given text. */
 export function expandPlaceholders(text: Text, vars: Partial<Record<number, Text>>): number[] {
   const out: number[] = [];
   for (let i = 0; i < text.length; i++) {
@@ -240,6 +242,13 @@ export class Window {
     const shift = distance * this.stride;
     this.pixels.copyWithin(0, shift);
     this.pixels.fill(fill, this.pixels.length - shift);
+  }
+
+  /** ScrollWindow down: the content moves down and the top fills with `fill`. */
+  scrollDown(distance: number, fill: number): void {
+    const shift = distance * this.stride;
+    this.pixels.copyWithin(shift, 0, this.pixels.length - shift);
+    this.pixels.fill(fill, 0, shift);
   }
 
   /** Prints text at once (AddTextPrinter with speed 0); colors are [background, text, shadow]. */

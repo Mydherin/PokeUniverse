@@ -8,6 +8,7 @@ import { FontId, Window, type Text, type WindowTemplate } from "../gba/text";
 import type { Background } from "../gba/video";
 import { fillBgRect } from "./common";
 import type { Flow } from "./flow";
+import { userFrame } from "./manifest";
 
 export const DLG_WINDOW_PALETTE = 15;
 export const DLG_WINDOW_BASE_TILE = 0x200;
@@ -18,13 +19,13 @@ const V_FLIP = 0x800;
 /** The text box every message uses (InitStandardTextBoxWindows: window 0). */
 export const STANDARD_TEXT_BOX: WindowTemplate = { left: 2, top: 15, width: 26, height: 4, palette: DLG_WINDOW_PALETTE, baseBlock: 0x198 };
 
-/** LoadStdWindowFrameGfx: dialogue frame tiles and the user's frame (type 1) on BG0, with palettes. */
+/** LoadStdWindowFrameGfx: dialogue frame tiles and the user's frame (the FRAME option) on BG0, with palettes. */
 export function loadStdWindowFrameGfx(flow: Flow, bg: Background): void {
   const { assets, gba } = flow;
   gba.palettes.load(assets.get("stdMenuPal").palette, STD_WINDOW_PALETTE * 16, 10);
   copyTiles(bg, assets.get("menuMessageFrame").tiles, DLG_WINDOW_BASE_TILE, 20);
   gba.palettes.load(assets.get("textWindowPal0").palette, DLG_WINDOW_PALETTE * 16, 16);
-  const frame = assets.get("textWindowFrame");
+  const frame = assets.get(userFrame(flow.options.frame));
   copyTiles(bg, frame.tiles, STD_WINDOW_BASE_TILE, 9);
   gba.palettes.load(frame.palette, STD_WINDOW_PALETTE * 16, 16);
 }
@@ -35,7 +36,7 @@ export function loadSignpostWindowFrameGfx(flow: Flow, bg: Background): void {
   gba.palettes.load(assets.get("stdMenuPal").palette, STD_WINDOW_PALETTE * 16, 10);
   copyTiles(bg, assets.get("signpostFrame").tiles, DLG_WINDOW_BASE_TILE, 19);
   gba.palettes.load(assets.get("textWindowPal1").palette, DLG_WINDOW_PALETTE * 16, 16);
-  const frame = assets.get("textWindowFrame");
+  const frame = assets.get(userFrame(flow.options.frame));
   copyTiles(bg, frame.tiles, STD_WINDOW_BASE_TILE, 9);
   gba.palettes.load(frame.palette, STD_WINDOW_PALETTE * 16, 16);
 }
@@ -55,11 +56,9 @@ export function copyTiles(bg: Background, tiles: Uint8Array, at: number, count =
  * DrawDialogueFrame: the message frame around the window, then an empty white window. The
  * signpost frame mirrors its middle rows the other way.
  */
-export function drawDialogueFrame(win: Window, signpost = false): void {
+export function drawDialogueFrame(win: Window, signpost = false, t = DLG_WINDOW_BASE_TILE, p = DLG_WINDOW_PALETTE): void {
   const { bg } = win;
   const { left, top, width } = win.template;
-  const t = DLG_WINDOW_BASE_TILE;
-  const p = DLG_WINDOW_PALETTE;
   const row = (y: number, a: number, b: number, mid: number | null, c: number, d: number, flip = 0) => {
     fillBgRect(bg, (t + a) | flip, left - 2, y, 1, 1, p);
     fillBgRect(bg, (t + b) | flip, left - 1, y, 1, 1, p);
@@ -80,6 +79,15 @@ export function drawDialogueFrame(win: Window, signpost = false): void {
   row(top + 4, 0, 1, 2, 3, 4, V_FLIP);
   win.fill(1);
   win.putTilemap();
+}
+
+/** ClearDialogWindowAndFrameToTransparent. */
+export function clearDialogWindowAndFrameToTransparent(win: Window): void {
+  const { left, top, width, height } = win.template;
+  fillBgRect(win.bg, 0, left - 2, top - 1, width + 4, height + 2, 0);
+  win.fill(0);
+  win.clearTilemap();
+  win.copyToVram();
 }
 
 export function clearDialogWindowAndFrame(win: Window): void {
@@ -240,9 +248,9 @@ export class CursorMenu {
 export class YesNoMenu {
   private readonly menu: CursorMenu;
 
-  constructor(flow: Flow, bg: Background, template: WindowTemplate, font: FontId, left: number, top: number, initial: number) {
+  constructor(flow: Flow, bg: Background, template: WindowTemplate, font: FontId, left: number, top: number, initial: number, frameTile = STD_WINDOW_BASE_TILE, framePalette = STD_WINDOW_PALETTE) {
     const win = new Window(bg, template);
-    drawStdFrame(win);
+    drawStdFrame(win, frameTile, framePalette);
     const f = flow.fonts[font];
     win.print(f, 8 + left, top, [1, 2, 3], flow.assets.text("gText_YesNo"));
     this.menu = new CursorMenu(flow, win, font, left, top, f.maxLetterHeight + f.lineSpacing, 2, initial);
