@@ -8,3 +8,8 @@
 	url = https://github.com/smogon/pokemon-showdown.git
 	branch = master
 	shallow = true
+[submodule "references/pokeemerald-expansion"]
+	path = references/pokeemerald-expansion
+	url = https://github.com/rh-hideout/pokeemerald-expansion.git
+	shallow = true
+	branch = master

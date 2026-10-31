@@ -157,6 +157,13 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
     },
     encode: (s: string) => encodeText(assets.charmap, s),
     play: (id: SoundId, player?: string) => gba.sound.play(id, player),
+    playCry: (species: number) => {
+      const id = Assets.cryId(species);
+      void gba.sound.load([id], Assets.cryUrl).then(
+        () => gba.sound.play(id, "cry"),
+        () => {},
+      );
+    },
     playBgm: (id: SoundId) => gba.sound.playBgm(id),
     runFrame: () => {
       gba.tasks.run();

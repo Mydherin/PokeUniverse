@@ -51,5 +51,14 @@
   "Text_Bookshelf", "Text_PokeMartShelf", "Text_Food", "Text_Blueprints", "Text_Burglary", "Text_Computer",
   "Text_PlayerFacingTVScreen", "Text_DishesPlatesNeatlyLinedUp", "Text_Kitchen", "Text_Dresser", "Text_Painting",
   "Text_PowerPlantMachine", "Text_Telephone", "Text_AdvertisingPoster", "Text_TastyFood", "Text_TrashBin", "Text_Cup",
-  "Text_BlinkingLights", "Text_NeatlyLinedUpTools", "Text_PokemartSign", "Text_PokecenterSign"
+  "Text_BlinkingLights", "Text_NeatlyLinedUpTools", "Text_PokemartSign", "Text_PokecenterSign",
+  "gText_5Dashes", "gText_AToZMode", "gText_Area", "gText_AreaUnknown", "gText_CancelPreviousData", "gText_ClosePokedex",
+  "gText_Cry", "gText_DexCategory_CavePkmn", "gText_DexCategory_ForestPkmn", "gText_DexCategory_GrasslandPkmn",
+  "gText_DexCategory_MountainPkmn", "gText_DexCategory_RarePkmn", "gText_DexCategory_RoughTerrainPkmn", "gText_DexCategory_SeaPkmn",
+  "gText_DexCategory_UrbanPkmn", "gText_DexCategory_WatersEdgePkmn", "gText_HT", "gText_Kanto", "gText_Lbs",
+  "gText_LightestMode", "gText_National", "gText_Next", "gText_NextDataCancel", "gText_NumericalMode", "gText_NumericalModeKanto",
+  "gText_NumericalModeNational", "gText_Owned", "gText_Page", "gText_PickFlipPageCheckCancel", "gText_PickOK",
+  "gText_PickOKExit", "gText_PokedexNo", "gText_PokedexOther", "gText_PokedexPokemon", "gText_PokedexTableOfContents",
+  "gText_PokemonHabitats", "gText_PokemonList", "gText_PokemonListNoColor", "gText_Search", "gText_SearchNoColor",
+  "gText_Seen", "gText_Size", "gText_SmallestMode", "gText_TypeMode", "gText_WT"
 ]

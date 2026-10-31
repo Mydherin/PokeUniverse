@@ -1,6 +1,7 @@
 // The scrolling list menus (list_menu.c): rows printed in a window, the "▶" cursor, and a
 // view of `maxShowed` rows that scrolls as the cursor nears its edges. The bag and the PC's
-// WITHDRAW ITEM screen use it, and so will the shops. Rows can't be headers: no list we use has any.
+// WITHDRAW ITEM screen use it, and so will the shops. Header rows (LIST_HEADER) print at
+// `headerX` and the cursor skips them; a list can also jump a view at a time (scrollMultiple).
 
 import { Button } from "../gba/input";
 import type { FontId, Text, Window } from "../gba/text";
@@ -8,6 +9,15 @@ import type { Flow } from "./flow";
 
 export const LIST_NOTHING_CHOSEN = -1;
 export const LIST_CANCEL = -2;
+/** A row that only titles the rows under it: never selected. */
+export const LIST_HEADER = -3;
+
+/** LIST_MULTIPLE_SCROLL_*: what jumps a whole view. */
+export const enum ListScrollMultiple {
+  None,
+  Dpad,
+  LR,
+}
 
 export interface ListMenuItem {
   label: Text;
@@ -21,6 +31,8 @@ export interface ListMenuTemplate {
   maxShowed: number;
   font: FontId;
   itemX: number;
+  /** Where header rows print; itemX when unset. */
+  headerX?: number;
   cursorX: number;
   upTextY: number;
   itemVerticalPadding: number;
@@ -29,8 +41,10 @@ export interface ListMenuTemplate {
   colors: readonly [number, number, number];
   /** The selected row changed (on init too). */
   onMove?: (id: number, onInit: boolean) => void;
-  /** Before each row's label is printed, at the row's y. */
-  onPrint?: (id: number, y: number) => void;
+  /** Before each row's label is printed, at the row's y; may return its colors (ListMenuOverrideSetColors). */
+  onPrint?: (id: number, y: number) => readonly [number, number, number] | void;
+  /** LEFT/RIGHT (or L/R) move a view's worth of rows. */
+  scrollMultiple?: ListScrollMultiple;
 }
 
 /** The view's position: the first row shown (`scroll`) and the selected row in the view (`row`). */
@@ -83,18 +97,41 @@ export class ListMenu {
     const { input } = this.flow.gba;
     if (input.isPressed(Button.A)) return this.selectedId;
     if (input.isPressed(Button.B)) return LIST_CANCEL;
-    if (input.isRepeated(Button.Up)) this.changeSelection(false);
-    else if (input.isRepeated(Button.Down)) this.changeSelection(true);
+    if (input.isRepeated(Button.Up)) this.changeSelection(false, 1);
+    else if (input.isRepeated(Button.Down)) this.changeSelection(true, 1);
+    else {
+      const multiple = this.t.scrollMultiple ?? ListScrollMultiple.None;
+      const [back, forward] = multiple === ListScrollMultiple.Dpad ? [Button.Left, Button.Right] : multiple === ListScrollMultiple.LR ? [Button.L, Button.R] : [0, 0];
+      if (back && input.isRepeated(back)) this.changeSelection(false, this.t.maxShowed);
+      else if (forward && input.isRepeated(forward)) this.changeSelection(true, this.t.maxShowed);
+    }
     return LIST_NOTHING_CHOSEN;
   }
 
-  /** ListMenuChangeSelection by one row: the cursor moves inside the view, or the view scrolls. */
-  private changeSelection(down: boolean): void {
+  private isHeader(index: number): boolean {
+    return this.t.items[index]?.id === LIST_HEADER;
+  }
+
+  /**
+   * ListMenuChangeSelection by `count` rows, over header rows: the cursor moves inside the
+   * view, or the view scrolls (by the rows it scrolled).
+   */
+  private changeSelection(down: boolean, count: number): void {
     const oldRow = this.row;
-    const change = this.step(down);
+    let change = 0;
+    let scrolled = 0;
+    for (let i = 0; i < count; i++) {
+      for (;;) {
+        const r = this.step(down);
+        change |= r;
+        if (r !== 2) break;
+        scrolled++;
+        if (!this.isHeader(this.scroll + this.row)) break;
+      }
+    }
     if (change === 0) return;
     this.eraseCursor(oldRow);
-    if (change === 2) this.scrollView(down);
+    if (change & 2) this.scrollView(down, scrolled);
     this.drawCursor();
     this.t.onMove?.(this.selectedId, false);
     this.t.win.copyToVram();
@@ -102,51 +139,61 @@ export class ListMenu {
 
   /**
    * ListMenuUpdateSelectedRowIndexAndScrollOffset: the cursor moves toward the view's middle
-   * row, then the view scrolls; at either end of the list the cursor goes on to the last row.
-   * 0: nothing moved, 1: the cursor moved, 2: the view scrolled.
+   * row (skipping headers), then the view scrolls; at either end of the list the cursor goes on
+   * to the last row. 0: nothing moved, 1: the cursor moved, 2: the view scrolled.
    */
   private step(down: boolean): number {
     const { maxShowed } = this;
     const half = (maxShowed >> 1) + (maxShowed & 1);
+    let row = this.row;
     if (!down) {
       const middle = maxShowed === 1 ? 0 : maxShowed - half - 1;
-      if (this.scroll === 0 || this.row > middle) {
-        if (this.row === 0) return 0;
-        this.row--;
-        return 1;
+      const floor = this.scroll === 0 ? 0 : middle;
+      while (row > floor) {
+        row--;
+        if (!this.isHeader(this.scroll + row)) {
+          this.row = row;
+          return 1;
+        }
       }
+      if (this.scroll === 0) return 0;
       this.scroll--;
       this.row = middle;
       return 2;
     }
     const middle = maxShowed === 1 ? 0 : half;
-    if (this.scroll === this.t.items.length - maxShowed || this.row < middle) {
-      if (this.row >= maxShowed - 1) return 0;
-      this.row++;
-      return 1;
+    const atEnd = this.scroll === this.t.items.length - maxShowed;
+    const ceiling = atEnd ? maxShowed - 1 : middle;
+    while (row < ceiling) {
+      row++;
+      if (!this.isHeader(this.scroll + row)) {
+        this.row = row;
+        return 1;
+      }
     }
+    if (atEnd) return 0;
     this.scroll++;
     this.row = middle;
     return 2;
   }
 
-  /** ListMenuScroll by one row: the window's pixels move and the new row is printed. */
-  private scrollView(down: boolean): void {
+  /** ListMenuScroll by `count` rows: the window's pixels move and the new rows are printed. */
+  private scrollView(down: boolean, count: number): void {
     const { win, colors, upTextY } = this.t;
     const { rowHeight, maxShowed } = this;
-    if (maxShowed <= 1) {
+    if (count >= maxShowed) {
       win.fill(colors[0]);
       this.printRows(this.scroll, 0, maxShowed);
       return;
     }
     if (!down) {
-      win.scrollDown(rowHeight, colors[0]);
-      this.printRows(this.scroll, 0, 1);
+      win.scrollDown(count * rowHeight, colors[0]);
+      this.printRows(this.scroll, 0, count);
       const y = maxShowed * rowHeight + upTextY;
       win.fillRect(colors[0], 0, y, win.stride, win.rows - y);
     } else {
-      win.scroll(rowHeight, colors[0]);
-      this.printRows(this.scroll + maxShowed - 1, maxShowed - 1, 1);
+      win.scroll(count * rowHeight, colors[0]);
+      this.printRows(this.scroll + maxShowed - count, maxShowed - count, count);
       win.fillRect(colors[0], 0, 0, win.stride, upTextY);
     }
   }
@@ -158,8 +205,9 @@ export class ListMenu {
     for (let i = 0; i < count; i++) {
       const item = t.items[start + i];
       const y = (at + i) * this.rowHeight + t.upTextY;
-      t.onPrint?.(item.id, y);
-      t.win.print(font, t.itemX, y, t.colors, item.label, t.letterSpacing, 0);
+      const colors = t.onPrint?.(item.id, y) ?? t.colors;
+      const x = item.id === LIST_HEADER ? (t.headerX ?? t.itemX) : t.itemX;
+      t.win.print(font, x, y, colors, item.label, t.letterSpacing, 0);
     }
   }
 

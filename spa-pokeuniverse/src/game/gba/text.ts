@@ -379,6 +379,8 @@ export class TextPrinter {
   private spedUp = false;
   private downArrowDelay = 0;
   private downArrowIndex = 0;
+  /** {MIN_LETTER_SPACING n}: each glyph takes at least n pixels. */
+  private minLetterSpacing = 0;
   private text: Text = [EOS];
 
   constructor(
@@ -463,7 +465,13 @@ export class TextPrinter {
             return Render.Finish;
         }
         this.glyphs.drawGlyph(c, this.window.pixels, this.window.stride, this.window.rows, this.currentX, this.currentY, this.colors);
-        this.currentX += this.glyphs.glyphWidth(c);
+        const width = this.glyphs.glyphWidth(c);
+        this.currentX += width;
+        if (this.minLetterSpacing > width) {
+          // ClearTextSpan: the rest of the cell in the background color.
+          this.window.fillRect(this.colors[0], this.currentX, this.currentY, this.minLetterSpacing - width, this.glyphs.glyphHeight);
+          this.currentX += this.minLetterSpacing - width;
+        }
         return Render.Print;
       }
       case RenderState.Wait:
@@ -567,6 +575,9 @@ export class TextPrinter {
         }
         return Render.Repeat;
       }
+      case 0x14:
+        this.minLetterSpacing = this.next();
+        return Render.Repeat;
       default:
         // Palettes, sounds and music changes: their arguments are skipped.
         this.pos += controlCodeArgs(code);

@@ -20,6 +20,7 @@ import (
 	"pokeuniverse/mic-core/internal/db"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/pokedex"
 )
 
 // Start is where New Game puts the trainer: their room, facing north, as FireRed's new game
@@ -133,6 +134,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		// The client counts on from here; each Join sends the server's count again.
 		PlayTimeSeconds: uint32(pos.Played / time.Second),
 		Bag:             items.Bag.Proto(),
+		Pokedex:         pokedex.Load(row).Proto(),
 	}, nil
 }
 

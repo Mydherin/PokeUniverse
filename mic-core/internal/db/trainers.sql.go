@@ -13,7 +13,8 @@ import (
 const getTrainer = `-- name: GetTrainer :one
 SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
        text_speed, battle_scene, battle_style, sound, button_mode, frame,
-       registered_item, repel_steps, flute, coins, berry_powder
+       registered_item, repel_steps, flute, coins, berry_powder,
+       pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 FROM trainers
 WHERE account_id = $1
 `
@@ -40,6 +41,10 @@ type GetTrainerRow struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	PokedexObtained bool
+	PokedexNational bool
+	PokedexSeen     []byte
+	PokedexCaught   []byte
 }
 
 // created_at identifies the save: a New Game replaces it, so live positions of the old save are ignored.
@@ -68,6 +73,10 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.Flute,
 		&i.Coins,
 		&i.BerryPowder,
+		&i.PokedexObtained,
+		&i.PokedexNational,
+		&i.PokedexSeen,
+		&i.PokedexCaught,
 	)
 	return i, err
 }
@@ -97,10 +106,15 @@ SET name = EXCLUDED.name,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
+    pokedex_obtained = DEFAULT,
+    pokedex_national = DEFAULT,
+    pokedex_seen = DEFAULT,
+    pokedex_caught = DEFAULT,
     created_at = now()
 RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
           text_speed, battle_scene, battle_style, sound, button_mode, frame,
-          registered_item, repel_steps, flute, coins, berry_powder
+          registered_item, repel_steps, flute, coins, berry_powder,
+          pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 `
 
 type PutTrainerParams struct {
@@ -137,10 +151,14 @@ type PutTrainerRow struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	PokedexObtained bool
+	PokedexNational bool
+	PokedexSeen     []byte
+	PokedexCaught   []byte
 }
 
 // New Game: the account's trainer, replaced if it already has one, at the start location, with a
-// new trainer ID, the starting money, the default options and no item effects (the bag is
+// new trainer ID, the starting money, the default options, no item effects and no Pokédex (the bag is
 // replaced in the same transaction).
 func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrainerRow, error) {
 	row := q.db.QueryRow(ctx, putTrainer,
@@ -177,6 +195,10 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.Flute,
 		&i.Coins,
 		&i.BerryPowder,
+		&i.PokedexObtained,
+		&i.PokedexNational,
+		&i.PokedexSeen,
+		&i.PokedexCaught,
 	)
 	return i, err
 }

@@ -49,6 +49,7 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 
 - **Start faithful:** the intro, Oak's speech, the player's room and Pallet Town first use **FireRed's original graphics and music**, taken from the decompilation at build time and never committed ([audio.md](audio.md)) ([tech-stack.md](tech-stack.md#firered-as-reference)).
 - **Then upgrade:** public resource packs replace them, starting with Pallet Town ([phases](phases/README.md)).
+- **Species after FireRed (387-493):** Gen 3-style pictures, icons, footprints and cries from [pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion), copied at build time like FireRed's; its artists are credited (its `CREDITS.md`) wherever the game credits its packs.
 - **References for the upgrade:** Pokémon Hoenn Adventures and Pokémon Azul Agua.
 - **No custom art:** only FireRed's art and public resource packs, for efficiency.
 - Goal: the most beautiful result possible from those packs.

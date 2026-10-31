@@ -24,6 +24,7 @@ import { expandPlaceholders, FontId, PLACEHOLDER_PLAYER, type Text } from "../gb
 import { rgb, RGB_BLACK } from "../gba/video";
 import { Avatar, type AvatarInput } from "../world/avatar";
 import { BagState, StoredItems } from "../world/items";
+import { PokedexState } from "../world/pokedex";
 import { loadMap, TILE } from "../world/map";
 import { FieldMessage } from "./field-message";
 import type { Flow } from "./flow";
@@ -34,6 +35,7 @@ import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-message
 import { startItemPc, type ItemPcHost } from "./item-pc";
 import { beginPcScreenFlicker, PC_SCREEN_TILES, pcScreenOffset, PcChoice, PlayersPcMenu, StorageEntry } from "./players-pc";
 import { startOptionMenu } from "./option-menu";
+import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
 
@@ -158,6 +160,8 @@ class Overworld {
   private readonly playerName: Text;
   /** What the trainer carries, as mic-core last said. */
   private bag: BagState;
+  /** The trainer's Pokédex, as mic-core last said. */
+  private readonly pokedex: PokedexState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
   private itemAnswers: ((r: ItemResult) => void)[] = [];
   /** An item's message on the field (SELECT, or back from the bag); the player can't move. */
@@ -178,6 +182,7 @@ class Overworld {
     this.mapId = map.id;
     this.playerName = flow.encode(flow.trainer?.name ?? "");
     this.bag = new BagState(snapshot.bag);
+    this.pokedex = new PokedexState(snapshot.pokedex);
     this.avatar = new Avatar(map, p.x, p.y, p.facing, snapshot.canRun, {
       move: (step, d, run, x, y) => link.move(step, d, run, x, y),
       turn: (d) => link.turn(d),
@@ -395,7 +400,7 @@ class Overworld {
     const { flow } = this;
     if (!returning) flow.play("se_win_open");
     const helpBar = flow.options.buttonMode === ButtonMode.HELP;
-    const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: false, hasPokemon: false, helpBar });
+    const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: this.pokedex.obtained, hasPokemon: false, helpBar });
     this.menu = { menu, returning: returning ? Return.Drawing : Return.None, opening: null };
     menu.draw();
   }
@@ -429,6 +434,14 @@ class Overworld {
           back(exit === null);
           if (exit) this.useOnField(exit.field);
         }),
+      );
+    else if (chosen === StartMenuEntry.Pokedex)
+      // The Pokédex's art and every species' text load the first time it opens, on the black screen.
+      this.openScreen((back) =>
+        this.flow.assets.loadPokedex().then(
+          () => startPokedex(this.flow, this.flow.trainer!.gender, this.pokedex, back),
+          () => back(),
+        ),
       );
     else if (chosen === StartMenuEntry.Player) this.openScreen((back) => startTrainerCard(this.flow, this.flow.trainer!, this.playerName, back));
     else if (chosen === StartMenuEntry.Option) this.openScreen((back) => startOptionMenu(this.flow, FIELD_BACKDROP, back));

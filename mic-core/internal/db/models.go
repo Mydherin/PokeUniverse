@@ -61,6 +61,10 @@ type Trainer struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	PokedexObtained bool
+	PokedexNational bool
+	PokedexSeen     []byte
+	PokedexCaught   []byte
 }
 
 type TrainerItem struct {

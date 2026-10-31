@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+// The trainer's Pokédex on the WebSocket (inside pokeuniverse.realtime.v1's envelopes): whether
+// they have it, and which species they have seen and caught. mic-core decides every change.
+package pokeuniverse.pokedex.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokedex/v1;pokedexv1";
+
+// In the world snapshot. Species are pokeuniverse.species.v1.Species numbers (the National
+// Pokédex): bit n-1 of a set (byte (n-1)/8, bit (n-1)%8, least significant first) is species n;
+// bits past the end are unset.
+message Pokedex {
+  // FLAG_SYS_POKEDEX_GET: the START menu shows POKéDEX.
+  bool obtained = 1;
+  // The National Pokédex: all 493 species, not only the 151 of Kanto.
+  bool national = 2;
+  bytes seen = 3;
+  // Caught species are always seen too.
+  bytes caught = 4;
+}

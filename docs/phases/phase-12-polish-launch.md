@@ -5,6 +5,7 @@
 ## Scope
 
 - Performance and mobile tuning.
+- Pokédex extras: species forms (Unown, Deoxys, Castform, Spinda, Gen 4 forms), FireRed's L/R help, the Pokédex diploma.
 - Complete PWA (install, icons, offline loading screen).
 - Logs, metrics and monitoring.
 - Admin tools for the `admin` role.

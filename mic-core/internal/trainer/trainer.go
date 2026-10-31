@@ -21,6 +21,7 @@ import (
 	"pokeuniverse/mic-core/internal/httpx"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/pokedex"
 	"pokeuniverse/mic-core/internal/world"
 )
 
@@ -137,11 +138,12 @@ func summary(row db.GetTrainerRow) *trainerv1.TrainerSummary {
 		Name:            row.Name,
 		Gender:          g,
 		PlayTimeSeconds: uint32(min(row.PlayTimeSeconds, int64(^uint32(0)))),
-		// Badges arrive with the gyms (Phase 10); pokedex_caught stays unset until the Pokédex exists.
-		Badges:   0,
-		Location: &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},
-		IdNo:     uint32(row.TrainerID & 0xffff),
-		Money:    uint32(row.Money),
-		Options:  options(row),
+		// Badges arrive with the gyms (Phase 10).
+		Badges:        0,
+		PokedexCaught: pokedex.Load(row).CaughtCount(),
+		Location:      &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},
+		IdNo:          uint32(row.TrainerID & 0xffff),
+		Money:         uint32(row.Money),
+		Options:       options(row),
 	}
 }

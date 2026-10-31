@@ -1,7 +1,9 @@
 // FireRed art style manifest (tech-stack.md#decoupled-presentation): the screens ask for
 // graphic, sound and text IDs, this maps them to the files `make assets` puts in public/firered/.
 // A graphic's palette is its .pal file when it has one, otherwise the PNG's own palette.
-// The boot set (intro, title, menu) loads first; the New Game set loads in the background.
+// The boot set (intro, title, menu) loads first; the New Game set loads in the background; the
+// Pokédex set (and every species' text) the first time the Pokédex opens; each species' art and cry
+// when it's first shown.
 
 import { fetchBin, fetchPal, fetchPng, toTiles, type IndexedImage } from "../gba/assets";
 import type { SoundInfo } from "../gba/sound";
@@ -189,7 +191,41 @@ const NEW_GAME_GRAPHICS = {
   textWindowPal3: { pal: "text_window/stdpal_3.pal" },
 } satisfies Record<string, GraphicFiles>;
 
-export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS;
+/** The POKéDEX screen (pokedex_screen.c): its tiles and colors (Kanto's or the National's), icons and the area map. */
+const POKEDEX_GRAPHICS = {
+  dexKantoBg: { png: "pokedex/kanto_dex_bgtiles.png", pal: "pokedex/kanto_dex_bgpals.pal" },
+  dexNationalBg: { png: "pokedex/national_dex_bgtiles.png", pal: "pokedex/national_dex_bgpals.pal" },
+  // The table of contents' picture for the selected row
+  dexIconGrassland: { png: "pokedex/cat_icon_grassland.png" },
+  dexIconForest: { png: "pokedex/cat_icon_forest.png" },
+  dexIconWatersEdge: { png: "pokedex/cat_icon_waters_edge.png" },
+  dexIconSea: { png: "pokedex/cat_icon_sea.png" },
+  dexIconCave: { png: "pokedex/cat_icon_cave.png" },
+  dexIconMountain: { png: "pokedex/cat_icon_mountain.png" },
+  dexIconRoughTerrain: { png: "pokedex/cat_icon_rough_terrain.png" },
+  dexIconUrban: { png: "pokedex/cat_icon_urban.png" },
+  dexIconRare: { png: "pokedex/cat_icon_rare.png" },
+  dexIconNumerical: { png: "pokedex/cat_icon_numerical.png" },
+  dexIconAtoZ: { png: "pokedex/cat_icon_abc.png" },
+  dexIconType: { png: "pokedex/cat_icon_type.png" },
+  dexIconLightest: { png: "pokedex/cat_icon_lightest.png" },
+  dexIconSmallest: { png: "pokedex/cat_icon_smallest.png" },
+  dexIconCancel: { png: "pokedex/cat_icon_cancel.png" },
+  // Habitat pages: the round window behind each Pokémon, its name card and caught mark
+  dexPageIconMap: { bin: "pokedex/page_icon_tilemap.bin" },
+  dexMiniPage: { png: "pokedex/mini_page.png" },
+  dexCaughtMarker: { png: "pokedex/caught_marker.png" },
+  // The caught Poké Ball's colors in the lists (beside menu_info's type colors)
+  dexCaughtBallPal: { pal: "interface/dex_caught_pokeball.pal" },
+  // Area page: Kanto's map, the "AREA UNKNOWN" ellipse, the size comparison's silhouettes
+  dexMapKanto: { png: "pokedex/map_kanto.png" },
+  dexWideEllipse: { png: "pokedex/blit_wide_ellipse.png" },
+  dexSilhouettePal: { pal: "pokedex/silhouette_sprite_pal.pal" },
+  // The red outline around the selected Pokémon of a habitat page (ListMenuAddRedOutlineCursorObject)
+  selectorOutline: { png: "interface/selector_outline.png" },
+} satisfies Record<string, GraphicFiles>;
+
+export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS | keyof typeof POKEDEX_GRAPHICS;
 
 /** The window frames, TYPE1 to TYPE10. */
 export const FRAME_TYPES = 10;
@@ -223,6 +259,7 @@ export const NEW_GAME_SOUNDS = [
   "se_bag_pocket",
   "se_repel",
   "se_glass_flute",
+  "se_ball_tray_enter",
 ] as const;
 export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number];
 
@@ -314,6 +351,29 @@ export interface TmMove {
 /** An item's icon: 24×24 pixels and its palette. */
 export type ItemIcon = Pick<Graphic, "image" | "palette">;
 
+/**
+ * A species as the FireRed art style shows it (`make pokemon`, by national number): name,
+ * category and description encoded, and the area page's size comparison (pokemonScale,
+ * pokemonOffset, trainerScale, trainerOffset).
+ */
+export interface SpeciesText {
+  name: number[];
+  category: number[];
+  description: number[];
+  scale: [number, number, number, number];
+}
+
+/** A species' pictures: the front pic (64×64, or two frames stacked), its icon (two 32×32 frames) and footprint (16×16). */
+export interface PokemonArt {
+  front: IndexedImage;
+  frontPalette: Uint16Array;
+  icon: IndexedImage;
+  iconPalette: Uint16Array;
+  footprint: IndexedImage;
+}
+
+const nnn = (n: number) => String(n).padStart(3, "0");
+
 const json = <T>(path: string): Promise<T> =>
   fetch(`${ROOT}/${path}`).then((r) => {
     if (!r.ok) throw new Error(`asset ${path}: ${r.status}`);
@@ -328,6 +388,10 @@ export class Assets {
   /** Each item's icon and palette files (`make graphics`, by item ID; "0" the question mark). */
   private itemIconFiles: Record<string, [string, string]> = {};
   private readonly itemIcons = new Map<number, Promise<ItemIcon>>();
+  private pokedex: Promise<void> | null = null;
+  private speciesTexts: Record<string, SpeciesText> = {};
+  private readonly pokemonArts = new Map<number, Promise<PokemonArt>>();
+  private readonly loadedArts = new Map<number, PokemonArt>();
   fontWidths!: FontWidths;
 
   private constructor(
@@ -370,6 +434,44 @@ export class Assets {
     return this.newGame;
   }
 
+  /** The Pokédex set: its graphics and every species' text; loaded once. */
+  loadPokedex(): Promise<void> {
+    this.pokedex ??= Promise.all([loadGraphics(POKEDEX_GRAPHICS), json<Record<string, SpeciesText>>("pokemon/species.json")]).then(([entries, texts]) => {
+      for (const [id, g] of entries) this.graphics.set(id, g);
+      this.speciesTexts = texts;
+    });
+    this.pokedex.catch(() => (this.pokedex = null));
+    return this.pokedex;
+  }
+
+  /** A species' text (loadPokedex first); EOS strings for an unknown one. */
+  species(n: number): SpeciesText {
+    return this.speciesTexts[n] ?? { name: [0xff], category: [0xff], description: [0xff], scale: [256, 0, 256, 0] };
+  }
+
+  /** A species' pictures, loaded the first time they're asked for. */
+  pokemonArt(n: number): Promise<PokemonArt> {
+    let art = this.pokemonArts.get(n);
+    if (!art) {
+      const dir = `${ROOT}/pokemon/${nnn(n)}`;
+      art = Promise.all([fetchPng(`${dir}/front.png`), fetchPal(`${dir}/front.pal`), fetchPng(`${dir}/icon.png`), fetchPal(`${dir}/icon.pal`), fetchPng(`${dir}/footprint.png`)]).then(
+        ([front, frontPalette, icon, iconPalette, footprint]) => {
+          const a = { front, frontPalette, icon, iconPalette, footprint };
+          this.loadedArts.set(n, a);
+          return a;
+        },
+      );
+      art.catch(() => this.pokemonArts.delete(n));
+      this.pokemonArts.set(n, art);
+    }
+    return art;
+  }
+
+  /** The species' pictures once loaded (pokemonArt), else null. */
+  loadedPokemonArt(n: number): PokemonArt | null {
+    return this.loadedArts.get(n) ?? null;
+  }
+
   get(id: GraphicId): Graphic {
     return this.graphics.get(id)!;
   }
@@ -408,6 +510,15 @@ export class Assets {
 
   static soundUrl(id: string, ext: string): string {
     return `${ROOT}/audio/${id}.${ext}`;
+  }
+
+  /** The sound ID of a species' cry (by national number), loaded on demand from cryUrl. */
+  static cryId(n: number): string {
+    return `cry_${nnn(n)}`;
+  }
+
+  static cryUrl(id: string, ext: string): string {
+    return `${ROOT}/audio/cries/${id.slice("cry_".length)}.${ext}`;
   }
 
   /** A map tileset's sheets, rendered by `make maps` (maps.md#outputs). */

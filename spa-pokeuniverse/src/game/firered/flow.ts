@@ -42,6 +42,8 @@ export interface Flow {
   saveTrainer(trainer: NewTrainer): Promise<void>;
   encode(s: string): Text;
   play(id: SoundId, player?: string): void;
+  /** A species' cry (by national number) on the cry player, loaded first if it isn't yet. */
+  playCry(species: number): void;
   playBgm(id: SoundId): void;
   /** The New Game screens' main callback: tasks, text printers, sprites, palette fade. */
   runFrame(): void;

@@ -9,6 +9,7 @@
 - Wild encounters in grass, caves and water.
 - Battle UI on desktop and mobile; animations and sounds triggered by name.
 - Catching, experience, leveling, evolution, learning moves.
+- The Pokédex registers what's seen and caught (`mic-core` sends the change), with FireRed's page after a catch.
 - Trainer battles (NPCs), starting with the first rival battle in Oak's lab (deferred from [Phase 5](phase-5-pallet-town.md)).
 
 ## Done When

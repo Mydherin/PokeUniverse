@@ -9,12 +9,12 @@ PNPM       := npm install -g pnpm@10 >/dev/null 2>&1 && pnpm
 RUN := docker run --rm -v "$(CURDIR)":/repo
 GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build
 
-.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text audio emulator maps tool-maps
+.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text pokemon audio emulator maps tool-maps
 
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
 FIRERED_OUT := spa-pokeuniverse/public/firered
-FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc
+FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex
 # Single files from shared folders, kept at their paths.
 FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
 	fonts/down_arrow_3.png fonts/keypad_icons.png interface/std_menu.pal interface/ball/poke.png \
@@ -27,12 +27,15 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	trainers/palettes/red.pal trainers/palettes/leaf.pal \
 	item_menu/bg.png item_menu/bg.bin item_menu/bg_item_pc.bin item_menu/bg_female.pal item_menu/list.bin item_menu/bag_window_pal.pal \
 	interface/bag_male.png interface/bag_female.png interface/bag.pal interface/red_arrow_other.png interface/red_arrow.pal \
-	interface/select_button.png interface/bag_swap.png \
-	interface/menu_info.png interface/pokemon_types.pal \
+	interface/select_button.png interface/bag_swap.png interface/selector_outline.png \
+	interface/menu_info.png interface/pokemon_types.pal interface/dex_caught_pokeball.pal \
 	misc/option_menu.pal
 # The fonts' glyph widths are data in the game's source, not in the images.
 FIRERED_FONTS := Normal:normal Male:male Small:small NormalCopy1:normal_copy_1
 NEED_FIRERED = @test -f $(FIRERED)/Makefile || { echo "$(FIRERED) is empty: run git submodule update --init"; exit 1; }
+# Gen 3-style art and Gen 4 Pokédex data for species 387-493 (docs/tech-stack.md#firered-as-reference).
+EXPANSION      := references/pokeemerald-expansion
+NEED_EXPANSION = @test -f $(EXPANSION)/Makefile || { echo "$(EXPANSION) is empty: run git submodule update --init"; exit 1; }
 
 help: ## List commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-10s %s\n", $$1, $$2}'
@@ -61,7 +64,7 @@ ps: ## Show service status
 clean: ## Stop the stack and delete its data volumes
 	docker compose down -v
 
-assets: graphics text audio maps ## FireRed's graphics, text, sounds and maps for the game
+assets: graphics text pokemon audio maps ## FireRed's graphics, text, sounds and maps for the game
 
 graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and tilemaps at runtime), with the item icon table
 	$(NEED_FIRERED)
@@ -77,7 +80,12 @@ text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lis
 	$(NEED_FIRERED)
 	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/text/extract.mjs /repo/$(FIRERED) /repo/spa-pokeuniverse/src/game/firered/texts.json /repo/$(FIRERED_OUT)/text
 
-audio: ## Render FireRed's music, sound effects and cries (docs/audio.md)
+pokemon: ## Every species' pictures, footprints, icons, Pokédex text and cry list, FireRed's for 1-386 and the expansion's for 387-493
+	$(NEED_FIRERED)
+	$(NEED_EXPANSION)
+	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/pokemon/build.mjs /repo/$(FIRERED) /repo/$(EXPANSION) /repo/$(FIRERED_OUT)/pokemon
+
+audio: pokemon ## Render FireRed's music, sound effects and cries (docs/audio.md)
 	$(NEED_FIRERED)
 	@docker build -q -t pokeuniverse-audio infra/audio >/dev/null
 	$(RUN) --user "$$(id -u):$$(id -g)" pokeuniverse-audio sh /repo/infra/audio/render.sh

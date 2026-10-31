@@ -7,52 +7,12 @@
 
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { loadCharmap } from "./charmap.mjs";
 
 const [src, listPath, out] = process.argv.slice(2);
 const labels = JSON.parse(readFileSync(listPath, "utf8"));
 
-// charmap.txt: 'c' = HH ... for characters, NAME = HH ... for constants; @ starts a comment.
-const chars = new Map();
-const constants = new Map();
-for (const raw of readFileSync(join(src, "charmap.txt"), "utf8").split("\n")) {
-  const line = raw.replace(/@.*$/, "").trim();
-  const m = /^('(?:\\.|[^'])+'|[A-Z0-9_]+)\s*=\s*([0-9A-Fa-f ]+)$/.exec(line);
-  if (!m) continue;
-  const bytes = m[2].trim().split(/\s+/).map((h) => parseInt(h, 16));
-  if (m[1].startsWith("'")) {
-    const key = m[1].slice(1, -1).replace(/^\\'$/, "'");
-    if (!chars.has(key)) chars.set(key, bytes);
-  } else if (!constants.has(m[1])) constants.set(m[1], bytes);
-}
-const longest = Math.max(...[...chars.keys()].map((k) => k.length));
-
-function encode(text, label) {
-  const bytes = [];
-  for (let i = 0; i < text.length; ) {
-    if (text[i] === "{") {
-      const end = text.indexOf("}", i);
-      for (const [n, token] of text.slice(i + 1, end).trim().split(/\s+/).entries()) {
-        if (n > 0 && /^(0x[0-9a-f]+|\d+)$/i.test(token)) bytes.push(Number(token) & 0xff);
-        else if (constants.has(token)) bytes.push(...constants.get(token));
-        else throw new Error(`${label}: unknown {${token}}`);
-      }
-      i = end + 1;
-      continue;
-    }
-    let matched = false;
-    for (let len = Math.min(longest, text.length - i); len > 0; len--) {
-      const key = text.slice(i, i + len);
-      if (chars.has(key)) {
-        bytes.push(...chars.get(key));
-        i += len;
-        matched = true;
-        break;
-      }
-    }
-    if (!matched) throw new Error(`${label}: no charmap entry for ${JSON.stringify(text[i])}`);
-  }
-  return bytes;
-}
+const { chars, encode } = loadCharmap(src);
 
 // String literals keep their escapes (\n, \l, \p) as charmap keys; \" is a quote.
 const literals = (s) => [...s.matchAll(/"((?:\\.|[^"\\])*)"/g)].map((m) => m[1].replace(/\\"/g, '"')).join("");

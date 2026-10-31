@@ -15,7 +15,8 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
-	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
+	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokedex/v1"
+	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -354,7 +355,9 @@ type WorldSnapshot struct {
 	// How long the trainer has played, up to 999:59:59; the client counts on from it.
 	PlayTimeSeconds uint32 `protobuf:"varint,4,opt,name=play_time_seconds,json=playTimeSeconds,proto3" json:"play_time_seconds,omitempty"`
 	// What the trainer carries.
-	Bag           *v11.Bag `protobuf:"bytes,5,opt,name=bag,proto3" json:"bag,omitempty"`
+	Bag *v11.Bag `protobuf:"bytes,5,opt,name=bag,proto3" json:"bag,omitempty"`
+	// The trainer's Pokédex.
+	Pokedex       *v12.Pokedex `protobuf:"bytes,6,opt,name=pokedex,proto3" json:"pokedex,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -424,12 +427,19 @@ func (x *WorldSnapshot) GetBag() *v11.Bag {
 	return nil
 }
 
+func (x *WorldSnapshot) GetPokedex() *v12.Pokedex {
+	if x != nil {
+		return x.Pokedex
+	}
+	return nil
+}
+
 type Avatar struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	X             uint32                 `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
 	Y             uint32                 `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
 	Facing        v1.Direction           `protobuf:"varint,3,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
-	Gender        v12.Gender             `protobuf:"varint,4,opt,name=gender,proto3,enum=pokeuniverse.trainer.v1.Gender" json:"gender,omitempty"`
+	Gender        v13.Gender             `protobuf:"varint,4,opt,name=gender,proto3,enum=pokeuniverse.trainer.v1.Gender" json:"gender,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -485,11 +495,11 @@ func (x *Avatar) GetFacing() v1.Direction {
 	return v1.Direction(0)
 }
 
-func (x *Avatar) GetGender() v12.Gender {
+func (x *Avatar) GetGender() v13.Gender {
 	if x != nil {
 		return x.Gender
 	}
-	return v12.Gender(0)
+	return v13.Gender(0)
 }
 
 // The server refused a predicted step: where the player really is. The client goes back there;
@@ -947,7 +957,7 @@ var File_pokeuniverse_world_v1_world_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\n" +
-	"!pokeuniverse/world/v1/world.proto\x12\x15pokeuniverse.world.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/map/v1/map.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\")\n" +
+	"!pokeuniverse/world/v1/world.proto\x12\x15pokeuniverse.world.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/map/v1/map.proto\x1a%pokeuniverse/pokedex/v1/pokedex.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\")\n" +
 	"\n" +
 	"EnterWorld\x12\x1b\n" +
 	"\ttake_over\x18\x01 \x01(\bR\btakeOver\"\x86\x01\n" +
@@ -963,13 +973,14 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\twalk_into\x18\x01 \x01(\bR\bwalkInto\"$\n" +
 	"\n" +
 	"ScriptDone\x12\x16\n" +
-	"\x06script\x18\x01 \x01(\rR\x06script\"\xca\x01\n" +
+	"\x06script\x18\x01 \x01(\rR\x06script\"\x86\x02\n" +
 	"\rWorldSnapshot\x12\x10\n" +
 	"\x03map\x18\x01 \x01(\tR\x03map\x125\n" +
 	"\x06player\x18\x02 \x01(\v2\x1d.pokeuniverse.world.v1.AvatarR\x06player\x12\x17\n" +
 	"\acan_run\x18\x03 \x01(\bR\x06canRun\x12*\n" +
 	"\x11play_time_seconds\x18\x04 \x01(\rR\x0fplayTimeSeconds\x12+\n" +
-	"\x03bag\x18\x05 \x01(\v2\x19.pokeuniverse.item.v1.BagR\x03bag\"\x95\x01\n" +
+	"\x03bag\x18\x05 \x01(\v2\x19.pokeuniverse.item.v1.BagR\x03bag\x12:\n" +
+	"\apokedex\x18\x06 \x01(\v2 .pokeuniverse.pokedex.v1.PokedexR\apokedex\"\x95\x01\n" +
 	"\x06Avatar\x12\f\n" +
 	"\x01x\x18\x01 \x01(\rR\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\rR\x01y\x126\n" +
@@ -1041,28 +1052,30 @@ var file_pokeuniverse_world_v1_world_proto_goTypes = []any{
 	(*SessionTaken)(nil),  // 14: pokeuniverse.world.v1.SessionTaken
 	(v1.Direction)(0),     // 15: pokeuniverse.map.v1.Direction
 	(*v11.Bag)(nil),       // 16: pokeuniverse.item.v1.Bag
-	(v12.Gender)(0),       // 17: pokeuniverse.trainer.v1.Gender
-	(*v11.BagSlot)(nil),   // 18: pokeuniverse.item.v1.BagSlot
+	(*v12.Pokedex)(nil),   // 17: pokeuniverse.pokedex.v1.Pokedex
+	(v13.Gender)(0),       // 18: pokeuniverse.trainer.v1.Gender
+	(*v11.BagSlot)(nil),   // 19: pokeuniverse.item.v1.BagSlot
 }
 var file_pokeuniverse_world_v1_world_proto_depIdxs = []int32{
 	15, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
 	15, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
 	7,  // 2: pokeuniverse.world.v1.WorldSnapshot.player:type_name -> pokeuniverse.world.v1.Avatar
 	16, // 3: pokeuniverse.world.v1.WorldSnapshot.bag:type_name -> pokeuniverse.item.v1.Bag
-	15, // 4: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
-	17, // 5: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	15, // 6: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
-	10, // 7: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
-	13, // 8: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
-	11, // 9: pokeuniverse.world.v1.ScriptStep.pc_screen:type_name -> pokeuniverse.world.v1.PcScreen
-	12, // 10: pokeuniverse.world.v1.ScriptStep.players_pc:type_name -> pokeuniverse.world.v1.PlayersPc
-	0,  // 11: pokeuniverse.world.v1.PcScreen.pc:type_name -> pokeuniverse.world.v1.Pc
-	18, // 12: pokeuniverse.world.v1.PlayersPc.items:type_name -> pokeuniverse.item.v1.BagSlot
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	17, // 4: pokeuniverse.world.v1.WorldSnapshot.pokedex:type_name -> pokeuniverse.pokedex.v1.Pokedex
+	15, // 5: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
+	18, // 6: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	15, // 7: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
+	10, // 8: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
+	13, // 9: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
+	11, // 10: pokeuniverse.world.v1.ScriptStep.pc_screen:type_name -> pokeuniverse.world.v1.PcScreen
+	12, // 11: pokeuniverse.world.v1.ScriptStep.players_pc:type_name -> pokeuniverse.world.v1.PlayersPc
+	0,  // 12: pokeuniverse.world.v1.PcScreen.pc:type_name -> pokeuniverse.world.v1.Pc
+	19, // 13: pokeuniverse.world.v1.PlayersPc.items:type_name -> pokeuniverse.item.v1.BagSlot
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_world_v1_world_proto_init() }

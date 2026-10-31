@@ -1,10 +1,12 @@
 #!/bin/sh
 # Renders FireRed's sounds exactly from the decompilation (docs/audio.md). Run by `make audio` in infra/audio's image.
 # Input: the sound list (sound ID -> song or cry). Output: <id>.webm (Opus), <id>.m4a (AAC) and manifest.json (loop points).
+# Then every species' cry (make pokemon's cries.json) to cries/<nnn>.webm|.m4a, loaded on demand.
 set -eu
 
 SRC=/repo/references/pokefirered
 LIST=/repo/spa-pokeuniverse/src/game/firered/sounds.json
+CRIES=/repo/spa-pokeuniverse/public/firered/pokemon/cries.json
 OUT=/repo/spa-pokeuniverse/public/firered/audio
 RATE=48000
 
@@ -59,3 +61,20 @@ done
 
 # One manifest: sound ID -> { loop: [start, end] } in samples at 48 kHz.
 for id in $(jq -r 'keys[]' "$LIST"); do jq -c --arg id "$id" '{($id): .}' "$OUT/$id.json"; done | jq -s 'add' > "$OUT/manifest.json"
+
+# Species cries: FireRed's rendered as PlayCry_Normal plays them (1-386), the expansion's samples (387-493)
+# converted. Cries never change: skipped once rendered.
+mkdir -p "$OUT/cries"
+for nnn in $(jq -r 'keys[]' "$CRIES"); do
+  [ -f "$OUT/cries/$nnn.webm" ] && [ -f "$OUT/cries/$nnn.m4a" ] && continue
+  echo "audio: cry $nnn"
+  cry=$(jq -r --arg n "$nnn" '.[$n].cry // empty' "$CRIES")
+  if [ -n "$cry" ]; then
+    render --cry "$cry" --output /tmp/work/raw.wav
+  else
+    ffmpeg -y -v error -i "/repo/$(jq -r --arg n "$nnn" '.[$n].wav' "$CRIES")" -ar "$RATE" /tmp/work/raw.wav
+  fi
+  trim /tmp/work/raw.wav /tmp/work/master.wav
+  ffmpeg -y -v error -i /tmp/work/master.wav -c:a libopus -b:a 128k "$OUT/cries/$nnn.webm"
+  ffmpeg -y -v error -i /tmp/work/master.wav -c:a aac -b:a 128k "$OUT/cries/$nnn.m4a"
+done

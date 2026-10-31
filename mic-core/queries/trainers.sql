@@ -2,13 +2,14 @@
 -- created_at identifies the save: a New Game replaces it, so live positions of the old save are ignored.
 SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
        text_speed, battle_scene, battle_style, sound, button_mode, frame,
-       registered_item, repel_steps, flute, coins, berry_powder
+       registered_item, repel_steps, flute, coins, berry_powder,
+       pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 FROM trainers
 WHERE account_id = $1;
 
 -- name: PutTrainer :one
 -- New Game: the account's trainer, replaced if it already has one, at the start location, with a
--- new trainer ID, the starting money, the default options and no item effects (the bag is
+-- new trainer ID, the starting money, the default options, no item effects and no Pokédex (the bag is
 -- replaced in the same transaction).
 INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y, facing, trainer_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -34,10 +35,15 @@ SET name = EXCLUDED.name,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
+    pokedex_obtained = DEFAULT,
+    pokedex_national = DEFAULT,
+    pokedex_seen = DEFAULT,
+    pokedex_caught = DEFAULT,
     created_at = now()
 RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
           text_speed, battle_scene, battle_style, sound, button_mode, frame,
-          registered_item, repel_steps, flute, coins, berry_powder;
+          registered_item, repel_steps, flute, coins, berry_powder,
+          pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught;
 
 -- name: UpdateTrainerLive :execrows
 -- Copies a live position and play time from Redis; only into the save they belong to.
