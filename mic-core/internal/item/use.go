@@ -92,6 +92,7 @@ var uses = map[itemv1.FieldUse]use{
 	itemv1.FieldUse_FIELD_USE_EVOLUTION_ITEM: partyMenu,
 	itemv1.FieldUse_FIELD_USE_SACRED_ASH:     partyMenu,
 	itemv1.FieldUse_FIELD_USE_ENIGMA_BERRY:   partyMenu,
+	itemv1.FieldUse_FIELD_USE_TM_HM:          partyMenu,
 	itemv1.FieldUse_FIELD_USE_MAIL:           open,
 	itemv1.FieldUse_FIELD_USE_TOWN_MAP:       open,
 	itemv1.FieldUse_FIELD_USE_FAME_CHECKER:   open,

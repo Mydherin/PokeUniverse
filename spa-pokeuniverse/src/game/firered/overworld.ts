@@ -4,10 +4,11 @@
 // keeps the player at FireRed's spot on screen. A checks what the player faces; the server
 // answers with a script (messages, sounds) during which the player can't move. START opens the
 // START menu; its screens (the BAG, the Trainer Card, OPTION) fade out of the world and back into it, menu open.
-// SELECT uses the item registered to it; an item used from the bag may work back on the field.
+// SELECT uses the item registered to it (the TM CASE and BERRY POUCH open, faded in from the
+// world and back to it); an item used from the bag may work back on the field.
 
 import { create } from "@bufbuild/protobuf";
-import { ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
@@ -24,7 +25,7 @@ import { FieldMessage } from "./field-message";
 import type { Flow } from "./flow";
 import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
-import { startBag, type BagExit, type BagHost } from "./bag";
+import { openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
 import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-messages";
 import { startOptionMenu } from "./option-menu";
 import { StartMenu, StartMenuEntry } from "./start-menu";
@@ -141,6 +142,8 @@ class Overworld {
   private itemAnswers: ((r: ItemResult) => void)[] = [];
   /** An item's message on the field (SELECT, or back from the bag); the player can't move. */
   private fieldItem: ItemMessagePlayer | null = null;
+  /** The screen a registered item opens once the world faded to black. */
+  private fieldOpening: (() => void) | null = null;
 
   constructor(
     private readonly flow: Flow,
@@ -262,9 +265,26 @@ class Overworld {
     });
   }
 
-  /** What an item does on the field: its message (effects like riding come with the outdoor maps). */
+  /**
+   * What an item does on the field: its message (effects like riding come with the outdoor
+   * maps), or the screen it opens (Task_InitTMCaseFromField: FadeScreen, then the screen, then
+   * CB2_ReturnToField).
+   */
   private useOnField(r: ItemResult): void {
-    const msg = itemMessage(this.flow, r, this.playerName);
+    const { flow } = this;
+    if (r.outcome === ItemOutcome.OPEN) {
+      flow.gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+      this.fieldOpening = () => {
+        this.away = true;
+        const back = () => {
+          this.away = false;
+          this.enter(false);
+        };
+        if (!openItemScreen(flow, flow.trainer!.gender, this.bagHost(), r.item, true, back)) back();
+      };
+      return;
+    }
+    const msg = itemMessage(flow, r, this.playerName);
     if (msg) this.showFieldMessage(msg);
   }
 
@@ -294,6 +314,12 @@ class Overworld {
 
   private frame(): void {
     const { input } = this.flow.gba;
+    if (this.fieldOpening) {
+      if (this.flow.gba.palettes.fadeActive) return;
+      const open = this.fieldOpening;
+      this.fieldOpening = null;
+      return open();
+    }
     if (this.script) this.runScript();
     if (this.fieldItem && !this.flow.gba.palettes.fadeActive && this.fieldItem.update()) {
       this.fieldItem = null;

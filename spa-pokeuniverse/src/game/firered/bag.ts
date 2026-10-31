@@ -2,14 +2,14 @@
 // left, shaking as the cursor moves and showing the open pocket; the pocket's name above it;
 // the item list with its last row, CANCEL; the selected item's description and icon below.
 // LEFT and RIGHT switch between ITEMS, KEY ITEMS and POKé BALLS, the list revealed row by row.
-// A opens the item's menu (USE, GIVE, TOSS, REGISTER…), SELECT moves the item within its pocket.
+// A opens the item's menu (USE, GIVE, TOSS, REGISTER…; OPEN on the TM CASE and BERRY POUCH fades
+// into them and back), SELECT moves the item within its pocket.
 // mic-core decides what every action does; this shows it as FireRed does. The screen opens
 // with a black curtain rising and closes with it falling.
 
 import { ItemOutcome, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { FieldUse, Item, Pocket as ItemPocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
-import { toTiles, type IndexedImage } from "../gba/assets";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
 import type { AffineCmd, AnimCmd, Sprite, SpriteTemplate } from "../gba/sprites";
@@ -17,7 +17,7 @@ import type { Task } from "../gba/tasks";
 import { decimalText, expandPlaceholders, FontId, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import { HEIGHT, Layer, RGB_BLACK, WIDTH, WIN_EFFECTS, type Background } from "../gba/video";
 import { itemInfo, type BagState } from "../world/items";
-import { initBg } from "./common";
+import { iconTiles, initBg } from "./common";
 import type { Flow } from "./flow";
 import { itemMessage, ItemMessagePlayer } from "./item-messages";
 import { LIST_CANCEL, LIST_NOTHING_CHOSEN, ListMenu, type ListMenuItem, type ListPosition } from "./list-menu";
@@ -26,6 +26,8 @@ import { userFrame } from "./manifest";
 import { clearDialogWindowAndFrameToTransparent, clearStdWindowAndFrameToTransparent, copyTiles, CursorMenu, drawDialogueFrame, drawStdFrame, MENU_B_PRESSED, MENU_NOTHING_CHOSEN, YesNoMenu } from "./menu";
 import { textSpeedDelay } from "./options";
 import { ScrollArrow, ScrollArrowPair } from "./scroll-arrows";
+import { startBerryPouch } from "./berry-pouch";
+import { startTmCase } from "./tm-case";
 
 export const enum Pocket {
   Items,
@@ -69,6 +71,18 @@ const state = {
 /** Shows the bag, then `done` once it faded out. */
 export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void): void {
   new Bag(flow, gender, host, done);
+}
+
+/**
+ * FieldUseFunc_TmCase and FieldUseFunc_BerryPouch: the screen an item opens (OPEN), from the
+ * bag or with SELECT on the field (`fromField`), then `done` once it faded out. False when the
+ * item opens no screen yet (TOWN MAP, FAME CHECKER, TEACHY TV and mail come later).
+ */
+export function openItemScreen(flow: Flow, gender: Gender, host: BagHost, item: Item, fromField: boolean, done: () => void): boolean {
+  if (item === Item.TM_CASE) startTmCase(flow, gender, host, fromField, done);
+  else if (item === Item.BERRY_POUCH) startBerryPouch(flow, gender, host, fromField, done);
+  else return false;
+  return true;
 }
 
 const WINDOWS = {
@@ -208,7 +222,7 @@ class Bag {
   /** LoadBagMenuGraphics: every step runs in the first frame. */
   constructor(
     private readonly flow: Flow,
-    gender: Gender,
+    private readonly gender: Gender,
     private readonly host: BagHost,
     private readonly done: (exit: BagExit) => void,
   ) {
@@ -226,7 +240,7 @@ class Bag {
     this.bg0.visible = this.bg1.visible = true;
 
     palettes.load(bg.palette, 0, 48);
-    const girl = gender === Gender.GIRL;
+    const girl = this.gender === Gender.GIRL;
     if (girl) palettes.load(assets.get("bagBgFemalePal").palette, 0, 16);
     gba.sprites.loadSheet("bag", assets.get(girl ? "bagFemale" : "bagMale").tiles);
     palettes.loadSpritePalette("bag", assets.get("bagPal").palette);
@@ -569,9 +583,18 @@ class Bag {
     });
   }
 
-  /** What an action did: a message in the bag, back to the field, or (screens to come) back to the list. */
+  /**
+   * What an action did: a message in the bag, back to the field, the screen the item opens
+   * (ItemMenu_StartFadeToExitCallback, then back into the bag), or (screens to come) back to the list.
+   */
   private onResult(r: ItemResult): void {
     if (r.outcome === ItemOutcome.NO_RESPONSE || r.outcome === ItemOutcome.ON_FIELD) return this.close(false, { field: r });
+    if (r.outcome === ItemOutcome.OPEN) {
+      const { flow, gender, host, done } = this;
+      return this.close(false, null, () => {
+        if (!openItemScreen(flow, gender, host, r.item, false, () => startBag(flow, gender, host, done))) startBag(flow, gender, host, done);
+      });
+    }
     const msg = itemMessage(this.flow, r, this.host.playerName);
     if (!msg) return this.returnFromContext();
     const player = new ItemMessagePlayer(
@@ -881,9 +904,9 @@ class Bag {
 
   /**
    * Bag_BeginCloseWin0Animation (back to the START menu: the curtain falls) or not (an item
-   * works on the field), and ItemMenu_StartFadeToExitCallback.
+   * works on the field or opens a screen: `next`), and ItemMenu_StartFadeToExitCallback.
    */
-  private close(curtain: boolean, exit: BagExit): void {
+  private close(curtain: boolean, exit: BagExit, next?: () => void): void {
     this.closeList();
     if (curtain) this.moveCurtain(-CURTAIN_STEP, CURTAIN_STEP);
     this.flow.gba.palettes.beginFade(PALETTES_ALL, -2, 0, 16, RGB_BLACK);
@@ -892,7 +915,8 @@ class Bag {
       if (gba.palettes.fadeActive || this.curtain) return;
       this.destroyIcon();
       gba.tasks.reset();
-      this.done(exit);
+      if (next) next();
+      else this.done(exit);
     };
   }
 
@@ -922,11 +946,4 @@ function fitPosition(pos: ListPosition, total: number, maxShowed: number): void 
   if (pos.row > 3)
     for (let j = 0; j <= pos.row - 3; pos.row--, pos.scroll++, j++) if (pos.scroll + maxShowed === total) break;
   pos.row = Math.min(pos.row, maxShowed - 1);
-}
-
-/** CopyItemIconPicTo4x4Buffer: the icon's 3×3 tiles at the top left of a 4×4 sprite. */
-function iconTiles(image: IndexedImage): Uint8Array {
-  const pixels = new Uint8Array(32 * 32);
-  for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) pixels[y * 32 + x] = image.pixels[y * image.width + x] & 15;
-  return toTiles({ width: 32, height: 32, pixels, palette: null });
 }

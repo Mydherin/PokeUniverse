@@ -163,6 +163,22 @@ const NEW_GAME_GRAPHICS = {
   // Bag: the SELECT mark of the registered item, and the line showing where a moved item goes
   bagSelectButton: { png: "interface/select_button.png" },
   bagSwapLine: { png: "interface/bag_swap.png", meta: [2, 2] },
+  // TM CASE: the case and the screen behind it (boy's or girl's colors), the discs tinted by type, the HM mark
+  tmCase: { png: "tm_case/tm_case.png", bin: "tm_case/tm_case.bin" },
+  tmCaseMenuMap: { bin: "tm_case/menu.bin" },
+  tmCaseMalePal: { pal: "tm_case/menu_male.pal" },
+  tmCaseFemalePal: { pal: "tm_case/menu_female.pal" },
+  tmDisc: { png: "tm_case/disc.png" },
+  tmDiscTypes1: { pal: "tm_case/disc_types_1.pal" },
+  tmDiscTypes2: { pal: "tm_case/disc_types_2.pal" },
+  tmCaseHm: { png: "tm_case/hm.png" },
+  // A move's TYPE, POWER, ACCURACY and PP labels and its type's icon, with their colors
+  menuInfo: { png: "interface/menu_info.png" },
+  pokemonTypesPal: { pal: "interface/pokemon_types.pal" },
+  // BERRY POUCH: the screen (boy's or girl's colors) and the pouch
+  berryPouchBg: { png: "berry_pouch/background.png", bin: "berry_pouch/background.bin", bpp4: true },
+  berryPouchFemalePal: { pal: "berry_pouch/background_female.pal" },
+  berryPouch: { png: "berry_pouch/berry_pouch.png" },
   // OPTION: its colors and the standard frame around its title
   optionMenuPal: { pal: "misc/option_menu.pal" },
   stdWindowFrame: { png: "text_window/std.png" },
@@ -277,6 +293,18 @@ interface ItemText {
   description: number[];
 }
 
+/**
+ * The move a TM or HM teaches, as the TM CASE shows it (`make text`, by item ID): its name,
+ * FireRed's type number (TYPE_NORMAL 0 to TYPE_DARK 17), power, accuracy and PP.
+ */
+export interface TmMove {
+  name: number[];
+  type: number;
+  power: number;
+  accuracy: number;
+  pp: number;
+}
+
 /** An item's icon: 24×24 pixels and its palette. */
 export type ItemIcon = Pick<Graphic, "image" | "palette">;
 
@@ -290,6 +318,7 @@ export class Assets {
   private newGame: Promise<void> | null = null;
   private strings: Record<string, number[]> = {};
   private itemTexts: Record<string, ItemText> = {};
+  private tmMoves: Record<string, TmMove> = {};
   /** Each item's icon and palette files (`make graphics`, by item ID; "0" the question mark). */
   private itemIconFiles: Record<string, [string, string]> = {};
   private readonly itemIcons = new Map<number, Promise<ItemIcon>>();
@@ -322,12 +351,14 @@ export class Assets {
       json<number[]>("graphics/fonts/latin_small_widths.json"),
       json<Record<string, number[]>>("text/strings.json"),
       json<Record<string, ItemText>>("text/items.json"),
+      json<Record<string, TmMove>>("text/tm-moves.json"),
       json<Record<string, [string, string]>>("graphics/items/icons.json"),
-    ]).then(([entries, normalCopy1, male, small, strings, itemTexts, itemIconFiles]) => {
+    ]).then(([entries, normalCopy1, male, small, strings, itemTexts, tmMoves, itemIconFiles]) => {
       for (const [id, g] of entries) this.graphics.set(id, g);
       this.fontWidths = { normal: this.fontWidths.normal, normalCopy1, male, small };
       this.strings = strings;
       this.itemTexts = itemTexts;
+      this.tmMoves = tmMoves;
       this.itemIconFiles = itemIconFiles;
     });
     return this.newGame;
@@ -350,6 +381,11 @@ export class Assets {
   /** The item's description, encoded; ends with EOS. */
   itemDescription(item: number): Text {
     return this.itemTexts[item]?.description ?? [0xff];
+  }
+
+  /** The move a TM or HM teaches; undefined for other items. */
+  tmMove(item: number): TmMove | undefined {
+    return this.tmMoves[item];
   }
 
   /** The item's icon (the question mark when it has none), loaded the first time it's asked for. */

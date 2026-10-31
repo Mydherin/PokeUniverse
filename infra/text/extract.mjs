@@ -2,7 +2,8 @@
 // so the game prints the original bytes and no game text is committed (docs/tech-stack.md#firered-as-reference).
 // Run by `make text`: node extract.mjs <pokefirered> <labels.json> <out dir>.
 // Output: strings.json (label -> bytes, ending in 0xFF), items.json (each item's name and
-// description by item ID, from src/data/items.json) and charmap.json (character <-> byte).
+// description by item ID, from src/data/items.json), tm-moves.json (each TM's and HM's move,
+// by item ID) and charmap.json (character <-> byte).
 
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -105,6 +106,25 @@ for (const item of JSON.parse(readFileSync(join(src, "src/data/items.json"), "ut
   items[id] = { name: [...encode(item.english, item.itemId), 0xff], description: [...encode(item.description_english, item.itemId), 0xff] };
 }
 
+// TMs and HMs: the move each teaches (sTMHMMoves, TM01 to HM08), its name and what the TM CASE
+// shows of it (src/data/battle_moves.h): type (FireRed's TYPE_ number), power, accuracy, PP.
+const read = (f) => readFileSync(join(src, f), "utf8");
+const typeIds = new Map([...read("include/constants/pokemon.h").matchAll(/#define (TYPE_\w+)\s+(\d+)/g)].map((m) => [m[1], Number(m[2])]));
+const moveNames = new Map([...read("src/data/text/move_names.h").matchAll(/\[(MOVE_\w+)\]\s*=\s*_\("((?:\\.|[^"\\])*)"\)/g)].map((m) => [m[1], m[2]]));
+const battleMoves = new Map(
+  [...read("src/data/battle_moves.h").matchAll(/\[(MOVE_\w+)\]\s*=\s*\{([^}]*)\}/g)].map((m) => {
+    const field = (name) => new RegExp(`\\.${name}\\s*=\\s*(\\w+)`).exec(m[2])?.[1];
+    return [m[1], { type: typeIds.get(field("type")), power: Number(field("power")), accuracy: Number(field("accuracy")), pp: Number(field("pp")) }];
+  }),
+);
+const tmhm = /sTMHMMoves\[\]\s*=\s*\{([^}]*)\}/.exec(read("src/data/party_menu.h"))[1].match(/MOVE_\w+/g);
+const tmMoves = {};
+for (const [i, move] of tmhm.entries()) {
+  const stats = battleMoves.get(move);
+  if (!moveNames.has(move) || stats?.type === undefined) throw new Error(`TM move ${move}: not found`);
+  tmMoves[itemIds.get("ITEM_TM01") + i] = { name: [...encode(moveNames.get(move), move), 0xff], ...stats };
+}
+
 // Single characters, for names: the first byte of each, and back (ASCII preferred for duplicates).
 const charmap = { encode: {}, decode: {} };
 for (const [c, bytes] of chars)
@@ -117,5 +137,6 @@ for (const [c, bytes] of chars)
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, "strings.json"), JSON.stringify(strings));
 writeFileSync(join(out, "items.json"), JSON.stringify(items));
+writeFileSync(join(out, "tm-moves.json"), JSON.stringify(tmMoves));
 writeFileSync(join(out, "charmap.json"), JSON.stringify(charmap));
-console.log(`text: ${labels.length} strings, ${Object.keys(items).length} items`);
+console.log(`text: ${labels.length} strings, ${Object.keys(items).length} items, ${Object.keys(tmMoves).length} TM moves`);

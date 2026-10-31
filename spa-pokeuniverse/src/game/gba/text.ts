@@ -15,6 +15,8 @@ export const EOS = 0xff;
 const CHAR_NEWLINE = 0xfe;
 const PLACEHOLDER_BEGIN = 0xfd;
 const EXT_CTRL_CODE_BEGIN = 0xfc;
+/** {FONT_...}: the following glyphs in another font. */
+const CTRL_FONT = 0x06;
 const CHAR_PROMPT_CLEAR = 0xfb;
 const CHAR_PROMPT_SCROLL = 0xfa;
 const CHAR_KEYPAD_ICON = 0xf8;
@@ -117,6 +119,8 @@ export const enum FontId {
 export class Font {
   /** The button icons ({A_BUTTON}...) printed in this font's lines, once loaded. */
   keypadIcons: IndexedImage | null = null;
+  /** The fonts a {FONT_...} control code switches to (gFonts), once loaded. */
+  family: Partial<Record<number, Font>> | null = null;
 
   constructor(
     private readonly sheet: IndexedImage,
@@ -134,21 +138,26 @@ export class Font {
     return this.widths[id] ?? 0;
   }
 
-  /** GetStringWidth: the widest line, control codes skipped. */
+  /** GetStringWidth: the widest line, other control codes skipped; {FONT_...} measures in that font. */
   width(text: Text, letterSpacing = 0): number {
     let widest = 0;
     let line = 0;
+    let glyphs: Font = this;
     for (let i = 0; i < text.length; i++) {
       const b = text[i];
       if (b === EOS) break;
       if (b === CHAR_NEWLINE) {
         widest = Math.max(widest, line);
         line = 0;
-      } else if (b === EXT_CTRL_CODE_BEGIN) i += controlCodeArgs(text[++i]);
-      else if (b === PLACEHOLDER_BEGIN) i++;
+      } else if (b === EXT_CTRL_CODE_BEGIN) {
+        const code = text[++i];
+        if (code === CTRL_FONT) glyphs = this.family?.[text[i + 1]] ?? glyphs;
+        i += controlCodeArgs(code);
+      } else if (b === PLACEHOLDER_BEGIN) i++;
       else if (b === CHAR_KEYPAD_ICON) line += KEYPAD_ICONS[text[++i]]?.width ?? 0;
       else if (b === CHAR_PROMPT_CLEAR || b === CHAR_PROMPT_SCROLL) continue;
-      else line += this.glyphWidth(b) + letterSpacing;
+      else if (b === CHAR_EXTRA_SYMBOL) line += glyphs.glyphWidth(text[++i] | 0x100) + letterSpacing;
+      else line += glyphs.glyphWidth(b) + letterSpacing;
     }
     return Math.max(widest, line);
   }
@@ -362,6 +371,8 @@ export class TextPrinter {
   private currentY: number;
   private colors: [number, number, number];
   private font: Font;
+  /** The font glyphs are drawn in: the template's, until a {FONT_...} code changes it. */
+  private glyphs: Font;
   private readonly textSpeed: number;
   private delayCounter = 0;
   private scrollDistance = 0;
@@ -380,6 +391,7 @@ export class TextPrinter {
     this.currentY = template.y;
     this.colors = [...template.colors];
     this.font = template.font;
+    this.glyphs = template.font;
     this.textSpeed = speed > 0 ? speed - 1 : 0;
   }
 
@@ -440,7 +452,7 @@ export class TextPrinter {
             break;
           case CHAR_KEYPAD_ICON: {
             const icon = KEYPAD_ICONS[this.next()];
-            const sheet = this.font.keypadIcons;
+            const sheet = this.glyphs.keypadIcons;
             if (icon && sheet) {
               this.window.blitRect(sheet, (icon.tile % 16) * 8, Math.floor(icon.tile / 16) * 8, this.currentX, this.currentY, icon.width, icon.height);
               this.currentX += icon.width + this.template.letterSpacing;
@@ -450,8 +462,8 @@ export class TextPrinter {
           case EOS:
             return Render.Finish;
         }
-        this.font.drawGlyph(c, this.window.pixels, this.window.stride, this.window.rows, this.currentX, this.currentY, this.colors);
-        this.currentX += this.font.glyphWidth(c);
+        this.glyphs.drawGlyph(c, this.window.pixels, this.window.stride, this.window.rows, this.currentX, this.currentY, this.colors);
+        this.currentX += this.glyphs.glyphWidth(c);
         return Render.Print;
       }
       case RenderState.Wait:
@@ -514,6 +526,9 @@ export class TextPrinter {
         this.colors[0] = this.next();
         this.colors[2] = this.next();
         return Render.Repeat;
+      case CTRL_FONT:
+        this.glyphs = this.font.family?.[this.next()] ?? this.glyphs;
+        return Render.Repeat;
       case 0x08:
         this.delayCounter = this.next();
         this.state = RenderState.Pause;
@@ -553,7 +568,7 @@ export class TextPrinter {
         return Render.Repeat;
       }
       default:
-        // Fonts, palettes, sounds and music changes: their arguments are skipped.
+        // Palettes, sounds and music changes: their arguments are skipped.
         this.pos += controlCodeArgs(code);
         return Render.Repeat;
     }

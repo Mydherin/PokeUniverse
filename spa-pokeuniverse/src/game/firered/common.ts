@@ -1,6 +1,7 @@
 // Helpers the FireRed screens share: background setup the way the game's bg templates
 // do it, tilemap fills, and the smooth alpha blend task.
 
+import { toTiles, type IndexedImage } from "../gba/assets";
 import type { Gba } from "../gba/gba";
 import type { Task } from "../gba/tasks";
 import type { Background } from "../gba/video";
@@ -101,4 +102,11 @@ export class BlendTask {
   get active(): boolean {
     return this.gba.tasks.isActive(this.fn);
   }
+}
+
+/** CopyItemIconPicTo4x4Buffer: the icon's 3×3 tiles at the top left of a 4×4 sprite. */
+export function iconTiles(image: IndexedImage): Uint8Array {
+  const pixels = new Uint8Array(32 * 32);
+  for (let y = 0; y < 24; y++) for (let x = 0; x < 24; x++) pixels[y * 32 + x] = image.pixels[y * image.width + x] & 15;
+  return toTiles({ width: 32, height: 32, pixels, palette: null });
 }

@@ -107,7 +107,10 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
       [FontId.Male]: male,
       [FontId.Female]: male,
     };
-    for (const f of Object.values(all)) f.keypadIcons = assets.get("keypadIcons").image;
+    for (const f of Object.values(all)) {
+      f.keypadIcons = assets.get("keypadIcons").image;
+      f.family = all;
+    }
     fonts = all;
     text = new TextPrinters({
       fonts: all,
