@@ -45,17 +45,24 @@ export async function fetchBin(url: string): Promise<Uint16Array> {
   return Uint16Array.from({ length: bytes.length >> 1 }, (_, i) => view.getUint16(i * 2, true));
 }
 
-/** Splits an image into 8×8 tiles, row-major across the image width, 64 indices per tile. */
-export function toTiles(image: IndexedImage): Uint8Array {
+/**
+ * Splits an image into 8×8 tiles, 64 indices per tile: row-major across the image, or frame
+ * by frame for `[width, height]` metatiles (each frame's tiles row-major), as gbagfx orders them.
+ */
+export function toTiles(image: IndexedImage, meta?: [number, number]): Uint8Array {
   const cols = image.width >> 3;
   const rows = image.height >> 3;
+  const [mw, mh] = meta ?? [cols, rows];
+  const metaCols = cols / mw;
   const tiles = new Uint8Array(cols * rows * 64);
-  for (let ty = 0; ty < rows; ty++)
-    for (let tx = 0; tx < cols; tx++) {
-      const base = (ty * cols + tx) * 64;
-      for (let y = 0; y < 8; y++)
-        for (let x = 0; x < 8; x++) tiles[base + y * 8 + x] = image.pixels[(ty * 8 + y) * image.width + tx * 8 + x];
-    }
+  for (let i = 0; i < cols * rows; i++) {
+    const m = Math.floor(i / (mw * mh));
+    const sub = i % (mw * mh);
+    const tx = (m % metaCols) * mw + (sub % mw);
+    const ty = Math.floor(m / metaCols) * mh + Math.floor(sub / mw);
+    for (let y = 0; y < 8; y++)
+      for (let x = 0; x < 8; x++) tiles[i * 64 + y * 8 + x] = image.pixels[(ty * 8 + y) * image.width + tx * 8 + x];
+  }
   return tiles;
 }
 

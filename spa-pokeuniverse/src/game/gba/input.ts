@@ -1,5 +1,6 @@
 // The GBA buttons, read once per frame like the games do: `held` is what is down now,
-// `pressed` what went down since the last frame (a quick tap between frames still counts).
+// `pressed` what went down since the last frame (a quick tap between frames still counts),
+// `repeated` adds the key repeat of a held combination (JOY_REPT).
 // Keyboard mapping (ui.md#input): arrows or WASD, X/Space = A, Z/Backspace = B,
 // Enter = Start, Shift = Select.
 
@@ -38,6 +39,11 @@ const KEYS: Record<string, number> = {
 export class Input {
   held = 0;
   pressed = 0;
+  repeated = 0;
+  /** Frames before a held combination repeats, then between repeats (gKeyRepeat*Delay). */
+  repeatStartDelay = 40;
+  repeatContinueDelay = 5;
+  private repeatCounter = 0;
   private down = 0;
   private latched = 0;
   private readonly onKeyDown = (e: KeyboardEvent) => {
@@ -69,13 +75,25 @@ export class Input {
 
   /** Start of a frame. */
   update(): void {
+    const keys = this.down | this.latched;
     this.pressed = this.latched & ~this.held;
+    this.repeated = this.pressed;
+    if (keys && keys === this.held) {
+      if (--this.repeatCounter === 0) {
+        this.repeated = keys;
+        this.repeatCounter = this.repeatContinueDelay;
+      }
+    } else this.repeatCounter = this.repeatStartDelay;
     this.held = this.down;
     this.latched = 0;
   }
 
   isPressed(buttons: number): boolean {
     return (this.pressed & buttons) !== 0;
+  }
+
+  isRepeated(buttons: number): boolean {
+    return (this.repeated & buttons) !== 0;
   }
 
   isHeld(buttons: number): boolean {

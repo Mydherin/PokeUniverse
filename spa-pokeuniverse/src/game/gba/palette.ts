@@ -180,6 +180,11 @@ export class Palettes {
     return slot < 0 ? 0xff : slot;
   }
 
+  freeSpritePalette(tag: string): void {
+    const slot = this.tags.indexOf(tag);
+    if (slot >= 0) this.tags[slot] = null;
+  }
+
   freeSpritePalettes(): void {
     this.tags.fill(null);
   }

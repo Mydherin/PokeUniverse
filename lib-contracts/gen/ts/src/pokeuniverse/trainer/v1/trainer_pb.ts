@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/trainer/v1/trainer.proto.
  */
 export const file_pokeuniverse_trainer_v1_trainer: GenFile = /*@__PURE__*/
-  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSKqAQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQFCEQoPX3Bva2VkZXhfY2F1Z2h0KkEKBkdlbmRlchIWChJHRU5ERVJfVU5TUEVDSUZJRUQQABIOCgpHRU5ERVJfQk9ZEAESDwoLR0VOREVSX0dJUkwQAkJFWkNwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3RyYWluZXIvdjE7dHJhaW5lcnYxYgZwcm90bzM");
+  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSKqAQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQFCEQoPX3Bva2VkZXhfY2F1Z2h0Il8KCk5ld1RyYWluZXISLwoGZ2VuZGVyGAEgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBG5hbWUYAiABKAkSEgoKcml2YWxfbmFtZRgDIAEoCSpBCgZHZW5kZXISFgoSR0VOREVSX1VOU1BFQ0lGSUVEEAASDgoKR0VOREVSX0JPWRABEg8KC0dFTkRFUl9HSVJMEAJCRVpDcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS90cmFpbmVyL3YxO3RyYWluZXJ2MWIGcHJvdG8z");
 
 /**
  * Response of GET /api/trainer: what the main menu's CONTINUE window shows.
@@ -54,6 +54,38 @@ export type TrainerSummary = Message<"pokeuniverse.trainer.v1.TrainerSummary"> &
  */
 export const TrainerSummarySchema: GenMessage<TrainerSummary> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_trainer_v1_trainer, 0);
+
+/**
+ * Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
+ * It replaces the account's trainer, as starting a new game replaces the save.
+ *
+ * @generated from message pokeuniverse.trainer.v1.NewTrainer
+ */
+export type NewTrainer = Message<"pokeuniverse.trainer.v1.NewTrainer"> & {
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.Gender gender = 1;
+   */
+  gender: Gender;
+
+  /**
+   * 1 to 7 characters of the naming screen's keyboard, not only spaces.
+   *
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string rival_name = 3;
+   */
+  rivalName: string;
+};
+
+/**
+ * Describes the message pokeuniverse.trainer.v1.NewTrainer.
+ * Use `create(NewTrainerSchema)` to create a new message.
+ */
+export const NewTrainerSchema: GenMessage<NewTrainer> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_trainer_v1_trainer, 1);
 
 /**
  * @generated from enum pokeuniverse.trainer.v1.Gender

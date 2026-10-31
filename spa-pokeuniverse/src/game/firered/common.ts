@@ -31,9 +31,9 @@ export function loadBg(bg: Background, graphic: Graphic): void {
   loadBgMap(bg, graphic);
 }
 
-/** Fills a rectangle of the tilemap with one tile and palette. */
+/** Fills a rectangle of the tilemap with one tile (and its flip bits) and palette. */
 export function fillBgRect(bg: Background, tile: number, left: number, top: number, width: number, height: number, palette: number): void {
-  const entry = (tile & 0x3ff) | ((palette & 15) << 12);
+  const entry = (tile & 0xfff) | ((palette & 15) << 12);
   for (let y = top; y < top + height; y++)
     for (let x = left; x < left + width; x++) if (x >= 0 && y >= 0 && x < bg.widthTiles && y < bg.heightTiles) bg.setEntry(x, y, entry);
 }

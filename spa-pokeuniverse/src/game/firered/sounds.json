@@ -2,7 +2,17 @@
   "mus_game_freak": { "song": "mus_game_freak" },
   "mus_intro_fight": { "song": "mus_intro_fight" },
   "mus_title": { "song": "mus_title" },
+  "mus_new_game_instruct": { "song": "mus_new_game_instruct" },
+  "mus_new_game_intro": { "song": "mus_new_game_intro" },
+  "mus_new_game_exit": { "song": "mus_new_game_exit" },
+  "mus_route24": { "song": "mus_route24" },
   "se_select": { "song": "se_select" },
+  "se_ball": { "song": "se_ball" },
+  "se_ball_open": { "song": "se_ball_open" },
+  "se_ball_trade": { "song": "se_ball_trade" },
+  "se_warp_in": { "song": "se_warp_in" },
+  "se_win_open": { "song": "se_win_open" },
   "cry_nidorino_doubles": { "cry": 32, "length": 20, "release": 225, "pan": 63 },
-  "cry_charizard": { "cry": 5 }
+  "cry_charizard": { "cry": 5 },
+  "cry_nidoran_f": { "cry": 28 }
 }

@@ -43,4 +43,5 @@ type Trainer struct {
 	Gender          string
 	PlayTimeSeconds int64
 	CreatedAt       time.Time
+	RivalName       string
 }

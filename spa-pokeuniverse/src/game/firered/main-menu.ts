@@ -1,7 +1,7 @@
 // The main menu: CONTINUE (with the trainer's stats) and NEW GAME, as in FireRed. FireRed
-// has no OPTION entry here. An account without a trainer gets the game's NEW GAME-only
-// window (the original skips straight to New Game, which arrives in Phase 3).
-// A plays the select sound (the options do nothing yet); B goes back to the title screen.
+// has no OPTION entry here. An account without a trainer gets the game's NEW GAME-only window.
+// A on NEW GAME fades out into New Game (Oak's speech); CONTINUE only plays the select sound
+// until the player's room exists (Phase 4). B goes back to the title screen.
 
 import { Gender, type TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
@@ -98,7 +98,7 @@ function initMainMenu(flow: Flow): void {
   const openWindow = (template: WindowTemplate, title: string) => {
     const win = new Window(bg, template);
     win.fill(10);
-    win.print(flow.font, 2, 2, TITLE_COLORS, title);
+    win.print(flow.font, 2, 2, TITLE_COLORS, flow.encode(title));
     return win;
   };
 
@@ -109,18 +109,18 @@ function initMainMenu(flow: Flow): void {
   };
 
   const printStats = (win: Window, t: TrainerSummary) => {
-    win.print(flow.font, 2, 18, STAT_COLORS, "PLAYER");
-    win.print(flow.font, 62, 18, STAT_COLORS, t.name);
+    win.print(flow.font, 2, 18, STAT_COLORS, flow.encode("PLAYER"));
+    win.print(flow.font, 62, 18, STAT_COLORS, flow.encode(t.name));
     if (t.pokedexCaught !== undefined) {
-      win.print(flow.font, 2, 50, STAT_COLORS, "POKéDEX");
-      win.print(flow.font, 62, 50, STAT_COLORS, String(Math.min(t.pokedexCaught, 999)));
+      win.print(flow.font, 2, 50, STAT_COLORS, flow.encode("POKéDEX"));
+      win.print(flow.font, 62, 50, STAT_COLORS, flow.encode(String(Math.min(t.pokedexCaught, 999))));
     }
     const hours = Math.min(Math.floor(t.playTimeSeconds / 3600), 999);
     const minutes = Math.floor(t.playTimeSeconds / 60) % 60;
-    win.print(flow.font, 2, 34, STAT_COLORS, "TIME");
-    win.print(flow.font, 62, 34, STAT_COLORS, `${hours}:${String(minutes).padStart(2, "0")}`);
-    win.print(flow.font, 2, 66, STAT_COLORS, "BADGES");
-    win.print(flow.font, 62, 66, STAT_COLORS, String(Math.min(t.badges, 9)));
+    win.print(flow.font, 2, 34, STAT_COLORS, flow.encode("TIME"));
+    win.print(flow.font, 62, 34, STAT_COLORS, flow.encode(`${hours}:${String(minutes).padStart(2, "0")}`));
+    win.print(flow.font, 2, 66, STAT_COLORS, flow.encode("BADGES"));
+    win.print(flow.font, 62, 66, STAT_COLORS, flow.encode(String(Math.min(t.badges, 9))));
   };
 
   const printMenu = () => {
@@ -145,8 +145,16 @@ function initMainMenu(flow: Flow): void {
   const handleInput = (): boolean => {
     const { input } = gba;
     if (input.isPressed(Button.A)) {
-      // New Game and Continue arrive in Phase 3.
       flow.play("se_select");
+      if (menuType === MenuType.Continue && cursor === 0) return false;
+      palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+      current = () => {
+        if (palettes.fadeActive) return;
+        current = () => {};
+        // The New Game set has had the whole intro to load; a slow network waits on black,
+        // a failed load goes back to the title screen.
+        flow.newGameReady().then(() => flow.toNewGame(), () => flow.toTitle());
+      };
     } else if (input.isPressed(Button.B)) {
       flow.play("se_select");
       palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);

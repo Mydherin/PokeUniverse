@@ -68,7 +68,7 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 
 ## Mobile Keyboard
 
-When the on-screen keyboard opens (chat, search, names):
+When the on-screen keyboard opens (chat, search). Names are entered on FireRed's own naming screen (letter grid), not with the device keyboard.
 
 - The **focused input and the content around it stay visible**, never hidden behind the keyboard.
 - Layout adapts to the visible area using the **VisualViewport API** and dynamic viewport units (`dvh`), not fixed `100vh`.

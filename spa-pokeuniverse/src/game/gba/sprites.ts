@@ -7,7 +7,7 @@ import { HEIGHT, type ObjEntry } from "./video";
 export const MAX_SPRITES = 64;
 
 /** A frame: tile offset in the sheet and how many frames it shows (0 = forever). */
-export type AnimCmd = { image: number; duration: number } | { jump: number } | "end";
+export type AnimCmd = { image: number; duration: number; hFlip?: boolean } | { jump: number } | "end";
 /** A scale step: absolute when duration is 0, otherwise added once per frame for `duration` frames. */
 export type AffineCmd = { xScale: number; yScale: number; duration: number } | "end";
 
@@ -30,6 +30,8 @@ export interface SpriteTemplate {
   mode?: ObjMode;
   /** Affine with the double-size box. */
   affine?: boolean;
+  /** Affine in its own box (ST_OAM_AFFINE_NORMAL). */
+  affineNormal?: boolean;
   anims?: AnimCmd[][];
   affineAnims?: AffineCmd[][];
   callback?: SpriteCallback;
@@ -53,6 +55,12 @@ export class Sprite {
   height = 8;
   mode = ObjMode.Normal;
   affine = false;
+  /** With `affine`: drawn in a double-size box. */
+  affineDouble = true;
+  hFlip = false;
+  /** Moved by the shared sprite offset (gSpriteCoordOffsetX/Y). */
+  coordOffsetEnabled = false;
+  animPaused = false;
   tiles: Uint8Array = new Uint8Array(0);
   tileNum = 0;
   paletteNum = 0;
@@ -100,7 +108,7 @@ export class Sprite {
   setSize(width: number, height: number): void {
     this.width = width;
     this.height = height;
-    const k = this.affine ? 1 : 0.5;
+    const k = this.affine && this.affineDouble ? 1 : 0.5;
     this.centerToCornerX = -width * k;
     this.centerToCornerY = -height * k;
   }
@@ -133,11 +141,22 @@ export class Sprites {
   private readonly sheets = new Map<string, Uint8Array>();
   /** The OAM list built this frame; VBlank hands it to the video. */
   oam: ObjEntry[] = [];
+  /** Added to sprites with coordOffsetEnabled (gSpriteCoordOffsetX/Y). */
+  coordOffsetX = 0;
+  coordOffsetY = 0;
 
   constructor(private readonly palettes: Palettes) {}
 
   loadSheet(tag: string, tiles: Uint8Array): void {
     this.sheets.set(tag, tiles);
+  }
+
+  sheet(tag: string): Uint8Array {
+    return this.sheets.get(tag) ?? new Uint8Array(0);
+  }
+
+  freeSheet(tag: string): void {
+    this.sheets.delete(tag);
   }
 
   /** Takes the lowest free slot, or returns null when all 64 are used. */
@@ -150,7 +169,8 @@ export class Sprites {
     s.subpriority = subpriority;
     s.priority = template.priority;
     s.mode = template.mode ?? ObjMode.Normal;
-    s.affine = template.affine ?? false;
+    s.affine = (template.affine ?? false) || (template.affineNormal ?? false);
+    s.affineDouble = !template.affineNormal;
     s.anims = template.anims ?? DUMMY_ANIMS;
     s.affineAnims = template.affineAnims ?? DUMMY_AFFINE;
     s.callback = template.callback ?? callbackDummy;
@@ -160,6 +180,7 @@ export class Sprites {
     s.tiles = this.sheets.get(template.sheet) ?? new Uint8Array(0);
     const first = s.anims[0][0];
     s.tileNum = typeof first === "object" && "image" in first ? first.image : 0;
+    s.hFlip = typeof first === "object" && "image" in first ? (first.hFlip ?? false) : false;
     s.paletteNum = this.palettes.spritePaletteSlot(template.palette) & 15;
     return s;
   }
@@ -180,6 +201,7 @@ export class Sprites {
     }
     this.sheets.clear();
     this.oam = [];
+    this.coordOffsetX = this.coordOffsetY = 0;
   }
 
   /** Runs callbacks, then animations, slot by slot. */
@@ -188,13 +210,17 @@ export class Sprites {
       const s = this.slots[i];
       if (!s.inUse) continue;
       s.callback(s);
-      if (!s.inUse) continue;
-      if (s.animBeginning) beginAnim(s);
-      else continueAnim(s);
-      if (s.affine) {
-        if (s.affineBeginning) beginAffineAnim(s);
-        else continueAffineAnim(s);
-      }
+      if (s.inUse) this.animateSprite(s);
+    }
+  }
+
+  /** AnimateSprite: one step of a sprite's frame and scale animations. */
+  animateSprite(s: Sprite): void {
+    if (s.animBeginning) beginAnim(s);
+    else if (!s.animPaused) continueAnim(s);
+    if (s.affine) {
+      if (s.affineBeginning) beginAffineAnim(s);
+      else continueAffineAnim(s);
     }
   }
 
@@ -202,8 +228,10 @@ export class Sprites {
   buildOam(): void {
     for (const s of this.slots) {
       if (!s.inUse || s.invisible) continue;
-      s.oamX = (s.x + s.x2 + s.centerToCornerX) & 0x1ff;
-      s.oamY = (s.y + s.y2 + s.centerToCornerY) & 0xff;
+      const ox = s.coordOffsetEnabled ? this.coordOffsetX : 0;
+      const oy = s.coordOffsetEnabled ? this.coordOffsetY : 0;
+      s.oamX = (s.x + s.x2 + s.centerToCornerX + ox) & 0x1ff;
+      s.oamY = (s.y + s.y2 + s.centerToCornerY + oy) & 0xff;
     }
     const key = (i: number) => (this.slots[i].priority << 8) | this.slots[i].subpriority;
     const sortY = (i: number) => {
@@ -237,19 +265,20 @@ export class Sprites {
         palette: s.paletteNum,
         priority: s.priority,
         mode: s.mode,
-        hFlip: false,
+        hFlip: s.hFlip,
         vFlip: false,
         matrix: s.affine ? { a: s.matrixA, b: 0, c: 0, d: s.matrixD } : null,
-        double: s.affine,
+        double: s.affine && s.affineDouble,
       });
     }
     this.oam = objs;
   }
 }
 
-function applyFrame(s: Sprite, cmd: { image: number; duration: number }): void {
+function applyFrame(s: Sprite, cmd: { image: number; duration: number; hFlip?: boolean }): void {
   s.animDelay = cmd.duration ? cmd.duration - 1 : 0;
   s.tileNum = cmd.image;
+  s.hFlip = cmd.hFlip ?? false;
 }
 
 function beginAnim(s: Sprite): void {

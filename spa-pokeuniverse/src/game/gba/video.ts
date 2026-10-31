@@ -23,30 +23,44 @@ export const enum Effect {
   Darken = 3,
 }
 
-/** A tile background. Coordinates are in 1/256 pixels, as the game changes them. */
+/**
+ * A tile background. Coordinates are in 1/256 pixels, as the game changes them. An affine
+ * background (BG2 in mode 1) is 8bpp with one-byte map entries; its x, y are the reference
+ * point and pa..pd the 8.8 matrix (texture step per screen pixel and per line).
+ */
 export class Background {
   visible = false;
   priority = 0;
   /** One byte per pixel, 64 per 8×8 tile. */
   tiles: Uint8Array = new Uint8Array(0);
   bpp8 = false;
-  /** Tilemap entries: tile (10 bits), h-flip, v-flip, palette (4 bits). */
+  /** Tilemap entries: tile (10 bits), h-flip, v-flip, palette (4 bits); a tile number when affine. */
   map: Uint16Array = new Uint16Array(32 * 32);
-  /** 0: 256×256, 1: 512×256, 2: 256×512, 3: 512×512. */
+  /** Text: 0: 256×256, 1: 512×256, 2: 256×512, 3: 512×512. Affine: 128 << size pixels square. */
   size = 0;
   x = 0;
   y = 0;
+  affine = false;
+  /** Affine: the map repeats instead of being transparent outside. */
+  wrap = false;
+  pa = 0x100;
+  pb = 0;
+  pc = 0;
+  pd = 0x100;
 
   get widthTiles(): number {
+    if (this.affine) return 16 << this.size;
     return this.size & 1 ? 64 : 32;
   }
 
   get heightTiles(): number {
+    if (this.affine) return 16 << this.size;
     return this.size & 2 ? 64 : 32;
   }
 
   /** Map entry at a tile position: screens of 32×32 tiles are stored one after another. */
   entry(tx: number, ty: number): number {
+    if (this.affine) return this.map[ty * (16 << this.size) + tx] ?? 0;
     let block = 0;
     if (tx >= 32) block += 1;
     if (ty >= 32) block += this.size === 3 ? 2 : 1;
@@ -54,6 +68,10 @@ export class Background {
   }
 
   setEntry(tx: number, ty: number, value: number): void {
+    if (this.affine) {
+      this.map[ty * (16 << this.size) + tx] = value & 0xff;
+      return;
+    }
     let block = 0;
     if (tx >= 32) block += 1;
     if (ty >= 32) block += this.size === 3 ? 2 : 1;
@@ -69,6 +87,18 @@ export class Background {
     this.size = 0;
     this.x = 0;
     this.y = 0;
+    this.affine = this.wrap = false;
+    this.pa = this.pd = 0x100;
+    this.pb = this.pc = 0;
+  }
+
+  /** BgAffineSet: scales around a texture point (8.8) shown at a screen point; no rotation. */
+  setAffine(texX: number, texY: number, scrX: number, scrY: number, scaleX: number, scaleY: number): void {
+    this.pa = scaleX;
+    this.pd = scaleY;
+    this.pb = this.pc = 0;
+    this.x = texX - this.pa * scrX;
+    this.y = texY - this.pd * scrY;
   }
 }
 
@@ -279,6 +309,7 @@ export class Video {
 
   /** A background's color at a screen pixel, or -1 when transparent. */
   private bgPixel(bg: Background, x: number, line: number): number {
+    if (bg.affine) return this.affinePixel(bg, x, line);
     const w = bg.widthTiles * 8;
     const h = bg.heightTiles * 8;
     const px = (x + (bg.x >> 8)) & (w - 1);
@@ -292,6 +323,19 @@ export class Video {
     const index = bg.tiles[tile * 64 + ty * 8 + tx];
     if (!index) return -1;
     return bg.bpp8 ? this.palette[index] : this.palette[((e >> 12) << 4) + index];
+  }
+
+  private affinePixel(bg: Background, x: number, line: number): number {
+    const size = 128 << bg.size;
+    let px = (bg.x + bg.pa * x + bg.pb * line) >> 8;
+    let py = (bg.y + bg.pc * x + bg.pd * line) >> 8;
+    if (bg.wrap) {
+      px &= size - 1;
+      py &= size - 1;
+    } else if (px < 0 || py < 0 || px >= size || py >= size) return -1;
+    const tile = bg.map[(py >> 3) * (size >> 3) + (px >> 3)] & 0xff;
+    const index = bg.tiles[tile * 64 + (py & 7) * 8 + (px & 7)];
+    return index ? this.palette[index] : -1;
   }
 
   /** Draws the sprites crossing a scanline into the line's OBJ buffers. */

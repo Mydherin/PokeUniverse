@@ -20,3 +20,12 @@ message TrainerSummary {
   // Pokémon caught; unset until the player has the Pokédex.
   optional uint32 pokedex_caught = 5;
 }
+
+// Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
+// It replaces the account's trainer, as starting a new game replaces the save.
+message NewTrainer {
+  Gender gender = 1;
+  // 1 to 7 characters of the naming screen's keyboard, not only spaces.
+  string name = 2;
+  string rival_name = 3;
+}

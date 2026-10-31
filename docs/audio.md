@@ -91,3 +91,18 @@ Measured on `mus_title` (45 s: intro + one pass):
 | `se_select` | Sound effect | SE |
 | `cry_nidorino_doubles` | Cry 32, doubles mode | Cry |
 | `cry_charizard` | Cry 5 | Cry |
+
+## New Game Sounds
+
+Loaded in the background after boot (with the New Game art and text), so the intro starts as fast as before.
+
+| ID | Source | Player |
+|---|---|---|
+| `mus_new_game_instruct` | Song, looping (controls guide) | BGM |
+| `mus_new_game_intro` | Song, looping (Pikachu pages) | BGM |
+| `mus_new_game_exit` | Song (end of the Pikachu pages) | BGM |
+| `mus_route24` | Song, looping (Oak's speech) | BGM |
+| `se_ball_open`, `se_ball_trade` | Sound effects (Nidoran♀'s Poké Ball) | SE |
+| `se_ball`, `se_win_open` | Sound effects (naming screen: delete, page swap) | SE |
+| `se_warp_in` | Sound effect (the player shrinks) | SE |
+| `cry_nidoran_f` | Cry 28 | Cry |

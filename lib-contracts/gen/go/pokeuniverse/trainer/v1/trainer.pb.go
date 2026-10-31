@@ -150,6 +150,69 @@ func (x *TrainerSummary) GetPokedexCaught() uint32 {
 	return 0
 }
 
+// Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
+// It replaces the account's trainer, as starting a new game replaces the save.
+type NewTrainer struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Gender Gender                 `protobuf:"varint,1,opt,name=gender,proto3,enum=pokeuniverse.trainer.v1.Gender" json:"gender,omitempty"`
+	// 1 to 7 characters of the naming screen's keyboard, not only spaces.
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	RivalName     string `protobuf:"bytes,3,opt,name=rival_name,json=rivalName,proto3" json:"rival_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NewTrainer) Reset() {
+	*x = NewTrainer{}
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NewTrainer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NewTrainer) ProtoMessage() {}
+
+func (x *NewTrainer) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NewTrainer.ProtoReflect.Descriptor instead.
+func (*NewTrainer) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *NewTrainer) GetGender() Gender {
+	if x != nil {
+		return x.Gender
+	}
+	return Gender_GENDER_UNSPECIFIED
+}
+
+func (x *NewTrainer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NewTrainer) GetRivalName() string {
+	if x != nil {
+		return x.RivalName
+	}
+	return ""
+}
+
 var File_pokeuniverse_trainer_v1_trainer_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
@@ -161,7 +224,13 @@ const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
 	"\x11play_time_seconds\x18\x03 \x01(\rR\x0fplayTimeSeconds\x12\x16\n" +
 	"\x06badges\x18\x04 \x01(\rR\x06badges\x12*\n" +
 	"\x0epokedex_caught\x18\x05 \x01(\rH\x00R\rpokedexCaught\x88\x01\x01B\x11\n" +
-	"\x0f_pokedex_caught*A\n" +
+	"\x0f_pokedex_caught\"x\n" +
+	"\n" +
+	"NewTrainer\x127\n" +
+	"\x06gender\x18\x01 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"rival_name\x18\x03 \x01(\tR\trivalName*A\n" +
 	"\x06Gender\x12\x16\n" +
 	"\x12GENDER_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -181,18 +250,20 @@ func file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_trainer_v1_trainer_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_trainer_v1_trainer_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_pokeuniverse_trainer_v1_trainer_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_pokeuniverse_trainer_v1_trainer_proto_goTypes = []any{
 	(Gender)(0),            // 0: pokeuniverse.trainer.v1.Gender
 	(*TrainerSummary)(nil), // 1: pokeuniverse.trainer.v1.TrainerSummary
+	(*NewTrainer)(nil),     // 2: pokeuniverse.trainer.v1.NewTrainer
 }
 var file_pokeuniverse_trainer_v1_trainer_proto_depIdxs = []int32{
 	0, // 0: pokeuniverse.trainer.v1.TrainerSummary.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 1: pokeuniverse.trainer.v1.NewTrainer.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_trainer_v1_trainer_proto_init() }
@@ -207,7 +278,7 @@ func file_pokeuniverse_trainer_v1_trainer_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_trainer_v1_trainer_proto_rawDesc), len(file_pokeuniverse_trainer_v1_trainer_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

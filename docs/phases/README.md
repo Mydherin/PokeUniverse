@@ -16,8 +16,8 @@ High-level plan to build the **MVP: all of Kanto, including social features**.
 |---|---|---|
 | 0 | [Foundations](phase-0-foundations.md) ✅ | Whole stack starts with one command; SPA ↔ `mic-core` WebSocket works |
 | 1 | [Web App and Auth](phase-1-web-app-auth.md) ✅ | Log in with Google and reach an empty game screen |
-| 2 | [FireRed Intro](phase-2-firered-intro.md) | Play shows FireRed's intro, title screen and menu like the original |
-| 3 | [New Game with Oak](phase-3-new-game.md) | A new player finishes Oak's speech and their trainer is saved |
+| 2 | [FireRed Intro](phase-2-firered-intro.md) ✅ | Play shows FireRed's intro, title screen and menu like the original |
+| 3 | [New Game with Oak](phase-3-new-game.md) ✅ | A new player finishes Oak's speech and their trainer is saved |
 | 4 | [Player's Room](phase-4-players-room.md) | Walk in your room, server-authoritative; maps edited as text |
 | 5 | [Pallet Town](phase-5-pallet-town.md) | All of Pallet Town and its events, up to choosing a starter |
 | 6 | [Pallet Town Art Upgrade](phase-6-pallet-town-art.md) | Pallet Town with awesome public art, same game |

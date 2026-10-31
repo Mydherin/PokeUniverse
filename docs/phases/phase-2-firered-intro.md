@@ -2,7 +2,7 @@
 
 **Goal:** **Play** opens the game exactly like FireRed boots, with its original art and music.
 
-**Status:** built; waiting for the check on desktop and mobile.
+**Status:** done.
 
 ## Scope
 
@@ -14,12 +14,12 @@
 - [x] Boot sequence as in FireRed (rev 0): copyright screen, Game Freak logo, the Gengar vs. Nidorino scenes, title screen, **Press Start**, rewritten from zero with the original frame timings.
 - [x] Plays on **every Play**. **A, Start or Select** skips the intro to the title screen; **A, B or Start** skips the title animation, as in the game. Left alone, the title screen plays the intro again after 2700 frames (45 s).
 - [x] Main menu as in FireRed: **CONTINUE** (player, time, badges; Pokédex once obtained) and **NEW GAME** when the account has a trainer, asked to the server (`GET /api/trainer`). FireRed has **no OPTION** entry here (Options are in the start menu).
-  - Without a trainer, FireRed skips the menu straight into New Game; we show its own **NEW GAME-only** window instead, until Phase 3.
-  - A plays the select sound (New Game and Continue arrive in Phase 3); B goes back to the title screen.
+  - Without a trainer (FireRed's empty save), the game's own **NEW GAME-only** window.
+  - A plays the select sound (New Game arrived in Phase 3, Continue arrives in Phase 4); B goes back to the title screen.
 - [x] Sounds: `mus_game_freak`, `mus_intro_fight`, `mus_title`, `se_select`, Nidorino's cry (doubles mode) and Charizard's cry, looping like the game. The intro's "blast" is part of `mus_intro_fight`. Audio unlocked by the first tap or key (Safari).
 - [x] Input: keyboard (desktop) and touch buttons (mobile) for directions, A, B and Start ([ui.md](../ui.md#input)).
 
 ## Done When
 
-- [ ] Play shows the intro, title screen and menu like the original, with sound, on desktop and mobile.
-- [ ] Skipping jumps straight to the title screen.
+- [x] Play shows the intro, title screen and menu like the original, with sound, on desktop and mobile.
+- [x] Skipping jumps straight to the title screen.
