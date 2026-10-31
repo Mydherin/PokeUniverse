@@ -1,8 +1,10 @@
 // WebSocket to mic-core: Protocol Buffers envelopes, authenticated with the access token.
 // It also carries the world (WorldLink): entering it, the player's intents and the server's answers.
 // One copy of the game plays a trainer at a time: entering the world from the game (CONTINUE,
-// New Game) takes the trainer from any other copy, which stops for good (`onReplaced`).
+// New Game) takes the trainer from any other copy, which stops for good (`onEnded("replaced")`).
 // Re-entering after a reconnect never takes it back: a copy replaced meanwhile stops too.
+// A lost connection is retried with backoff; after MAX_RETRIES failed tries in a row it stops
+// for good too (`onEnded("disconnected")`).
 
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
 import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
@@ -17,7 +19,11 @@ export type ConnectionStatus =
   | { state: "online"; accountId: bigint; latencyMs?: number }
   | { state: "offline"; retryInMs: number }
   | { state: "replaced" }
+  | { state: "disconnected" }
   | { state: "signed-out" };
+
+/** Why the connection stopped for good: the game can't go on, only back home. */
+export type EndReason = "replaced" | "disconnected";
 
 /** What the server says about the world. */
 export interface WorldEvents {
@@ -57,6 +63,10 @@ const PING_EVERY_MS = 5_000;
 const AUTH_CLOSE_CODES = new Set([4001, 4002]);
 // The trainer is played from another copy of the game: this one stops, never reconnecting.
 const CLOSE_REPLACED = 4004;
+// Failed reconnects in a row before giving up (~1 min of backoff: 1s, 2s, 4s, 8s, then 15s each).
+const MAX_RETRIES = 8;
+const RETRY_BASE_MS = 1_000;
+const RETRY_MAX_MS = 15_000;
 
 type Payload = MessageInitShape<typeof ClientMessageSchema>["payload"];
 
@@ -78,8 +88,8 @@ export class Connection implements WorldLink {
 
   constructor(
     private readonly onStatus: (status: ConnectionStatus) => void,
-    /** Another copy of the game took the trainer: this one is closed and must stop. */
-    private readonly onReplaced: () => void = () => {},
+    /** The connection stopped for good (another copy took the trainer, or the server stayed unreachable): the game must stop. */
+    private readonly onEnded: (reason: EndReason) => void = () => {},
   ) {
     // Every refreshed token is sent over the open socket so it is never closed for expiry.
     this.unsubscribe = onSessionChange((session) => {
@@ -204,7 +214,7 @@ export class Connection implements WorldLink {
         break;
       case "error":
         if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();
-        else if (msg.payload.value.code === ErrorCode.SESSION_ACTIVE) this.replace();
+        else if (msg.payload.value.code === ErrorCode.SESSION_ACTIVE) this.end("replaced");
         // Otherwise the close event that follows decides what to do.
         break;
     }
@@ -229,22 +239,24 @@ export class Connection implements WorldLink {
     this.entered = false;
     this.welcomed = false;
     if (this.stopped) return;
-    if (code === CLOSE_REPLACED) return this.replace();
+    if (code === CLOSE_REPLACED) return this.end("replaced");
     if (AUTH_CLOSE_CODES.has(code)) {
       const session = await refresh().catch(() => getSession());
       if (!session) return this.stop({ state: "signed-out" });
     }
-    // Exponential backoff with jitter: 1s, 2s, 4s… up to 15s.
-    const retryInMs = Math.min(15_000, 1_000 * 2 ** this.attempts++) * (0.75 + Math.random() * 0.5);
+    // Welcome resets the count, so only failures in a row add up.
+    if (this.attempts >= MAX_RETRIES) return this.end("disconnected");
+    // Exponential backoff with jitter (±25%), so many clients don't all retry at once.
+    const retryInMs = Math.min(RETRY_MAX_MS, RETRY_BASE_MS * 2 ** this.attempts++) * (0.75 + Math.random() * 0.5);
     this.onStatus({ state: "offline", retryInMs });
     this.retryTimer = window.setTimeout(() => this.connect(), retryInMs);
   }
 
-  /** Another copy plays the trainer now: closed for good. */
-  private replace(): void {
+  /** Closed for good: the game stops. */
+  private end(reason: EndReason): void {
     if (this.stopped) return;
-    this.stop({ state: "replaced" });
-    this.onReplaced();
+    this.stop({ state: reason });
+    this.onEnded(reason);
   }
 
   private stop(status: ConnectionStatus): void {

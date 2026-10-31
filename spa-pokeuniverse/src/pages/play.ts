@@ -1,5 +1,5 @@
 import type { View } from "../app/router";
-import { Connection, type ConnectionStatus } from "../realtime/connection";
+import { Connection, type ConnectionStatus, type EndReason } from "../realtime/connection";
 import { h } from "../ui/dom";
 import { icon } from "../ui/icons";
 
@@ -41,6 +41,7 @@ export function playPage(): View {
       online: ["bg-leaf-400", s.state === "online" && s.latencyMs !== undefined ? `Online · ${s.latencyMs} ms` : "Online"],
       offline: ["bg-berry-400", "Reconnecting…"],
       replaced: ["bg-berry-400", "Playing somewhere else"],
+      disconnected: ["bg-berry-400", "Disconnected"],
       "signed-out": ["bg-berry-400", "Signed out"],
     }[s.state];
     dot.className = `size-2.5 rounded-full ${color}`;
@@ -50,26 +51,30 @@ export function playPage(): View {
   let stopGame: (() => void) | undefined;
   let destroyed = false;
 
-  // Another copy of the game took the trainer (CONTINUE or New Game there): this game stops
-  // for good, and the only way on is back home, where PLAY starts it again.
-  const replaced = h(
+  // The connection stopped for good: another copy of the game took the trainer (CONTINUE or
+  // New Game there), or the server stayed unreachable after every retry. The game stops, and
+  // the only way on is back home, where PLAY starts it again.
+  const ENDED: Record<EndReason, { title: string; text: string }> = {
+    replaced: { title: "Playing somewhere else", text: "Your trainer is now being played in another window or device, so the game stopped here." },
+    disconnected: { title: "Disconnected", text: "The connection to the server was lost and couldn't be restored. Your progress is saved; try again from home." },
+  };
+  const endedTitle = h("h2", { id: "ended-title", class: "font-display text-xl" });
+  const endedText = h("p", { class: "text-ink-soft" });
+  const endedHome = h("a", { href: "/", "data-link": true, class: "btn btn-play min-h-12 px-6 text-xl" }, "Back to home");
+  const ended = h(
     "div",
-    { class: "absolute inset-0 z-20 flex items-center justify-center bg-night-900/85 p-6 backdrop-blur", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "replaced-title", hidden: true },
-    h(
-      "div",
-      { class: "panel max-w-sm space-y-4 p-6 text-center" },
-      h("h2", { id: "replaced-title", class: "font-display text-xl" }, "Playing somewhere else"),
-      h("p", { class: "text-ink-soft" }, "Your trainer is now being played in another window or device, so the game stopped here."),
-      h("a", { href: "/", "data-link": true, class: "btn btn-play min-h-12 px-6 text-xl" }, "Back to home"),
-    ),
+    { class: "absolute inset-0 z-20 flex items-center justify-center bg-night-900/85 p-6 backdrop-blur", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "ended-title", hidden: true },
+    h("div", { class: "panel max-w-sm space-y-4 p-6 text-center" }, endedTitle, endedText, endedHome),
   );
-  el.append(replaced);
-  const stop = () => {
+  el.append(ended);
+  const stop = (reason: EndReason) => {
     destroyed = true;
     stopGame?.();
     stopGame = undefined;
-    replaced.hidden = false;
-    replaced.querySelector<HTMLAnchorElement>("a")?.focus();
+    endedTitle.textContent = ENDED[reason].title;
+    endedText.textContent = ENDED[reason].text;
+    ended.hidden = false;
+    endedHome.focus();
   };
 
   const connection = new Connection(show, stop);

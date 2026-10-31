@@ -314,6 +314,7 @@ The client **predicts**, the server **decides** ([Phase 4](phases/phase-4-player
 **One envelope**
 - All messages share one Protocol Buffers envelope (`oneof` payload) with a **sequence number** for ordering.
 - On reconnect, the client receives a fresh snapshot and continues with deltas.
+- **Reconnect limit:** a lost connection is retried with exponential backoff and ±25% jitter (1 s, 2 s, 4 s, 8 s, then 15 s), so clients don't all retry at once after a restart. After 8 failed tries in a row (~1 minute) the game stops and shows "Disconnected", whose only way on is back home (PLAY starts again); a `Welcome` resets the count.
 
 **Between microservices (NATS)**
 - Subjects are named by domain and action: `battles.start`, `battles.turn`, `world.events.pokemon_caught`.
