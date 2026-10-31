@@ -5,7 +5,9 @@
 // answers with a script (messages, sounds) during which the player can't move. START opens the
 // START menu; its screens (the BAG, the Trainer Card, OPTION) fade out of the world and back into it, menu open.
 // SELECT uses the item registered to it (the TM CASE and BERRY POUCH open, faded in from the
-// world and back to it); an item used from the bag may work back on the field.
+// world and back to it); an item used from the bag may work back on the field. The bedroom PC's
+// script flickers its screen on, shows its menus and opens WITHDRAW ITEM or the BAG's DEPOSIT
+// ITEM from black, coming back to ITEM STORAGE.
 
 import { create } from "@bufbuild/protobuf";
 import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
@@ -13,20 +15,24 @@ import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
-import type { Correction, Script, ScriptStep, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
+import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
+import type { Task } from "../gba/tasks";
 import { expandPlaceholders, FontId, PLACEHOLDER_PLAYER, type Text } from "../gba/text";
 import { rgb, RGB_BLACK } from "../gba/video";
 import { Avatar, type AvatarInput } from "../world/avatar";
-import { BagState } from "../world/items";
+import { BagState, StoredItems } from "../world/items";
 import { loadMap, TILE } from "../world/map";
 import { FieldMessage } from "./field-message";
 import type { Flow } from "./flow";
 import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
-import { openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
+import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
 import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-messages";
+import { startItemPc, type ItemPcHost } from "./item-pc";
+import { beginPcScreenFlicker, PC_SCREEN_TILES, pcScreenOffset, PcChoice, PlayersPcMenu, StorageEntry } from "./players-pc";
 import { startOptionMenu } from "./option-menu";
 import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
@@ -79,6 +85,7 @@ export function startOverworld(flow: Flow): void {
     correction: (c) => overworld?.correct(c),
     script: (s) => overworld?.run(s),
     bagChanged: (b) => overworld?.bagChanged(b),
+    pcChanged: (p) => overworld?.pcChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     noTrainer: leave,
   });
@@ -117,6 +124,19 @@ interface Menu {
   opening: (() => void) | null;
 }
 
+/** The PC in use: its menus and what it stores, as mic-core last said. */
+interface OpenPc {
+  menu: PlayersPcMenu;
+  stored: StoredItems;
+}
+
+/** A PC's screen turned on on the map: its cell and the map's own tile there. */
+interface PcScreenTile {
+  x: number;
+  y: number;
+  tile: number;
+}
+
 /** A script the server sent, step by step. */
 interface Running {
   id: number;
@@ -144,10 +164,13 @@ class Overworld {
   private fieldItem: ItemMessagePlayer | null = null;
   /** The screen a registered item opens once the world faded to black. */
   private fieldOpening: (() => void) | null = null;
+  private pc: OpenPc | null = null;
+  private pcScreen: PcScreenTile | null = null;
+  private pcFlicker: Task | undefined;
 
   constructor(
     private readonly flow: Flow,
-    map: ClientMap,
+    private readonly map: ClientMap,
     snapshot: WorldSnapshot,
   ) {
     const { gba, world, link } = flow;
@@ -169,10 +192,11 @@ class Overworld {
   }
 
   /**
-   * The field's screen set up again: on arriving (fading in from black at once) or back from a
-   * START menu screen (CB2_ReturnToFieldWithOpenMenu: the menu drawn first, on black).
+   * The field's screen set up again: on arriving (fading in from black at once), back from a
+   * START menu screen (CB2_ReturnToFieldWithOpenMenu: the menu drawn first, on black) or from
+   * another screen (`draw` puts its windows back on black, e.g. the PC's menu).
    */
-  private enter(withMenu: boolean): void {
+  private enter(withMenu: boolean, draw?: () => void): void {
     const { gba, world } = this.flow;
     gba.setVBlank(null);
     gba.reset();
@@ -181,7 +205,10 @@ class Overworld {
     this.draw();
     world.setFade(16, RGB_BLACK);
     if (withMenu) this.openMenu(true);
-    else this.fadeIn();
+    else {
+      draw?.();
+      this.fadeIn();
+    }
     gba.setMain(() => {
       this.frame();
       if (this.away) return;
@@ -203,6 +230,9 @@ class Overworld {
     this.avatar.snap(p.x, p.y, p.facing);
     this.avatar.waiting = false;
     this.endScript(false);
+    if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
+    this.pcScreen = null;
+    this.flow.gba.tasks.destroy(this.pcFlicker);
     this.bag = new BagState(s.bag);
     // Answers lost with the connection: nothing happened.
     for (const answer of this.itemAnswers.splice(0)) answer(create(ItemResultSchema));
@@ -210,6 +240,10 @@ class Overworld {
 
   bagChanged(b: BagChanged): void {
     this.bag.apply(b);
+  }
+
+  pcChanged(p: PcChanged): void {
+    this.pc?.stored.apply(p.slots);
   }
 
   itemResult(r: ItemResult): void {
@@ -235,7 +269,7 @@ class Overworld {
       },
       playerName: this.playerName,
       use: (item) => this.askItem(() => link.useItem(item, false)),
-      give: (item) => this.askItem(() => link.giveItem(item)),
+      give: (item) => this.askItem(() => link.giveItem(item, false)),
       toss: (item, quantity) => this.askItem(() => link.tossItem(item, quantity)),
       register: (item) => {
         this.bag.toggleRegistered(item);
@@ -243,6 +277,20 @@ class Overworld {
       },
       move: (pocket, from, to) => {
         if (this.bag.move(pocket, from, to)) link.moveItem(pocket, from, to);
+      },
+      deposit: (item, quantity) => this.askItem(() => link.depositItem(item, quantity)),
+    };
+  }
+
+  /** WITHDRAW ITEM's way to what the PC stores. */
+  private pcHost(pc: OpenPc): ItemPcHost {
+    const { link } = this.flow;
+    return {
+      stored: pc.stored,
+      withdraw: (item, quantity) => this.askItem(() => link.withdrawItem(item, quantity)),
+      give: (item) => this.askItem(() => link.giveItem(item, true)),
+      move: (from, to) => {
+        if (pc.stored.move(from, to)) link.movePcItem(from, to);
       },
     };
   }
@@ -420,6 +468,16 @@ class Overworld {
         s.index++;
         continue;
       }
+      if (step.action.case === "pcScreen") {
+        this.setPcScreen(step.action.value);
+        s.index++;
+        continue;
+      }
+      if (step.action.case === "playersPc") {
+        if (!this.runPc(step.action.value)) return;
+        s.index++;
+        continue;
+      }
       if (step.action.case !== "message") {
         s.index++;
         continue;
@@ -442,6 +500,68 @@ class Overworld {
   private endScript(done: boolean): void {
     if (this.script && done) this.flow.link.scriptDone(this.script.id);
     this.script = null;
-    this.message.hide();
+    // Away, the screen shown owns BG0: the field's windows are set up again on returning.
+    if (!this.away) {
+      this.pc?.menu.close();
+      this.message.hide();
+    }
+    this.pc = null;
+  }
+
+  /**
+   * AnimatePcTurnOn (the screen flickers on) or AnimatePcTurnOff, on the cell the player faces.
+   * The map's own tile comes back if the script stops early.
+   */
+  private setPcScreen(screen: PcScreen): void {
+    const tiles = PC_SCREEN_TILES[screen.pc];
+    if (!tiles) return;
+    const { world, gba } = this.flow;
+    const [dx, dy] = pcScreenOffset(this.avatar.facing);
+    const x = this.avatar.x + dx;
+    const y = this.avatar.y + dy;
+    gba.tasks.destroy(this.pcFlicker);
+    if (!screen.on) {
+      world.setTile(x, y, tiles.off);
+      this.pcScreen = null;
+      return;
+    }
+    this.pcScreen = { x, y, tile: this.map.tiles[y * this.map.width + x] };
+    this.pcFlicker = beginPcScreenFlicker(gba, (on) => world.setTile(x, y, on ? tiles.on : tiles.off));
+  }
+
+  /** The PC's menus, until TURN OFF: true then. The screens it opens fade out of the world and back. */
+  private runPc(players: PlayersPc): boolean {
+    const { flow } = this;
+    if (!this.pc) {
+      const stored = new StoredItems(players.items);
+      this.pc = { stored, menu: new PlayersPcMenu(flow, () => this.message, () => stored.slots.length) };
+    }
+    const pc = this.pc;
+    // Task_ReturnToItemStorageSubmenu: input waits for the world to be back.
+    if (flow.gba.palettes.fadeActive) return false;
+    switch (pc.menu.update()) {
+      case PcChoice.TurnOff:
+        this.pc = null;
+        return true;
+      case PcChoice.Withdraw:
+        this.openPcScreen(StorageEntry.Withdraw, (back) => startItemPc(flow, this.pcHost(pc), back));
+        break;
+      case PcChoice.Deposit:
+        this.openPcScreen(StorageEntry.Deposit, (back) => startBag(flow, flow.trainer!.gender, this.bagHost(), () => back(), BagLocation.ItemPc));
+        break;
+    }
+    return false;
+  }
+
+  /** FadeScreen to black, the screen, then back to ITEM STORAGE with the cursor on what was chosen. */
+  private openPcScreen(cursor: StorageEntry, open: (back: () => void) => void): void {
+    this.flow.gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+    this.fieldOpening = () => {
+      this.away = true;
+      open(() => {
+        this.away = false;
+        this.enter(false, () => this.pc?.menu.resumeStorage(cursor));
+      });
+    };
   }
 }

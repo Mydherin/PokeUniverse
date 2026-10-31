@@ -56,6 +56,14 @@ const (
 	ItemOutcome_ITEM_OUTCOME_PARTY_MENU ItemOutcome = 14
 	// The bag closes and the item works on the field (bike, rod, ESCAPE ROPE, VS SEEKER).
 	ItemOutcome_ITEM_OUTCOME_ON_FIELD ItemOutcome = 15
+	// Taken out of the PC into the bag: "Withdrew <n> <item>(s)."
+	ItemOutcome_ITEM_OUTCOME_WITHDRAWN ItemOutcome = 16
+	// Stored in the PC from the bag: "Deposited <n> <item>(s)."
+	ItemOutcome_ITEM_OUTCOME_DEPOSITED ItemOutcome = 17
+	// Nothing withdrawn: "There is no more room in the BAG."
+	ItemOutcome_ITEM_OUTCOME_BAG_FULL ItemOutcome = 18
+	// Nothing deposited: "There's no room to store items."
+	ItemOutcome_ITEM_OUTCOME_PC_FULL ItemOutcome = 19
 )
 
 // Enum value maps for ItemOutcome.
@@ -77,6 +85,10 @@ var (
 		13: "ITEM_OUTCOME_OPEN",
 		14: "ITEM_OUTCOME_PARTY_MENU",
 		15: "ITEM_OUTCOME_ON_FIELD",
+		16: "ITEM_OUTCOME_WITHDRAWN",
+		17: "ITEM_OUTCOME_DEPOSITED",
+		18: "ITEM_OUTCOME_BAG_FULL",
+		19: "ITEM_OUTCOME_PC_FULL",
 	}
 	ItemOutcome_value = map[string]int32{
 		"ITEM_OUTCOME_UNSPECIFIED":   0,
@@ -95,6 +107,10 @@ var (
 		"ITEM_OUTCOME_OPEN":          13,
 		"ITEM_OUTCOME_PARTY_MENU":    14,
 		"ITEM_OUTCOME_ON_FIELD":      15,
+		"ITEM_OUTCOME_WITHDRAWN":     16,
+		"ITEM_OUTCOME_DEPOSITED":     17,
+		"ITEM_OUTCOME_BAG_FULL":      18,
+		"ITEM_OUTCOME_PC_FULL":       19,
 	}
 )
 
@@ -341,10 +357,12 @@ func (x *UseItem) GetField() bool {
 	return false
 }
 
-// Client -> server: GIVE to a party Pokémon. Answered with an ItemResult.
+// Client -> server: GIVE to a party Pokémon, from the bag or the PC. Answered with an ItemResult.
 type GiveItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Item          Item                   `protobuf:"varint,1,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Item  Item                   `protobuf:"varint,1,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
+	// An item stored in the PC (its WITHDRAW screen), not one in the bag.
+	Pc            bool `protobuf:"varint,2,opt,name=pc,proto3" json:"pc,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -384,6 +402,13 @@ func (x *GiveItem) GetItem() Item {
 		return x.Item
 	}
 	return Item_ITEM_UNSPECIFIED
+}
+
+func (x *GiveItem) GetPc() bool {
+	if x != nil {
+		return x.Pc
+	}
+	return false
 }
 
 // Client -> server: TOSS, after the quantity and YES. Answered with an ItemResult.
@@ -601,12 +626,12 @@ func (x *BagChanged) GetRegistered() Item {
 	return Item_ITEM_UNSPECIFIED
 }
 
-// Server -> client: what using, giving or tossing an item did. Each art style shows it its way.
+// Server -> client: what using, giving, tossing, withdrawing or depositing an item did. Each art style shows it its way.
 type ItemResult struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	Outcome ItemOutcome            `protobuf:"varint,1,opt,name=outcome,proto3,enum=pokeuniverse.item.v1.ItemOutcome" json:"outcome,omitempty"`
 	Item    Item                   `protobuf:"varint,2,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
-	// TOSSED: the quantity; COINS and BERRY_POWDER: the amount.
+	// TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount.
 	Value         uint32 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -681,9 +706,10 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"\bquantity\x18\x02 \x01(\rR\bquantity\"O\n" +
 	"\aUseItem\x12.\n" +
 	"\x04item\x18\x01 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x14\n" +
-	"\x05field\x18\x02 \x01(\bR\x05field\":\n" +
+	"\x05field\x18\x02 \x01(\bR\x05field\"J\n" +
 	"\bGiveItem\x12.\n" +
-	"\x04item\x18\x01 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\"V\n" +
+	"\x04item\x18\x01 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x0e\n" +
+	"\x02pc\x18\x02 \x01(\bR\x02pc\"V\n" +
 	"\bTossItem\x12.\n" +
 	"\x04item\x18\x01 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x1a\n" +
 	"\bquantity\x18\x02 \x01(\rR\bquantity\">\n" +
@@ -703,7 +729,7 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"ItemResult\x12;\n" +
 	"\aoutcome\x18\x01 \x01(\x0e2!.pokeuniverse.item.v1.ItemOutcomeR\aoutcome\x12.\n" +
 	"\x04item\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x14\n" +
-	"\x05value\x18\x03 \x01(\rR\x05value*\xd0\x03\n" +
+	"\x05value\x18\x03 \x01(\rR\x05value*\xbd\x04\n" +
 	"\vItemOutcome\x12\x1c\n" +
 	"\x18ITEM_OUTCOME_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ITEM_OUTCOME_NOT_NOW\x10\x01\x12\x1b\n" +
@@ -721,7 +747,11 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"\x18ITEM_OUTCOME_NO_RESPONSE\x10\f\x12\x15\n" +
 	"\x11ITEM_OUTCOME_OPEN\x10\r\x12\x1b\n" +
 	"\x17ITEM_OUTCOME_PARTY_MENU\x10\x0e\x12\x19\n" +
-	"\x15ITEM_OUTCOME_ON_FIELD\x10\x0fB?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
+	"\x15ITEM_OUTCOME_ON_FIELD\x10\x0f\x12\x1a\n" +
+	"\x16ITEM_OUTCOME_WITHDRAWN\x10\x10\x12\x1a\n" +
+	"\x16ITEM_OUTCOME_DEPOSITED\x10\x11\x12\x19\n" +
+	"\x15ITEM_OUTCOME_BAG_FULL\x10\x12\x12\x18\n" +
+	"\x14ITEM_OUTCOME_PC_FULL\x10\x13B?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
 
 var (
 	file_pokeuniverse_item_v1_bag_proto_rawDescOnce sync.Once

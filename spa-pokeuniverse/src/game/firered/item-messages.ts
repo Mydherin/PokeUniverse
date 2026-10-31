@@ -46,6 +46,8 @@ const TEMPLATES: Partial<Record<ItemOutcome, Template>> = {
   [ItemOutcome.WILD_LURED]: { text: "gText_UsedVar2WildLured", delay: 8, sound: "se_glass_flute" },
   [ItemOutcome.WILD_REPELLED]: { text: "gText_UsedVar2WildRepelled", delay: 8, sound: "se_glass_flute" },
   [ItemOutcome.NO_RESPONSE]: { text: "gText_NopeTheresNoResponse" },
+  // Task_TryDoItemDeposit: DisplayItemMessageInBag, closed with A.
+  [ItemOutcome.PC_FULL]: { text: "gText_NoRoomToStoreItems", waitA: true },
 };
 
 /** The message for an item's outcome; null when the outcome shows none. */

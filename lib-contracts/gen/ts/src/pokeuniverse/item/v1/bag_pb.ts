@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/item/v1/bag.proto.
  */
 export const file_pokeuniverse_item_v1_bag: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wb2tldW5pdmVyc2UvaXRlbS92MS9iYWcucHJvdG8SFHBva2V1bml2ZXJzZS5pdGVtLnYxImcKA0JhZxIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtImcKCUJhZ1BvY2tldBIsCgZwb2NrZXQYASABKA4yHC5wb2tldW5pdmVyc2UuaXRlbS52MS5Qb2NrZXQSLAoFc2xvdHMYAiADKAsyHS5wb2tldW5pdmVyc2UuaXRlbS52MS5CYWdTbG90IkUKB0JhZ1Nsb3QSKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEAoIcXVhbnRpdHkYAiABKA0iQgoHVXNlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRINCgVmaWVsZBgCIAEoCCI0CghHaXZlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbSJGCghUb3NzSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIQCghxdWFudGl0eRgCIAEoDSI4CgxSZWdpc3Rlckl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iUgoITW92ZUl0ZW0SLAoGcG9ja2V0GAEgASgOMhwucG9rZXVuaXZlcnNlLml0ZW0udjEuUG9ja2V0EgwKBGZyb20YAiABKA0SCgoCdG8YAyABKA0ibgoKQmFnQ2hhbmdlZBIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtInkKCkl0ZW1SZXN1bHQSMgoHb3V0Y29tZRgBIAEoDjIhLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW1PdXRjb21lEigKBGl0ZW0YAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg0KBXZhbHVlGAMgASgNKtADCgtJdGVtT3V0Y29tZRIcChhJVEVNX09VVENPTUVfVU5TUEVDSUZJRUQQABIYChRJVEVNX09VVENPTUVfTk9UX05PVxABEhsKF0lURU1fT1VUQ09NRV9OT19QT0tFTU9OEAISHQoZSVRFTV9PVVRDT01FX0NBTlRfQkVfSEVMRBADEhcKE0lURU1fT1VUQ09NRV9UT1NTRUQQBBIVChFJVEVNX09VVENPTUVfVVNFRBAFEh4KGklURU1fT1VUQ09NRV9SRVBFTF9MSU5HRVJTEAYSFgoSSVRFTV9PVVRDT01FX0NPSU5TEAcSHQoZSVRFTV9PVVRDT01FX0JFUlJZX1BPV0RFUhAIEhwKGElURU1fT1VUQ09NRV9DQVRDSFlfVFVORRAJEhsKF0lURU1fT1VUQ09NRV9XSUxEX0xVUkVEEAoSHgoaSVRFTV9PVVRDT01FX1dJTERfUkVQRUxMRUQQCxIcChhJVEVNX09VVENPTUVfTk9fUkVTUE9OU0UQDBIVChFJVEVNX09VVENPTUVfT1BFThANEhsKF0lURU1fT1VUQ09NRV9QQVJUWV9NRU5VEA4SGQoVSVRFTV9PVVRDT01FX09OX0ZJRUxEEA9CP1o9cG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9pdGVtL3YxO2l0ZW12MWIGcHJvdG8z", [file_pokeuniverse_item_v1_catalog]);
+  fileDesc("Ch5wb2tldW5pdmVyc2UvaXRlbS92MS9iYWcucHJvdG8SFHBva2V1bml2ZXJzZS5pdGVtLnYxImcKA0JhZxIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtImcKCUJhZ1BvY2tldBIsCgZwb2NrZXQYASABKA4yHC5wb2tldW5pdmVyc2UuaXRlbS52MS5Qb2NrZXQSLAoFc2xvdHMYAiADKAsyHS5wb2tldW5pdmVyc2UuaXRlbS52MS5CYWdTbG90IkUKB0JhZ1Nsb3QSKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEAoIcXVhbnRpdHkYAiABKA0iQgoHVXNlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRINCgVmaWVsZBgCIAEoCCJACghHaXZlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIKCgJwYxgCIAEoCCJGCghUb3NzSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIQCghxdWFudGl0eRgCIAEoDSI4CgxSZWdpc3Rlckl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iUgoITW92ZUl0ZW0SLAoGcG9ja2V0GAEgASgOMhwucG9rZXVuaXZlcnNlLml0ZW0udjEuUG9ja2V0EgwKBGZyb20YAiABKA0SCgoCdG8YAyABKA0ibgoKQmFnQ2hhbmdlZBIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtInkKCkl0ZW1SZXN1bHQSMgoHb3V0Y29tZRgBIAEoDjIhLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW1PdXRjb21lEigKBGl0ZW0YAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg0KBXZhbHVlGAMgASgNKr0ECgtJdGVtT3V0Y29tZRIcChhJVEVNX09VVENPTUVfVU5TUEVDSUZJRUQQABIYChRJVEVNX09VVENPTUVfTk9UX05PVxABEhsKF0lURU1fT1VUQ09NRV9OT19QT0tFTU9OEAISHQoZSVRFTV9PVVRDT01FX0NBTlRfQkVfSEVMRBADEhcKE0lURU1fT1VUQ09NRV9UT1NTRUQQBBIVChFJVEVNX09VVENPTUVfVVNFRBAFEh4KGklURU1fT1VUQ09NRV9SRVBFTF9MSU5HRVJTEAYSFgoSSVRFTV9PVVRDT01FX0NPSU5TEAcSHQoZSVRFTV9PVVRDT01FX0JFUlJZX1BPV0RFUhAIEhwKGElURU1fT1VUQ09NRV9DQVRDSFlfVFVORRAJEhsKF0lURU1fT1VUQ09NRV9XSUxEX0xVUkVEEAoSHgoaSVRFTV9PVVRDT01FX1dJTERfUkVQRUxMRUQQCxIcChhJVEVNX09VVENPTUVfTk9fUkVTUE9OU0UQDBIVChFJVEVNX09VVENPTUVfT1BFThANEhsKF0lURU1fT1VUQ09NRV9QQVJUWV9NRU5VEA4SGQoVSVRFTV9PVVRDT01FX09OX0ZJRUxEEA8SGgoWSVRFTV9PVVRDT01FX1dJVEhEUkFXThAQEhoKFklURU1fT1VUQ09NRV9ERVBPU0lURUQQERIZChVJVEVNX09VVENPTUVfQkFHX0ZVTEwQEhIYChRJVEVNX09VVENPTUVfUENfRlVMTBATQj9aPXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvaXRlbS92MTtpdGVtdjFiBnByb3RvMw", [file_pokeuniverse_item_v1_catalog]);
 
 /**
  * Everything the trainer carries, in the world snapshot.
@@ -122,7 +122,7 @@ export const UseItemSchema: GenMessage<UseItem> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_item_v1_bag, 3);
 
 /**
- * Client -> server: GIVE to a party Pokémon. Answered with an ItemResult.
+ * Client -> server: GIVE to a party Pokémon, from the bag or the PC. Answered with an ItemResult.
  *
  * @generated from message pokeuniverse.item.v1.GiveItem
  */
@@ -131,6 +131,13 @@ export type GiveItem = Message<"pokeuniverse.item.v1.GiveItem"> & {
    * @generated from field: pokeuniverse.item.v1.Item item = 1;
    */
   item: Item;
+
+  /**
+   * An item stored in the PC (its WITHDRAW screen), not one in the bag.
+   *
+   * @generated from field: bool pc = 2;
+   */
+  pc: boolean;
 };
 
 /**
@@ -240,7 +247,7 @@ export const BagChangedSchema: GenMessage<BagChanged> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_item_v1_bag, 8);
 
 /**
- * Server -> client: what using, giving or tossing an item did. Each art style shows it its way.
+ * Server -> client: what using, giving, tossing, withdrawing or depositing an item did. Each art style shows it its way.
  *
  * @generated from message pokeuniverse.item.v1.ItemResult
  */
@@ -256,7 +263,7 @@ export type ItemResult = Message<"pokeuniverse.item.v1.ItemResult"> & {
   item: Item;
 
   /**
-   * TOSSED: the quantity; COINS and BERRY_POWDER: the amount.
+   * TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount.
    *
    * @generated from field: uint32 value = 3;
    */
@@ -377,6 +384,34 @@ export enum ItemOutcome {
    * @generated from enum value: ITEM_OUTCOME_ON_FIELD = 15;
    */
   ON_FIELD = 15,
+
+  /**
+   * Taken out of the PC into the bag: "Withdrew <n> <item>(s)."
+   *
+   * @generated from enum value: ITEM_OUTCOME_WITHDRAWN = 16;
+   */
+  WITHDRAWN = 16,
+
+  /**
+   * Stored in the PC from the bag: "Deposited <n> <item>(s)."
+   *
+   * @generated from enum value: ITEM_OUTCOME_DEPOSITED = 17;
+   */
+  DEPOSITED = 17,
+
+  /**
+   * Nothing withdrawn: "There is no more room in the BAG."
+   *
+   * @generated from enum value: ITEM_OUTCOME_BAG_FULL = 18;
+   */
+  BAG_FULL = 18,
+
+  /**
+   * Nothing deposited: "There's no room to store items."
+   *
+   * @generated from enum value: ITEM_OUTCOME_PC_FULL = 19;
+   */
+  PC_FULL = 19,
 }
 
 /**

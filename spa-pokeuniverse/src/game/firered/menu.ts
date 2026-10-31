@@ -244,6 +244,21 @@ export class CursorMenu {
   }
 }
 
+/**
+ * AdjustQuantityAccordingToDPadInput: UP/DOWN by one (wrapping), RIGHT/LEFT by ten, from 1 to
+ * `max`; the new quantity, with a sound when it changed.
+ */
+export function adjustQuantity(flow: Flow, quantity: number, max: number): number {
+  const { input } = flow.gba;
+  let next = quantity;
+  if (input.isRepeated(Button.Up)) next = quantity + 1 > max ? 1 : quantity + 1;
+  else if (input.isRepeated(Button.Down)) next = quantity - 1 <= 0 ? max : quantity - 1;
+  else if (input.isRepeated(Button.Right)) next = Math.min(quantity + 10, max);
+  else if (input.isRepeated(Button.Left)) next = Math.max(quantity - 10, 1);
+  if (next !== quantity) flow.play("se_select");
+  return next;
+}
+
 /** CreateYesNoMenu: YES/NO in a standard frame; choosing (or B) clears it. */
 export class YesNoMenu {
   private readonly menu: CursorMenu;

@@ -37,9 +37,11 @@ message UseItem {
   bool field = 2;
 }
 
-// Client -> server: GIVE to a party Pokémon. Answered with an ItemResult.
+// Client -> server: GIVE to a party Pokémon, from the bag or the PC. Answered with an ItemResult.
 message GiveItem {
   Item item = 1;
+  // An item stored in the PC (its WITHDRAW screen), not one in the bag.
+  bool pc = 2;
 }
 
 // Client -> server: TOSS, after the quantity and YES. Answered with an ItemResult.
@@ -69,11 +71,11 @@ message BagChanged {
   Item registered = 2;
 }
 
-// Server -> client: what using, giving or tossing an item did. Each art style shows it its way.
+// Server -> client: what using, giving, tossing, withdrawing or depositing an item did. Each art style shows it its way.
 message ItemResult {
   ItemOutcome outcome = 1;
   Item item = 2;
-  // TOSSED: the quantity; COINS and BERRY_POWDER: the amount.
+  // TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount.
   uint32 value = 3;
 }
 
@@ -106,4 +108,12 @@ enum ItemOutcome {
   ITEM_OUTCOME_PARTY_MENU = 14;
   // The bag closes and the item works on the field (bike, rod, ESCAPE ROPE, VS SEEKER).
   ITEM_OUTCOME_ON_FIELD = 15;
+  // Taken out of the PC into the bag: "Withdrew <n> <item>(s)."
+  ITEM_OUTCOME_WITHDRAWN = 16;
+  // Stored in the PC from the bag: "Deposited <n> <item>(s)."
+  ITEM_OUTCOME_DEPOSITED = 17;
+  // Nothing withdrawn: "There is no more room in the BAG."
+  ITEM_OUTCOME_BAG_FULL = 18;
+  // Nothing deposited: "There's no room to store items."
+  ITEM_OUTCOME_PC_FULL = 19;
 }

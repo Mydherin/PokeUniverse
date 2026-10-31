@@ -4,6 +4,8 @@
 // LEFT and RIGHT switch between ITEMS, KEY ITEMS and POKé BALLS, the list revealed row by row.
 // A opens the item's menu (USE, GIVE, TOSS, REGISTER…; OPEN on the TM CASE and BERRY POUCH fades
 // into them and back), SELECT moves the item within its pocket.
+// Opened from the PC (DEPOSIT ITEM, ITEMMENULOCATION_ITEMPC) it shows only the ITEMS pocket under
+// a "DEPOSIT ITEM" box: A deposits the item (how many, when more than one).
 // mic-core decides what every action does; this shows it as FireRed does. The screen opens
 // with a black curtain rising and closes with it falling.
 
@@ -17,13 +19,14 @@ import type { Task } from "../gba/tasks";
 import { decimalText, expandPlaceholders, FontId, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import { HEIGHT, Layer, RGB_BLACK, WIDTH, WIN_EFFECTS, type Background } from "../gba/video";
 import { itemInfo, type BagState } from "../world/items";
-import { iconTiles, initBg } from "./common";
+import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { itemMessage, ItemMessagePlayer } from "./item-messages";
-import { LIST_CANCEL, LIST_NOTHING_CHOSEN, ListMenu, type ListMenuItem, type ListPosition } from "./list-menu";
-import type { ItemIcon, TextId } from "./manifest";
+import { afterMove, fitListPosition, LIST_CANCEL, LIST_NOTHING_CHOSEN, ListMenu, type ListMenuItem, type ListPosition } from "./list-menu";
+import { ItemMenuIcons } from "./item-menu-icons";
+import type { TextId } from "./manifest";
 import { userFrame } from "./manifest";
-import { clearDialogWindowAndFrameToTransparent, clearStdWindowAndFrameToTransparent, copyTiles, CursorMenu, drawDialogueFrame, drawStdFrame, MENU_B_PRESSED, MENU_NOTHING_CHOSEN, YesNoMenu } from "./menu";
+import { adjustQuantity, clearDialogWindowAndFrameToTransparent, clearStdWindowAndFrameToTransparent, copyTiles, CursorMenu, drawDialogueFrame, drawStdFrame, MENU_B_PRESSED, MENU_NOTHING_CHOSEN, YesNoMenu } from "./menu";
 import { textSpeedDelay } from "./options";
 import { ScrollArrow, ScrollArrowPair } from "./scroll-arrows";
 import { startBerryPouch } from "./berry-pouch";
@@ -57,6 +60,16 @@ export interface BagHost {
   /** Shown at once; mic-core corrects a refused one. */
   register(item: Item): void;
   move(pocket: ItemPocket, from: number, to: number): void;
+  /** Stores items in the PC (the bag opened from it). */
+  deposit(item: Item, quantity: number): Promise<ItemResult>;
+}
+
+/** Where the bag was opened from (gBagMenuState.location). */
+export const enum BagLocation {
+  /** The START menu, or back from a screen it opened. */
+  Field,
+  /** The PC's DEPOSIT ITEM. */
+  ItemPc,
 }
 
 /** How the bag closed: back to the START menu (null), or to the field where an item works. */
@@ -69,8 +82,8 @@ const state = {
 };
 
 /** Shows the bag, then `done` once it faded out. */
-export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void): void {
-  new Bag(flow, gender, host, done);
+export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field): void {
+  new Bag(flow, gender, host, done, location);
 }
 
 /**
@@ -90,6 +103,8 @@ const WINDOWS = {
   description: { left: 5, top: 14, width: 25, height: 6, palette: 15, baseBlock: 0x162 },
   pocketName: { left: 1, top: 1, width: 9, height: 2, palette: 15, baseBlock: 0x1f8 },
 } satisfies Record<string, WindowTemplate>;
+/** sDefaultBagWindowsDeposit: the "DEPOSIT ITEM" box takes the pocket name's place. */
+const DEPOSIT_BOX: WindowTemplate = { left: 1, top: 1, width: 8, height: 2, palette: 12, baseBlock: 0x1f8 };
 
 /** bag.c's sWindowTemplates, shown on demand (ShowBagWindow: the first one plus the rows it needs). */
 const QUANTITY_WINDOW: WindowTemplate = { left: 24, top: 15, width: 5, height: 4, palette: 15, baseBlock: 0x242 };
@@ -145,17 +160,6 @@ const BAG_AFFINE: AffineCmd[][] = [
   ],
 ];
 const BAG_TEMPLATE: SpriteTemplate = { sheet: "bag", palette: "bag", width: 64, height: 64, priority: 1, affineNormal: true, anims: BAG_ANIMS, affineAnims: BAG_AFFINE };
-const ITEM_ICON_TEMPLATE: SpriteTemplate = { sheet: "itemIcon", palette: "itemIcon", width: 32, height: 32, priority: 1 };
-/** The line showing where a moved item goes: 9 sprites, its two ends and the middle. */
-const SWAP_LINE_SPRITES = 9;
-const SWAP_LINE_TEMPLATE: SpriteTemplate = {
-  sheet: "swapLine",
-  palette: "swapLine",
-  width: 16,
-  height: 16,
-  priority: 1,
-  anims: [[{ image: 0, duration: 0 }, "end"], [{ image: 4, duration: 0 }, "end"], [{ image: 0, duration: 0, hFlip: true }, "end"]],
-};
 
 /** The black curtain (Task_AnimateWin0v): WIN0's bottom moves 16 lines a frame. */
 const CURTAIN_STEP = 16;
@@ -196,9 +200,7 @@ class Bag {
   private readonly description: Window;
   private readonly pocketName: Window;
   private readonly bag: Sprite;
-  private icon: Sprite | null = null;
-  /** Bumped by every icon change: an icon that loads late for an older item is dropped. */
-  private iconRequest = 0;
+  private readonly icons: ItemMenuIcons;
   private menu: ListMenu | null = null;
   private scrollArrows: ScrollArrowPair | null = null;
   private switchArrows: ScrollArrowPair | null = null;
@@ -215,7 +217,6 @@ class Bag {
   private message: Window | null = null;
   private yesNo: YesNoMenu | null = null;
   private quantity = 1;
-  private swapLine: Sprite[] = [];
   /** The slot being moved with SELECT; -1 when none (itemOriginalLocation). */
   private moving = -1;
 
@@ -225,8 +226,12 @@ class Bag {
     private readonly gender: Gender,
     private readonly host: BagHost,
     private readonly done: (exit: BagExit) => void,
+    private readonly location: BagLocation,
   ) {
     const { gba, assets } = flow;
+    this.icons = new ItemMenuIcons(flow);
+    // GoToBagMenu(ITEMMENULOCATION_ITEMPC, OPEN_BAG_ITEMS): the ITEMS pocket, kept for later.
+    if (location === BagLocation.ItemPc) state.pocket = Pocket.Items;
     gba.setVBlank(null);
     gba.reset();
     const { video, palettes } = gba;
@@ -236,7 +241,8 @@ class Bag {
     this.bg0.tiles = new Uint8Array(BG0_TILES * 64);
     const bg = assets.get("bagBg");
     this.bg1.tiles = bg.tiles;
-    this.bg1.map.set(bg.map!.subarray(0, this.bg1.map.length));
+    const map = location === BagLocation.ItemPc ? assets.get("bagBgItemPcMap").map! : bg.map!;
+    this.bg1.map.set(map.subarray(0, this.bg1.map.length));
     this.bg0.visible = this.bg1.visible = true;
 
     palettes.load(bg.palette, 0, 48);
@@ -244,8 +250,6 @@ class Bag {
     if (girl) palettes.load(assets.get("bagBgFemalePal").palette, 0, 16);
     gba.sprites.loadSheet("bag", assets.get(girl ? "bagFemale" : "bagMale").tiles);
     palettes.loadSpritePalette("bag", assets.get("bagPal").palette);
-    gba.sprites.loadSheet("swapLine", assets.get("bagSwapLine").tiles);
-    palettes.loadSpritePalette("swapLine", assets.get("bagSwapLine").palette);
 
     // InitBagWindows.
     const frame = assets.get(userFrame(flow.options.frame));
@@ -258,19 +262,20 @@ class Bag {
     palettes.load(assets.get("bagWindowPal").palette, 15 * 16, 16);
     this.list = new Window(this.bg0, WINDOWS.list);
     this.description = new Window(this.bg0, WINDOWS.description);
-    this.pocketName = new Window(this.bg0, WINDOWS.pocketName);
+    this.pocketName = new Window(this.bg0, location === BagLocation.ItemPc ? DEPOSIT_BOX : WINDOWS.pocketName);
     for (const win of [this.list, this.description, this.pocketName]) {
       win.fill(0);
       win.putTilemap();
       win.copyToVram();
     }
 
-    for (const p of POCKETS) fitPosition(state.positions[p], this.count(p) + 1, this.maxShowed(p));
-    this.printPocketName();
+    for (const p of POCKETS) fitListPosition(state.positions[p], this.count(p) + 1, this.maxShowed(p));
+    if (location === BagLocation.ItemPc) this.drawDepositBox();
+    else this.printPocketName();
     gba.tasks.create(() => this.step(), 0);
     this.openList();
     this.bag = gba.sprites.create(BAG_TEMPLATE, 40, 68, 0)!;
-    this.createSwapLine();
+    this.icons.createSwapLine();
     this.showPocket(state.pocket);
     this.createArrows();
 
@@ -310,7 +315,7 @@ class Bag {
     const dir = this.pocketSwitchInput(state.pocket);
     if (dir) return this.switchPockets(dir, false);
     const menu = this.menu!;
-    if (gba.input.isPressed(Button.Select) && menu.selectedId !== this.count(state.pocket)) {
+    if (gba.input.isPressed(Button.Select) && this.location === BagLocation.Field && menu.selectedId !== this.count(state.pocket)) {
       this.flow.play("se_select");
       return this.beginMoving(menu.selectedId);
     }
@@ -324,12 +329,14 @@ class Bag {
     this.printCursor(COLORS_GRAY);
     this.selected = { item: slot.item, index: chosen, quantity: slot.quantity };
     this.setMessageBoxPalette(1);
-    this.openContextMenu();
+    if (this.location === BagLocation.ItemPc) this.depositAction();
+    else this.openContextMenu();
   }
 
-  /** ProcessPocketSwitchInput: -1 or 1 (with its sound) when LEFT or RIGHT can switch from `pocket`. */
+  /** ProcessPocketSwitchInput: -1 or 1 (with its sound) when LEFT or RIGHT can switch from `pocket`; never from the PC. */
   private pocketSwitchInput(pocket: Pocket): number {
     const { input } = this.flow.gba;
+    if (this.location !== BagLocation.Field) return 0;
     if (input.isPressed(Button.Left) && pocket > Pocket.Items) {
       this.flow.play("se_bag_pocket");
       return -1;
@@ -349,7 +356,7 @@ class Bag {
     if (!again) {
       for (const win of [this.list, this.description, this.pocketName]) win.clearTilemap();
       this.closeList();
-      this.destroyIcon();
+      this.icons.destroyIcon();
       this.destroyArrows();
     }
     for (let y = 1; y < 1 + LIST_TILES_HEIGHT; y++) for (let x = 11; x < 11 + LIST_TILES_WIDTH; x++) this.bg1.setEntry(x, y, LIST_BLANK_TILE);
@@ -415,7 +422,7 @@ class Bag {
   private rebuildList(): void {
     this.closeList();
     const pocket = state.pocket;
-    fitPosition(state.positions[pocket], this.count(pocket) + 1, this.maxShowed(pocket));
+    fitListPosition(state.positions[pocket], this.count(pocket) + 1, this.maxShowed(pocket));
     this.openList();
   }
 
@@ -427,8 +434,7 @@ class Bag {
     }
     const slot = this.slots(state.pocket)[id];
     if (this.moving < 0) {
-      this.destroyIcon();
-      this.createIcon(slot?.item ?? null);
+      this.icons.showIcon(slot?.item ?? null);
       this.printDescription(slot ? this.flow.assets.itemDescription(slot.item) : this.flow.assets.text("gText_CloseBag"));
     }
   }
@@ -636,18 +642,21 @@ class Bag {
 
   /** Task_ItemMenuAction_Toss: how many (when more than one), then YES/NO. */
   private tossAction(): void {
-    const { flow } = this;
-    const sel = this.selected!;
     this.hideContextMenu();
     this.quantity = 1;
-    if (sel.quantity === 1) return this.confirmToss();
-    // InitQuantityToTossOrDeposit.
-    this.showPrompt(2, expandPlaceholders(flow.assets.text("gText_TossOutHowManyStrVar1s"), { [PLACEHOLDER_STR_VAR_1]: flow.assets.itemName(sel.item) }));
+    if (this.selected!.quantity === 1) return this.confirmToss();
+    this.beginQuantity("gText_TossOutHowManyStrVar1s", () => this.confirmToss());
+  }
+
+  /** InitQuantityToTossOrDeposit: "<text> <item>?" with "×001" beside it, then `chosen` on A. */
+  private beginQuantity(prompt: TextId, chosen: () => void): void {
+    const { flow } = this;
+    this.showPrompt(2, expandPlaceholders(flow.assets.text(prompt), { [PLACEHOLDER_STR_VAR_1]: flow.assets.itemName(this.selected!.item) }));
     this.quantityWin = new Window(this.bg0, QUANTITY_WINDOW);
     drawStdFrame(this.quantityWin, USER_FRAME_TILE, USER_FRAME_PALETTE);
     this.printQuantity();
     this.scrollArrows = ScrollArrowPair.vertical(flow, 212, 120, 152, 2, "bagScrollArrows", () => 1);
-    this.step = () => this.selectQuantity();
+    this.step = () => this.selectQuantity(chosen);
   }
 
   /** UpdateQuantityToTossOrDeposit: "×nnn". */
@@ -659,10 +668,14 @@ class Bag {
     win.copyToVram();
   }
 
-  /** Task_SelectQuantityToToss. */
-  private selectQuantity(): void {
+  /** Task_SelectQuantityToToss and Task_SelectQuantityToDeposit. */
+  private selectQuantity(chosen: () => void): void {
     const { input } = this.flow.gba;
-    if (this.adjustQuantity(this.selected!.quantity)) return this.printQuantity();
+    const quantity = adjustQuantity(this.flow, this.quantity, this.selected!.quantity);
+    if (quantity !== this.quantity) {
+      this.quantity = quantity;
+      return this.printQuantity();
+    }
     if (!input.isPressed(Button.A | Button.B)) return;
     this.flow.play("se_select");
     this.hidePrompt();
@@ -670,24 +683,11 @@ class Bag {
     this.quantityWin = null;
     this.scrollArrows?.destroy();
     this.scrollArrows = null;
-    if (input.isPressed(Button.A)) return this.confirmToss();
+    if (input.isPressed(Button.A)) return chosen();
     this.list.putTilemap();
     this.description.putTilemap();
     this.printCursor(COLORS_DARK);
     this.backToList();
-  }
-
-  /** AdjustQuantityAccordingToDPadInput: UP/DOWN by one (wrapping), RIGHT/LEFT by ten. */
-  private adjustQuantity(max: number): boolean {
-    const { input } = this.flow.gba;
-    const before = this.quantity;
-    if (input.isRepeated(Button.Up)) this.quantity = before + 1 > max ? 1 : before + 1;
-    else if (input.isRepeated(Button.Down)) this.quantity = before - 1 <= 0 ? max : before - 1;
-    else if (input.isRepeated(Button.Right)) this.quantity = Math.min(before + 10, max);
-    else if (input.isRepeated(Button.Left)) this.quantity = Math.max(before - 10, 1);
-    if (this.quantity === before) return false;
-    this.flow.play("se_select");
-    return true;
   }
 
   /** Task_ConfirmTossItems: "Throw away n of this item?" with YES/NO. */
@@ -710,24 +710,62 @@ class Bag {
 
   /** Task_TossItem_Yes: mic-core throws them away; "Threw away n <item>(s)." until A or B. */
   private tossItems(): void {
-    const { flow } = this;
     const sel = this.selected!;
     this.hidePrompt();
     this.ask(this.host.toss(sel.item, this.quantity), (r) => {
       if (r.outcome !== ItemOutcome.TOSSED) return this.returnFromContext();
-      const text = expandPlaceholders(flow.assets.text("gText_ThrewAwayStrVar2StrVar1s"), {
-        [PLACEHOLDER_STR_VAR_1]: flow.assets.itemName(sel.item),
-        [PLACEHOLDER_STR_VAR_2]: decimalText(r.value, NumberMode.LeftAlign, 3),
-      });
-      this.showPrompt(3, text);
-      this.step = () => {
-        if (!flow.gba.input.isPressed(Button.A | Button.B)) return;
-        flow.play("se_select");
-        this.hidePrompt();
-        this.description.putTilemap();
-        this.returnFromContext();
-      };
+      this.showDone("gText_ThrewAwayStrVar2StrVar1s", r);
     });
+  }
+
+  /**
+   * Task_WaitAB_RedrawAndReturnToBag: "<done> n <item>(s)." beside the list until A or B, then
+   * the list built again from the bag.
+   */
+  private showDone(text: TextId, r: ItemResult): void {
+    const { flow } = this;
+    this.showPrompt(
+      3,
+      expandPlaceholders(flow.assets.text(text), {
+        [PLACEHOLDER_STR_VAR_1]: flow.assets.itemName(this.selected!.item),
+        [PLACEHOLDER_STR_VAR_2]: decimalText(r.value, NumberMode.LeftAlign, 3),
+      }),
+    );
+    this.step = () => {
+      if (!flow.gba.input.isPressed(Button.A | Button.B)) return;
+      flow.play("se_select");
+      this.hidePrompt();
+      this.description.putTilemap();
+      this.returnFromContext();
+    };
+  }
+
+  // DEPOSIT ITEM
+
+  /** Task_ItemContext_Deposit: how many (when more than one), then the deposit. */
+  private depositAction(): void {
+    this.quantity = 1;
+    if (this.selected!.quantity === 1) return this.deposit();
+    this.beginQuantity("gText_DepositHowManyStrVars1", () => this.deposit());
+  }
+
+  /** Task_TryDoItemDeposit: mic-core stores them, or says the PC has no room. */
+  private deposit(): void {
+    this.ask(this.host.deposit(this.selected!.item, this.quantity), (r) => {
+      if (r.outcome === ItemOutcome.DEPOSITED) this.showDone("gText_DepositedStrVar2StrVar1s", r);
+      else this.onResult(r);
+    });
+  }
+
+  /** BagDrawDepositItemTextBox: "DEPOSIT ITEM" in a standard frame, centered over the bag. */
+  private drawDepositBox(): void {
+    const { flow } = this;
+    const font = flow.fonts[FontId.Small];
+    const text = flow.assets.text("gText_DepositItem");
+    drawStdFrame(this.pocketName, STD_FRAME_TILE, STD_FRAME_PALETTE);
+    this.pocketName.fill(0);
+    this.pocketName.print(font, Math.trunc((0x40 - font.width(text, 0)) / 2), 1, [1, 2, 3], text);
+    this.pocketName.copyToVram();
   }
 
   /** ShowBagWindow(6, size) with a text printed at once (BagPrintTextOnWindow). */
@@ -754,8 +792,8 @@ class Bag {
     this.moving = index;
     const name = flow.assets.itemName(this.slots(state.pocket)[index].item);
     this.printDescription(expandPlaceholders(flow.assets.text("gOtherText_WhereShouldTheStrVar1BePlaced"), { [PLACEHOLDER_STR_VAR_1]: name }));
-    this.updateSwapLine(menu.cursorY);
-    this.setSwapLineVisible(true);
+    this.icons.updateSwapLine(0, menu.cursorY);
+    this.icons.setSwapLineVisible(true);
     this.switchArrows?.destroy();
     this.switchArrows = null;
     this.printCursor(COLORS_GRAY);
@@ -767,7 +805,7 @@ class Bag {
     const menu = this.menu!;
     const chosen = menu.processInput();
     state.positions[state.pocket] = menu.position;
-    this.updateSwapLine(menu.cursorY);
+    this.icons.updateSwapLine(0, menu.cursorY);
     const at = menu.scroll + menu.row;
     if (this.flow.gba.input.isPressed(Button.Select)) {
       this.flow.play("se_select");
@@ -784,36 +822,13 @@ class Bag {
     this.moving = -1;
     if (execute && to !== from && to !== from + 1) this.host.move(ITEM_POCKETS[state.pocket], from, to);
     const pos = state.positions[state.pocket];
-    if (from < to) {
-      if (pos.row > 0) pos.row--;
-      else if (pos.scroll > 0) pos.scroll--;
-    }
+    afterMove(pos, from, to);
     this.closeList();
     state.positions[state.pocket] = pos;
     this.openList();
-    this.setSwapLineVisible(false);
+    this.icons.setSwapLineVisible(false);
     this.createSwitchArrows();
     this.step = () => this.handleInput();
-  }
-
-  /** CreateSwapLine: 9 sprites across the list, hidden until an item moves. */
-  private createSwapLine(): void {
-    for (let i = 0; i < SWAP_LINE_SPRITES; i++) {
-      const s = this.flow.gba.sprites.create(SWAP_LINE_TEMPLATE, i * 16 + 96, 7, 0);
-      if (!s) continue;
-      s.startAnim(i === 0 ? 0 : i === SWAP_LINE_SPRITES - 1 ? 2 : 1);
-      s.invisible = true;
-      this.swapLine.push(s);
-    }
-  }
-
-  /** UpdateSwapLinePos: on the list's cursor row. */
-  private updateSwapLine(y: number): void {
-    for (const s of this.swapLine) s.y = y + 7;
-  }
-
-  private setSwapLineVisible(visible: boolean): void {
-    for (const s of this.swapLine) s.invisible = !visible;
   }
 
   // Sprites
@@ -850,37 +865,6 @@ class Bag {
     };
   }
 
-  /** CreateItemMenuIcon for an item (null: CANCEL's arrow); an item's icon shows once loaded. */
-  private createIcon(item: Item | null): void {
-    const request = ++this.iconRequest;
-    if (item === null) return this.showIcon(this.flow.assets.get("itemIconReturn"));
-    void this.flow.assets.itemIcon(item).then(
-      (icon) => request === this.iconRequest && this.showIcon(icon),
-      () => {},
-    );
-  }
-
-  /** The 24×24 icon in a 32×32 sprite, its top left at (8, 124). */
-  private showIcon(icon: ItemIcon): void {
-    const { gba } = this.flow;
-    gba.sprites.loadSheet("itemIcon", iconTiles(icon.image!));
-    gba.palettes.loadSpritePalette("itemIcon", icon.palette);
-    this.icon = gba.sprites.create(ITEM_ICON_TEMPLATE, 0, 0, 0);
-    if (this.icon) {
-      this.icon.x2 = 24;
-      this.icon.y2 = 140;
-    }
-  }
-
-  private destroyIcon(): void {
-    const { gba } = this.flow;
-    this.iconRequest++;
-    gba.sprites.destroy(this.icon);
-    gba.sprites.freeSheet("itemIcon");
-    gba.palettes.freeSpritePalette("itemIcon");
-    this.icon = null;
-  }
-
   /** CreatePocketScrollArrowPair and CreatePocketSwitchArrowPair. */
   private createArrows(): void {
     const { flow } = this;
@@ -890,7 +874,9 @@ class Bag {
     this.createSwitchArrows();
   }
 
+  /** Not in the PC's bag, which doesn't switch pockets. */
   private createSwitchArrows(): void {
+    if (this.location !== BagLocation.Field) return;
     const t = { first: ScrollArrow.Left, firstX: 8, firstY: 72, second: ScrollArrow.Right, secondX: 72, secondY: 72, fullyUp: Pocket.Items, fullyDown: Pocket.PokeBalls, tag: "bagSwitchArrows" };
     this.switchArrows = new ScrollArrowPair(this.flow, t, () => state.pocket);
   }
@@ -913,7 +899,7 @@ class Bag {
     this.step = () => {
       const { gba } = this.flow;
       if (gba.palettes.fadeActive || this.curtain) return;
-      this.destroyIcon();
+      this.icons.destroyIcon();
       gba.tasks.reset();
       if (next) next();
       else this.done(exit);
@@ -934,16 +920,4 @@ class Bag {
       }
     }, 0);
   }
-}
-
-/**
- * PocketCalculateInitialCursorPosAndItemsAbove and UpdatePocketScrollPositions: a saved list
- * position fitted to what the pocket holds now (`total` rows with CANCEL).
- */
-function fitPosition(pos: ListPosition, total: number, maxShowed: number): void {
-  if (pos.scroll !== 0 && pos.scroll + maxShowed > total) pos.scroll = total - maxShowed;
-  if (pos.scroll + pos.row >= total) pos.row = total < 2 ? 0 : total - 1;
-  if (pos.row > 3)
-    for (let j = 0; j <= pos.row - 3; pos.row--, pos.scroll++, j++) if (pos.scroll + maxShowed === total) break;
-  pos.row = Math.min(pos.row, maxShowed - 1);
 }

@@ -15,9 +15,19 @@ DELETE FROM trainer_items
 WHERE account_id = $1
 `
 
-// New Game: the bag emptied before the starting items go in.
+// New Game: the bag emptied (FireRed starts with an empty bag).
 func (q *Queries) DeleteTrainerItems(ctx context.Context, accountID int64) error {
 	_, err := q.db.Exec(ctx, deleteTrainerItems, accountID)
+	return err
+}
+
+const deleteTrainerPcItems = `-- name: DeleteTrainerPcItems :exec
+DELETE FROM trainer_pc_items
+WHERE account_id = $1
+`
+
+func (q *Queries) DeleteTrainerPcItems(ctx context.Context, accountID int64) error {
+	_, err := q.db.Exec(ctx, deleteTrainerPcItems, accountID)
 	return err
 }
 
@@ -33,6 +43,24 @@ type DeleteTrainerPocketParams struct {
 
 func (q *Queries) DeleteTrainerPocket(ctx context.Context, arg DeleteTrainerPocketParams) error {
 	_, err := q.db.Exec(ctx, deleteTrainerPocket, arg.AccountID, arg.Pocket)
+	return err
+}
+
+const insertTrainerPcItems = `-- name: InsertTrainerPcItems :exec
+INSERT INTO trainer_pc_items (account_id, slot, item, quantity)
+SELECT $1::bigint, (generate_subscripts($2::smallint[], 1) - 1)::smallint,
+       unnest($2::smallint[]), unnest($3::smallint[])
+`
+
+type InsertTrainerPcItemsParams struct {
+	AccountID  int64
+	Items      []int16
+	Quantities []int16
+}
+
+// The PC's items, slot i holding items[i] × quantities[i].
+func (q *Queries) InsertTrainerPcItems(ctx context.Context, arg InsertTrainerPcItemsParams) error {
+	_, err := q.db.Exec(ctx, insertTrainerPcItems, arg.AccountID, arg.Items, arg.Quantities)
 	return err
 }
 
@@ -90,6 +118,39 @@ func (q *Queries) ListTrainerItems(ctx context.Context, accountID int64) ([]List
 			&i.Item,
 			&i.Quantity,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTrainerPcItems = `-- name: ListTrainerPcItems :many
+SELECT item, quantity
+FROM trainer_pc_items
+WHERE account_id = $1
+ORDER BY slot
+`
+
+type ListTrainerPcItemsRow struct {
+	Item     int16
+	Quantity int16
+}
+
+// What the PC stores, in the player's order.
+func (q *Queries) ListTrainerPcItems(ctx context.Context, accountID int64) ([]ListTrainerPcItemsRow, error) {
+	rows, err := q.db.Query(ctx, listTrainerPcItems, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTrainerPcItemsRow{}
+	for rows.Next() {
+		var i ListTrainerPcItemsRow
+		if err := rows.Scan(&i.Item, &i.Quantity); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

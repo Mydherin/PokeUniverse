@@ -70,3 +70,10 @@ type TrainerItem struct {
 	Item      int16
 	Quantity  int16
 }
+
+type TrainerPcItem struct {
+	AccountID int64
+	Slot      int16
+	Item      int16
+	Quantity  int16
+}

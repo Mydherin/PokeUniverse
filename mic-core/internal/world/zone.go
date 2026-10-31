@@ -175,10 +175,24 @@ func (z *zone) interact(p *Player, walkInto bool) {
 		if steps := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
 			p.lastScript++
 			p.script = p.lastScript
-			reply.Id, reply.Steps = p.script, steps
+			reply.Id, reply.Steps = p.script, z.withPlayer(p, steps)
 		}
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Script{Script: reply}})
+}
+
+// withPlayer fills in what a script's steps show of the player: what their PC stores (which
+// also allows its item actions while the script runs). The scripts' tables stay untouched.
+func (z *zone) withPlayer(p *Player, steps Script) Script {
+	out := make(Script, len(steps))
+	for i, step := range steps {
+		if step.GetPlayersPc() != nil {
+			p.pcScript = p.script
+			step = &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PlayersPc{PlayersPc: &worldv1.PlayersPc{Items: p.items.PC.Proto()}}}
+		}
+		out[i] = step
+	}
+	return out
 }
 
 // correct tells the client where the player really is.

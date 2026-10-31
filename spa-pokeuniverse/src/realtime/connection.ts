@@ -9,6 +9,7 @@
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
 import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
+import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
 import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
@@ -33,7 +34,9 @@ export interface WorldEvents {
   script(s: Script): void;
   /** Bag pockets that changed (before the ItemResult that changed them), or a correction. */
   bagChanged(b: BagChanged): void;
-  /** What using, giving or tossing an item did. */
+  /** What the PC stores (before the ItemResult that changed it), or a correction. */
+  pcChanged(p: PcChanged): void;
+  /** What using, giving, tossing, withdrawing or depositing an item did. */
   itemResult(r: ItemResult): void;
   /** The account has no trainer (New Game creates it). */
   noTrainer(): void;
@@ -52,10 +55,15 @@ export interface WorldLink {
   scriptDone(script: number): void;
   /** USE from the bag, or the registered item with SELECT (`field`); answered with an ItemResult. */
   useItem(item: Item, field: boolean): void;
-  giveItem(item: Item): void;
+  /** GIVE from the bag, or from the PC (`pc`). */
+  giveItem(item: Item, pc: boolean): void;
   tossItem(item: Item, quantity: number): void;
   registerItem(item: Item): void;
   moveItem(pocket: Pocket, from: number, to: number): void;
+  /** While the PC is on: its items to the bag, the bag's to it, and SELECT's moves. */
+  withdrawItem(item: Item, quantity: number): void;
+  depositItem(item: Item, quantity: number): void;
+  movePcItem(from: number, to: number): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -159,8 +167,8 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "useItem", value: { item, field } });
   }
 
-  giveItem(item: Item): void {
-    if (this.inWorld) this.send({ case: "giveItem", value: { item } });
+  giveItem(item: Item, pc: boolean): void {
+    if (this.inWorld) this.send({ case: "giveItem", value: { item, pc } });
   }
 
   tossItem(item: Item, quantity: number): void {
@@ -173,6 +181,18 @@ export class Connection implements WorldLink {
 
   moveItem(pocket: Pocket, from: number, to: number): void {
     if (this.inWorld) this.send({ case: "moveItem", value: { pocket, from, to } });
+  }
+
+  withdrawItem(item: Item, quantity: number): void {
+    if (this.inWorld) this.send({ case: "withdrawItem", value: { item, quantity } });
+  }
+
+  depositItem(item: Item, quantity: number): void {
+    if (this.inWorld) this.send({ case: "depositItem", value: { item, quantity } });
+  }
+
+  movePcItem(from: number, to: number): void {
+    if (this.inWorld) this.send({ case: "movePcItem", value: { from, to } });
   }
 
   private receive(data: Uint8Array): void {
@@ -208,6 +228,9 @@ export class Connection implements WorldLink {
         break;
       case "bagChanged":
         this.world?.bagChanged(msg.payload.value);
+        break;
+      case "pcChanged":
+        this.world?.pcChanged(msg.payload.value);
         break;
       case "itemResult":
         this.world?.itemResult(msg.payload.value);

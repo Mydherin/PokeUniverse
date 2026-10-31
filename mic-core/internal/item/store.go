@@ -16,7 +16,7 @@ import (
 // ErrStaleSave: the trainer was replaced by a New Game; the old save's items are not saved.
 var ErrStaleSave = errors.New("item: stale save")
 
-// Load reads the trainer's bag; `row` holds the rest of the state.
+// Load reads the trainer's bag and PC; `row` holds the rest of the state.
 func Load(ctx context.Context, q *db.Queries, accountID int64, row db.GetTrainerRow) (*State, error) {
 	rows, err := q.ListTrainerItems(ctx, accountID)
 	if err != nil {
@@ -32,12 +32,20 @@ func Load(ctx context.Context, q *db.Queries, accountID int64, row db.GetTrainer
 	if bag.Quantity(itemv1.Item(row.RegisteredItem)) > 0 {
 		bag.Registered = itemv1.Item(row.RegisteredItem)
 	}
-	return &State{Bag: bag, RepelSteps: int(row.RepelSteps), Flute: Flute(row.Flute), Coins: int(row.Coins), BerryPowder: int(row.BerryPowder)}, nil
+	stored, err := q.ListTrainerPcItems(ctx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("load pc items: %w", err)
+	}
+	pc := &PC{}
+	for _, r := range stored {
+		pc.Add(itemv1.Item(r.Item), int(r.Quantity))
+	}
+	return &State{Bag: bag, PC: pc, RepelSteps: int(row.RepelSteps), Flute: Flute(row.Flute), Coins: int(row.Coins), BerryPowder: int(row.BerryPowder)}, nil
 }
 
 // Save writes what an action changed in one transaction (one action, one transaction), only
 // into the save it belongs to (`save`: the trainer's created_at).
-func Save(ctx context.Context, pool *pgxpool.Pool, accountID int64, save time.Time, s *State, changed []itemv1.Pocket) error {
+func Save(ctx context.Context, pool *pgxpool.Pool, accountID int64, save time.Time, s *State, changed Changed) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := db.New(tx)
 		n, err := q.UpdateTrainerItemState(ctx, db.UpdateTrainerItemStateParams{
@@ -50,27 +58,48 @@ func Save(ctx context.Context, pool *pgxpool.Pool, accountID int64, save time.Ti
 		if n == 0 {
 			return ErrStaleSave
 		}
-		for _, p := range changed {
+		for _, p := range changed.Pockets {
 			if err := writePocket(ctx, q, accountID, p, s.Bag.pockets[p]); err != nil {
 				return err
 			}
+		}
+		if changed.PC {
+			return writePC(ctx, q, accountID, s.PC.slots)
 		}
 		return nil
 	})
 }
 
-// Reset gives a New Game's trainer the starting bag, inside New Game's transaction.
+// Reset gives a New Game's trainer FireRed's starting items, inside New Game's transaction: an
+// empty bag (ClearBag) and the starting PC (NewGameInitPCItems).
 func Reset(ctx context.Context, q *db.Queries, accountID int64) error {
 	if err := q.DeleteTrainerItems(ctx, accountID); err != nil {
 		return fmt.Errorf("reset items: %w", err)
 	}
-	bag := Starting()
-	for _, p := range pockets {
-		if err := writePocket(ctx, q, accountID, p, bag.pockets[p]); err != nil {
-			return err
-		}
+	return writePC(ctx, q, accountID, StartingPC().slots)
+}
+
+func writePC(ctx context.Context, q *db.Queries, accountID int64, slots []Slot) error {
+	if err := q.DeleteTrainerPcItems(ctx, accountID); err != nil {
+		return fmt.Errorf("save pc: %w", err)
+	}
+	if len(slots) == 0 {
+		return nil
+	}
+	items, quantities := columns(slots)
+	if err := q.InsertTrainerPcItems(ctx, db.InsertTrainerPcItemsParams{AccountID: accountID, Items: items, Quantities: quantities}); err != nil {
+		return fmt.Errorf("save pc: %w", err)
 	}
 	return nil
+}
+
+// columns is the slots as the item and quantity arrays the inserts take.
+func columns(slots []Slot) (items, quantities []int16) {
+	items, quantities = make([]int16, len(slots)), make([]int16, len(slots))
+	for i, s := range slots {
+		items[i], quantities[i] = int16(s.Item), int16(s.Quantity)
+	}
+	return items, quantities
 }
 
 func writePocket(ctx context.Context, q *db.Queries, accountID int64, p itemv1.Pocket, slots []Slot) error {
@@ -80,10 +109,7 @@ func writePocket(ctx context.Context, q *db.Queries, accountID int64, p itemv1.P
 	if len(slots) == 0 {
 		return nil
 	}
-	items, quantities := make([]int16, len(slots)), make([]int16, len(slots))
-	for i, s := range slots {
-		items[i], quantities[i] = int16(s.Item), int16(s.Quantity)
-	}
+	items, quantities := columns(slots)
 	if err := q.InsertTrainerPocket(ctx, db.InsertTrainerPocketParams{AccountID: accountID, Pocket: int16(p), Items: items, Quantities: quantities}); err != nil {
 		return fmt.Errorf("save pocket: %w", err)
 	}

@@ -112,6 +112,9 @@ type ClientMessage struct {
 	//	*ClientMessage_TossItem
 	//	*ClientMessage_RegisterItem
 	//	*ClientMessage_MoveItem
+	//	*ClientMessage_WithdrawItem
+	//	*ClientMessage_DepositItem
+	//	*ClientMessage_MovePcItem
 	Payload       isClientMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -269,6 +272,33 @@ func (x *ClientMessage) GetMoveItem() *v11.MoveItem {
 	return nil
 }
 
+func (x *ClientMessage) GetWithdrawItem() *v11.WithdrawItem {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_WithdrawItem); ok {
+			return x.WithdrawItem
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetDepositItem() *v11.DepositItem {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_DepositItem); ok {
+			return x.DepositItem
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetMovePcItem() *v11.MovePcItem {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_MovePcItem); ok {
+			return x.MovePcItem
+		}
+	}
+	return nil
+}
+
 type isClientMessage_Payload interface {
 	isClientMessage_Payload()
 }
@@ -321,6 +351,18 @@ type ClientMessage_MoveItem struct {
 	MoveItem *v11.MoveItem `protobuf:"bytes,13,opt,name=move_item,json=moveItem,proto3,oneof"`
 }
 
+type ClientMessage_WithdrawItem struct {
+	WithdrawItem *v11.WithdrawItem `protobuf:"bytes,14,opt,name=withdraw_item,json=withdrawItem,proto3,oneof"`
+}
+
+type ClientMessage_DepositItem struct {
+	DepositItem *v11.DepositItem `protobuf:"bytes,15,opt,name=deposit_item,json=depositItem,proto3,oneof"`
+}
+
+type ClientMessage_MovePcItem struct {
+	MovePcItem *v11.MovePcItem `protobuf:"bytes,16,opt,name=move_pc_item,json=movePcItem,proto3,oneof"`
+}
+
 func (*ClientMessage_Authenticate) isClientMessage_Payload() {}
 
 func (*ClientMessage_Ping) isClientMessage_Payload() {}
@@ -345,6 +387,12 @@ func (*ClientMessage_RegisterItem) isClientMessage_Payload() {}
 
 func (*ClientMessage_MoveItem) isClientMessage_Payload() {}
 
+func (*ClientMessage_WithdrawItem) isClientMessage_Payload() {}
+
+func (*ClientMessage_DepositItem) isClientMessage_Payload() {}
+
+func (*ClientMessage_MovePcItem) isClientMessage_Payload() {}
+
 // Server -> client: events.
 type ServerMessage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -359,6 +407,7 @@ type ServerMessage struct {
 	//	*ServerMessage_Script
 	//	*ServerMessage_BagChanged
 	//	*ServerMessage_ItemResult
+	//	*ServerMessage_PcChanged
 	Payload       isServerMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -480,6 +529,15 @@ func (x *ServerMessage) GetItemResult() *v11.ItemResult {
 	return nil
 }
 
+func (x *ServerMessage) GetPcChanged() *v11.PcChanged {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_PcChanged); ok {
+			return x.PcChanged
+		}
+	}
+	return nil
+}
+
 type isServerMessage_Payload interface {
 	isServerMessage_Payload()
 }
@@ -516,6 +574,10 @@ type ServerMessage_ItemResult struct {
 	ItemResult *v11.ItemResult `protobuf:"bytes,9,opt,name=item_result,json=itemResult,proto3,oneof"`
 }
 
+type ServerMessage_PcChanged struct {
+	PcChanged *v11.PcChanged `protobuf:"bytes,10,opt,name=pc_changed,json=pcChanged,proto3,oneof"`
+}
+
 func (*ServerMessage_Welcome) isServerMessage_Payload() {}
 
 func (*ServerMessage_Pong) isServerMessage_Payload() {}
@@ -531,6 +593,8 @@ func (*ServerMessage_Script) isServerMessage_Payload() {}
 func (*ServerMessage_BagChanged) isServerMessage_Payload() {}
 
 func (*ServerMessage_ItemResult) isServerMessage_Payload() {}
+
+func (*ServerMessage_PcChanged) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
@@ -779,7 +843,7 @@ var File_pokeuniverse_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a!pokeuniverse/world/v1/world.proto\"\xa5\x06\n" +
+	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/item/v1/pc.proto\x1a!pokeuniverse/world/v1/world.proto\"\xfe\a\n" +
 	"\rClientMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12L\n" +
 	"\fauthenticate\x18\x02 \x01(\v2&.pokeuniverse.realtime.v1.AuthenticateH\x00R\fauthenticate\x124\n" +
@@ -796,8 +860,12 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	" \x01(\v2\x1e.pokeuniverse.item.v1.GiveItemH\x00R\bgiveItem\x12=\n" +
 	"\ttoss_item\x18\v \x01(\v2\x1e.pokeuniverse.item.v1.TossItemH\x00R\btossItem\x12I\n" +
 	"\rregister_item\x18\f \x01(\v2\".pokeuniverse.item.v1.RegisterItemH\x00R\fregisterItem\x12=\n" +
-	"\tmove_item\x18\r \x01(\v2\x1e.pokeuniverse.item.v1.MoveItemH\x00R\bmoveItemB\t\n" +
-	"\apayload\"\xa6\x04\n" +
+	"\tmove_item\x18\r \x01(\v2\x1e.pokeuniverse.item.v1.MoveItemH\x00R\bmoveItem\x12I\n" +
+	"\rwithdraw_item\x18\x0e \x01(\v2\".pokeuniverse.item.v1.WithdrawItemH\x00R\fwithdrawItem\x12F\n" +
+	"\fdeposit_item\x18\x0f \x01(\v2!.pokeuniverse.item.v1.DepositItemH\x00R\vdepositItem\x12D\n" +
+	"\fmove_pc_item\x18\x10 \x01(\v2 .pokeuniverse.item.v1.MovePcItemH\x00R\n" +
+	"movePcItemB\t\n" +
+	"\apayload\"\xe8\x04\n" +
 	"\rServerMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12=\n" +
 	"\awelcome\x18\x02 \x01(\v2!.pokeuniverse.realtime.v1.WelcomeH\x00R\awelcome\x124\n" +
@@ -811,7 +879,10 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\vbag_changed\x18\b \x01(\v2 .pokeuniverse.item.v1.BagChangedH\x00R\n" +
 	"bagChanged\x12C\n" +
 	"\vitem_result\x18\t \x01(\v2 .pokeuniverse.item.v1.ItemResultH\x00R\n" +
-	"itemResultB\t\n" +
+	"itemResult\x12@\n" +
+	"\n" +
+	"pc_changed\x18\n" +
+	" \x01(\v2\x1f.pokeuniverse.item.v1.PcChangedH\x00R\tpcChangedB\t\n" +
 	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
@@ -871,11 +942,15 @@ var file_pokeuniverse_realtime_v1_realtime_proto_goTypes = []any{
 	(*v11.TossItem)(nil),     // 15: pokeuniverse.item.v1.TossItem
 	(*v11.RegisterItem)(nil), // 16: pokeuniverse.item.v1.RegisterItem
 	(*v11.MoveItem)(nil),     // 17: pokeuniverse.item.v1.MoveItem
-	(*v1.WorldSnapshot)(nil), // 18: pokeuniverse.world.v1.WorldSnapshot
-	(*v1.Correction)(nil),    // 19: pokeuniverse.world.v1.Correction
-	(*v1.Script)(nil),        // 20: pokeuniverse.world.v1.Script
-	(*v11.BagChanged)(nil),   // 21: pokeuniverse.item.v1.BagChanged
-	(*v11.ItemResult)(nil),   // 22: pokeuniverse.item.v1.ItemResult
+	(*v11.WithdrawItem)(nil), // 18: pokeuniverse.item.v1.WithdrawItem
+	(*v11.DepositItem)(nil),  // 19: pokeuniverse.item.v1.DepositItem
+	(*v11.MovePcItem)(nil),   // 20: pokeuniverse.item.v1.MovePcItem
+	(*v1.WorldSnapshot)(nil), // 21: pokeuniverse.world.v1.WorldSnapshot
+	(*v1.Correction)(nil),    // 22: pokeuniverse.world.v1.Correction
+	(*v1.Script)(nil),        // 23: pokeuniverse.world.v1.Script
+	(*v11.BagChanged)(nil),   // 24: pokeuniverse.item.v1.BagChanged
+	(*v11.ItemResult)(nil),   // 25: pokeuniverse.item.v1.ItemResult
+	(*v11.PcChanged)(nil),    // 26: pokeuniverse.item.v1.PcChanged
 }
 var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	3,  // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
@@ -890,20 +965,24 @@ var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	15, // 9: pokeuniverse.realtime.v1.ClientMessage.toss_item:type_name -> pokeuniverse.item.v1.TossItem
 	16, // 10: pokeuniverse.realtime.v1.ClientMessage.register_item:type_name -> pokeuniverse.item.v1.RegisterItem
 	17, // 11: pokeuniverse.realtime.v1.ClientMessage.move_item:type_name -> pokeuniverse.item.v1.MoveItem
-	4,  // 12: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
-	6,  // 13: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
-	7,  // 14: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
-	18, // 15: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
-	19, // 16: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
-	20, // 17: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
-	21, // 18: pokeuniverse.realtime.v1.ServerMessage.bag_changed:type_name -> pokeuniverse.item.v1.BagChanged
-	22, // 19: pokeuniverse.realtime.v1.ServerMessage.item_result:type_name -> pokeuniverse.item.v1.ItemResult
-	0,  // 20: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
-	21, // [21:21] is the sub-list for method output_type
-	21, // [21:21] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	18, // 12: pokeuniverse.realtime.v1.ClientMessage.withdraw_item:type_name -> pokeuniverse.item.v1.WithdrawItem
+	19, // 13: pokeuniverse.realtime.v1.ClientMessage.deposit_item:type_name -> pokeuniverse.item.v1.DepositItem
+	20, // 14: pokeuniverse.realtime.v1.ClientMessage.move_pc_item:type_name -> pokeuniverse.item.v1.MovePcItem
+	4,  // 15: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
+	6,  // 16: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
+	7,  // 17: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
+	21, // 18: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
+	22, // 19: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
+	23, // 20: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
+	24, // 21: pokeuniverse.realtime.v1.ServerMessage.bag_changed:type_name -> pokeuniverse.item.v1.BagChanged
+	25, // 22: pokeuniverse.realtime.v1.ServerMessage.item_result:type_name -> pokeuniverse.item.v1.ItemResult
+	26, // 23: pokeuniverse.realtime.v1.ServerMessage.pc_changed:type_name -> pokeuniverse.item.v1.PcChanged
+	0,  // 24: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_realtime_v1_realtime_proto_init() }
@@ -924,6 +1003,9 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ClientMessage_TossItem)(nil),
 		(*ClientMessage_RegisterItem)(nil),
 		(*ClientMessage_MoveItem)(nil),
+		(*ClientMessage_WithdrawItem)(nil),
+		(*ClientMessage_DepositItem)(nil),
+		(*ClientMessage_MovePcItem)(nil),
 	}
 	file_pokeuniverse_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerMessage_Welcome)(nil),
@@ -934,6 +1016,7 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ServerMessage_Script)(nil),
 		(*ServerMessage_BagChanged)(nil),
 		(*ServerMessage_ItemResult)(nil),
+		(*ServerMessage_PcChanged)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

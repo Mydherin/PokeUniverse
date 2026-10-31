@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+// The items stored in the player's PC on the WebSocket (inside pokeuniverse.realtime.v1's
+// envelopes): the player's intents while at the PC and mic-core's answers. Only allowed while
+// the PC is on (its script runs); mic-core decides every change and saves it before answering.
+package pokeuniverse.item.v1;
+
+import "pokeuniverse/item/v1/bag.proto";
+import "pokeuniverse/item/v1/catalog.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1";
+
+// Client -> server: WITHDRAW, after the quantity. Answered with PcChanged and BagChanged (when
+// it moved), then an ItemResult: WITHDRAWN, or BAG_FULL.
+message WithdrawItem {
+  Item item = 1;
+  uint32 quantity = 2;
+}
+
+// Client -> server: an item of the BAG's ITEMS pocket stored in the PC (DEPOSIT ITEM), after the
+// quantity. Answered like WithdrawItem: DEPOSITED, or PC_FULL.
+message DepositItem {
+  Item item = 1;
+  uint32 quantity = 2;
+}
+
+// Client -> server: SELECT moved a stored item from one slot to before another (`to` can be the
+// slot count: last). The client shows it at once; a refused one gets PcChanged.
+message MovePcItem {
+  uint32 from = 1;
+  uint32 to = 2;
+}
+
+// Server -> client: everything the PC stores, in order. Sent before the ItemResult that changed
+// it, or alone to correct a refused MovePcItem.
+message PcChanged {
+  repeated BagSlot slots = 1;
+}

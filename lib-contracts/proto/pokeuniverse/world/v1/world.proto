@@ -94,7 +94,30 @@ message ScriptStep {
     Message message = 1;
     // A sound effect, by ID.
     string sound = 2;
+    // The PC the player faces turns on (flickering, while the script goes on) or off.
+    PcScreen pc_screen = 3;
+    // The player's PC menu; the script goes on once the player turns it off.
+    PlayersPc players_pc = 4;
   }
+}
+
+// AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
+message PcScreen {
+  Pc pc = 1;
+  bool on = 2;
+}
+
+enum Pc {
+  PC_UNSPECIFIED = 0;
+  // The PC in the player's room.
+  PC_PLAYERS = 1;
+}
+
+// BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
+// TURN OFF.
+message PlayersPc {
+  // What the PC stores as it turns on; later changes come as PcChanged.
+  repeated pokeuniverse.item.v1.BagSlot items = 1;
 }
 
 message Message {

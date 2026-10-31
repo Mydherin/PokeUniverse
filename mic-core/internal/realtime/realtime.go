@@ -259,6 +259,15 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_MoveItem:
 		c.player.MoveItem(p.MoveItem)
 		return true
+	case *realtimev1.ClientMessage_WithdrawItem:
+		c.player.WithdrawItem(p.WithdrawItem)
+		return true
+	case *realtimev1.ClientMessage_DepositItem:
+		c.player.DepositItem(p.DepositItem)
+		return true
+	case *realtimev1.ClientMessage_MovePcItem:
+		c.player.MovePcItem(p.MovePcItem)
+		return true
 	}
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 	return false

@@ -9,6 +9,8 @@ import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import type { BagChanged, GiveItem, ItemResult, MoveItem, RegisterItem, TossItem, UseItem } from "../../item/v1/bag_pb";
 import { file_pokeuniverse_item_v1_bag } from "../../item/v1/bag_pb";
+import type { DepositItem, MovePcItem, PcChanged, WithdrawItem } from "../../item/v1/pc_pb";
+import { file_pokeuniverse_item_v1_pc } from "../../item/v1/pc_pb";
 import type { Correction, EnterWorld, Interact, Move, Script, ScriptDone, Turn, WorldSnapshot } from "../../world/v1/world_pb";
 import { file_pokeuniverse_world_v1_world } from "../../world/v1/world_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -17,7 +19,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/realtime/v1/realtime.proto.
  */
 export const file_pokeuniverse_realtime_v1_realtime: GenFile = /*@__PURE__*/
-  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKpBQoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIABIxCgh1c2VfaXRlbRgJIAEoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLlVzZUl0ZW1IABIzCglnaXZlX2l0ZW0YCiABKAsyHi5wb2tldW5pdmVyc2UuaXRlbS52MS5HaXZlSXRlbUgAEjMKCXRvc3NfaXRlbRgLIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLlRvc3NJdGVtSAASOwoNcmVnaXN0ZXJfaXRlbRgMIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLlJlZ2lzdGVySXRlbUgAEjMKCW1vdmVfaXRlbRgNIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLk1vdmVJdGVtSABCCQoHcGF5bG9hZCLVAwoNU2VydmVyTWVzc2FnZRILCgNzZXEYASABKA0SNAoHd2VsY29tZRgCIAEoCzIhLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5XZWxjb21lSAASLgoEcG9uZxgDIAEoCzIeLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5Qb25nSAASMAoFZXJyb3IYBCABKAsyHy5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuRXJyb3JIABI4CghzbmFwc2hvdBgFIAEoCzIkLnBva2V1bml2ZXJzZS53b3JsZC52MS5Xb3JsZFNuYXBzaG90SAASNwoKY29ycmVjdGlvbhgGIAEoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5Db3JyZWN0aW9uSAASLwoGc2NyaXB0GAcgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdEgAEjcKC2JhZ19jaGFuZ2VkGAggASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnQ2hhbmdlZEgAEjcKC2l0ZW1fcmVzdWx0GAkgASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbVJlc3VsdEgAQgkKB3BheWxvYWQiNgoMQXV0aGVudGljYXRlEhQKDGFjY2Vzc190b2tlbhgBIAEoCRIQCghpbnN0YW5jZRgCIAEoCSI2CgdXZWxjb21lEhIKCmFjY291bnRfaWQYASABKARKBAgCEANSEXBsYXlpbmdfZWxzZXdoZXJlIhsKBFBpbmcSEwoLY2xpZW50X3RpbWUYASABKAQiMAoEUG9uZxITCgtjbGllbnRfdGltZRgBIAEoBBITCgtzZXJ2ZXJfdGltZRgCIAEoBCI6CgVFcnJvchIxCgRjb2RlGAEgASgOMiMucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9yQ29kZSrUAQoJRXJyb3JDb2RlEhoKFkVSUk9SX0NPREVfVU5TUEVDSUZJRUQQABIeChpFUlJPUl9DT0RFX1VOQVVUSEVOVElDQVRFRBABEhwKGEVSUk9SX0NPREVfVE9LRU5fRVhQSVJFRBACEhoKFkVSUk9SX0NPREVfQkFEX01FU1NBR0UQAxIZChVFUlJPUl9DT0RFX05PX1RSQUlORVIQBBIXChNFUlJPUl9DT0RFX1JFUExBQ0VEEAUSHQoZRVJST1JfQ09ERV9TRVNTSU9OX0FDVElWRRAGQkdaRXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcmVhbHRpbWUvdjE7cmVhbHRpbWV2MWIGcHJvdG8z", [file_pokeuniverse_item_v1_bag, file_pokeuniverse_world_v1_world]);
+  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSLbBgoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIABIxCgh1c2VfaXRlbRgJIAEoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLlVzZUl0ZW1IABIzCglnaXZlX2l0ZW0YCiABKAsyHi5wb2tldW5pdmVyc2UuaXRlbS52MS5HaXZlSXRlbUgAEjMKCXRvc3NfaXRlbRgLIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLlRvc3NJdGVtSAASOwoNcmVnaXN0ZXJfaXRlbRgMIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLlJlZ2lzdGVySXRlbUgAEjMKCW1vdmVfaXRlbRgNIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLk1vdmVJdGVtSAASOwoNd2l0aGRyYXdfaXRlbRgOIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLldpdGhkcmF3SXRlbUgAEjkKDGRlcG9zaXRfaXRlbRgPIAEoCzIhLnBva2V1bml2ZXJzZS5pdGVtLnYxLkRlcG9zaXRJdGVtSAASOAoMbW92ZV9wY19pdGVtGBAgASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuTW92ZVBjSXRlbUgAQgkKB3BheWxvYWQijAQKDVNlcnZlck1lc3NhZ2USCwoDc2VxGAEgASgNEjQKB3dlbGNvbWUYAiABKAsyIS5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuV2VsY29tZUgAEi4KBHBvbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUG9uZ0gAEjAKBWVycm9yGAQgASgLMh8ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9ySAASOAoIc25hcHNob3QYBSABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuV29ybGRTbmFwc2hvdEgAEjcKCmNvcnJlY3Rpb24YBiABKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuQ29ycmVjdGlvbkgAEi8KBnNjcmlwdBgHIAEoCzIdLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRIABI3CgtiYWdfY2hhbmdlZBgIIAEoCzIgLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ0NoYW5nZWRIABI3CgtpdGVtX3Jlc3VsdBgJIAEoCzIgLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW1SZXN1bHRIABI1CgpwY19jaGFuZ2VkGAogASgLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuUGNDaGFuZ2VkSABCCQoHcGF5bG9hZCI2CgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJEhAKCGluc3RhbmNlGAIgASgJIjYKB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBEoECAIQA1IRcGxheWluZ19lbHNld2hlcmUiGwoEUGluZxITCgtjbGllbnRfdGltZRgBIAEoBCIwCgRQb25nEhMKC2NsaWVudF90aW1lGAEgASgEEhMKC3NlcnZlcl90aW1lGAIgASgEIjoKBUVycm9yEjEKBGNvZGUYASABKA4yIy5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuRXJyb3JDb2RlKtQBCglFcnJvckNvZGUSGgoWRVJST1JfQ09ERV9VTlNQRUNJRklFRBAAEh4KGkVSUk9SX0NPREVfVU5BVVRIRU5USUNBVEVEEAESHAoYRVJST1JfQ09ERV9UT0tFTl9FWFBJUkVEEAISGgoWRVJST1JfQ09ERV9CQURfTUVTU0FHRRADEhkKFUVSUk9SX0NPREVfTk9fVFJBSU5FUhAEEhcKE0VSUk9SX0NPREVfUkVQTEFDRUQQBRIdChlFUlJPUl9DT0RFX1NFU1NJT05fQUNUSVZFEAZCR1pFcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9yZWFsdGltZS92MTtyZWFsdGltZXYxYgZwcm90bzM", [file_pokeuniverse_item_v1_bag, file_pokeuniverse_item_v1_pc, file_pokeuniverse_world_v1_world]);
 
 /**
  * Client -> server: intents only.
@@ -105,6 +107,24 @@ export type ClientMessage = Message<"pokeuniverse.realtime.v1.ClientMessage"> & 
      */
     value: MoveItem;
     case: "moveItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.WithdrawItem withdraw_item = 14;
+     */
+    value: WithdrawItem;
+    case: "withdrawItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.DepositItem deposit_item = 15;
+     */
+    value: DepositItem;
+    case: "depositItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.MovePcItem move_pc_item = 16;
+     */
+    value: MovePcItem;
+    case: "movePcItem";
   } | { case: undefined; value?: undefined };
 };
 
@@ -177,6 +197,12 @@ export type ServerMessage = Message<"pokeuniverse.realtime.v1.ServerMessage"> & 
      */
     value: ItemResult;
     case: "itemResult";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.item.v1.PcChanged pc_changed = 10;
+     */
+    value: PcChanged;
+    case: "pcChanged";
   } | { case: undefined; value?: undefined };
 };
 

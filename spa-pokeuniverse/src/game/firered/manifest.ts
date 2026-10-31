@@ -151,6 +151,8 @@ const NEW_GAME_GRAPHICS = {
   picLeafFront: { png: "trainers/front_pics/leaf_front_pic.png", pal: "trainers/palettes/leaf.pal" },
   // Bag: background, list background, window colors, the bag (boy's or girl's), the red arrows and CANCEL's icon
   bagBg: { png: "item_menu/bg.png", bin: "item_menu/bg.bin", bpp4: true },
+  // The bag opened from the PC (DEPOSIT ITEM): its own layout of the same tiles
+  bagBgItemPcMap: { bin: "item_menu/bg_item_pc.bin" },
   bagBgFemalePal: { pal: "item_menu/bg_female.pal" },
   bagListMap: { bin: "item_menu/list.bin" },
   bagWindowPal: { pal: "item_menu/bag_window_pal.pal" },
@@ -179,6 +181,8 @@ const NEW_GAME_GRAPHICS = {
   berryPouchBg: { png: "berry_pouch/background.png", bin: "berry_pouch/background.bin", bpp4: true },
   berryPouchFemalePal: { pal: "berry_pouch/background_female.pal" },
   berryPouch: { png: "berry_pouch/berry_pouch.png" },
+  // The PC's WITHDRAW ITEM screen
+  itemPcBg: { png: "item_pc/bg.png", bin: "item_pc/bg.bin", bpp4: true },
   // OPTION: its colors and the standard frame around its title
   optionMenuPal: { pal: "misc/option_menu.pal" },
   stdWindowFrame: { png: "text_window/std.png" },
@@ -210,6 +214,8 @@ export const NEW_GAME_SOUNDS = [
   "cry_nidoran_f",
   "se_wall_hit",
   "se_pc_on",
+  "se_pc_login",
+  "se_pc_off",
   "se_card_open",
   "se_card_flip",
   "se_card_flipping",

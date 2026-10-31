@@ -6,9 +6,9 @@
 // intents and the server's answers. The client predicts its own steps; mic-core checks every
 // one and corrects the client when it disagrees (tech-stack.md#movement).
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Bag } from "../../item/v1/bag_pb";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Bag, BagSlot } from "../../item/v1/bag_pb";
 import { file_pokeuniverse_item_v1_bag } from "../../item/v1/bag_pb";
 import type { Direction } from "../../map/v1/map_pb";
 import { file_pokeuniverse_map_v1_map } from "../../map/v1/map_pb";
@@ -20,7 +20,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/world/v1/world.proto.
  */
 export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKfAQoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZyJ/CgZBdmF0YXISCQoBeBgBIAEoDRIJCgF5GAIgASgNEi4KBmZhY2luZxgDIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEi8KBmdlbmRlchgEIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlciJgCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIkYKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIloKClNjcmlwdFN0ZXASMQoHbWVzc2FnZRgBIAEoCzIeLnBva2V1bml2ZXJzZS53b3JsZC52MS5NZXNzYWdlSAASDwoFc291bmQYAiABKAlIAEIICgZhY3Rpb24iJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKfAQoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZyJ/CgZBdmF0YXISCQoBeBgBIAEoDRIJCgF5GAIgASgNEi4KBmZhY2luZxgDIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEi8KBmdlbmRlchgEIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlciJgCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIkYKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIsgBCgpTY3JpcHRTdGVwEjEKB21lc3NhZ2UYASABKAsyHi5wb2tldW5pdmVyc2Uud29ybGQudjEuTWVzc2FnZUgAEg8KBXNvdW5kGAIgASgJSAASNAoJcGNfc2NyZWVuGAMgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjU2NyZWVuSAASNgoKcGxheWVyc19wYxgEIAEoCzIgLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJzUGNIAEIICgZhY3Rpb24iPQoIUGNTY3JlZW4SJQoCcGMYASABKA4yGS5wb2tldW5pdmVyc2Uud29ybGQudjEuUGMSCgoCb24YAiABKAgiOQoJUGxheWVyc1BjEiwKBWl0ZW1zGAEgAygLMh0ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnU2xvdCIlCgdNZXNzYWdlEgwKBHRleHQYASABKAkSDAoEc2lnbhgCIAEoCCIwCgxTZXNzaW9uVGFrZW4SEgoKYWNjb3VudF9pZBgBIAEoBBIMCgRjb25uGAIgASgJKigKAlBjEhIKDlBDX1VOU1BFQ0lGSUVEEAASDgoKUENfUExBWUVSUxABQkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2Uvd29ybGQvdjE7d29ybGR2MWIGcHJvdG8z", [file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
@@ -317,6 +317,22 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
      */
     value: string;
     case: "sound";
+  } | {
+    /**
+     * The PC the player faces turns on (flickering, while the script goes on) or off.
+     *
+     * @generated from field: pokeuniverse.world.v1.PcScreen pc_screen = 3;
+     */
+    value: PcScreen;
+    case: "pcScreen";
+  } | {
+    /**
+     * The player's PC menu; the script goes on once the player turns it off.
+     *
+     * @generated from field: pokeuniverse.world.v1.PlayersPc players_pc = 4;
+     */
+    value: PlayersPc;
+    case: "playersPc";
   } | { case: undefined; value?: undefined };
 };
 
@@ -326,6 +342,52 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
  */
 export const ScriptStepSchema: GenMessage<ScriptStep> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_world_v1_world, 9);
+
+/**
+ * AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
+ *
+ * @generated from message pokeuniverse.world.v1.PcScreen
+ */
+export type PcScreen = Message$1<"pokeuniverse.world.v1.PcScreen"> & {
+  /**
+   * @generated from field: pokeuniverse.world.v1.Pc pc = 1;
+   */
+  pc: Pc;
+
+  /**
+   * @generated from field: bool on = 2;
+   */
+  on: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PcScreen.
+ * Use `create(PcScreenSchema)` to create a new message.
+ */
+export const PcScreenSchema: GenMessage<PcScreen> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 10);
+
+/**
+ * BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
+ * TURN OFF.
+ *
+ * @generated from message pokeuniverse.world.v1.PlayersPc
+ */
+export type PlayersPc = Message$1<"pokeuniverse.world.v1.PlayersPc"> & {
+  /**
+   * What the PC stores as it turns on; later changes come as PcChanged.
+   *
+   * @generated from field: repeated pokeuniverse.item.v1.BagSlot items = 1;
+   */
+  items: BagSlot[];
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayersPc.
+ * Use `create(PlayersPcSchema)` to create a new message.
+ */
+export const PlayersPcSchema: GenMessage<PlayersPc> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 11);
 
 /**
  * @generated from message pokeuniverse.world.v1.Message
@@ -351,7 +413,7 @@ export type Message = Message$1<"pokeuniverse.world.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 10);
+  messageDesc(file_pokeuniverse_world_v1_world, 12);
 
 /**
  * mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
@@ -376,5 +438,28 @@ export type SessionTaken = Message$1<"pokeuniverse.world.v1.SessionTaken"> & {
  * Use `create(SessionTakenSchema)` to create a new message.
  */
 export const SessionTakenSchema: GenMessage<SessionTaken> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 11);
+  messageDesc(file_pokeuniverse_world_v1_world, 13);
+
+/**
+ * @generated from enum pokeuniverse.world.v1.Pc
+ */
+export enum Pc {
+  /**
+   * @generated from enum value: PC_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The PC in the player's room.
+   *
+   * @generated from enum value: PC_PLAYERS = 1;
+   */
+  PLAYERS = 1,
+}
+
+/**
+ * Describes the enum pokeuniverse.world.v1.Pc.
+ */
+export const PcSchema: GenEnum<Pc> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_world_v1_world, 0);
 

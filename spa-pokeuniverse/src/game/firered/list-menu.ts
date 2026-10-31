@@ -1,6 +1,6 @@
 // The scrolling list menus (list_menu.c): rows printed in a window, the "▶" cursor, and a
-// view of `maxShowed` rows that scrolls as the cursor nears its edges. The bag uses it, and so
-// will the PC's item storage and the shops. Rows can't be headers: no list we use has any.
+// view of `maxShowed` rows that scrolls as the cursor nears its edges. The bag and the PC's
+// WITHDRAW ITEM screen use it, and so will the shops. Rows can't be headers: no list we use has any.
 
 import { Button } from "../gba/input";
 import type { FontId, Text, Window } from "../gba/text";
@@ -174,4 +174,27 @@ export class ListMenu {
     if (this.cursorHidden) return;
     t.win.fillRect(t.colors[0], t.cursorX, row * this.rowHeight + t.upTextY, 8, this.flow.fonts[t.font].maxLetterHeight);
   }
+}
+
+/**
+ * A saved list position fitted to what the list holds now (`total` rows, CANCEL included), as
+ * the bag (PocketCalculateInitialCursorPosAndItemsAbove, UpdatePocketScrollPositions) and the
+ * PC (ItemPc_SetCursorPosition, ItemPc_SetScrollPosition) do before showing it again.
+ */
+export function fitListPosition(pos: ListPosition, total: number, maxShowed: number): void {
+  if (pos.scroll !== 0 && pos.scroll + maxShowed > total) pos.scroll = total - maxShowed;
+  if (pos.scroll + pos.row >= total) pos.row = total < 2 ? 0 : total - 1;
+  if (pos.row > 3)
+    for (let j = 0; j <= pos.row - 3; pos.row--, pos.scroll++, j++) if (pos.scroll + maxShowed === total) break;
+  pos.row = Math.min(pos.row, maxShowed - 1);
+}
+
+/**
+ * ExecuteMoveItemInPocket and AbortMovingItemInPocket (and the PC's): the cursor stays on the
+ * moved item, one row up when it went down the list.
+ */
+export function afterMove(pos: ListPosition, from: number, to: number): void {
+  if (from >= to) return;
+  if (pos.row > 0) pos.row--;
+  else if (pos.scroll > 0) pos.scroll--;
 }

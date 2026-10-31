@@ -23,15 +23,15 @@ export class FieldMessage {
     flow.text.reset();
   }
 
-  /** Shows the box (loading the frame it needs) and starts printing; A or B speeds it up. */
-  show(text: Text, signpost: boolean, fontId = FontId.Normal): void {
+  /** Shows the box (loading the frame it needs) and starts printing (A or B speeds it up), or prints it all at once. */
+  show(text: Text, signpost: boolean, fontId = FontId.Normal, instant = false): void {
     const bg = this.win.bg;
     if (signpost) loadSignpostWindowFrameGfx(this.flow, bg);
     else loadStdWindowFrameGfx(this.flow, bg);
     drawDialogueFrame(this.win, signpost);
     const font = this.flow.fonts[fontId];
     this.flow.text.ctx.canABSpeedUpPrint = true;
-    this.flow.text.add(this.win, { font, x: 0, y: 1, letterSpacing: font.letterSpacing, lineSpacing: font.lineSpacing, colors: [1, 2, 3] }, textSpeedDelay(this.flow.options), text);
+    this.flow.text.add(this.win, { font, x: 0, y: 1, letterSpacing: font.letterSpacing, lineSpacing: font.lineSpacing, colors: [1, 2, 3] }, instant ? 0 : textSpeedDelay(this.flow.options), text);
     this.win.copyToVram();
     this.shown = true;
   }

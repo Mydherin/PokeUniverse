@@ -16,12 +16,26 @@ func sound(id string) *worldv1.ScriptStep {
 	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_Sound{Sound: id}}
 }
 
+// pcScreen is AnimatePcTurnOn (on) or AnimatePcTurnOff.
+func pcScreen(pc worldv1.Pc, on bool) *worldv1.ScriptStep {
+	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PcScreen{PcScreen: &worldv1.PcScreen{Pc: pc, On: on}}}
+}
+
+// playersPC is the player's PC menu; the zone fills in what it stores (withPlayer).
+func playersPC() *worldv1.ScriptStep {
+	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PlayersPc{PlayersPc: &worldv1.PlayersPc{}}}
+}
+
 // signScripts are the scripts of sign objects, by map and name (lib-maps objects' `script`).
 var signScripts = map[string]Script{
 	"pallet_town_players_house_2f.nes":  {message("pallet_town_players_house_2f.played_with_nes")},
 	"pallet_town_players_house_2f.sign": {message("pallet_town_players_house_2f.press_lr_for_help")},
-	// The bedroom PC's menu (item storage) comes with items.
-	"pallet_town_players_house_2f.pc": {sound("se_pc_on"), message("common.player_booted_up_pc")},
+	// PalletTown_PlayersHouse_2F_EventScript_PC, then ..._ShutDownPC once the player turns it off.
+	"pallet_town_players_house_2f.pc": {
+		pcScreen(worldv1.Pc_PC_PLAYERS, true), sound("se_pc_on"), message("common.player_booted_up_pc"),
+		playersPC(),
+		sound("se_pc_off"), pcScreen(worldv1.Pc_PC_PLAYERS, false),
+	},
 }
 
 // tileScript is what checking a tile with a behavior says (GetInteractedMetatileScript).

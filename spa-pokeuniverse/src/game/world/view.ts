@@ -36,6 +36,8 @@ export interface WorldView {
   hide(): void;
   /** Adds a character to the map shown (removed with it). */
   addCharacter(sheet: CharacterSheet): CharacterView;
+  /** Draws another tile at a cell of the map shown (a script's change, e.g. a PC's screen). */
+  setTile(x: number, y: number, tile: number): void;
   /** The world pixel at the screen's top-left corner. */
   setCamera(x: number, y: number): void;
   /** Fades toward `color` (BGR555) by y/16, as a palette fade does. */

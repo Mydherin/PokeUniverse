@@ -14,9 +14,10 @@ const (
 	FluteBlack Flute = "black"
 )
 
-// State is everything items change: the bag and what items keep besides it.
+// State is everything items change: the bag, the PC and what items keep besides them.
 type State struct {
 	Bag         *Bag
+	PC          *PC
 	RepelSteps  int
 	Flute       Flute
 	Coins       int
@@ -26,7 +27,7 @@ type State struct {
 // Clone copies the state, so a change can be undone when it can't be saved.
 func (s *State) Clone() *State {
 	c := *s
-	c.Bag = s.Bag.Clone()
+	c.Bag, c.PC = s.Bag.Clone(), s.PC.Clone()
 	return &c
 }
 
@@ -44,16 +45,25 @@ type Field struct {
 	FromField bool
 }
 
-// Result is what an action did: the outcome the client shows, and what changed (to save and send).
+// Result is what an action did: the outcome the client shows, and what changed.
 type Result struct {
 	Outcome itemv1.ItemOutcome
-	// TOSSED: the quantity; COINS, BERRY_POWDER: the amount.
+	// TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS, BERRY_POWDER: the amount.
 	Value int
+	Changed
+}
+
+// Changed is what an action changed, to save and send.
+type Changed struct {
 	// Pockets whose slots changed.
 	Pockets []itemv1.Pocket
-	// The state besides the pockets changed (registered item, repel, flute).
-	StateChanged bool
+	// The state besides the pockets (registered item, repel, flute).
+	State bool
+	// What the PC stores.
+	PC bool
 }
+
+func (c Changed) Any() bool { return len(c.Pockets) > 0 || c.State || c.PC }
 
 func outcome(o itemv1.ItemOutcome) Result { return Result{Outcome: o} }
 
@@ -128,15 +138,15 @@ var uses = map[itemv1.FieldUse]use{
 		}
 		s.Bag.Remove(id, 1)
 		s.RepelSteps = int(info.Param)
-		return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_USED, Pockets: []itemv1.Pocket{info.Pocket}, StateChanged: true}
+		return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_USED, Changed: Changed{Pockets: []itemv1.Pocket{info.Pocket}, State: true}}
 	},
 	itemv1.FieldUse_FIELD_USE_BLACK_WHITE_FLUTE: func(s *State, id itemv1.Item, _ *itemv1.ItemInfo, _ Field) Result {
 		if id == itemv1.Item_ITEM_WHITE_FLUTE {
 			s.Flute = FluteWhite
-			return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_WILD_LURED, StateChanged: true}
+			return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_WILD_LURED, Changed: Changed{State: true}}
 		}
 		s.Flute = FluteBlack
-		return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_WILD_REPELLED, StateChanged: true}
+		return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_WILD_REPELLED, Changed: Changed{State: true}}
 	},
 }
 
@@ -177,5 +187,5 @@ func Toss(s *State, id itemv1.Item, n int) Result {
 	if !ok || info.Important || !s.Bag.Remove(id, n) {
 		return Result{}
 	}
-	return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_TOSSED, Value: n, Pockets: []itemv1.Pocket{info.Pocket}, StateChanged: true}
+	return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_TOSSED, Value: n, Changed: Changed{Pockets: []itemv1.Pocket{info.Pocket}, State: true}}
 }

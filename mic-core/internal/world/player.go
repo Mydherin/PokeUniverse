@@ -42,6 +42,8 @@ type Player struct {
 	// The script the client is showing (0: none); the player can't act until it ends.
 	script     uint32
 	lastScript uint32
+	// The script running the player's PC menu (0: none): its item actions are allowed while it runs.
+	pcScript uint32
 	// The bag and what items keep; saved to PostgreSQL on every change.
 	items *item.State
 	// Messages waiting for the next tick, sent once the state they show is saved.
@@ -61,7 +63,7 @@ func (p *Player) Interact(i *worldv1.Interact) { p.zone.do(func() { p.zone.inter
 func (p *Player) ScriptDone(d *worldv1.ScriptDone) {
 	p.zone.do(func() {
 		if d.Script == p.script {
-			p.script = 0
+			p.script, p.pcScript = 0, 0
 		}
 	})
 }
@@ -71,5 +73,8 @@ func (p *Player) save() live.Save {
 		Map: p.zone.m.ID, X: p.pos.X, Y: p.pos.Y, Facing: p.facing, Gen: p.gen,
 	}}
 }
+
+// atPC is whether the player uses their PC now.
+func (p *Player) atPC() bool { return p.script != 0 && p.script == p.pcScript }
 
 func (p *Player) queue(msg *realtimev1.ServerMessage) { p.out = append(p.out, msg) }

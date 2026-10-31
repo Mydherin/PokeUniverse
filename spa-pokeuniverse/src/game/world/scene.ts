@@ -77,6 +77,10 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     };
   }
 
+  setTile(x: number, y: number, tile: number): void {
+    for (const tilemap of this.tilemaps) tilemap.putTileAt(tile, x + MARGIN_X, y + MARGIN_Y, false, 0);
+  }
+
   setCamera(x: number, y: number): void {
     // Centered: Phaser culls the tiles around the camera's center.
     this.cameras.main.centerOn(x + WIDTH / 2, y + HEIGHT / 2);
