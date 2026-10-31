@@ -28,9 +28,12 @@ const (
 )
 
 // Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
-// after every reconnect; answered with a WorldSnapshot (or Error NO_TRAINER).
+// after every reconnect; answered with a WorldSnapshot, or Error NO_TRAINER, or Error
+// SESSION_ACTIVE when another copy of the game plays the trainer and take_over isn't set.
 type EnterWorld struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The player agreed to disconnect the other copy.
+	TakeOver      bool `protobuf:"varint,1,opt,name=take_over,json=takeOver,proto3" json:"take_over,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -63,6 +66,13 @@ func (x *EnterWorld) ProtoReflect() protoreflect.Message {
 // Deprecated: Use EnterWorld.ProtoReflect.Descriptor instead.
 func (*EnterWorld) Descriptor() ([]byte, []int) {
 	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *EnterWorld) GetTakeOver() bool {
+	if x != nil {
+		return x.TakeOver
+	}
+	return false
 }
 
 // One step, as the client predicted it.
@@ -677,13 +687,68 @@ func (x *Message) GetSign() bool {
 	return false
 }
 
+// mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
+// trainer over; the replica holding connection `conn` disconnects it.
+type SessionTaken struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccountId     uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	Conn          string                 `protobuf:"bytes,2,opt,name=conn,proto3" json:"conn,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SessionTaken) Reset() {
+	*x = SessionTaken{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SessionTaken) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionTaken) ProtoMessage() {}
+
+func (x *SessionTaken) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionTaken.ProtoReflect.Descriptor instead.
+func (*SessionTaken) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SessionTaken) GetAccountId() uint64 {
+	if x != nil {
+		return x.AccountId
+	}
+	return 0
+}
+
+func (x *SessionTaken) GetConn() string {
+	if x != nil {
+		return x.Conn
+	}
+	return ""
+}
+
 var File_pokeuniverse_world_v1_world_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\n" +
-	"!pokeuniverse/world/v1/world.proto\x12\x15pokeuniverse.world.v1\x1a\x1dpokeuniverse/map/v1/map.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\"\f\n" +
+	"!pokeuniverse/world/v1/world.proto\x12\x15pokeuniverse.world.v1\x1a\x1dpokeuniverse/map/v1/map.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\")\n" +
 	"\n" +
-	"EnterWorld\"\x86\x01\n" +
+	"EnterWorld\x12\x1b\n" +
+	"\ttake_over\x18\x01 \x01(\bR\btakeOver\"\x86\x01\n" +
 	"\x04Move\x12\x12\n" +
 	"\x04step\x18\x01 \x01(\rR\x04step\x12<\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\tdirection\x12\x10\n" +
@@ -722,7 +787,11 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\x06action\"1\n" +
 	"\aMessage\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12\x12\n" +
-	"\x04sign\x18\x02 \x01(\bR\x04signBAZ?pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1;worldv1b\x06proto3"
+	"\x04sign\x18\x02 \x01(\bR\x04sign\"A\n" +
+	"\fSessionTaken\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x01 \x01(\x04R\taccountId\x12\x12\n" +
+	"\x04conn\x18\x02 \x01(\tR\x04connBAZ?pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1;worldv1b\x06proto3"
 
 var (
 	file_pokeuniverse_world_v1_world_proto_rawDescOnce sync.Once
@@ -736,7 +805,7 @@ func file_pokeuniverse_world_v1_world_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_world_v1_world_proto_rawDescData
 }
 
-var file_pokeuniverse_world_v1_world_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_pokeuniverse_world_v1_world_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_pokeuniverse_world_v1_world_proto_goTypes = []any{
 	(*EnterWorld)(nil),    // 0: pokeuniverse.world.v1.EnterWorld
 	(*Move)(nil),          // 1: pokeuniverse.world.v1.Move
@@ -749,16 +818,17 @@ var file_pokeuniverse_world_v1_world_proto_goTypes = []any{
 	(*Script)(nil),        // 8: pokeuniverse.world.v1.Script
 	(*ScriptStep)(nil),    // 9: pokeuniverse.world.v1.ScriptStep
 	(*Message)(nil),       // 10: pokeuniverse.world.v1.Message
-	(v1.Direction)(0),     // 11: pokeuniverse.map.v1.Direction
-	(v11.Gender)(0),       // 12: pokeuniverse.trainer.v1.Gender
+	(*SessionTaken)(nil),  // 11: pokeuniverse.world.v1.SessionTaken
+	(v1.Direction)(0),     // 12: pokeuniverse.map.v1.Direction
+	(v11.Gender)(0),       // 13: pokeuniverse.trainer.v1.Gender
 }
 var file_pokeuniverse_world_v1_world_proto_depIdxs = []int32{
-	11, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
-	11, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
+	12, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
+	12, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
 	6,  // 2: pokeuniverse.world.v1.WorldSnapshot.player:type_name -> pokeuniverse.world.v1.Avatar
-	11, // 3: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
-	12, // 4: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	11, // 5: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
+	12, // 3: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
+	13, // 4: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	12, // 5: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
 	9,  // 6: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
 	10, // 7: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
 	8,  // [8:8] is the sub-list for method output_type
@@ -783,7 +853,7 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_world_v1_world_proto_rawDesc), len(file_pokeuniverse_world_v1_world_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

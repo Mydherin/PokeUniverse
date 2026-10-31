@@ -12,10 +12,11 @@ import type { CharacterSheet, CharacterView, TilesetArt, WorldView } from "./vie
 const MARGIN_X = WIDTH / TILE;
 const MARGIN_Y = HEIGHT / TILE;
 
-/** Drawing order: tiles below the characters, the characters, tiles above them, the fade. */
-const DEPTH_ABOVE = 2;
+/** Drawing order: tiles below the characters, the characters, tiles above them, characters over those (by elevation), the fade. */
 const DEPTH_CHARACTERS = 1;
-const DEPTH_FADE = 3;
+const DEPTH_ABOVE = 2;
+const DEPTH_CHARACTERS_OVER = 3;
+const DEPTH_FADE = 4;
 
 export class WorldScene extends Phaser.Scene implements WorldView {
   private tilemaps: Phaser.Tilemaps.Tilemap[] = [];
@@ -68,6 +69,7 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     return {
       setPosition: (x, y) => sprite.setPosition(x, y),
       setFrame: (frame, hFlip) => sprite.setFrame(frame).setFlipX(hFlip),
+      setOverTiles: (over) => sprite.setDepth(over ? DEPTH_CHARACTERS_OVER : DEPTH_CHARACTERS),
       destroy: () => {
         this.characters.delete(sprite);
         sprite.destroy();

@@ -32,12 +32,24 @@ var Start = struct {
 // ErrNoTrainer: the account has no trainer yet (New Game creates it).
 var ErrNoTrainer = errors.New("no trainer")
 
+// ErrSessionActive: another copy of the game plays the trainer; Join again with takeOver.
+var ErrSessionActive = live.ErrSessionActive
+
+// Bus reaches the other replicas: a connection there lost its player to a take-over here.
+type Bus interface {
+	SessionTaken(accountID int64, conn string)
+}
+
+// keepAliveEvery renews this replica's sessions well within live.SessionTTL.
+const keepAliveEvery = live.SessionTTL / 3
+
 // hasRunningShoes: FireRed gives the Running Shoes in Pewter City; story flags come in Phase 5.
 const hasRunningShoes = false
 
 type World struct {
 	maps Maps
 	live *live.Store
+	bus  Bus
 	pool *pgxpool.Pool
 	log  *slog.Logger
 	stop chan struct{}
@@ -48,17 +60,20 @@ type World struct {
 	closed  bool
 }
 
-func New(maps Maps, store *live.Store, pool *pgxpool.Pool, log *slog.Logger) (*World, error) {
+func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, log *slog.Logger) (*World, error) {
 	if maps[Start.Map] == nil {
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
-	return &World{maps: maps, live: store, pool: pool, log: log, stop: make(chan struct{}),
-		zones: map[string]*zone{}, players: map[int64]*Player{}}, nil
+	w := &World{maps: maps, live: store, bus: bus, pool: pool, log: log, stop: make(chan struct{}),
+		zones: map[string]*zone{}, players: map[int64]*Player{}}
+	go w.keepAlive()
+	return w, nil
 }
 
-// Join puts the account's trainer in the world for connection `conn`, taking it over from any
-// other connection, and returns the player and the snapshot for the client.
-func (w *World) Join(ctx context.Context, accountID int64, conn string, sink Sink) (*Player, *worldv1.WorldSnapshot, error) {
+// Join puts the account's trainer in the world for session s and returns the player and the
+// snapshot for the client. When another copy of the game plays it, Join fails with
+// ErrSessionActive unless takeOver, which disconnects that copy wherever it is.
+func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeOver bool, sink Sink) (*Player, *worldv1.WorldSnapshot, error) {
 	row, err := db.New(w.pool).GetTrainer(ctx, accountID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil, ErrNoTrainer
@@ -67,13 +82,13 @@ func (w *World) Join(ctx context.Context, accountID int64, conn string, sink Sin
 		return nil, nil, fmt.Errorf("join: %w", err)
 	}
 	saved := live.Position{Map: row.MapID, X: int(row.X), Y: int(row.Y), Facing: live.ParseFacing(row.Facing), Gen: row.CreatedAt.UnixMicro()}
-	pos, err := w.live.Claim(ctx, accountID, conn, saved)
+	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
 		return nil, nil, err
 	}
 	m, at, facing := w.place(pos)
 
-	p := &Player{accountID: accountID, conn: conn, gen: saved.Gen, sink: sink,
+	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
@@ -94,6 +109,9 @@ func (w *World) Join(ctx context.Context, accountID int64, conn string, sink Sin
 	w.mu.Unlock()
 	if old != nil {
 		old.sink.Kick()
+	}
+	if previous != "" && (old == nil || old.conn != previous) {
+		w.bus.SessionTaken(accountID, previous) // Played from another replica.
 	}
 	z.call(func() { z.add(p) })
 
@@ -130,6 +148,59 @@ func (w *World) Leave(p *Player) {
 	defer cancel()
 	if err := w.live.Release(ctx, p.accountID, p.conn); err != nil {
 		w.log.Error("release player", "account_id", p.accountID, "err", err)
+	}
+}
+
+// SessionTaken disconnects connection `conn` if it plays the account's trainer here.
+func (w *World) SessionTaken(accountID int64, conn string) {
+	w.mu.Lock()
+	p := w.players[accountID]
+	w.mu.Unlock()
+	if p != nil && p.conn == conn {
+		p.sink.Kick()
+	}
+}
+
+// PlayingElsewhere reports whether another copy of the game than `instance` plays the trainer.
+func (w *World) PlayingElsewhere(ctx context.Context, accountID int64, instance string) bool {
+	elsewhere, err := w.live.PlayingElsewhere(ctx, accountID, instance)
+	if err != nil {
+		w.log.Error("check session", "account_id", accountID, "err", err)
+	}
+	return elsewhere
+}
+
+// keepAlive renews this replica's sessions; one that was lost (taken over, New Game) is
+// disconnected even if its player stays still.
+func (w *World) keepAlive() {
+	t := time.NewTicker(keepAliveEvery)
+	defer t.Stop()
+	for {
+		select {
+		case <-w.stop:
+			return
+		case <-t.C:
+		}
+		w.mu.Lock()
+		players := make([]*Player, 0, len(w.players))
+		owners := make([]live.Owner, 0, len(w.players))
+		for _, p := range w.players {
+			players = append(players, p)
+			owners = append(owners, live.Owner{AccountID: p.accountID, Conn: p.conn})
+		}
+		w.mu.Unlock()
+		ctx, cancel := context.WithTimeout(context.Background(), keepAliveEvery)
+		owned, err := w.live.KeepAlive(ctx, owners)
+		cancel()
+		if err != nil {
+			w.log.Error("keep sessions alive", "err", err)
+			continue
+		}
+		for i, ok := range owned {
+			if !ok {
+				players[i].sink.Kick()
+			}
+		}
 	}
 }
 

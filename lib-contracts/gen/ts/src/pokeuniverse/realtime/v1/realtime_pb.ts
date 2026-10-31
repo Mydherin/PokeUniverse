@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/realtime/v1/realtime.proto.
  */
 export const file_pokeuniverse_realtime_v1_realtime: GenFile = /*@__PURE__*/
-  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKaAwoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIAEIJCgdwYXlsb2FkIuMCCg1TZXJ2ZXJNZXNzYWdlEgsKA3NlcRgBIAEoDRI0Cgd3ZWxjb21lGAIgASgLMiEucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLldlbGNvbWVIABIuCgRwb25nGAMgASgLMh4ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLlBvbmdIABIwCgVlcnJvchgEIAEoCzIfLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckgAEjgKCHNuYXBzaG90GAUgASgLMiQucG9rZXVuaXZlcnNlLndvcmxkLnYxLldvcmxkU25hcHNob3RIABI3Cgpjb3JyZWN0aW9uGAYgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkNvcnJlY3Rpb25IABIvCgZzY3JpcHQYByABKAsyHS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0SABCCQoHcGF5bG9hZCIkCgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJIh0KB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBCIbCgRQaW5nEhMKC2NsaWVudF90aW1lGAEgASgEIjAKBFBvbmcSEwoLY2xpZW50X3RpbWUYASABKAQSEwoLc2VydmVyX3RpbWUYAiABKAQiOgoFRXJyb3ISMQoEY29kZRgBIAEoDjIjLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckNvZGUqtQEKCUVycm9yQ29kZRIaChZFUlJPUl9DT0RFX1VOU1BFQ0lGSUVEEAASHgoaRVJST1JfQ09ERV9VTkFVVEhFTlRJQ0FURUQQARIcChhFUlJPUl9DT0RFX1RPS0VOX0VYUElSRUQQAhIaChZFUlJPUl9DT0RFX0JBRF9NRVNTQUdFEAMSGQoVRVJST1JfQ09ERV9OT19UUkFJTkVSEAQSFwoTRVJST1JfQ09ERV9SRVBMQUNFRBAFQkdaRXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcmVhbHRpbWUvdjE7cmVhbHRpbWV2MWIGcHJvdG8z", [file_pokeuniverse_world_v1_world]);
+  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKaAwoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIAEIJCgdwYXlsb2FkIuMCCg1TZXJ2ZXJNZXNzYWdlEgsKA3NlcRgBIAEoDRI0Cgd3ZWxjb21lGAIgASgLMiEucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLldlbGNvbWVIABIuCgRwb25nGAMgASgLMh4ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLlBvbmdIABIwCgVlcnJvchgEIAEoCzIfLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckgAEjgKCHNuYXBzaG90GAUgASgLMiQucG9rZXVuaXZlcnNlLndvcmxkLnYxLldvcmxkU25hcHNob3RIABI3Cgpjb3JyZWN0aW9uGAYgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkNvcnJlY3Rpb25IABIvCgZzY3JpcHQYByABKAsyHS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0SABCCQoHcGF5bG9hZCI2CgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJEhAKCGluc3RhbmNlGAIgASgJIjgKB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBBIZChFwbGF5aW5nX2Vsc2V3aGVyZRgCIAEoCCIbCgRQaW5nEhMKC2NsaWVudF90aW1lGAEgASgEIjAKBFBvbmcSEwoLY2xpZW50X3RpbWUYASABKAQSEwoLc2VydmVyX3RpbWUYAiABKAQiOgoFRXJyb3ISMQoEY29kZRgBIAEoDjIjLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckNvZGUq1AEKCUVycm9yQ29kZRIaChZFUlJPUl9DT0RFX1VOU1BFQ0lGSUVEEAASHgoaRVJST1JfQ09ERV9VTkFVVEhFTlRJQ0FURUQQARIcChhFUlJPUl9DT0RFX1RPS0VOX0VYUElSRUQQAhIaChZFUlJPUl9DT0RFX0JBRF9NRVNTQUdFEAMSGQoVRVJST1JfQ09ERV9OT19UUkFJTkVSEAQSFwoTRVJST1JfQ09ERV9SRVBMQUNFRBAFEh0KGUVSUk9SX0NPREVfU0VTU0lPTl9BQ1RJVkUQBkJHWkVwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3JlYWx0aW1lL3YxO3JlYWx0aW1ldjFiBnByb3RvMw", [file_pokeuniverse_world_v1_world]);
 
 /**
  * Client -> server: intents only.
@@ -153,6 +153,13 @@ export type Authenticate = Message<"pokeuniverse.realtime.v1.Authenticate"> & {
    * @generated from field: string access_token = 1;
    */
   accessToken: string;
+
+  /**
+   * This copy of the game (random per page load): one copy plays a trainer at a time.
+   *
+   * @generated from field: string instance = 2;
+   */
+  instance: string;
 };
 
 /**
@@ -172,6 +179,13 @@ export type Welcome = Message<"pokeuniverse.realtime.v1.Welcome"> & {
    * @generated from field: uint64 account_id = 1;
    */
   accountId: bigint;
+
+  /**
+   * Another copy of the game is playing this account's trainer in the world right now.
+   *
+   * @generated from field: bool playing_elsewhere = 2;
+   */
+  playingElsewhere: boolean;
 };
 
 /**
@@ -288,6 +302,13 @@ export enum ErrorCode {
    * @generated from enum value: ERROR_CODE_REPLACED = 5;
    */
   REPLACED = 5,
+
+  /**
+   * EnterWorld without take_over while another copy of the game plays the trainer.
+   *
+   * @generated from enum value: ERROR_CODE_SESSION_ACTIVE = 6;
+   */
+  SESSION_ACTIVE = 6,
 }
 
 /**

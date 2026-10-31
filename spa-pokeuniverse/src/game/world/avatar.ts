@@ -55,6 +55,8 @@ export class Avatar {
   /** Waiting for the server's answer to an interaction. */
   waiting = false;
   private elevation: number;
+  /** The last elevation other than 0 and 15 (previousElevation): decides how the player is drawn. */
+  private layerElevation: number;
   private running = Running.Still;
   private foot = 0;
   private step = 0;
@@ -70,7 +72,16 @@ export class Avatar {
     this.x = x;
     this.y = y;
     this.facing = facing;
-    this.elevation = elevationAt(map, x, y);
+    this.elevation = this.layerElevation = elevationAt(map, x, y);
+  }
+
+  /**
+   * Drawn over the tiles that cover characters (sElevationToPriority: sprite priority 1 or 0,
+   * over BG1): on elevations 4, 6, 8, 10, 12, 13 and 14, e.g. beside a bed.
+   */
+  get overTiles(): boolean {
+    const e = this.layerElevation;
+    return (e >= 4 && e <= 12 && e % 2 === 0) || e === 13 || e === 14;
   }
 
   /** The world pixel of the cell the sprite is drawn on (its top-left), mid-step included. */
@@ -115,7 +126,7 @@ export class Avatar {
     this.x = x;
     this.y = y;
     this.facing = facing;
-    this.elevation = elevationAt(this.map, x, y);
+    this.elevation = this.layerElevation = elevationAt(this.map, x, y);
     this.action = null;
     this.running = Running.Still;
   }
@@ -148,6 +159,7 @@ export class Avatar {
         this.link.move(++this.step >>> 0, d, running, this.x, this.y);
         const [dx, dy] = DELTAS[d];
         this.elevation = elevationAfter(this.map, this.elevation, this.x, this.y, this.x + dx, this.y + dy);
+        if (this.elevation !== 0 && this.elevation !== 15) this.layerElevation = this.elevation;
         this.x += dx;
         this.y += dy;
         this.start(running ? "run" : "walk", running ? RUN_FRAMES : WALK_FRAMES);

@@ -11,7 +11,7 @@
 - ✅ Server-authoritative grid movement and collisions (walls, one-way tiles, elevation, stair tiles): the client predicts, `mic-core` checks every step and pace, and corrects ([Movement](../tech-stack.md#movement)).
 - ✅ Objects in the room can be checked (A) and answer with the text box: signs, the NES, the PC (boot message; its menu comes with items), furniture by tile behavior; walking up to a signpost reads it.
 - Warps between maps: the stairs lead down to the house's first floor.
-- ✅ Position saved to Redis every tick and copied to PostgreSQL; after a crash the player continues on the same tile. One connection plays a trainer at a time.
+- ✅ Position saved to Redis every tick and copied to PostgreSQL; after a crash the player continues on the same tile. One copy of the game plays a trainer at a time: another copy asks before taking it over.
 - Keyboard controls (desktop) and touch controls (mobile).
 
 ## Done When

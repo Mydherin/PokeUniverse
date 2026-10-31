@@ -38,11 +38,15 @@ message ServerMessage {
 // First message after opening the socket, and again after every token refresh.
 message Authenticate {
   string access_token = 1;
+  // This copy of the game (random per page load): one copy plays a trainer at a time.
+  string instance = 2;
 }
 
 // Reply to the first valid Authenticate.
 message Welcome {
   uint64 account_id = 1;
+  // Another copy of the game is playing this account's trainer in the world right now.
+  bool playing_elsewhere = 2;
 }
 
 // Round-trip check.
@@ -74,4 +78,6 @@ enum ErrorCode {
   ERROR_CODE_NO_TRAINER = 4;
   // The account entered the world from another connection; this one is closed.
   ERROR_CODE_REPLACED = 5;
+  // EnterWorld without take_over while another copy of the game plays the trainer.
+  ERROR_CODE_SESSION_ACTIVE = 6;
 }

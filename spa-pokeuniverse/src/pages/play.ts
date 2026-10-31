@@ -47,7 +47,44 @@ export function playPage(): View {
     label.textContent = text;
   };
 
-  const connection = new Connection(show);
+  // Another copy of the game plays this trainer: continue here only if the player agrees.
+  const conflict = h(
+    "div",
+    { class: "absolute inset-0 z-20 flex items-center justify-center bg-night-900/85 p-6 backdrop-blur", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "conflict-title", hidden: true },
+    h(
+      "div",
+      { class: "panel max-w-sm space-y-4 p-6 text-center" },
+      h("h2", { id: "conflict-title", class: "font-display text-xl" }, "Playing somewhere else"),
+      h("p", { class: "text-ink-soft" }, "Your trainer is being played in another window or device. If you continue here, that session will be disconnected."),
+      h(
+        "div",
+        { class: "flex flex-wrap justify-center gap-3" },
+        h("a", { href: "/", "data-link": true, class: "btn btn-ghost" }, "Back to home"),
+        h(
+          "button",
+          {
+            type: "button",
+            class: "btn btn-play min-h-12 px-6 text-xl",
+            on: {
+              click: () => {
+                conflict.hidden = true;
+                connection.takeOver();
+              },
+            },
+          },
+          "Continue here",
+        ),
+      ),
+    ),
+  );
+  el.append(conflict);
+  const askTakeOver = () => {
+    if (!conflict.hidden) return;
+    conflict.hidden = false;
+    conflict.querySelector<HTMLButtonElement>("button")?.focus();
+  };
+
+  const connection = new Connection(show, askTakeOver);
   connection.connect();
 
   let stopGame: (() => void) | undefined;

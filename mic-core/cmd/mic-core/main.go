@@ -27,6 +27,7 @@ import (
 	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/ratelimit"
 	"pokeuniverse/mic-core/internal/realtime"
+	"pokeuniverse/mic-core/internal/sessionbus"
 	"pokeuniverse/mic-core/internal/store"
 	"pokeuniverse/mic-core/internal/trainer"
 	"pokeuniverse/mic-core/internal/world"
@@ -113,9 +114,13 @@ func run(log *slog.Logger) error {
 	}
 	positions := live.NewStore(rdb, pool, log)
 	go positions.CopyLoop(ctx, positionCopyInterval)
-	game, err := world.New(worldMaps, positions, pool, log)
+	bus := sessionbus.New(nc, log)
+	game, err := world.New(worldMaps, positions, bus, pool, log)
 	if err != nil {
 		return err
+	}
+	if _, err := bus.Subscribe(game.SessionTaken); err != nil {
+		return fmt.Errorf("nats: %w", err)
 	}
 	log.Info("world loaded", "maps", len(worldMaps))
 	ws := realtime.NewHandler(tokens, game, cfg.Origin(), log)

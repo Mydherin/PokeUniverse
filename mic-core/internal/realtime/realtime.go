@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -20,6 +19,7 @@ import (
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/auth"
+	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/world"
 )
 
@@ -48,9 +48,13 @@ type Verifier interface {
 
 // World is the overworld players enter.
 type World interface {
-	Join(ctx context.Context, accountID int64, conn string, sink world.Sink) (*world.Player, *worldv1.WorldSnapshot, error)
+	Join(ctx context.Context, accountID int64, s live.Session, takeOver bool, sink world.Sink) (*world.Player, *worldv1.WorldSnapshot, error)
 	Leave(p *world.Player)
+	PlayingElsewhere(ctx context.Context, accountID int64, instance string) bool
 }
+
+// maxInstance bounds the client's instance ID (a UUID).
+const maxInstance = 64
 
 type Handler struct {
 	verifier Verifier
@@ -154,6 +158,7 @@ type conn struct {
 	seq atomic.Uint32
 	// Only used by the reader goroutine.
 	principal auth.Principal
+	instance  string
 	expiry    *time.Timer
 	player    *world.Player
 
@@ -206,7 +211,7 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	}
 	switch p := msg.Payload.(type) {
 	case *realtimev1.ClientMessage_Authenticate:
-		return c.authenticate(p.Authenticate.GetAccessToken())
+		return c.authenticate(p.Authenticate.GetAccessToken(), p.Authenticate.GetInstance())
 	case *realtimev1.ClientMessage_Ping:
 		c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Pong{Pong: &realtimev1.Pong{
 			ClientTime: p.Ping.GetClientTime(),
@@ -214,7 +219,7 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		}}})
 		return true
 	case *realtimev1.ClientMessage_EnterWorld:
-		return c.enterWorld()
+		return c.enterWorld(p.EnterWorld.GetTakeOver())
 	}
 	// The rest are world intents: only once in the world.
 	if c.player == nil {
@@ -246,13 +251,14 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 }
 
 // enterWorld puts the trainer in the world (again, after a reconnect) and sends the snapshot.
-func (c *conn) enterWorld() bool {
+func (c *conn) enterWorld(takeOver bool) bool {
 	c.leaveWorld()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	p, snapshot, err := c.h.world.Join(ctx, c.principal.AccountID, c.id, sink{c})
-	if errors.Is(err, world.ErrNoTrainer) {
-		c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Error{Error: &realtimev1.Error{Code: realtimev1.ErrorCode_ERROR_CODE_NO_TRAINER}}})
+	p, snapshot, err := c.h.world.Join(ctx, c.principal.AccountID, live.Session{Instance: c.instance, Conn: c.id}, takeOver, sink{c})
+	if code, ok := joinErrors[err]; ok {
+		// The connection stays: the client may ask again (New Game, or take over).
+		c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Error{Error: &realtimev1.Error{Code: code}}})
 		return true
 	}
 	if err != nil {
@@ -273,6 +279,11 @@ func (c *conn) leaveWorld() {
 	}
 }
 
+var joinErrors = map[error]realtimev1.ErrorCode{
+	world.ErrNoTrainer:     realtimev1.ErrorCode_ERROR_CODE_NO_TRAINER,
+	world.ErrSessionActive: realtimev1.ErrorCode_ERROR_CODE_SESSION_ACTIVE,
+}
+
 // sink is how the world reaches the connection.
 type sink struct{ c *conn }
 
@@ -280,8 +291,10 @@ func (s sink) Send(msg *realtimev1.ServerMessage) { s.c.write(msg) }
 
 func (s sink) Kick() { s.c.fail(realtimev1.ErrorCode_ERROR_CODE_REPLACED, closeReplaced) }
 
-// authenticate accepts the first token and every refreshed one for the same account.
-func (c *conn) authenticate(token string) bool {
+// authenticate accepts the first token and every refreshed one for the same account. The
+// first one names the copy of the game (instance), answered in Welcome with whether another
+// copy plays the trainer now.
+func (c *conn) authenticate(token, instance string) bool {
 	p, err := c.h.verifier.Verify(token)
 	first := c.expiry == nil
 	if err != nil || (!first && p.AccountID != c.principal.AccountID) {
@@ -293,12 +306,20 @@ func (c *conn) authenticate(token string) bool {
 		c.expiry.Reset(time.Until(p.ExpiresAt))
 		return true
 	}
+	if instance == "" || len(instance) > maxInstance {
+		c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
+		return false
+	}
+	c.instance = instance
 	_ = c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.expiry = time.AfterFunc(time.Until(p.ExpiresAt), func() {
 		c.fail(realtimev1.ErrorCode_ERROR_CODE_TOKEN_EXPIRED, closeTokenExpired)
 	})
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 	c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Welcome{Welcome: &realtimev1.Welcome{
-		AccountId: uint64(p.AccountID),
+		AccountId:        uint64(p.AccountID),
+		PlayingElsewhere: c.h.world.PlayingElsewhere(ctx, p.AccountID, instance),
 	}}})
 	c.h.log.Info("player connected", "account_id", p.AccountID)
 	return true

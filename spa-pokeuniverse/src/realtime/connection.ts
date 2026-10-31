@@ -1,5 +1,7 @@
 // WebSocket to mic-core: Protocol Buffers envelopes, authenticated with the access token.
 // It also carries the world (WorldLink): entering it, the player's intents and the server's answers.
+// One copy of the game plays a trainer at a time: when another copy plays it, `onConflict` asks
+// the player, and `takeOver` disconnects the other copy.
 
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
@@ -40,7 +42,7 @@ export interface WorldLink {
 const PING_EVERY_MS = 5_000;
 // Close codes sent by mic-core when the token is missing, invalid or expired.
 const AUTH_CLOSE_CODES = new Set([4001, 4002]);
-// The account is played from another connection: don't take it back.
+// The trainer is played from another copy of the game: don't take it back unless asked.
 const CLOSE_REPLACED = 4004;
 
 type Payload = MessageInitShape<typeof ClientMessageSchema>["payload"];
@@ -55,9 +57,18 @@ export class Connection implements WorldLink {
   private world: WorldEvents | null = null;
   private entered = false;
   private welcomed = false;
+  private replaced = false;
+  /** The player agreed to disconnect the other copy; used by the next world entry. */
+  private takingOver = false;
+  /** This copy of the game, for the server to tell copies apart. */
+  private readonly instance = crypto.randomUUID();
   private readonly unsubscribe: () => void;
 
-  constructor(private readonly onStatus: (status: ConnectionStatus) => void) {
+  constructor(
+    private readonly onStatus: (status: ConnectionStatus) => void,
+    /** Another copy of the game plays the trainer (now, or took it from this one). */
+    private readonly onConflict: () => void = () => {},
+  ) {
     // Every refreshed token is sent over the open socket so it is never closed for expiry.
     this.unsubscribe = onSessionChange((session) => {
       if (!session) return this.stop({ state: "signed-out" });
@@ -74,9 +85,18 @@ export class Connection implements WorldLink {
     ws.binaryType = "arraybuffer";
     this.ws = ws;
 
-    ws.onopen = () => this.send({ case: "authenticate", value: { accessToken: getSession()?.accessToken ?? "" } });
+    ws.onopen = () => this.send({ case: "authenticate", value: { accessToken: getSession()?.accessToken ?? "", instance: this.instance } });
     ws.onmessage = (e) => this.receive(new Uint8Array(e.data as ArrayBuffer));
     ws.onclose = (e) => void this.reconnect(e.code);
+  }
+
+  /** Plays here, disconnecting the other copy of the game (the player agreed). */
+  takeOver(): void {
+    this.takingOver = true;
+    if (this.replaced) {
+      this.replaced = false;
+      this.connect();
+    } else if (this.welcomed && this.world) this.enterWorld();
   }
 
   close(): void {
@@ -97,7 +117,7 @@ export class Connection implements WorldLink {
     this.world = events;
     this.entered = false;
     // Before Welcome, Welcome sends it.
-    if (this.welcomed) this.send({ case: "enterWorld", value: {} });
+    if (this.welcomed) this.enterWorld();
   }
 
   leave(): void {
@@ -131,8 +151,9 @@ export class Connection implements WorldLink {
         this.ping();
         window.clearInterval(this.pingTimer);
         this.pingTimer = window.setInterval(() => this.ping(), PING_EVERY_MS);
+        if (msg.payload.value.playingElsewhere && !this.takingOver) this.onConflict();
         // Back in the world after a reconnect: a fresh snapshot puts the player where the server has it.
-        if (this.world) this.send({ case: "enterWorld", value: {} });
+        if (this.world) this.enterWorld();
         break;
       case "pong": {
         const latencyMs = Date.now() - Number(msg.payload.value.clientTime);
@@ -142,6 +163,8 @@ export class Connection implements WorldLink {
       }
       case "snapshot":
         this.entered = true;
+        // Taken over once; another copy taking it back later asks again.
+        this.takingOver = false;
         this.world?.snapshot(msg.payload.value);
         break;
       case "correction":
@@ -152,9 +175,14 @@ export class Connection implements WorldLink {
         break;
       case "error":
         if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();
+        else if (msg.payload.value.code === ErrorCode.SESSION_ACTIVE) this.onConflict();
         // Otherwise the close event that follows decides what to do.
         break;
     }
+  }
+
+  private enterWorld(): void {
+    this.send({ case: "enterWorld", value: { takeOver: this.takingOver } });
   }
 
   private ping(): void {
@@ -172,7 +200,11 @@ export class Connection implements WorldLink {
     this.entered = false;
     this.welcomed = false;
     if (this.stopped) return;
-    if (code === CLOSE_REPLACED) return this.stop({ state: "replaced" });
+    if (code === CLOSE_REPLACED) {
+      this.replaced = true;
+      this.onStatus({ state: "replaced" });
+      return this.onConflict();
+    }
     if (AUTH_CLOSE_CODES.has(code)) {
       const session = await refresh().catch(() => getSession());
       if (!session) return this.stop({ state: "signed-out" });

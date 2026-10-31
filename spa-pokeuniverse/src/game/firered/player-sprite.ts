@@ -99,6 +99,7 @@ export class PlayerSprite {
   update(avatar: Avatar): void {
     this.view.setPosition(avatar.pixelX, avatar.pixelY - 16);
     this.view.setFrame(frameOf(avatar.facing, avatar.action), avatar.facing === Direction.EAST);
+    this.view.setOverTiles(avatar.overTiles);
   }
 
   destroy(): void {

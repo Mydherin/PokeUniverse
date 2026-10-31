@@ -61,7 +61,7 @@ func (p *Player) ScriptDone(d *worldv1.ScriptDone) {
 }
 
 func (p *Player) save() live.Save {
-	return live.Save{AccountID: p.accountID, Conn: p.conn, Position: live.Position{
+	return live.Save{Owner: live.Owner{AccountID: p.accountID, Conn: p.conn}, Position: live.Position{
 		Map: p.zone.m.ID, X: p.pos.X, Y: p.pos.Y, Facing: p.facing, Gen: p.gen,
 	}}
 }

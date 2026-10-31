@@ -11,8 +11,12 @@ import "pokeuniverse/trainer/v1/trainer.proto";
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1;worldv1";
 
 // Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
-// after every reconnect; answered with a WorldSnapshot (or Error NO_TRAINER).
-message EnterWorld {}
+// after every reconnect; answered with a WorldSnapshot, or Error NO_TRAINER, or Error
+// SESSION_ACTIVE when another copy of the game plays the trainer and take_over isn't set.
+message EnterWorld {
+  // The player agreed to disconnect the other copy.
+  bool take_over = 1;
+}
 
 // One step, as the client predicted it.
 message Move {
@@ -91,4 +95,11 @@ message Message {
   string text = 1;
   // Read from a signpost: drawn in the signpost frame.
   bool sign = 2;
+}
+
+// mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
+// trainer over; the replica holding connection `conn` disconnects it.
+message SessionTaken {
+  uint64 account_id = 1;
+  string conn = 2;
 }

@@ -25,6 +25,8 @@ export interface CharacterView {
   /** The world pixel of the frame's top-left corner. */
   setPosition(x: number, y: number): void;
   setFrame(frame: number, hFlip: boolean): void;
+  /** Over the tiles that usually cover characters (or under them). */
+  setOverTiles(over: boolean): void;
   destroy(): void;
 }
 

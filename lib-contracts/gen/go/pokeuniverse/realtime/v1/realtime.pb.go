@@ -39,6 +39,8 @@ const (
 	ErrorCode_ERROR_CODE_NO_TRAINER ErrorCode = 4
 	// The account entered the world from another connection; this one is closed.
 	ErrorCode_ERROR_CODE_REPLACED ErrorCode = 5
+	// EnterWorld without take_over while another copy of the game plays the trainer.
+	ErrorCode_ERROR_CODE_SESSION_ACTIVE ErrorCode = 6
 )
 
 // Enum value maps for ErrorCode.
@@ -50,6 +52,7 @@ var (
 		3: "ERROR_CODE_BAD_MESSAGE",
 		4: "ERROR_CODE_NO_TRAINER",
 		5: "ERROR_CODE_REPLACED",
+		6: "ERROR_CODE_SESSION_ACTIVE",
 	}
 	ErrorCode_value = map[string]int32{
 		"ERROR_CODE_UNSPECIFIED":     0,
@@ -58,6 +61,7 @@ var (
 		"ERROR_CODE_BAD_MESSAGE":     3,
 		"ERROR_CODE_NO_TRAINER":      4,
 		"ERROR_CODE_REPLACED":        5,
+		"ERROR_CODE_SESSION_ACTIVE":  6,
 	}
 )
 
@@ -416,8 +420,10 @@ func (*ServerMessage_Script) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	// This copy of the game (random per page load): one copy plays a trainer at a time.
+	Instance      string `protobuf:"bytes,2,opt,name=instance,proto3" json:"instance,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -459,12 +465,21 @@ func (x *Authenticate) GetAccessToken() string {
 	return ""
 }
 
+func (x *Authenticate) GetInstance() string {
+	if x != nil {
+		return x.Instance
+	}
+	return ""
+}
+
 // Reply to the first valid Authenticate.
 type Welcome struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountId     uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	AccountId uint64                 `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	// Another copy of the game is playing this account's trainer in the world right now.
+	PlayingElsewhere bool `protobuf:"varint,2,opt,name=playing_elsewhere,json=playingElsewhere,proto3" json:"playing_elsewhere,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Welcome) Reset() {
@@ -502,6 +517,13 @@ func (x *Welcome) GetAccountId() uint64 {
 		return x.AccountId
 	}
 	return 0
+}
+
+func (x *Welcome) GetPlayingElsewhere() bool {
+	if x != nil {
+		return x.PlayingElsewhere
+	}
+	return false
 }
 
 // Round-trip check.
@@ -675,12 +697,14 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"correction\x18\x06 \x01(\v2!.pokeuniverse.world.v1.CorrectionH\x00R\n" +
 	"correction\x127\n" +
 	"\x06script\x18\a \x01(\v2\x1d.pokeuniverse.world.v1.ScriptH\x00R\x06scriptB\t\n" +
-	"\apayload\"1\n" +
+	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"(\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
+	"\binstance\x18\x02 \x01(\tR\binstance\"U\n" +
 	"\aWelcome\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x01 \x01(\x04R\taccountId\"'\n" +
+	"account_id\x18\x01 \x01(\x04R\taccountId\x12+\n" +
+	"\x11playing_elsewhere\x18\x02 \x01(\bR\x10playingElsewhere\"'\n" +
 	"\x04Ping\x12\x1f\n" +
 	"\vclient_time\x18\x01 \x01(\x04R\n" +
 	"clientTime\"H\n" +
@@ -690,14 +714,15 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\vserver_time\x18\x02 \x01(\x04R\n" +
 	"serverTime\"@\n" +
 	"\x05Error\x127\n" +
-	"\x04code\x18\x01 \x01(\x0e2#.pokeuniverse.realtime.v1.ErrorCodeR\x04code*\xb5\x01\n" +
+	"\x04code\x18\x01 \x01(\x0e2#.pokeuniverse.realtime.v1.ErrorCodeR\x04code*\xd4\x01\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aERROR_CODE_UNAUTHENTICATED\x10\x01\x12\x1c\n" +
 	"\x18ERROR_CODE_TOKEN_EXPIRED\x10\x02\x12\x1a\n" +
 	"\x16ERROR_CODE_BAD_MESSAGE\x10\x03\x12\x19\n" +
 	"\x15ERROR_CODE_NO_TRAINER\x10\x04\x12\x17\n" +
-	"\x13ERROR_CODE_REPLACED\x10\x05BGZEpokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1b\x06proto3"
+	"\x13ERROR_CODE_REPLACED\x10\x05\x12\x1d\n" +
+	"\x19ERROR_CODE_SESSION_ACTIVE\x10\x06BGZEpokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1b\x06proto3"
 
 var (
 	file_pokeuniverse_realtime_v1_realtime_proto_rawDescOnce sync.Once
