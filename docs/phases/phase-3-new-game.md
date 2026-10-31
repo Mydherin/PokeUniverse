@@ -6,7 +6,7 @@
 
 ## Scope
 
-- [x] **NEW GAME** on the main menu fades out into New Game, as in FireRed (from the NEW GAME-only window, or below CONTINUE). CONTINUE still only plays the select sound (Phase 4).
+- [x] **NEW GAME** below CONTINUE fades out into New Game, as in FireRed; an account without a trainer goes straight from the title screen to New Game (FireRed's empty save). CONTINUE still only plays the select sound (Phase 4).
 - [x] **Controls guide:** the 3 pages explaining the buttons (A next, B back), with the bobbing arrow and `mus_new_game_instruct`.
 - [x] **Pikachu pages:** the 3 pages with the animated Pikachu and their cross-fade, `mus_new_game_intro`, then `mus_new_game_exit`.
 - [x] **Oak's speech** in FireRed's order, text and art, with `mus_route24`: welcome; Nidoran♀ out of its Poké Ball (sparkles, white flash, cry) and back; BOY or GIRL; the player's name (naming screen, then YES/NO); the rival's name (NEW NAME or 4 presets, then YES/NO); "Let's go!"; the shrink, the white flash and the fade to black. Pictures fade in and out over the platform; the name menus slide the picture aside.

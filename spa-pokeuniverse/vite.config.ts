@@ -40,8 +40,10 @@ export default defineConfig({
             options: { cacheName: "game-engine", expiration: { maxEntries: 4 } },
           },
           {
+            // Not hashed: `make assets` can render a file again under the same name (e.g. the sound
+            // manifest's loop points), so the network comes first (a cheap 304 when unchanged), the cache offline.
             urlPattern: ({ url }) => url.pathname.startsWith("/firered/"),
-            handler: "CacheFirst",
+            handler: "NetworkFirst",
             options: { cacheName: "firered", expiration: { maxEntries: 300 } },
           },
           {

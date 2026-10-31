@@ -833,7 +833,8 @@ class NewGame {
   }
 
   private setUpShrinkPlayerPic(): void {
-    this.bg2.wrap = true;
+    // The game also turns BG2's wraparound on here, but only in its BG config: BGCNT is written
+    // by ShowBg, which never runs again, so the shrunk picture doesn't repeat around the screen.
     this.task.data[0] = 0;
     this.task.data[2] = 256;
     this.go(() => this.shrinkPlayerPic());

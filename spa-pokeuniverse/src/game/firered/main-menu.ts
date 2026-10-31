@@ -1,5 +1,6 @@
 // The main menu: CONTINUE (with the trainer's stats) and NEW GAME, as in FireRed. FireRed
-// has no OPTION entry here. An account without a trainer gets the game's NEW GAME-only window.
+// has no OPTION entry here. An account without a trainer has nothing to choose: as with an
+// empty save, the game goes straight to New Game, never drawing the menu.
 // A on NEW GAME fades out into New Game (Oak's speech); CONTINUE only plays the select sound
 // until the player's room exists (Phase 4). B goes back to the title screen.
 
@@ -12,13 +13,7 @@ import { fillBgRect, initBg } from "./common";
 import type { Flow } from "./flow";
 import { setBlend } from "./intro";
 
-const enum MenuType {
-  NewGame = 0,
-  Continue = 1,
-}
-
 const WINDOWS = {
-  newGameOnly: { left: 3, top: 1, width: 24, height: 2, palette: 15, baseBlock: 0x001 },
   continue: { left: 3, top: 1, width: 24, height: 10, palette: 15, baseBlock: 0x001 },
   newGame: { left: 3, top: 13, width: 24, height: 2, palette: 15, baseBlock: 0x0f1 },
   error: { left: 3, top: 15, width: 24, height: 4, palette: 15, baseBlock: 0x001 },
@@ -29,7 +24,7 @@ const FRAME_TILE = 0x1b1;
 const FRAME_PALETTE = 2;
 const TITLE_COLORS = [10, 11, 12] as const;
 const STAT_COLORS = [10, 1, 12] as const;
-const CURSOR_MAX = [0, 1];
+const CURSOR_MAX = 1;
 
 /** Sets the menu up on the next frame (CB2_InitMainMenu). */
 export function startMainMenu(flow: Flow): void {
@@ -57,7 +52,6 @@ function initMainMenu(flow: Flow): void {
   gba.setMain(gba.runFrame);
 
   const trainer = flow.trainer;
-  let menuType = MenuType.NewGame;
   let cursor = 0;
 
   const setDarkenRegs = () => {
@@ -123,22 +117,26 @@ function initMainMenu(flow: Flow): void {
     win.print(flow.font, 62, 66, STAT_COLORS, flow.encode(String(Math.min(t.badges, 9))));
   };
 
-  const printMenu = () => {
+  const printMenu = (t: TrainerSummary) => {
     setDarkenRegs();
-    const color = trainer?.gender === Gender.GIRL ? rgb(31, 3, 21) : rgb(4, 16, 31);
+    const color = t.gender === Gender.GIRL ? rgb(31, 3, 21) : rgb(4, 16, 31);
     palettes.load([color], 15 * 16 + 1, 1);
-    if (menuType === MenuType.NewGame) show(openWindow(WINDOWS.newGameOnly, "NEW GAME"));
-    else {
-      const cont = openWindow(WINDOWS.continue, "CONTINUE");
-      printStats(cont, trainer!);
-      const newGame = openWindow(WINDOWS.newGame, "NEW GAME");
-      show(cont);
-      show(newGame);
-    }
+    const cont = openWindow(WINDOWS.continue, "CONTINUE");
+    printStats(cont, t);
+    const newGame = openWindow(WINDOWS.newGame, "NEW GAME");
+    show(cont);
+    show(newGame);
+  };
+
+  // The New Game set has had the whole intro to load; a slow network waits on black,
+  // a failed load goes back to the title screen.
+  const startNewGame = () => {
+    current = () => {};
+    flow.newGameReady().then(() => flow.toNewGame(), () => flow.toTitle());
   };
 
   const moveCursorWindow = () => {
-    const [top, bottom] = menuType === MenuType.NewGame ? [0, 0x20] : cursor === 0 ? [0, 0x60] : [0x60, 0x80];
+    const [top, bottom] = cursor === 0 ? [0, 0x60] : [0x60, 0x80];
     Object.assign(video.win0, { left: 18, right: 222, top: top + 2, bottom: bottom - 2 });
   };
 
@@ -146,14 +144,10 @@ function initMainMenu(flow: Flow): void {
     const { input } = gba;
     if (input.isPressed(Button.A)) {
       flow.play("se_select");
-      if (menuType === MenuType.Continue && cursor === 0) return false;
+      if (cursor === 0) return false;
       palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
       current = () => {
-        if (palettes.fadeActive) return;
-        current = () => {};
-        // The New Game set has had the whole intro to load; a slow network waits on black,
-        // a failed load goes back to the title screen.
-        flow.newGameReady().then(() => flow.toNewGame(), () => flow.toTitle());
+        if (!palettes.fadeActive) startNewGame();
       };
     } else if (input.isPressed(Button.B)) {
       flow.play("se_select");
@@ -165,7 +159,7 @@ function initMainMenu(flow: Flow): void {
     } else if (input.isPressed(Button.Up) && cursor > 0) {
       cursor--;
       return true;
-    } else if (input.isPressed(Button.Down) && cursor < CURSOR_MAX[menuType]) {
+    } else if (input.isPressed(Button.Down) && cursor < CURSOR_MAX) {
       cursor++;
       return true;
     }
@@ -180,18 +174,24 @@ function initMainMenu(flow: Flow): void {
     if (!palettes.fadeActive && handleInput()) current = updateSelection;
   };
 
-  // Frame by frame, as the game sets the menu up: frame and menu type, registers, text, then the fade in.
+  // Frame by frame, as the game sets the menu up: frame, registers, text, then the fade in.
+  // Without a trainer, New Game starts on the still black screen once the registers are set.
   current = () => {
     if (palettes.fadeActive) return;
     setDarkenRegs();
     loadFrame();
-    menuType = trainer ? MenuType.Continue : MenuType.NewGame;
     current = () => {
       if (palettes.fadeActive) return;
       setDarkenRegs();
+      if (!trainer) {
+        current = () => {
+          if (!palettes.fadeActive) startNewGame();
+        };
+        return;
+      }
       current = () => {
         if (palettes.fadeActive) return;
-        printMenu();
+        printMenu(trainer);
         current = () => {
           current = updateSelection;
           palettes.beginFade(PALETTES_ALL, 0, 16, 0, RGB_WHITE);
