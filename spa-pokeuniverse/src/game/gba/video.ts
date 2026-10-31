@@ -135,6 +135,8 @@ export class Video {
   readonly palette = new Uint16Array(512);
   objs: ObjEntry[] = [];
   objOn = true;
+  /** The backdrop is drawn transparent, showing the world drawn under the screen. */
+  transparentBackdrop = false;
 
   readonly win0: Window = { left: 0, right: 0, top: 0, bottom: 0 };
   readonly win1: Window = { left: 0, right: 0, top: 0, bottom: 0 };
@@ -180,6 +182,7 @@ export class Video {
     for (const bg of this.bgs) bg.reset();
     this.objs = [];
     this.objOn = true;
+    this.transparentBackdrop = false;
     Object.assign(this.win0, { left: 0, right: 0, top: 0, bottom: 0 });
     Object.assign(this.win1, { left: 0, right: 0, top: 0, bottom: 0 });
     this.win0On = this.win1On = this.objWinOn = false;
@@ -302,7 +305,7 @@ export class Video {
           }
         }
       }
-      this.rgba[base + x] = this.lut[color & 0x7fff];
+      this.rgba[base + x] = topLayer === Layer.BD && this.transparentBackdrop ? 0 : this.lut[color & 0x7fff];
     }
     void palette;
   }

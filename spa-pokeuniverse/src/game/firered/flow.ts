@@ -3,6 +3,7 @@
 import type { Gender, TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { Gba } from "../gba/gba";
 import type { Font, FontId, Text, TextPrinters } from "../gba/text";
+import type { WorldView } from "../world/view";
 import type { Assets, SoundId } from "./manifest";
 
 /** The trainer Oak's speech decides: names as the game's encoded text. */
@@ -15,6 +16,8 @@ export interface NewTrainer {
 export interface Flow {
   readonly gba: Gba;
   readonly assets: Assets;
+  /** The world, drawn under the screen. */
+  readonly world: WorldView;
   /** FONT_NORMAL, ready from boot. */
   readonly font: Font;
   /** Every font, and the text printers; ready once `newGameReady` resolved. */
@@ -36,4 +39,6 @@ export interface Flow {
   toTitle(): void;
   toMainMenu(): void;
   toNewGame(): void;
+  /** The world, where the trainer is. */
+  toOverworld(): void;
 }

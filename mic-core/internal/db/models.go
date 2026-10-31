@@ -44,4 +44,7 @@ type Trainer struct {
 	PlayTimeSeconds int64
 	CreatedAt       time.Time
 	RivalName       string
+	MapID           string
+	X               int32
+	Y               int32
 }

@@ -47,6 +47,12 @@ export default defineConfig({
             options: { cacheName: "firered", expiration: { maxEntries: 300 } },
           },
           {
+            // Compiled by `make maps` under the same names, like FireRed's files.
+            urlPattern: ({ url }) => url.pathname.startsWith("/maps/"),
+            handler: "NetworkFirst",
+            options: { cacheName: "maps", expiration: { maxEntries: 500 } },
+          },
+          {
             urlPattern: ({ url }) => url.origin === "https://cdn.jsdelivr.net",
             handler: "CacheFirst",
             options: { cacheName: "sprites", expiration: { maxEntries: 500 }, cacheableResponse: { statuses: [0, 200] } },

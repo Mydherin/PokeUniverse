@@ -1,11 +1,12 @@
 // The FireRed start flow: copyright screen, intro, title screen, main menu, then New Game
-// (controls guide, Pikachu pages, Oak's speech, naming screens).
+// (controls guide, Pikachu pages, Oak's speech, naming screens) or CONTINUE, both into the world.
 // The title's timeout plays the intro again; B on the main menu goes back to the title.
 
 import { create, fromJson, toJson } from "@bufbuild/protobuf";
 import { NewTrainerSchema, TrainerSummarySchema, type TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { api } from "../../api/client";
 import type { Gba } from "../gba/gba";
+import type { WorldView } from "../world/view";
 import { decodeText, encodeText, Font, FontId, TextPrinters } from "../gba/text";
 import { startCopyright } from "./copyright";
 import type { Flow, NewTrainer } from "./flow";
@@ -13,6 +14,7 @@ import { startIntro } from "./intro";
 import { startMainMenu } from "./main-menu";
 import { Assets, NEW_GAME_SOUNDS, type SoundId } from "./manifest";
 import { startNewGame } from "./new-game";
+import { startOverworld } from "./overworld";
 import { startTitle } from "./title";
 
 /** The account's trainer, or null when it has none; a network error counts as none. */
@@ -45,7 +47,7 @@ async function putTrainer(assets: Assets, trainer: NewTrainer): Promise<TrainerS
   }
 }
 
-export function startFireRed(gba: Gba, assets: Assets, trainer: Promise<TrainerSummary | null>): void {
+export function startFireRed(gba: Gba, assets: Assets, world: WorldView, trainer: Promise<TrainerSummary | null>): void {
   let summary: TrainerSummary | null = null;
   void trainer.then((t) => (summary = t));
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
@@ -79,6 +81,7 @@ export function startFireRed(gba: Gba, assets: Assets, trainer: Promise<TrainerS
   const flow: Flow = {
     gba,
     assets,
+    world,
     font,
     get fonts() {
       return fonts!;
@@ -108,6 +111,7 @@ export function startFireRed(gba: Gba, assets: Assets, trainer: Promise<TrainerS
     toTitle: () => startTitle(flow),
     toMainMenu: () => startMainMenu(flow),
     toNewGame: () => startNewGame(flow),
+    toOverworld: () => startOverworld(flow),
   };
   flow.toCopyright();
 }

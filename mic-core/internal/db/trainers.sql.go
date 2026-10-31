@@ -10,7 +10,7 @@ import (
 )
 
 const getTrainer = `-- name: GetTrainer :one
-SELECT name, gender, play_time_seconds
+SELECT name, gender, play_time_seconds, map_id, x, y
 FROM trainers
 WHERE account_id = $1
 `
@@ -19,25 +19,38 @@ type GetTrainerRow struct {
 	Name            string
 	Gender          string
 	PlayTimeSeconds int64
+	MapID           string
+	X               int32
+	Y               int32
 }
 
 func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRow, error) {
 	row := q.db.QueryRow(ctx, getTrainer, accountID)
 	var i GetTrainerRow
-	err := row.Scan(&i.Name, &i.Gender, &i.PlayTimeSeconds)
+	err := row.Scan(
+		&i.Name,
+		&i.Gender,
+		&i.PlayTimeSeconds,
+		&i.MapID,
+		&i.X,
+		&i.Y,
+	)
 	return i, err
 }
 
 const putTrainer = `-- name: PutTrainer :one
-INSERT INTO trainers (account_id, name, gender, rival_name)
-VALUES ($1, $2, $3, $4)
+INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT (account_id) DO UPDATE
 SET name = EXCLUDED.name,
     gender = EXCLUDED.gender,
     rival_name = EXCLUDED.rival_name,
+    map_id = EXCLUDED.map_id,
+    x = EXCLUDED.x,
+    y = EXCLUDED.y,
     play_time_seconds = 0,
     created_at = now()
-RETURNING name, gender, play_time_seconds
+RETURNING name, gender, play_time_seconds, map_id, x, y
 `
 
 type PutTrainerParams struct {
@@ -45,23 +58,39 @@ type PutTrainerParams struct {
 	Name      string
 	Gender    string
 	RivalName string
+	MapID     string
+	X         int32
+	Y         int32
 }
 
 type PutTrainerRow struct {
 	Name            string
 	Gender          string
 	PlayTimeSeconds int64
+	MapID           string
+	X               int32
+	Y               int32
 }
 
-// New Game: the account's trainer, replaced if it already has one.
+// New Game: the account's trainer, replaced if it already has one, at the start location.
 func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrainerRow, error) {
 	row := q.db.QueryRow(ctx, putTrainer,
 		arg.AccountID,
 		arg.Name,
 		arg.Gender,
 		arg.RivalName,
+		arg.MapID,
+		arg.X,
+		arg.Y,
 	)
 	var i PutTrainerRow
-	err := row.Scan(&i.Name, &i.Gender, &i.PlayTimeSeconds)
+	err := row.Scan(
+		&i.Name,
+		&i.Gender,
+		&i.PlayTimeSeconds,
+		&i.MapID,
+		&i.X,
+		&i.Y,
+	)
 	return i, err
 }

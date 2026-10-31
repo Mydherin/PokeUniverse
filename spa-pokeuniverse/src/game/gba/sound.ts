@@ -28,11 +28,11 @@ export class Sound {
     private readonly manifest: Record<string, SoundInfo>,
   ) {}
 
-  /** Loads and decodes sounds; `url(id, ext)` gives each file. */
+  /** Loads and decodes the sounds not loaded yet; `url(id, ext)` gives each file. */
   async load(ids: string[], url: (id: string, ext: string) => string): Promise<void> {
     const ext = new Audio().canPlayType('audio/webm; codecs="opus"') ? "webm" : "m4a";
     await Promise.all(
-      ids.map(async (id) => {
+      ids.filter((id) => !this.buffers.has(id)).map(async (id) => {
         const res = await fetch(url(id, ext));
         if (!res.ok) throw new Error(`sound ${id}: ${res.status}`);
         this.buffers.set(id, await this.ctx.decodeAudioData(await res.arrayBuffer()));

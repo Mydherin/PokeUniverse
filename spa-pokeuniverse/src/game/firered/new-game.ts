@@ -3,7 +3,7 @@
 // screen), the rival's name (presets or the naming screen) and the shrink into the world.
 // Behavior, timings and numbers follow FireRed; the code is our own. Nothing is saved until
 // the end: the trainer goes to the server while the player shrinks, and the scene only ends
-// once it is saved. The game world arrives in Phase 4: the screen stays black.
+// once it is saved, going on into the world (the player's room).
 
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
@@ -910,10 +910,11 @@ class NewGame {
   private waitForFade(): void {
     if (this.gba.palettes.fadeActive) return;
     this.go(() => {});
-    // CB2_NewGame: the world arrives in Phase 4; until then the screen stays black.
+    // CB2_NewGame: into the world, where the server put the new trainer.
     void this.saved!.then(() => {
       this.flow.text.ctx.canABSpeedUpPrint = false;
       this.gba.tasks.destroy(this.task);
+      this.flow.toOverworld();
     });
   }
 

@@ -12,10 +12,11 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/trainer/v1/trainer.proto.
  */
 export const file_pokeuniverse_trainer_v1_trainer: GenFile = /*@__PURE__*/
-  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSKqAQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQFCEQoPX3Bva2VkZXhfY2F1Z2h0Il8KCk5ld1RyYWluZXISLwoGZ2VuZGVyGAEgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBG5hbWUYAiABKAkSEgoKcml2YWxfbmFtZRgDIAEoCSpBCgZHZW5kZXISFgoSR0VOREVSX1VOU1BFQ0lGSUVEEAASDgoKR0VOREVSX0JPWRABEg8KC0dFTkRFUl9HSVJMEAJCRVpDcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS90cmFpbmVyL3YxO3RyYWluZXJ2MWIGcHJvdG8z");
+  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSLfAQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQESMwoIbG9jYXRpb24YBiABKAsyIS5wb2tldW5pdmVyc2UudHJhaW5lci52MS5Mb2NhdGlvbkIRCg9fcG9rZWRleF9jYXVnaHQiLQoITG9jYXRpb24SCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDSJfCgpOZXdUcmFpbmVyEi8KBmdlbmRlchgBIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlchIMCgRuYW1lGAIgASgJEhIKCnJpdmFsX25hbWUYAyABKAkqQQoGR2VuZGVyEhYKEkdFTkRFUl9VTlNQRUNJRklFRBAAEg4KCkdFTkRFUl9CT1kQARIPCgtHRU5ERVJfR0lSTBACQkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvdHJhaW5lci92MTt0cmFpbmVydjFiBnByb3RvMw");
 
 /**
- * Response of GET /api/trainer: what the main menu's CONTINUE window shows.
+ * Response of GET /api/trainer: what the main menu's CONTINUE window shows, and where the
+ * game continues.
  *
  * @generated from message pokeuniverse.trainer.v1.TrainerSummary
  */
@@ -46,6 +47,11 @@ export type TrainerSummary = Message<"pokeuniverse.trainer.v1.TrainerSummary"> &
    * @generated from field: optional uint32 pokedex_caught = 5;
    */
   pokedexCaught?: number | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.Location location = 6;
+   */
+  location?: Location | undefined;
 };
 
 /**
@@ -54,6 +60,35 @@ export type TrainerSummary = Message<"pokeuniverse.trainer.v1.TrainerSummary"> &
  */
 export const TrainerSummarySchema: GenMessage<TrainerSummary> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_trainer_v1_trainer, 0);
+
+/**
+ * Where the trainer is: a map of lib-maps and a tile on it.
+ *
+ * @generated from message pokeuniverse.trainer.v1.Location
+ */
+export type Location = Message<"pokeuniverse.trainer.v1.Location"> & {
+  /**
+   * @generated from field: string map = 1;
+   */
+  map: string;
+
+  /**
+   * @generated from field: uint32 x = 2;
+   */
+  x: number;
+
+  /**
+   * @generated from field: uint32 y = 3;
+   */
+  y: number;
+};
+
+/**
+ * Describes the message pokeuniverse.trainer.v1.Location.
+ * Use `create(LocationSchema)` to create a new message.
+ */
+export const LocationSchema: GenMessage<Location> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_trainer_v1_trainer, 1);
 
 /**
  * Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
@@ -85,7 +120,7 @@ export type NewTrainer = Message<"pokeuniverse.trainer.v1.NewTrainer"> & {
  * Use `create(NewTrainerSchema)` to create a new message.
  */
 export const NewTrainerSchema: GenMessage<NewTrainer> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_trainer_v1_trainer, 1);
+  messageDesc(file_pokeuniverse_trainer_v1_trainer, 2);
 
 /**
  * @generated from enum pokeuniverse.trainer.v1.Gender

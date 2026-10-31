@@ -11,7 +11,8 @@ enum Gender {
   GENDER_GIRL = 2;
 }
 
-// Response of GET /api/trainer: what the main menu's CONTINUE window shows.
+// Response of GET /api/trainer: what the main menu's CONTINUE window shows, and where the
+// game continues.
 message TrainerSummary {
   string name = 1;
   Gender gender = 2;
@@ -19,6 +20,14 @@ message TrainerSummary {
   uint32 badges = 4;
   // Pokémon caught; unset until the player has the Pokédex.
   optional uint32 pokedex_caught = 5;
+  Location location = 6;
+}
+
+// Where the trainer is: a map of lib-maps and a tile on it.
+message Location {
+  string map = 1;
+  uint32 x = 2;
+  uint32 y = 3;
 }
 
 // Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.

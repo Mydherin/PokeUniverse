@@ -71,7 +71,7 @@ PokeUniverse/
 ### Shared Commands
 
 - **Make** runs every shared command; each tool runs in Docker, so only **Docker and Make** are needed on the host.
-- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make audio`: FireRed's art, text and sound into gitignored folders). `make maps` (render the maps' tileset art, validate and compile `lib-maps`) and `make tool-maps CMD="..."` (any map command, [maps.md](maps.md#tools)). `make emulator` (the original game, see below). `make up` runs `make assets` first. `make help` lists them.
+- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make audio` + `make maps`: FireRed's art, text, sound and maps into gitignored folders). `make maps` (render the maps' tileset art, validate and compile `lib-maps`) and `make tool-maps CMD="..."` (any map command, [maps.md](maps.md#tools)). `make emulator` (the original game, see below). `make up` runs `make assets` first. `make help` lists them.
 - **pnpm workspaces** for TypeScript packages; Go modules linked with `replace`.
 - **Generated code is committed** (Protocol Buffers, sqlc), so builds never need the generators.
 
@@ -106,7 +106,8 @@ Shows the game and sends player actions. Contains **no game rules**. Talks only 
 - **Phaser is lazy-loaded** only when the player opens the game; it and the game's art and sound are cached by the service worker on first play, not on install. FireRed's files (not hashed, rebuilt under the same names) are **network first**: always revalidated (a 304 when unchanged), the cache only offline, so a new build never plays stale art, text or loop points.
 - **Game code** (`src/game/`):
   - `gba/`: a small GBA-style engine, written from zero: the 240×160 compositor (tile backgrounds, an affine background, sprites with scale animations and flips, 512-color palette, windows, alpha/lighten/darken blending, per-scanline brightness), palette fades, per-frame tasks, fonts, text windows and the text printer (the game's encoded text: letter by letter, control codes, prompts), sound players, buttons with key repeat and touch controls. Logic runs at the GBA's 59.73 fps; Phaser provides the loop, scaling and Web Audio, and shows the frame as a texture.
-  - `firered/`: the FireRed presentation: its asset manifest (`manifest.ts`: a boot set, and a New Game set loaded in the background), sound and text lists (`sounds.json`, `texts.json`), its windows and menus (`menu.ts`) and screens (copyright, intro, title, main menu, New Game with Oak's speech, naming screen) as frame-driven state machines with FireRed's timings. Screens decide nothing: New Game sends the chosen trainer to `mic-core`, which validates and saves it.
+  - `firered/`: the FireRed presentation: its asset manifest (`manifest.ts`: a boot set, and a New Game set loaded in the background), sound and text lists (`sounds.json`, `texts.json`), its windows and menus (`menu.ts`) and screens (copyright, intro, title, main menu, New Game with Oak's speech, naming screen) as frame-driven state machines with FireRed's timings, and the overworld (`overworld.ts`: the trainer's map, its music, the fade in). Screens decide nothing: New Game sends the chosen trainer to `mic-core`, which validates and saves it, and the overworld shows the map `mic-core` says the trainer is on.
+  - `world/`: the world, the same for every art style: compiled maps (`map.ts`, from `/maps/<id>.binpb`), the renderer interface screens use (`view.ts`), and its Phaser implementation (`scene.ts`: tile layers below and above the characters, the camera and the screen fade). It is a Phaser scene drawn under the GBA screen, whose backdrop is then transparent; both share one fit (`screen.ts`).
 - **Served by nginx**, which also proxies `/auth` and `/ws` to `mic-core` on the **same origin**: first-party cookies, no CORS, strict Content Security Policy.
 
 ### Decoupled Presentation
@@ -137,7 +138,7 @@ Main server: player connections, world, movement, NPCs, items, quests, trades, c
 | **golang.org/x/time/rate** | Per-connection message rate limit | Official, in-memory token bucket |
 
 - **Go 1.27.** Layout: `cmd/mic-core` (wiring), `internal/<module>` (one responsibility each: `auth`, `account`, `admin`, `trainer`, `realtime`, `ratelimit`, `health`, `store`), `migrations/`, `queries/`.
-- **Tables so far:** `accounts`, `roles`, `account_roles`, `refresh_tokens`, `trainers` (one per account: name, gender, rival name, play time; created, or replaced, by New Game at the end of Oak's speech).
+- **Tables so far:** `accounts`, `roles`, `account_roles`, `refresh_tokens`, `trainers` (one per account: name, gender, rival name, play time, location (map and tile); created, or replaced, by New Game at the end of Oak's speech, in the player's room).
 
 ### Database Access: sqlc
 
@@ -252,7 +253,7 @@ spa-pokeuniverse ──► mic-core ──► NATS ──► mic-battles
   - Under **`/api/`** (proxied by the SPA's nginx like `/auth` and `/ws`).
   - Authenticated with the access token in `Authorization: Bearer`, verified locally; permissions checked per route against roles with one shared check (`auth.Tokens.Require`): `401` no or invalid token, `403` missing role.
   - Rate-limited per route; resources named by noun (`/api/admin/players/{id}/ban`, `/api/news`).
-  - Endpoints so far: `GET /api/admin/access` (`admin`; `204` confirms access, used by the Admin page); `GET /api/trainer` (`user`; `200` with the `TrainerSummary` the main menu's CONTINUE shows, `404` when the account has no trainer yet); `PUT /api/trainer` (`user`; a `NewTrainer` from the end of Oak's speech: gender and both names, checked against the naming screen's characters and length; saved in one statement, replacing the account's trainer as a new game replaces the save; idempotent, so the client retries until it is saved; `422` for an invalid trainer).
+  - Endpoints so far: `GET /api/admin/access` (`admin`; `204` confirms access, used by the Admin page); `GET /api/trainer` (`user`; `200` with the `TrainerSummary` the main menu's CONTINUE shows and the `location` the game continues from, `404` when the account has no trainer yet); `PUT /api/trainer` (`user`; a `NewTrainer` from the end of Oak's speech: gender and both names, checked against the naming screen's characters and length; saved in one statement, replacing the account's trainer as a new game replaces the save; idempotent, so the client retries until it is saved; `422` for an invalid trainer).
 - **When an HTTP action affects the game**, `mic-core` applies it over the live connection (e.g. a kick closes the player's WebSocket; a ban also revokes their sessions).
 - **Microservice ↔ microservice:** Protocol Buffers messages over **NATS**. Services never call each other directly.
 

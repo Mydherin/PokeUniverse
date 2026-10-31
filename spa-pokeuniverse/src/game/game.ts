@@ -1,5 +1,7 @@
 // Phaser runs the loop, scales the screen and owns Web Audio; the game draws a GBA-style
 // 240×160 frame (src/game/gba) and the FireRed screens run on it (src/game/firered).
+// The world (src/game/world) is drawn by Phaser under that frame, which is transparent
+// where nothing is drawn on it.
 // Presentation stays decoupled: screens use asset IDs mapped by the FireRed manifest
 // (tech-stack.md#decoupled-presentation).
 
@@ -11,6 +13,9 @@ import { touchControls } from "./gba/touch-controls";
 import { HEIGHT, WIDTH } from "./gba/video";
 import { fetchTrainer, startFireRed } from "./firered/boot";
 import { Assets, SOUNDS } from "./firered/manifest";
+import { fitScreen } from "./screen";
+import type { WorldView } from "./world/view";
+import { WorldScene } from "./world/scene";
 
 const FRAME_MS = 1000 / FPS;
 /** After a long pause (hidden tab, slow device), skip ahead instead of catching up. */
@@ -27,18 +32,18 @@ class GbaScreen extends Phaser.Scene {
 
   constructor(
     private readonly overlay: HTMLElement,
+    private readonly world: WorldView,
     private readonly onGba: (gba: Gba) => void,
   ) {
-    super("gba");
+    super({ key: "gba", active: true });
   }
 
   create(): void {
     const manager = this.sound as Phaser.Sound.WebAudioSoundManager;
     const ctx = manager.context ?? new AudioContext();
-    this.cameras.main.setBackgroundColor("#000000");
     this.texture = this.textures.createCanvas("gba", WIDTH, HEIGHT)!;
     this.pixels = this.texture.context.createImageData(WIDTH, HEIGHT);
-    this.image = this.add.image(0, 0, "gba");
+    this.image = this.add.image(0, 0, "gba").setOrigin(0);
     this.layout();
     this.scale.on("resize", () => this.layout());
     this.events.once(Phaser.Scenes.Events.DESTROY, () => (this.destroyed = true));
@@ -53,7 +58,7 @@ class GbaScreen extends Phaser.Scene {
       const start = () => {
         this.elapsed = 0;
         this.running = true;
-        startFireRed(this.gba, assets, trainer);
+        startFireRed(this.gba, assets, this.world, trainer);
       };
       if (ctx.state === "running") start();
       else this.waitForUnlock(ctx, start);
@@ -82,12 +87,9 @@ class GbaScreen extends Phaser.Scene {
     this.overlay.append(prompt);
   }
 
-  /** Integer scale when at least 2× fits, otherwise the largest fit; centered on black. */
   private layout(): void {
-    const { width, height } = this.scale;
-    const fit = Math.min(width / WIDTH, height / HEIGHT);
-    const scale = fit >= 2 ? Math.floor(fit) : fit;
-    this.image.setScale(scale).setPosition(Math.round(width / 2), Math.round(height / 2));
+    const { scale, left, top } = fitScreen(this.scale.width, this.scale.height);
+    this.image.setScale(scale).setPosition(left, top);
   }
 
   update(_time: number, delta: number): void {
@@ -118,6 +120,7 @@ export function startGame(parent: HTMLElement): () => void {
   parent.append(layout);
 
   let gba: Gba | undefined;
+  const world = new WorldScene();
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: screen,
@@ -125,12 +128,16 @@ export function startGame(parent: HTMLElement): () => void {
     backgroundColor: "#000000",
     scale: { mode: Phaser.Scale.RESIZE, width: screen.clientWidth, height: screen.clientHeight },
     banner: false,
-    scene: new GbaScreen(screen, (g) => {
-      gba = g;
-      const controls = touchControls(g.input);
-      left.append(controls.left);
-      right.append(controls.right);
-    }),
+    // Drawn in this order: the world, then the GBA screen over it.
+    scene: [
+      world,
+      new GbaScreen(screen, world, (g) => {
+        gba = g;
+        const controls = touchControls(g.input);
+        left.append(controls.left);
+        right.append(controls.right);
+      }),
+    ],
   });
   // Follow the screen size (rotation, keyboard, browser bars), not only window resizes.
   const observer = new ResizeObserver(() => game.scale.refresh());

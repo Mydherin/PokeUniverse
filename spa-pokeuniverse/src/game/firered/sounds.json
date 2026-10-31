@@ -6,6 +6,7 @@
   "mus_new_game_intro": { "song": "mus_new_game_intro" },
   "mus_new_game_exit": { "song": "mus_new_game_exit" },
   "mus_route24": { "song": "mus_route24" },
+  "mus_pallet": { "song": "mus_pallet" },
   "se_select": { "song": "se_select" },
   "se_ball": { "song": "se_ball" },
   "se_ball_open": { "song": "se_ball_open" },

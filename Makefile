@@ -52,7 +52,7 @@ ps: ## Show service status
 clean: ## Stop the stack and delete its data volumes
 	docker compose down -v
 
-assets: graphics text audio ## FireRed's graphics, text and sounds for the game
+assets: graphics text audio maps ## FireRed's graphics, text, sounds and maps for the game
 
 graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and tilemaps at runtime)
 	$(NEED_FIRERED)

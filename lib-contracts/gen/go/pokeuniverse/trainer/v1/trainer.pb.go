@@ -72,7 +72,8 @@ func (Gender) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{0}
 }
 
-// Response of GET /api/trainer: what the main menu's CONTINUE window shows.
+// Response of GET /api/trainer: what the main menu's CONTINUE window shows, and where the
+// game continues.
 type TrainerSummary struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -80,7 +81,8 @@ type TrainerSummary struct {
 	PlayTimeSeconds uint32                 `protobuf:"varint,3,opt,name=play_time_seconds,json=playTimeSeconds,proto3" json:"play_time_seconds,omitempty"`
 	Badges          uint32                 `protobuf:"varint,4,opt,name=badges,proto3" json:"badges,omitempty"`
 	// Pokémon caught; unset until the player has the Pokédex.
-	PokedexCaught *uint32 `protobuf:"varint,5,opt,name=pokedex_caught,json=pokedexCaught,proto3,oneof" json:"pokedex_caught,omitempty"`
+	PokedexCaught *uint32   `protobuf:"varint,5,opt,name=pokedex_caught,json=pokedexCaught,proto3,oneof" json:"pokedex_caught,omitempty"`
+	Location      *Location `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -150,6 +152,74 @@ func (x *TrainerSummary) GetPokedexCaught() uint32 {
 	return 0
 }
 
+func (x *TrainerSummary) GetLocation() *Location {
+	if x != nil {
+		return x.Location
+	}
+	return nil
+}
+
+// Where the trainer is: a map of lib-maps and a tile on it.
+type Location struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Map           string                 `protobuf:"bytes,1,opt,name=map,proto3" json:"map,omitempty"`
+	X             uint32                 `protobuf:"varint,2,opt,name=x,proto3" json:"x,omitempty"`
+	Y             uint32                 `protobuf:"varint,3,opt,name=y,proto3" json:"y,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Location) Reset() {
+	*x = Location{}
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Location) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Location) ProtoMessage() {}
+
+func (x *Location) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Location.ProtoReflect.Descriptor instead.
+func (*Location) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Location) GetMap() string {
+	if x != nil {
+		return x.Map
+	}
+	return ""
+}
+
+func (x *Location) GetX() uint32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *Location) GetY() uint32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
 // Request of PUT /api/trainer: the trainer New Game creates at the end of Oak's speech.
 // It replaces the account's trainer, as starting a new game replaces the save.
 type NewTrainer struct {
@@ -164,7 +234,7 @@ type NewTrainer struct {
 
 func (x *NewTrainer) Reset() {
 	*x = NewTrainer{}
-	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[1]
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -176,7 +246,7 @@ func (x *NewTrainer) String() string {
 func (*NewTrainer) ProtoMessage() {}
 
 func (x *NewTrainer) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[1]
+	mi := &file_pokeuniverse_trainer_v1_trainer_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -189,7 +259,7 @@ func (x *NewTrainer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewTrainer.ProtoReflect.Descriptor instead.
 func (*NewTrainer) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{1}
+	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *NewTrainer) GetGender() Gender {
@@ -217,14 +287,19 @@ var File_pokeuniverse_trainer_v1_trainer_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
 	"\n" +
-	"%pokeuniverse/trainer/v1/trainer.proto\x12\x17pokeuniverse.trainer.v1\"\xe0\x01\n" +
+	"%pokeuniverse/trainer/v1/trainer.proto\x12\x17pokeuniverse.trainer.v1\"\x9f\x02\n" +
 	"\x0eTrainerSummary\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x127\n" +
 	"\x06gender\x18\x02 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12*\n" +
 	"\x11play_time_seconds\x18\x03 \x01(\rR\x0fplayTimeSeconds\x12\x16\n" +
 	"\x06badges\x18\x04 \x01(\rR\x06badges\x12*\n" +
-	"\x0epokedex_caught\x18\x05 \x01(\rH\x00R\rpokedexCaught\x88\x01\x01B\x11\n" +
-	"\x0f_pokedex_caught\"x\n" +
+	"\x0epokedex_caught\x18\x05 \x01(\rH\x00R\rpokedexCaught\x88\x01\x01\x12=\n" +
+	"\blocation\x18\x06 \x01(\v2!.pokeuniverse.trainer.v1.LocationR\blocationB\x11\n" +
+	"\x0f_pokedex_caught\"8\n" +
+	"\bLocation\x12\x10\n" +
+	"\x03map\x18\x01 \x01(\tR\x03map\x12\f\n" +
+	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
+	"\x01y\x18\x03 \x01(\rR\x01y\"x\n" +
 	"\n" +
 	"NewTrainer\x127\n" +
 	"\x06gender\x18\x01 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12\x12\n" +
@@ -250,20 +325,22 @@ func file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_trainer_v1_trainer_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_trainer_v1_trainer_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_pokeuniverse_trainer_v1_trainer_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_pokeuniverse_trainer_v1_trainer_proto_goTypes = []any{
 	(Gender)(0),            // 0: pokeuniverse.trainer.v1.Gender
 	(*TrainerSummary)(nil), // 1: pokeuniverse.trainer.v1.TrainerSummary
-	(*NewTrainer)(nil),     // 2: pokeuniverse.trainer.v1.NewTrainer
+	(*Location)(nil),       // 2: pokeuniverse.trainer.v1.Location
+	(*NewTrainer)(nil),     // 3: pokeuniverse.trainer.v1.NewTrainer
 }
 var file_pokeuniverse_trainer_v1_trainer_proto_depIdxs = []int32{
 	0, // 0: pokeuniverse.trainer.v1.TrainerSummary.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	0, // 1: pokeuniverse.trainer.v1.NewTrainer.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	2, // 1: pokeuniverse.trainer.v1.TrainerSummary.location:type_name -> pokeuniverse.trainer.v1.Location
+	0, // 2: pokeuniverse.trainer.v1.NewTrainer.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_trainer_v1_trainer_proto_init() }
@@ -278,7 +355,7 @@ func file_pokeuniverse_trainer_v1_trainer_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_trainer_v1_trainer_proto_rawDesc), len(file_pokeuniverse_trainer_v1_trainer_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

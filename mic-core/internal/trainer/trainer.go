@@ -34,6 +34,12 @@ func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
 	mux.Handle("PUT /api/trainer", limit("trainer-put", 20, time.Minute, h.Tokens.Require(account.DefaultRole, http.HandlerFunc(h.put))))
 }
 
+// start is where New Game puts the trainer: their room, as FireRed's new game warp does.
+var start = struct {
+	mapID string
+	x, y  int32
+}{"pallet_town_players_house_2f", 6, 6}
+
 // maxBody bounds a NewTrainer request: two short names and a gender.
 const maxBody = 1 << 10
 
@@ -50,7 +56,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	httpx.WriteProtoJSON(w, http.StatusOK, summary(row.Name, row.Gender, row.PlayTimeSeconds))
+	httpx.WriteProtoJSON(w, http.StatusOK, summary(row))
 }
 
 // put creates the caller's trainer at the end of Oak's speech (New Game), replacing the
@@ -77,13 +83,16 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		Name:      req.Name,
 		Gender:    gender,
 		RivalName: req.RivalName,
+		MapID:     start.mapID,
+		X:         start.x,
+		Y:         start.y,
 	})
 	if err != nil {
 		h.Log.Error("put trainer", "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	httpx.WriteProtoJSON(w, http.StatusOK, summary(row.Name, row.Gender, row.PlayTimeSeconds))
+	httpx.WriteProtoJSON(w, http.StatusOK, summary(db.GetTrainerRow(row)))
 }
 
 var genders = map[trainerv1.Gender]string{
@@ -91,16 +100,17 @@ var genders = map[trainerv1.Gender]string{
 	trainerv1.Gender_GENDER_GIRL: "girl",
 }
 
-func summary(name, gender string, playTime int64) *trainerv1.TrainerSummary {
+func summary(row db.GetTrainerRow) *trainerv1.TrainerSummary {
 	g := trainerv1.Gender_GENDER_BOY
-	if gender == "girl" {
+	if row.Gender == "girl" {
 		g = trainerv1.Gender_GENDER_GIRL
 	}
 	return &trainerv1.TrainerSummary{
-		Name:            name,
+		Name:            row.Name,
 		Gender:          g,
-		PlayTimeSeconds: uint32(min(playTime, int64(^uint32(0)))),
+		PlayTimeSeconds: uint32(min(row.PlayTimeSeconds, int64(^uint32(0)))),
 		// Badges arrive with the gyms (Phase 10); pokedex_caught stays unset until the Pokédex exists.
-		Badges: 0,
+		Badges:   0,
+		Location: &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},
 	}
 }

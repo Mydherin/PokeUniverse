@@ -1,8 +1,8 @@
 // The main menu: CONTINUE (with the trainer's stats) and NEW GAME, as in FireRed. FireRed
 // has no OPTION entry here. An account without a trainer has nothing to choose: as with an
 // empty save, the game goes straight to New Game, never drawing the menu.
-// A on NEW GAME fades out into New Game (Oak's speech); CONTINUE only plays the select sound
-// until the player's room exists (Phase 4). B goes back to the title screen.
+// A fades out into the world where the trainer is (CONTINUE) or into New Game (Oak's
+// speech). B goes back to the title screen.
 
 import { Gender, type TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
@@ -144,10 +144,10 @@ function initMainMenu(flow: Flow): void {
     const { input } = gba;
     if (input.isPressed(Button.A)) {
       flow.play("se_select");
-      if (cursor === 0) return false;
       palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+      const next = cursor === 0 ? flow.toOverworld : startNewGame;
       current = () => {
-        if (!palettes.fadeActive) startNewGame();
+        if (!palettes.fadeActive) next();
       };
     } else if (input.isPressed(Button.B)) {
       flow.play("se_select");

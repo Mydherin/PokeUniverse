@@ -6,6 +6,7 @@
 import { fetchBin, fetchPal, fetchPng, toTiles, type IndexedImage } from "../gba/assets";
 import type { SoundInfo } from "../gba/sound";
 import type { Charmap, Text } from "../gba/text";
+import type { TilesetArt } from "../world/view";
 
 const ROOT = "/firered";
 
@@ -237,5 +238,10 @@ export class Assets {
 
   static soundUrl(id: string, ext: string): string {
     return `${ROOT}/audio/${id}.${ext}`;
+  }
+
+  /** A map tileset's sheets, rendered by `make maps` (maps.md#outputs). */
+  static tilesetArt(id: string): TilesetArt {
+    return { below: `${ROOT}/tilesets/${id}.png`, above: `${ROOT}/tilesets/${id}.above.png` };
   }
 }
