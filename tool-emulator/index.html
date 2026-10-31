@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FireRed (original)</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 14px system-ui, sans-serif; }
+    #game { width: 100%; height: 100%; }
+    #states { position: fixed; inset: 0; display: none; background: rgb(0 0 0 / 85%); overflow: auto; z-index: 10000; }
+    #states.open { display: block; }
+    #states header { display: flex; justify-content: space-between; align-items: center; padding: 16px; }
+    #states ul { list-style: none; margin: 0; padding: 0 16px 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    #states button { all: unset; cursor: pointer; display: block; width: 100%; background: #222; border-radius: 6px; overflow: hidden; }
+    #states button:hover { outline: 2px solid #e33; }
+    #states img { display: block; width: 100%; image-rendering: pixelated; background: #000; aspect-ratio: 3 / 2; }
+    #states span { display: block; padding: 8px; }
+    #states .close { padding: 6px 12px; background: #333; border-radius: 4px; width: auto; }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="states">
+    <header><strong>Load state</strong><button class="close" type="button">Close</button></header>
+    <ul></ul>
+  </div>
+  <script>
+    // ?state=<name> starts the game from states/<name>.state (`make emulator STATE=<name>`).
+    const startState = new URLSearchParams(location.search).get("state");
+    const timestamp = () => new Date().toISOString().slice(0, 19).replace("T", "_").replaceAll(":", "-");
+    const message = (text) => window.EJS_emulator.displayMessage(text);
+    const remember = (name) => history.replaceState(null, "", "?state=" + encodeURIComponent(name));
+
+    window.EJS_player = "#game";
+    window.EJS_core = "gba";
+    window.EJS_gameName = "firered";
+    window.EJS_gameUrl = "/firered.gba";
+    window.EJS_pathtodata = "/emulatorjs/";
+    window.EJS_DEBUG_XX = true; // The npm package ships unminified sources only.
+    window.EJS_startOnLoaded = true;
+    window.EJS_color = "#e33";
+    if (startState) window.EJS_loadStateURL = "/states/" + encodeURIComponent(startState) + ".state";
+
+    // Save states go to tool-emulator/states/ as files, not to the browser.
+    window.EJS_onSaveState = async ({ state, screenshot }) => {
+      const name = prompt("Save state as", timestamp());
+      if (!name) return;
+      if (!/^[\w.-]{1,80}$/.test(name) || name.startsWith(".")) return message("Use letters, digits, - _ . only");
+      await fetch("/states/" + name + ".state", { method: "PUT", body: state });
+      if (screenshot) await fetch("/states/" + name + ".png", { method: "PUT", body: screenshot });
+      remember(name);
+      message("Saved " + name);
+    };
+
+    const picker = document.getElementById("states");
+    picker.querySelector(".close").onclick = () => picker.classList.remove("open");
+
+    window.EJS_onLoadState = async () => {
+      const states = await (await fetch("/states")).json();
+      const list = picker.querySelector("ul");
+      list.replaceChildren(...states.map(({ name, savedAt }) => {
+        const item = document.createElement("li");
+        const button = document.createElement("button");
+        const img = document.createElement("img");
+        const label = document.createElement("span");
+        img.src = "/states/" + name + ".png";
+        img.alt = "";
+        label.textContent = name + " · " + new Date(savedAt).toLocaleString();
+        button.append(img, label);
+        button.onclick = async () => {
+          const data = await (await fetch("/states/" + name + ".state")).arrayBuffer();
+          window.EJS_emulator.gameManager.loadState(new Uint8Array(data));
+          picker.classList.remove("open");
+          remember(name);
+          message("Loaded " + name);
+        };
+        item.append(button);
+        return item;
+      }));
+      if (!states.length) list.textContent = "No save states yet.";
+      picker.classList.add("open");
+    };
+  </script>
+  <script src="/emulatorjs/loader.js"></script>
+</body>
+</html>

@@ -9,7 +9,7 @@ PNPM       := npm install -g pnpm@10 >/dev/null 2>&1 && pnpm
 RUN := docker run --rm -v "$(CURDIR)":/repo
 GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build
 
-.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text audio
+.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text audio emulator
 
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
@@ -71,6 +71,23 @@ audio: ## Render FireRed's music, sound effects and cries (docs/audio.md)
 	$(NEED_FIRERED)
 	@docker build -q -t pokeuniverse-audio infra/audio >/dev/null
 	$(RUN) --user "$$(id -u):$$(id -g)" pokeuniverse-audio sh /repo/infra/audio/render.sh
+
+# The original game in the browser (EmulatorJS + mGBA), to compare with ours. The ROM, EmulatorJS and the states are gitignored.
+EMU          := tool-emulator
+EMU_PORT     ?= 8090
+EMU_VERSION  := 4.2.3
+EMU_REGISTRY := https://registry.npmjs.org/@emulatorjs
+
+emulator: ## Play the original FireRed in the browser (ROM=path to copy a ROM in, STATE=name to start from a save state)
+	@if [ -n "$(ROM)" ]; then mkdir -p $(EMU)/rom && cp "$(ROM)" $(EMU)/rom/firered.gba; fi
+	@test -f $(EMU)/rom/firered.gba || { echo "No ROM: run make emulator ROM=path/to/firered.gba"; exit 1; }
+	@test -f $(EMU)/vendor/loader.js || $(RUN) --user "$$(id -u):$$(id -g)" -w /repo/$(EMU) $(NODE_IMAGE) sh -c '\
+		rm -rf vendor .fetch && mkdir -p .fetch/ejs .fetch/mgba && \
+		wget -qO- $(EMU_REGISTRY)/emulatorjs/-/emulatorjs-$(EMU_VERSION).tgz | tar xz -C .fetch/ejs && \
+		wget -qO- $(EMU_REGISTRY)/core-mgba/-/core-mgba-$(EMU_VERSION).tgz | tar xz -C .fetch/mgba && \
+		cp -R .fetch/mgba/package/. .fetch/ejs/package/data/cores/ && mv .fetch/ejs/package/data vendor && rm -rf .fetch'
+	@(sleep 2; open "http://localhost:$(EMU_PORT)/$(if $(STATE),?state=$(STATE))" 2>/dev/null || xdg-open "http://localhost:$(EMU_PORT)/$(if $(STATE),?state=$(STATE))") >/dev/null 2>&1 &
+	$(RUN) --init $$([ -t 0 ] && echo -it) --user "$$(id -u):$$(id -g)" -p 127.0.0.1:$(EMU_PORT):$(EMU_PORT) $(NODE_IMAGE) node /repo/$(EMU)/server.mjs $(EMU_PORT)
 
 generate: contracts sqlc ## Regenerate all generated code
 

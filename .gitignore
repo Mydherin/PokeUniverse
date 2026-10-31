@@ -16,3 +16,9 @@ bin/
 
 # FireRed assets, copied and rendered at build time (docs/tech-stack.md#firered-as-reference)
 spa-pokeuniverse/public/firered/
+
+# Original FireRed in the emulator: ROM, EmulatorJS and save states, never committed (make emulator)
+tool-emulator/rom/
+tool-emulator/vendor/
+tool-emulator/states/
+tool-emulator/.fetch/

@@ -32,6 +32,13 @@
 - When the reference and our design disagree, **our design wins**; we replicate the behavior, not the implementation.
 - **Assets exception:** FireRed's graphics are copied as they are by `make graphics` (no tool; drawn with their palettes and tilemaps at runtime; the fonts' glyph widths are read from `src/text.c` into JSON files), `make text` encodes the strings the game shows (dialogue, menus) with the game's `charmap.txt`, as its own build does (`infra/text/extract.mjs`; the list is `src/game/firered/texts.json`), and `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
 
+### Original Game (Emulator)
+
+- `tool-emulator/`: the original FireRed in **EmulatorJS** (mGBA core), served by a small Node server (`server.mjs`) in Docker, to compare our game with the real one.
+- `make emulator` opens it in the browser on `http://localhost:8090` (`EMU_PORT`). `ROM=path` copies a ROM in (to `rom/firered.gba`); `STATE=name` starts from that save state.
+- **Save states are files:** the emulator's Save/Load State buttons write to and list `tool-emulator/states/<name>.state` (+ a `.png` screenshot); `?state=<name>` starts from one. In-game saves stay in the browser.
+- The ROM, EmulatorJS (fetched from npm on first run, pinned version) and the states are **gitignored, never committed**.
+
 ## Code Principles
 
 - **Modular:** small modules, each owning one area (e.g. movement, inventory, encounters).
@@ -50,6 +57,7 @@ PokeUniverse/
 ├── mic-battles/        # Battle service (Node + Pokémon Showdown)
 ├── lib-contracts/      # Protocol Buffers contracts
 ├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
+├── tool-emulator/      # The original FireRed in the browser, to compare with ours (`make emulator`)
 ├── references/         # Read-only reference repos (Git submodules)
 ├── infra/              # Infrastructure config (e.g. nats/nats.conf; audio/: the `make audio` image; text/: the `make text` encoder)
 ├── docs/
@@ -62,7 +70,7 @@ PokeUniverse/
 ### Shared Commands
 
 - **Make** runs every shared command; each tool runs in Docker, so only **Docker and Make** are needed on the host.
-- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make audio`: FireRed's art, text and sound into gitignored folders). `make up` runs `make assets` first. `make help` lists them.
+- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make audio`: FireRed's art, text and sound into gitignored folders). `make emulator` (the original game, see below). `make up` runs `make assets` first. `make help` lists them.
 - **pnpm workspaces** for TypeScript packages; Go modules linked with `replace`.
 - **Generated code is committed** (Protocol Buffers, sqlc), so builds never need the generators.
 
