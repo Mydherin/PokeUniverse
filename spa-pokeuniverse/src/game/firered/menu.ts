@@ -107,6 +107,15 @@ export function drawStdFrame(win: Window, tile = STD_WINDOW_BASE_TILE, palette =
   win.copyToVram();
 }
 
+/** ClearStdWindowAndFrame: the frame and window back to tile 0, the window white. */
+export function clearStdWindowAndFrame(win: Window): void {
+  const { left, top, width, height } = win.template;
+  fillBgRect(win.bg, 0, left - 1, top - 1, width + 2, height + 2, STD_WINDOW_PALETTE);
+  win.fill(1);
+  win.clearTilemap();
+  win.copyToVram();
+}
+
 export function clearStdWindowAndFrameToTransparent(win: Window): void {
   const { left, top, width, height } = win.template;
   fillBgRect(win.bg, 0, left - 1, top - 1, width + 2, height + 2, 0);
@@ -120,6 +129,48 @@ export function printDefault(flow: Flow, win: Window, font: FontId, text: Text, 
   const f = flow.fonts[font];
   win.print(f, x, y, [1, 2, 3], text);
   win.copyToVram();
+}
+
+const HELP_WINDOW: WindowTemplate = { left: 0, top: 15, width: 30, height: 5, palette: DLG_WINDOW_PALETTE, baseBlock: 0x08f };
+/** The help bar's tiles: its top row, middle rows and bottom row. */
+const HELP_TILE_TOP = 0;
+const HELP_TILE_MIDDLE = 5;
+const HELP_TILE_BOTTOM = 14;
+
+/** The help bar at the bottom of the screen (help_message.c), e.g. under the START menu. */
+export class HelpMessageWindow {
+  private readonly win: Window;
+
+  /** DrawHelpMessageWindowWithText: loads its tiles and palette (in the dialogue frame's place). */
+  constructor(
+    private readonly flow: Flow,
+    bg: Background,
+    text: Text,
+  ) {
+    this.win = new Window(bg, HELP_WINDOW);
+    this.win.putTilemap();
+    copyTiles(bg, flow.assets.get("helpMessageWindow").tiles, DLG_WINDOW_BASE_TILE, 20);
+    flow.gba.palettes.load(flow.assets.get("textWindowPal2").palette, DLG_WINDOW_PALETTE * 16, 16);
+    this.print(text);
+  }
+
+  /** PrintTextOnHelpMessageWindow: the bar redrawn, then the text over it. */
+  print(text: Text): void {
+    const { win } = this;
+    const tiles = this.flow.assets.get("helpMessageWindow").tiles;
+    const { width, height } = win.template;
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++) win.copyTile(tiles, y === 0 ? HELP_TILE_TOP : y === height - 1 ? HELP_TILE_BOTTOM : HELP_TILE_MIDDLE, x, y);
+    win.print(this.flow.fonts[FontId.Normal], 2, 5, [0, 10, 2], text, 1, 1);
+    win.copyToVram();
+  }
+
+  /** DestroyHelpMessageWindow. */
+  destroy(): void {
+    this.win.fill(0);
+    this.win.clearTilemap();
+    this.win.copyToVram();
+  }
 }
 
 export const MENU_NOTHING_CHOSEN = -2;
@@ -157,6 +208,11 @@ export class CursorMenu {
     else this.cursorPos = next;
     this.redraw(old, this.cursorPos);
     return this.cursorPos;
+  }
+
+  /** Menu_MoveCursor: wraps around, no sound. */
+  moveCursor(delta: number): number {
+    return this.move(delta, true);
   }
 
   /** Menu_ProcessInput (wrapping) or Menu_ProcessInputNoWrapAround. */

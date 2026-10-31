@@ -103,6 +103,7 @@ Loaded in the background after boot (with the New Game art and text), so the int
 | `mus_new_game_exit` | Song (end of the Pikachu pages) | BGM |
 | `mus_route24` | Song, looping (Oak's speech) | BGM |
 | `se_ball_open`, `se_ball_trade` | Sound effects (Nidoran♀'s Poké Ball) | SE |
-| `se_ball`, `se_win_open` | Sound effects (naming screen: delete, page swap) | SE |
+| `se_ball`, `se_win_open` | Sound effects (naming screen: delete, page swap; `se_win_open` also opens the START menu) | SE |
 | `se_warp_in` | Sound effect (the player shrinks) | SE |
+| `se_card_open`, `se_card_flip`, `se_card_flipping` | Sound effects (Trainer Card: shown, flip, mid-flip) | SE |
 | `cry_nidoran_f` | Cry 28 | Cry |

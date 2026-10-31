@@ -30,6 +30,8 @@ export interface AvatarInput {
   run: boolean;
   /** A pressed this frame. */
   check: boolean;
+  /** START pressed this frame. */
+  menu: boolean;
 }
 
 /** What the avatar tells the server, and the sounds it makes. */
@@ -37,6 +39,8 @@ export interface AvatarLink {
   move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
   turn(direction: Direction): void;
   interact(walkInto: boolean): void;
+  /** START, standing still between steps: the START menu opens. */
+  openMenu(): void;
   bump(): void;
 }
 
@@ -116,6 +120,11 @@ export class Avatar {
     if (input.check) {
       this.waiting = true;
       this.link.interact(false);
+      return;
+    }
+    if (input.menu) {
+      this.running = Running.Still;
+      this.link.openMenu();
       return;
     }
     this.decide(input);

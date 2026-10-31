@@ -300,9 +300,11 @@ type WorldSnapshot struct {
 	Map    string  `protobuf:"bytes,1,opt,name=map,proto3" json:"map,omitempty"`
 	Player *Avatar `protobuf:"bytes,2,opt,name=player,proto3" json:"player,omitempty"`
 	// Whether B makes the player run here (the map allows it and the trainer has the Running Shoes).
-	CanRun        bool `protobuf:"varint,3,opt,name=can_run,json=canRun,proto3" json:"can_run,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	CanRun bool `protobuf:"varint,3,opt,name=can_run,json=canRun,proto3" json:"can_run,omitempty"`
+	// How long the trainer has played, up to 999:59:59; the client counts on from it.
+	PlayTimeSeconds uint32 `protobuf:"varint,4,opt,name=play_time_seconds,json=playTimeSeconds,proto3" json:"play_time_seconds,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *WorldSnapshot) Reset() {
@@ -354,6 +356,13 @@ func (x *WorldSnapshot) GetCanRun() bool {
 		return x.CanRun
 	}
 	return false
+}
+
+func (x *WorldSnapshot) GetPlayTimeSeconds() uint32 {
+	if x != nil {
+		return x.PlayTimeSeconds
+	}
+	return 0
 }
 
 type Avatar struct {
@@ -761,11 +770,12 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\twalk_into\x18\x01 \x01(\bR\bwalkInto\"$\n" +
 	"\n" +
 	"ScriptDone\x12\x16\n" +
-	"\x06script\x18\x01 \x01(\rR\x06script\"q\n" +
+	"\x06script\x18\x01 \x01(\rR\x06script\"\x9d\x01\n" +
 	"\rWorldSnapshot\x12\x10\n" +
 	"\x03map\x18\x01 \x01(\tR\x03map\x125\n" +
 	"\x06player\x18\x02 \x01(\v2\x1d.pokeuniverse.world.v1.AvatarR\x06player\x12\x17\n" +
-	"\acan_run\x18\x03 \x01(\bR\x06canRun\"\x95\x01\n" +
+	"\acan_run\x18\x03 \x01(\bR\x06canRun\x12*\n" +
+	"\x11play_time_seconds\x18\x04 \x01(\rR\x0fplayTimeSeconds\"\x95\x01\n" +
 	"\x06Avatar\x12\f\n" +
 	"\x01x\x18\x01 \x01(\rR\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\rR\x01y\x126\n" +

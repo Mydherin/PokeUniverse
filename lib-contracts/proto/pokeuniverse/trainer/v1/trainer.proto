@@ -11,8 +11,8 @@ enum Gender {
   GENDER_GIRL = 2;
 }
 
-// Response of GET /api/trainer: what the main menu's CONTINUE window shows, and where the
-// game continues.
+// Response of GET /api/trainer: what the main menu's CONTINUE window and the Trainer Card show,
+// and where the game continues.
 message TrainerSummary {
   string name = 1;
   Gender gender = 2;
@@ -21,6 +21,10 @@ message TrainerSummary {
   // Pokémon caught; unset until the player has the Pokédex.
   optional uint32 pokedex_caught = 5;
   Location location = 6;
+  // The ID No. on the Trainer Card: the public half (low 16 bits) of the trainer ID.
+  uint32 id_no = 7;
+  // ¥0 to ¥999999.
+  uint32 money = 8;
 }
 
 // Where the trainer is: a map of lib-maps and a tile on it.

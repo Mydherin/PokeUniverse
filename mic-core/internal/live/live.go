@@ -1,14 +1,17 @@
-// Package live keeps where online players are in Redis, saved on every change, and copies it to
-// PostgreSQL (tech-stack.md#saving-state-resilience). Redis is the truth while a player is
-// online; PostgreSQL afterwards.
+// Package live keeps where online players are and how long they have played in Redis, saved on
+// every change, and copies it to PostgreSQL (tech-stack.md#saving-state-resilience). Redis is
+// the truth while a player is online; PostgreSQL afterwards.
 //
 // Keys:
 //   - player:<id>:session — hash: the copy of the game (instance) and the connection that play
 //     the player; only that connection may save positions, so two connections (or replicas)
 //     never both write one player. It expires unless its replica keeps it alive (KeepAlive), so a
 //     crashed replica leaves no session behind.
-//   - player:<id>:pos     — hash: gen, map, x, y, facing.
-//   - players:moved       — set of players whose position isn't copied to PostgreSQL yet.
+//   - player:<id>:pos     — hash: gen, map, x, y, facing, played_ms (play time).
+//   - players:moved       — set of players whose position or play time isn't copied to PostgreSQL yet.
+//
+// Play time counts while a connection plays the trainer (FireRed counts it every frame in the
+// world), up to FireRed's 999:59:59; its replica adds the time played at each keep-alive.
 //
 // gen is the save the position belongs to (the trainer's created_at in Unix microseconds): a
 // New Game starts a new save, and positions of the old one are never used or copied again.
@@ -29,24 +32,30 @@ import (
 	"pokeuniverse/mic-core/internal/db"
 )
 
-// Position is a player's location in save Gen.
+// Position is a player's location and play time in save Gen.
 type Position struct {
 	Map    string
 	X, Y   int
 	Facing mapv1.Direction
 	Gen    int64
+	Played time.Duration
+}
+
+// MaxPlayed is FireRed's longest play time, 999:59:59.
+const MaxPlayed = 999*time.Hour + 59*time.Minute + 59*time.Second
+
+// Owner is a connection that plays an account's trainer, and the time played since it last
+// counted.
+type Owner struct {
+	AccountID int64
+	Conn      string
+	Played    time.Duration
 }
 
 // Session is who plays a trainer: a copy of the game (random per page load) and its connection.
 type Session struct {
 	Instance string
 	Conn     string
-}
-
-// Owner is a connection that plays an account's trainer.
-type Owner struct {
-	AccountID int64
-	Conn      string
 }
 
 // Save is one position to write for the connection that owns the player.
@@ -67,20 +76,26 @@ const (
 func sessionKey(id int64) string { return fmt.Sprintf("player:%d:session", id) }
 func posKey(id int64) string     { return fmt.Sprintf("player:%d:pos", id) }
 
-// claimScript: KEYS session, pos; ARGV instance, conn, takeOver, ttl ms, gen, map, x, y, facing.
-// {"active"} when another instance plays and takeOver isn't "1"; otherwise takes the session and
-// returns {"ok", previous conn, map, x, y, facing}: the live position of save gen, or the given
-// one (then stored).
+// claimScript: KEYS session, pos; ARGV instance, conn, takeOver, ttl ms, gen, map, x, y, facing,
+// played ms. {"active"} when another instance plays and takeOver isn't "1"; otherwise takes the
+// session and returns {"ok", previous conn, map, x, y, facing, played ms}: the live state of save
+// gen, or the given one (then stored).
 var claimScript = redis.NewScript(`
 local cur = redis.call('HMGET', KEYS[1], 'instance', 'conn')
 if cur[1] and cur[1] ~= ARGV[1] and ARGV[3] ~= '1' then return {'active'} end
 redis.call('HSET', KEYS[1], 'instance', ARGV[1], 'conn', ARGV[2])
 redis.call('PEXPIRE', KEYS[1], ARGV[4])
 local prev = cur[2] or ''
-local p = redis.call('HMGET', KEYS[2], 'gen', 'map', 'x', 'y', 'facing')
-if p[1] == ARGV[5] then return {'ok', prev, p[2], p[3], p[4], p[5]} end
-redis.call('HSET', KEYS[2], 'gen', ARGV[5], 'map', ARGV[6], 'x', ARGV[7], 'y', ARGV[8], 'facing', ARGV[9])
-return {'ok', prev, ARGV[6], ARGV[7], ARGV[8], ARGV[9]}
+local p = redis.call('HMGET', KEYS[2], 'gen', 'map', 'x', 'y', 'facing', 'played_ms')
+if p[1] == ARGV[5] then
+  if not p[6] then
+    p[6] = ARGV[10]
+    redis.call('HSET', KEYS[2], 'played_ms', p[6])
+  end
+  return {'ok', prev, p[2], p[3], p[4], p[5], p[6]}
+end
+redis.call('HSET', KEYS[2], 'gen', ARGV[5], 'map', ARGV[6], 'x', ARGV[7], 'y', ARGV[8], 'facing', ARGV[9], 'played_ms', ARGV[10])
+return {'ok', prev, ARGV[6], ARGV[7], ARGV[8], ARGV[9], ARGV[10]}
 `)
 
 // saveScript: KEYS session, pos, moved; ARGV conn, gen, map, x, y, facing, account, ttl ms. 0 when
@@ -93,20 +108,39 @@ redis.call('SADD', KEYS[3], ARGV[7])
 return 1
 `)
 
-// keepAliveScript: KEYS session; ARGV conn, ttl ms. 0 when the connection no longer owns it.
-var keepAliveScript = redis.NewScript(`
+// addPlayed (Lua): adds ARGV[n] ms of play time to KEYS[2] up to ARGV[n+1] ms, and marks the
+// player (ARGV[n+2]) in KEYS[3] for the copy to PostgreSQL.
+const addPlayed = `
+local function addPlayed(n)
+  local add = tonumber(ARGV[n])
+  if add <= 0 then return end
+  local played = math.min(redis.call('HINCRBY', KEYS[2], 'played_ms', add), tonumber(ARGV[n + 1]))
+  redis.call('HSET', KEYS[2], 'played_ms', played)
+  redis.call('SADD', KEYS[3], ARGV[n + 2])
+end
+`
+
+// keepAliveScript: KEYS session, pos, moved; ARGV conn, ttl ms, played ms, max ms, account. 0 when
+// the connection no longer owns the player.
+var keepAliveScript = redis.NewScript(addPlayed + `
 if redis.call('HGET', KEYS[1], 'conn') ~= ARGV[1] then return 0 end
 redis.call('PEXPIRE', KEYS[1], ARGV[2])
+addPlayed(3)
 return 1
 `)
 
-// releaseScript: KEYS session, pos; ARGV conn. Ends the session if the connection owns it and
-// returns the position (gen, map, x, y, facing); nil otherwise.
-var releaseScript = redis.NewScript(`
-if redis.call('HGET', KEYS[1], 'conn') ~= ARGV[1] then return false end
+// releaseScript: KEYS session, pos, moved; ARGV played ms, max ms, account, conn. Ends the
+// session if the connection owns it, counts its last play time and returns the player's state
+// (gen, map, x, y, facing, played ms); nil otherwise.
+var releaseScript = redis.NewScript(addPlayed + `
+if redis.call('HGET', KEYS[1], 'conn') ~= ARGV[4] then return false end
 redis.call('DEL', KEYS[1])
-return redis.call('HMGET', KEYS[2], 'gen', 'map', 'x', 'y', 'facing')
+addPlayed(1)
+return redis.call('HMGET', KEYS[2], 'gen', 'map', 'x', 'y', 'facing', 'played_ms')
 `)
+
+// stateFields are the hash fields parse reads, in order.
+var stateFields = []string{"gen", "map", "x", "y", "facing", "played_ms"}
 
 type Store struct {
 	rdb  *redis.Client
@@ -124,14 +158,14 @@ func NewStore(rdb *redis.Client, pool *pgxpool.Pool, log *slog.Logger) *Store {
 func (s *Store) Claim(ctx context.Context, accountID int64, sess Session, takeOver bool, fallback Position) (Position, string, error) {
 	res, err := claimScript.Run(ctx, s.rdb, []string{sessionKey(accountID), posKey(accountID)},
 		sess.Instance, sess.Conn, takeOver, SessionTTL.Milliseconds(),
-		fallback.Gen, fallback.Map, fallback.X, fallback.Y, int32(fallback.Facing)).StringSlice()
+		fallback.Gen, fallback.Map, fallback.X, fallback.Y, int32(fallback.Facing), fallback.Played.Milliseconds()).StringSlice()
 	if err != nil {
 		return Position{}, "", fmt.Errorf("claim position: %w", err)
 	}
 	if len(res) == 1 && res[0] == "active" {
 		return Position{}, "", ErrSessionActive
 	}
-	if len(res) != 6 {
+	if len(res) != 7 {
 		return Position{}, "", fmt.Errorf("claim position: unexpected reply")
 	}
 	previous := res[1]
@@ -154,11 +188,13 @@ func (s *Store) PlayingElsewhere(ctx context.Context, accountID int64, instance 
 	return err == nil && cur != instance, err
 }
 
-// KeepAlive renews the sessions in one round trip; owned[i] is false when owners[i] lost its
-// player (taken over, or New Game).
+// KeepAlive renews the sessions and adds their play time in one round trip; owned[i] is false
+// when owners[i] lost its player (taken over, or New Game).
 func (s *Store) KeepAlive(ctx context.Context, owners []Owner) ([]bool, error) {
 	return s.pipelined(ctx, keepAliveScript, len(owners), func(i int) ([]string, []any) {
-		return []string{sessionKey(owners[i].AccountID)}, []any{owners[i].Conn, SessionTTL.Milliseconds()}
+		o := owners[i]
+		return []string{sessionKey(o.AccountID), posKey(o.AccountID), movedKey},
+			[]any{o.Conn, SessionTTL.Milliseconds(), o.Played.Milliseconds(), MaxPlayed.Milliseconds(), o.AccountID}
 	})
 }
 
@@ -204,10 +240,12 @@ func (s *Store) pipelined(ctx context.Context, script *redis.Script, n int, args
 	}
 }
 
-// Release ends conn's session and copies the player's position to PostgreSQL. Nothing happens
-// when another connection owns the player by now.
-func (s *Store) Release(ctx context.Context, accountID int64, conn string) error {
-	res, err := releaseScript.Run(ctx, s.rdb, []string{sessionKey(accountID), posKey(accountID)}, conn).Slice()
+// Release ends o's session, adds its last play time and copies the player's state to
+// PostgreSQL. Nothing happens when another connection owns the player by now.
+func (s *Store) Release(ctx context.Context, o Owner) error {
+	accountID := o.AccountID
+	res, err := releaseScript.Run(ctx, s.rdb, []string{sessionKey(accountID), posKey(accountID), movedKey},
+		o.Played.Milliseconds(), MaxPlayed.Milliseconds(), accountID, o.Conn).Slice()
 	if errors.Is(err, redis.Nil) {
 		return nil
 	}
@@ -230,9 +268,9 @@ func (s *Store) Release(ctx context.Context, accountID int64, conn string) error
 	return nil
 }
 
-// Location is the player's live position in save gen, if Redis has one.
+// Location is the player's live position and play time in save gen, if Redis has them.
 func (s *Store) Location(ctx context.Context, accountID, gen int64) (Position, bool, error) {
-	res, err := s.rdb.HMGet(ctx, posKey(accountID), "gen", "map", "x", "y", "facing").Result()
+	res, err := s.rdb.HMGet(ctx, posKey(accountID), stateFields...).Result()
 	if err != nil {
 		return Position{}, false, err
 	}
@@ -278,7 +316,7 @@ func (s *Store) copyMoved(ctx context.Context) (int, error) {
 			if err != nil {
 				continue
 			}
-			res, err := s.rdb.HMGet(ctx, posKey(id), "gen", "map", "x", "y", "facing").Result()
+			res, err := s.rdb.HMGet(ctx, posKey(id), stateFields...).Result()
 			if err == nil {
 				fields := make([]string, len(res))
 				for i, v := range res {
@@ -297,22 +335,23 @@ func (s *Store) copyMoved(ctx context.Context) (int, error) {
 	}
 }
 
-// copy writes a position into its save in PostgreSQL (no-op if New Game replaced that save).
+// copy writes a position and play time into its save in PostgreSQL (no-op if New Game replaced that save).
 func (s *Store) copy(ctx context.Context, accountID int64, p Position) error {
-	_, err := db.New(s.pool).UpdateTrainerLocation(ctx, db.UpdateTrainerLocationParams{
-		AccountID: accountID,
-		MapID:     p.Map,
-		X:         int32(p.X),
-		Y:         int32(p.Y),
-		Facing:    FacingName(p.Facing),
-		CreatedAt: time.UnixMicro(p.Gen),
+	_, err := db.New(s.pool).UpdateTrainerLive(ctx, db.UpdateTrainerLiveParams{
+		AccountID:       accountID,
+		MapID:           p.Map,
+		X:               int32(p.X),
+		Y:               int32(p.Y),
+		Facing:          FacingName(p.Facing),
+		PlayTimeSeconds: int64(p.Played / time.Second),
+		CreatedAt:       time.UnixMicro(p.Gen),
 	})
 	return err
 }
 
-// parse reads gen, map, x, y, facing.
+// parse reads stateFields; a missing play time is 0.
 func parse(f []string) (Position, bool) {
-	if len(f) != 5 || f[1] == "" {
+	if len(f) != len(stateFields) || f[1] == "" {
 		return Position{}, false
 	}
 	gen, err1 := strconv.ParseInt(f[0], 10, 64)
@@ -322,7 +361,8 @@ func parse(f []string) (Position, bool) {
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return Position{}, false
 	}
-	return Position{Map: f[1], X: x, Y: y, Facing: mapv1.Direction(facing), Gen: gen}, true
+	played, _ := strconv.ParseInt(f[5], 10, 64)
+	return Position{Map: f[1], X: x, Y: y, Facing: mapv1.Direction(facing), Gen: gen, Played: time.Duration(played) * time.Millisecond}, true
 }
 
 func isNoScript(err error) bool { return redis.HasErrorPrefix(err, "NOSCRIPT") }

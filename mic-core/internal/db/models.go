@@ -48,4 +48,6 @@ type Trainer struct {
 	X               int32
 	Y               int32
 	Facing          string
+	TrainerID       int64
+	Money           int32
 }

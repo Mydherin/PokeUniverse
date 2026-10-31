@@ -1,6 +1,7 @@
 package world
 
 import (
+	"sync/atomic"
 	"time"
 
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
@@ -24,6 +25,8 @@ type Player struct {
 	gen       int64
 	sink      Sink
 	zone      *zone
+	// When its play time was last counted (Unix nanoseconds); swapped by keep-alive and Leave.
+	counted atomic.Int64
 
 	pos       Point
 	facing    mapv1.Direction

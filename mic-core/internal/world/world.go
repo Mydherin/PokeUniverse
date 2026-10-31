@@ -81,7 +81,8 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if err != nil {
 		return nil, nil, fmt.Errorf("join: %w", err)
 	}
-	saved := live.Position{Map: row.MapID, X: int(row.X), Y: int(row.Y), Facing: live.ParseFacing(row.Facing), Gen: row.CreatedAt.UnixMicro()}
+	saved := live.Position{Map: row.MapID, X: int(row.X), Y: int(row.Y), Facing: live.ParseFacing(row.Facing), Gen: row.CreatedAt.UnixMicro(),
+		Played: time.Duration(row.PlayTimeSeconds) * time.Second}
 	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
 		return nil, nil, err
@@ -92,6 +93,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
+	p.counted.Store(time.Now().UnixNano())
 
 	w.mu.Lock()
 	if w.closed {
@@ -123,6 +125,8 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		Map:    m.ID,
 		Player: &worldv1.Avatar{X: uint32(at.X), Y: uint32(at.Y), Facing: facing, Gender: gender},
 		CanRun: p.canRun,
+		// The client counts on from here; each Join sends the server's count again.
+		PlayTimeSeconds: uint32(pos.Played / time.Second),
 	}, nil
 }
 
@@ -146,7 +150,7 @@ func (w *World) Leave(p *Player) {
 	w.mu.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := w.live.Release(ctx, p.accountID, p.conn); err != nil {
+	if err := w.live.Release(ctx, p.owner(time.Now())); err != nil {
 		w.log.Error("release player", "account_id", p.accountID, "err", err)
 	}
 }
@@ -184,9 +188,10 @@ func (w *World) keepAlive() {
 		w.mu.Lock()
 		players := make([]*Player, 0, len(w.players))
 		owners := make([]live.Owner, 0, len(w.players))
+		now := time.Now()
 		for _, p := range w.players {
 			players = append(players, p)
-			owners = append(owners, live.Owner{AccountID: p.accountID, Conn: p.conn})
+			owners = append(owners, p.owner(now))
 		}
 		w.mu.Unlock()
 		ctx, cancel := context.WithTimeout(context.Background(), keepAliveEvery)
@@ -202,6 +207,12 @@ func (w *World) keepAlive() {
 			}
 		}
 	}
+}
+
+// owner is the player's connection with the play time since it was last counted, now counted.
+func (p *Player) owner(now time.Time) live.Owner {
+	last := p.counted.Swap(now.UnixNano())
+	return live.Owner{AccountID: p.accountID, Conn: p.conn, Played: max(0, time.Duration(now.UnixNano()-last))}
 }
 
 // Close saves every zone's last changes and stops them. Call it once connections have left.

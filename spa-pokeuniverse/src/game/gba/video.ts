@@ -47,6 +47,8 @@ export class Background {
   pb = 0;
   pc = 0;
   pd = 0x100;
+  /** Per-scanline vertical offset in pixels (BGVOFS written each HBlank), in place of y; null when off. */
+  yLines: Int16Array | null = null;
 
   get widthTiles(): number {
     if (this.affine) return 16 << this.size;
@@ -90,6 +92,7 @@ export class Background {
     this.affine = this.wrap = false;
     this.pa = this.pd = 0x100;
     this.pb = this.pc = 0;
+    this.yLines = null;
   }
 
   /** BgAffineSet: scales around a texture point (8.8) shown at a screen point; no rotation. */
@@ -316,7 +319,7 @@ export class Video {
     const w = bg.widthTiles * 8;
     const h = bg.heightTiles * 8;
     const px = (x + (bg.x >> 8)) & (w - 1);
-    const py = (line + (bg.y >> 8)) & (h - 1);
+    const py = (line + (bg.yLines ? bg.yLines[line] : bg.y >> 8)) & (h - 1);
     const e = bg.entry(px >> 3, py >> 3);
     const tile = e & 0x3ff;
     let tx = px & 7;

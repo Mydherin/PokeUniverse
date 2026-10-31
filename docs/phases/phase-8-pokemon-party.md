@@ -5,7 +5,7 @@
 ## Scope
 
 - Full data model for player Pokémon (extends the starter from [Phase 5](phase-5-pallet-town.md)): species, stats, moves, level, experience.
-- Party and PC storage.
+- Party and PC storage: the full party screen and summary (from [Phase 5](phase-5-pallet-town.md)), and Bill's PC boxes added to the PC menu from [Phase 4](phase-4-players-room.md).
 - **Following Pokémon** with HGSS-style overworld sprites, visible to other players.
 
 ## Done When

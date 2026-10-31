@@ -22,6 +22,8 @@ export class Gba {
   state = 0;
   private main: () => void = () => {};
   private vblank: (() => void) | null = null;
+  /** Runs every frame whatever the screen, like the games' main loop counters (play time). */
+  onFrame: (() => void) | null = null;
 
   constructor(readonly sound: Sound) {}
 
@@ -54,6 +56,7 @@ export class Gba {
   step(): void {
     this.input.update();
     this.main();
+    this.onFrame?.();
     this.vblank?.();
     this.sound.update();
   }

@@ -128,6 +128,17 @@ const NEW_GAME_GRAPHICS = {
   owGreenRun: { png: "object_events/pics/people/green_surf_run.png" },
   signpostFrame: { png: "text_window/signpost.png" },
   textWindowPal1: { pal: "text_window/stdpal_1.pal" },
+  // START menu: the help bar under it
+  helpMessageWindow: { png: "help_system/msg_window.png" },
+  // Trainer Card: card and screen tiles, both sides' tilemaps, palettes and the player's picture
+  tcTiles: { png: "trainer_card/tiles.png", bpp4: true },
+  tcFront: { bin: "trainer_card/front.bin" },
+  tcBack: { bin: "trainer_card/back.bin" },
+  tcBg: { bin: "trainer_card/bg.bin" },
+  tcBluePal: { pal: "trainer_card/blue.pal" },
+  tcFemaleBgPal: { pal: "trainer_card/female_bg.pal" },
+  picRedFront: { png: "trainers/front_pics/red_front_pic.png", pal: "trainers/palettes/red.pal" },
+  picLeafFront: { png: "trainers/front_pics/leaf_front_pic.png", pal: "trainers/palettes/leaf.pal" },
 } satisfies Record<string, GraphicFiles>;
 
 export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS;
@@ -147,6 +158,9 @@ export const NEW_GAME_SOUNDS = [
   "cry_nidoran_f",
   "se_wall_hit",
   "se_pc_on",
+  "se_card_open",
+  "se_card_flip",
+  "se_card_flipping",
 ] as const;
 export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number];
 

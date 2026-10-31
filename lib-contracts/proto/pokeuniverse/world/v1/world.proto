@@ -55,6 +55,8 @@ message WorldSnapshot {
   Avatar player = 2;
   // Whether B makes the player run here (the map allows it and the trainer has the Running Shoes).
   bool can_run = 3;
+  // How long the trainer has played, up to 999:59:59; the client counts on from it.
+  uint32 play_time_seconds = 4;
 }
 
 message Avatar {

@@ -11,7 +11,7 @@ import (
 )
 
 const getTrainer = `-- name: GetTrainer :one
-SELECT name, gender, play_time_seconds, map_id, x, y, facing, created_at
+SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at
 FROM trainers
 WHERE account_id = $1
 `
@@ -24,6 +24,8 @@ type GetTrainerRow struct {
 	X               int32
 	Y               int32
 	Facing          string
+	TrainerID       int64
+	Money           int32
 	CreatedAt       time.Time
 }
 
@@ -39,14 +41,16 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.X,
 		&i.Y,
 		&i.Facing,
+		&i.TrainerID,
+		&i.Money,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const putTrainer = `-- name: PutTrainer :one
-INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y, facing)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y, facing, trainer_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (account_id) DO UPDATE
 SET name = EXCLUDED.name,
     gender = EXCLUDED.gender,
@@ -55,9 +59,11 @@ SET name = EXCLUDED.name,
     x = EXCLUDED.x,
     y = EXCLUDED.y,
     facing = EXCLUDED.facing,
+    trainer_id = EXCLUDED.trainer_id,
+    money = DEFAULT,
     play_time_seconds = 0,
     created_at = now()
-RETURNING name, gender, play_time_seconds, map_id, x, y, facing, created_at
+RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at
 `
 
 type PutTrainerParams struct {
@@ -69,6 +75,7 @@ type PutTrainerParams struct {
 	X         int32
 	Y         int32
 	Facing    string
+	TrainerID int64
 }
 
 type PutTrainerRow struct {
@@ -79,10 +86,13 @@ type PutTrainerRow struct {
 	X               int32
 	Y               int32
 	Facing          string
+	TrainerID       int64
+	Money           int32
 	CreatedAt       time.Time
 }
 
-// New Game: the account's trainer, replaced if it already has one, at the start location.
+// New Game: the account's trainer, replaced if it already has one, at the start location, with a
+// new trainer ID and the starting money.
 func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrainerRow, error) {
 	row := q.db.QueryRow(ctx, putTrainer,
 		arg.AccountID,
@@ -93,6 +103,7 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		arg.X,
 		arg.Y,
 		arg.Facing,
+		arg.TrainerID,
 	)
 	var i PutTrainerRow
 	err := row.Scan(
@@ -103,34 +114,38 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.X,
 		&i.Y,
 		&i.Facing,
+		&i.TrainerID,
+		&i.Money,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const updateTrainerLocation = `-- name: UpdateTrainerLocation :execrows
+const updateTrainerLive = `-- name: UpdateTrainerLive :execrows
 UPDATE trainers
-SET map_id = $2, x = $3, y = $4, facing = $5
-WHERE account_id = $1 AND created_at = $6
+SET map_id = $2, x = $3, y = $4, facing = $5, play_time_seconds = $6
+WHERE account_id = $1 AND created_at = $7
 `
 
-type UpdateTrainerLocationParams struct {
-	AccountID int64
-	MapID     string
-	X         int32
-	Y         int32
-	Facing    string
-	CreatedAt time.Time
+type UpdateTrainerLiveParams struct {
+	AccountID       int64
+	MapID           string
+	X               int32
+	Y               int32
+	Facing          string
+	PlayTimeSeconds int64
+	CreatedAt       time.Time
 }
 
-// Copies a live position from Redis; only into the save it belongs to.
-func (q *Queries) UpdateTrainerLocation(ctx context.Context, arg UpdateTrainerLocationParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateTrainerLocation,
+// Copies a live position and play time from Redis; only into the save they belong to.
+func (q *Queries) UpdateTrainerLive(ctx context.Context, arg UpdateTrainerLiveParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerLive,
 		arg.AccountID,
 		arg.MapID,
 		arg.X,
 		arg.Y,
 		arg.Facing,
+		arg.PlayTimeSeconds,
 		arg.CreatedAt,
 	)
 	if err != nil {

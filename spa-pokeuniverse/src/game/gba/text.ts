@@ -60,6 +60,45 @@ export function expandPlaceholders(text: Text, vars: Partial<Record<number, Text
   return out;
 }
 
+/** Joins texts (StringCopy, StringAppend): each one's EOS dropped, one at the end. */
+export function joinText(...texts: Text[]): number[] {
+  const out: number[] = [];
+  for (const t of texts)
+    for (const b of t) {
+      if (b === EOS) break;
+      out.push(b);
+    }
+  out.push(EOS);
+  return out;
+}
+
+export const enum NumberMode {
+  LeftAlign,
+  /** Padded with spaces. */
+  RightAlign,
+  LeadingZeros,
+}
+
+const CHAR_SPACE = 0x00;
+const CHAR_0 = 0xa1;
+const CHAR_QUESTION_MARK = 0xac;
+
+/** ConvertIntToDecimalStringN: `n` digits at most; a digit past 9 (too big a value) shows as "?". */
+export function decimalText(value: number, mode: NumberMode, n: number): number[] {
+  const out: number[] = [];
+  let writing = mode === NumberMode.LeadingZeros;
+  for (let power = 10 ** (n - 1); power > 0; power = Math.floor(power / 10)) {
+    const digit = Math.floor(value / power);
+    value -= power * digit;
+    if (writing || digit !== 0 || power === 1) {
+      writing = true;
+      out.push(digit <= 9 ? CHAR_0 + digit : CHAR_QUESTION_MARK);
+    } else if (mode === NumberMode.RightAlign) out.push(CHAR_SPACE);
+  }
+  out.push(EOS);
+  return out;
+}
+
 export const enum FontId {
   Small = 0,
   NormalCopy1 = 1,
@@ -188,6 +227,12 @@ export class Window {
         const py = y + iy;
         if (v && px >= 0 && py >= 0 && px < this.stride && py < this.rows) this.pixels[py * this.stride + px] = v;
       }
+  }
+
+  /** CopyToWindowPixelBuffer for one 8×8 tile (64 indices a tile), color 0 included. */
+  copyTile(tiles: Uint8Array, tile: number, tx: number, ty: number): void {
+    for (let y = 0; y < 8; y++)
+      this.pixels.set(tiles.subarray(tile * 64 + y * 8, tile * 64 + y * 8 + 8), (ty * 8 + y) * this.stride + tx * 8);
   }
 
   /** ScrollWindow up: the content moves up and the bottom fills with `fill`. */

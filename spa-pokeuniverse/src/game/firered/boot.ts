@@ -16,6 +16,7 @@ import { startMainMenu } from "./main-menu";
 import { Assets, NEW_GAME_SOUNDS, type SoundId } from "./manifest";
 import { startNewGame } from "./new-game";
 import { startOverworld } from "./overworld";
+import { PlayTime } from "./play-time";
 import { startTitle } from "./title";
 
 /** The account's trainer, or null when it has none; a network error counts as none. */
@@ -79,8 +80,11 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   });
   void newGame.catch(() => {});
 
+  const playTime = new PlayTime();
+  gba.onFrame = () => playTime.update();
   const flow: Flow = {
     gba,
+    playTime,
     assets,
     world,
     link,

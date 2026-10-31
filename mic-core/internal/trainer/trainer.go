@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"time"
 
@@ -41,7 +42,7 @@ func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
 const maxBody = 1 << 10
 
 // get returns the caller's trainer, or 404 when the account has none yet (New Game creates it).
-// The location is the live one while the trainer is (or was just) online.
+// The location and play time are the live ones while the trainer is (or was just) online.
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	p, _ := auth.PrincipalFrom(r.Context())
 	row, err := db.New(h.Pool).GetTrainer(r.Context(), p.AccountID)
@@ -58,12 +59,14 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		h.Log.Error("get trainer location", "err", err)
 	} else if ok {
 		row.MapID, row.X, row.Y = pos.Map, int32(pos.X), int32(pos.Y)
+		row.PlayTimeSeconds = int64(pos.Played / time.Second)
 	}
 	httpx.WriteProtoJSON(w, http.StatusOK, summary(row))
 }
 
 // put creates the caller's trainer at the end of Oak's speech (New Game), replacing the
-// one it had. Saving the same trainer twice gives the same result, so retries are safe.
+// one it had. A retry saves it again with a new trainer ID, as a new game would; the client
+// keeps the answer it gets, so retries are safe.
 func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 	p, _ := auth.PrincipalFrom(r.Context())
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxBody))
@@ -90,6 +93,8 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		X:         int32(world.Start.X),
 		Y:         int32(world.Start.Y),
 		Facing:    live.FacingName(world.Start.Facing),
+		// SetTrainerId(Random32()): a new ID every New Game.
+		TrainerID: int64(rand.Uint32()),
 	})
 	if err != nil {
 		h.Log.Error("put trainer", "err", err)
@@ -123,5 +128,7 @@ func summary(row db.GetTrainerRow) *trainerv1.TrainerSummary {
 		// Badges arrive with the gyms (Phase 10); pokedex_caught stays unset until the Pokédex exists.
 		Badges:   0,
 		Location: &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},
+		IdNo:     uint32(row.TrainerID & 0xffff),
+		Money:    uint32(row.Money),
 	}
 }

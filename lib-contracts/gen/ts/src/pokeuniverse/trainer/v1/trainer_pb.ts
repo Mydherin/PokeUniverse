@@ -12,11 +12,11 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/trainer/v1/trainer.proto.
  */
 export const file_pokeuniverse_trainer_v1_trainer: GenFile = /*@__PURE__*/
-  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSLfAQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQESMwoIbG9jYXRpb24YBiABKAsyIS5wb2tldW5pdmVyc2UudHJhaW5lci52MS5Mb2NhdGlvbkIRCg9fcG9rZWRleF9jYXVnaHQiLQoITG9jYXRpb24SCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDSJfCgpOZXdUcmFpbmVyEi8KBmdlbmRlchgBIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlchIMCgRuYW1lGAIgASgJEhIKCnJpdmFsX25hbWUYAyABKAkqQQoGR2VuZGVyEhYKEkdFTkRFUl9VTlNQRUNJRklFRBAAEg4KCkdFTkRFUl9CT1kQARIPCgtHRU5ERVJfR0lSTBACQkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvdHJhaW5lci92MTt0cmFpbmVydjFiBnByb3RvMw");
+  fileDesc("CiVwb2tldW5pdmVyc2UvdHJhaW5lci92MS90cmFpbmVyLnByb3RvEhdwb2tldW5pdmVyc2UudHJhaW5lci52MSL9AQoOVHJhaW5lclN1bW1hcnkSDAoEbmFtZRgBIAEoCRIvCgZnZW5kZXIYAiABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISGQoRcGxheV90aW1lX3NlY29uZHMYAyABKA0SDgoGYmFkZ2VzGAQgASgNEhsKDnBva2VkZXhfY2F1Z2h0GAUgASgNSACIAQESMwoIbG9jYXRpb24YBiABKAsyIS5wb2tldW5pdmVyc2UudHJhaW5lci52MS5Mb2NhdGlvbhINCgVpZF9ubxgHIAEoDRINCgVtb25leRgIIAEoDUIRCg9fcG9rZWRleF9jYXVnaHQiLQoITG9jYXRpb24SCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDSJfCgpOZXdUcmFpbmVyEi8KBmdlbmRlchgBIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlchIMCgRuYW1lGAIgASgJEhIKCnJpdmFsX25hbWUYAyABKAkqQQoGR2VuZGVyEhYKEkdFTkRFUl9VTlNQRUNJRklFRBAAEg4KCkdFTkRFUl9CT1kQARIPCgtHRU5ERVJfR0lSTBACQkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvdHJhaW5lci92MTt0cmFpbmVydjFiBnByb3RvMw");
 
 /**
- * Response of GET /api/trainer: what the main menu's CONTINUE window shows, and where the
- * game continues.
+ * Response of GET /api/trainer: what the main menu's CONTINUE window and the Trainer Card show,
+ * and where the game continues.
  *
  * @generated from message pokeuniverse.trainer.v1.TrainerSummary
  */
@@ -52,6 +52,20 @@ export type TrainerSummary = Message<"pokeuniverse.trainer.v1.TrainerSummary"> &
    * @generated from field: pokeuniverse.trainer.v1.Location location = 6;
    */
   location?: Location | undefined;
+
+  /**
+   * The ID No. on the Trainer Card: the public half (low 16 bits) of the trainer ID.
+   *
+   * @generated from field: uint32 id_no = 7;
+   */
+  idNo: number;
+
+  /**
+   * ¥0 to ¥999999.
+   *
+   * @generated from field: uint32 money = 8;
+   */
+  money: number;
 };
 
 /**

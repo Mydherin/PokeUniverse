@@ -72,8 +72,8 @@ func (Gender) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_trainer_v1_trainer_proto_rawDescGZIP(), []int{0}
 }
 
-// Response of GET /api/trainer: what the main menu's CONTINUE window shows, and where the
-// game continues.
+// Response of GET /api/trainer: what the main menu's CONTINUE window and the Trainer Card show,
+// and where the game continues.
 type TrainerSummary struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -83,6 +83,10 @@ type TrainerSummary struct {
 	// Pokémon caught; unset until the player has the Pokédex.
 	PokedexCaught *uint32   `protobuf:"varint,5,opt,name=pokedex_caught,json=pokedexCaught,proto3,oneof" json:"pokedex_caught,omitempty"`
 	Location      *Location `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
+	// The ID No. on the Trainer Card: the public half (low 16 bits) of the trainer ID.
+	IdNo uint32 `protobuf:"varint,7,opt,name=id_no,json=idNo,proto3" json:"id_no,omitempty"`
+	// ¥0 to ¥999999.
+	Money         uint32 `protobuf:"varint,8,opt,name=money,proto3" json:"money,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -157,6 +161,20 @@ func (x *TrainerSummary) GetLocation() *Location {
 		return x.Location
 	}
 	return nil
+}
+
+func (x *TrainerSummary) GetIdNo() uint32 {
+	if x != nil {
+		return x.IdNo
+	}
+	return 0
+}
+
+func (x *TrainerSummary) GetMoney() uint32 {
+	if x != nil {
+		return x.Money
+	}
+	return 0
 }
 
 // Where the trainer is: a map of lib-maps and a tile on it.
@@ -287,14 +305,16 @@ var File_pokeuniverse_trainer_v1_trainer_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_trainer_v1_trainer_proto_rawDesc = "" +
 	"\n" +
-	"%pokeuniverse/trainer/v1/trainer.proto\x12\x17pokeuniverse.trainer.v1\"\x9f\x02\n" +
+	"%pokeuniverse/trainer/v1/trainer.proto\x12\x17pokeuniverse.trainer.v1\"\xca\x02\n" +
 	"\x0eTrainerSummary\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x127\n" +
 	"\x06gender\x18\x02 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12*\n" +
 	"\x11play_time_seconds\x18\x03 \x01(\rR\x0fplayTimeSeconds\x12\x16\n" +
 	"\x06badges\x18\x04 \x01(\rR\x06badges\x12*\n" +
 	"\x0epokedex_caught\x18\x05 \x01(\rH\x00R\rpokedexCaught\x88\x01\x01\x12=\n" +
-	"\blocation\x18\x06 \x01(\v2!.pokeuniverse.trainer.v1.LocationR\blocationB\x11\n" +
+	"\blocation\x18\x06 \x01(\v2!.pokeuniverse.trainer.v1.LocationR\blocation\x12\x13\n" +
+	"\x05id_no\x18\a \x01(\rR\x04idNo\x12\x14\n" +
+	"\x05money\x18\b \x01(\rR\x05moneyB\x11\n" +
 	"\x0f_pokedex_caught\"8\n" +
 	"\bLocation\x12\x10\n" +
 	"\x03map\x18\x01 \x01(\tR\x03map\x12\f\n" +

@@ -21,7 +21,10 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	battle_anims/sprites/particles.png battle_anims/sprites/circle_impact.png \
 	pokemon/nidoran_f/front.png pokemon/nidoran_f/normal.pal \
 	object_events/pics/people/red_normal.png object_events/pics/people/green_normal.png object_events/palettes/player.pal \
-	object_events/pics/people/red_surf_run.png object_events/pics/people/green_surf_run.png
+	object_events/pics/people/red_surf_run.png object_events/pics/people/green_surf_run.png \
+	help_system/msg_window.png trainer_card/tiles.png trainer_card/front.bin trainer_card/back.bin trainer_card/bg.bin \
+	trainer_card/blue.pal trainer_card/female_bg.pal trainers/front_pics/red_front_pic.png trainers/front_pics/leaf_front_pic.png \
+	trainers/palettes/red.pal trainers/palettes/leaf.pal
 # The fonts' glyph widths are data in the game's source, not in the images.
 FIRERED_FONTS := Normal:normal Male:male Small:small NormalCopy1:normal_copy_1
 NEED_FIRERED = @test -f $(FIRERED)/Makefile || { echo "$(FIRERED) is empty: run git submodule update --init"; exit 1; }
