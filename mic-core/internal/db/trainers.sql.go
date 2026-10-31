@@ -7,10 +7,11 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const getTrainer = `-- name: GetTrainer :one
-SELECT name, gender, play_time_seconds, map_id, x, y
+SELECT name, gender, play_time_seconds, map_id, x, y, facing, created_at
 FROM trainers
 WHERE account_id = $1
 `
@@ -22,8 +23,11 @@ type GetTrainerRow struct {
 	MapID           string
 	X               int32
 	Y               int32
+	Facing          string
+	CreatedAt       time.Time
 }
 
+// created_at identifies the save: a New Game replaces it, so live positions of the old save are ignored.
 func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRow, error) {
 	row := q.db.QueryRow(ctx, getTrainer, accountID)
 	var i GetTrainerRow
@@ -34,13 +38,15 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.MapID,
 		&i.X,
 		&i.Y,
+		&i.Facing,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const putTrainer = `-- name: PutTrainer :one
-INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y, facing)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (account_id) DO UPDATE
 SET name = EXCLUDED.name,
     gender = EXCLUDED.gender,
@@ -48,9 +54,10 @@ SET name = EXCLUDED.name,
     map_id = EXCLUDED.map_id,
     x = EXCLUDED.x,
     y = EXCLUDED.y,
+    facing = EXCLUDED.facing,
     play_time_seconds = 0,
     created_at = now()
-RETURNING name, gender, play_time_seconds, map_id, x, y
+RETURNING name, gender, play_time_seconds, map_id, x, y, facing, created_at
 `
 
 type PutTrainerParams struct {
@@ -61,6 +68,7 @@ type PutTrainerParams struct {
 	MapID     string
 	X         int32
 	Y         int32
+	Facing    string
 }
 
 type PutTrainerRow struct {
@@ -70,6 +78,8 @@ type PutTrainerRow struct {
 	MapID           string
 	X               int32
 	Y               int32
+	Facing          string
+	CreatedAt       time.Time
 }
 
 // New Game: the account's trainer, replaced if it already has one, at the start location.
@@ -82,6 +92,7 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		arg.MapID,
 		arg.X,
 		arg.Y,
+		arg.Facing,
 	)
 	var i PutTrainerRow
 	err := row.Scan(
@@ -91,6 +102,39 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.MapID,
 		&i.X,
 		&i.Y,
+		&i.Facing,
+		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const updateTrainerLocation = `-- name: UpdateTrainerLocation :execrows
+UPDATE trainers
+SET map_id = $2, x = $3, y = $4, facing = $5
+WHERE account_id = $1 AND created_at = $6
+`
+
+type UpdateTrainerLocationParams struct {
+	AccountID int64
+	MapID     string
+	X         int32
+	Y         int32
+	Facing    string
+	CreatedAt time.Time
+}
+
+// Copies a live position from Redis; only into the save it belongs to.
+func (q *Queries) UpdateTrainerLocation(ctx context.Context, arg UpdateTrainerLocationParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerLocation,
+		arg.AccountID,
+		arg.MapID,
+		arg.X,
+		arg.Y,
+		arg.Facing,
+		arg.CreatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

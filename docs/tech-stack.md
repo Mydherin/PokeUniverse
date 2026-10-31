@@ -106,8 +106,8 @@ Shows the game and sends player actions. Contains **no game rules**. Talks only 
 - **Phaser is lazy-loaded** only when the player opens the game; it and the game's art and sound are cached by the service worker on first play, not on install. FireRed's files (not hashed, rebuilt under the same names) are **network first**: always revalidated (a 304 when unchanged), the cache only offline, so a new build never plays stale art, text or loop points.
 - **Game code** (`src/game/`):
   - `gba/`: a small GBA-style engine, written from zero: the 240×160 compositor (tile backgrounds, an affine background, sprites with scale animations and flips, 512-color palette, windows, alpha/lighten/darken blending, per-scanline brightness), palette fades, per-frame tasks, fonts, text windows and the text printer (the game's encoded text: letter by letter, control codes, prompts), sound players, buttons with key repeat and touch controls. Logic runs at the GBA's 59.73 fps; Phaser provides the loop, scaling and Web Audio, and shows the frame as a texture.
-  - `firered/`: the FireRed presentation: its asset manifest (`manifest.ts`: a boot set, and a New Game set loaded in the background), sound and text lists (`sounds.json`, `texts.json`), its windows and menus (`menu.ts`) and screens (copyright, intro, title, main menu, New Game with Oak's speech, naming screen) as frame-driven state machines with FireRed's timings, and the overworld (`overworld.ts`: the trainer's map, its music, the fade in). Screens decide nothing: New Game sends the chosen trainer to `mic-core`, which validates and saves it, and the overworld shows the map `mic-core` says the trainer is on.
-  - `world/`: the world, the same for every art style: compiled maps (`map.ts`, from `/maps/<id>.binpb`), the renderer interface screens use (`view.ts`), and its Phaser implementation (`scene.ts`: tile layers below and above the characters, the camera and the screen fade). It is a Phaser scene drawn under the GBA screen, whose backdrop is then transparent; both share one fit (`screen.ts`).
+  - `firered/`: the FireRed presentation: its asset manifest (`manifest.ts`: a boot set, and a New Game set loaded in the background), sound and text lists (`sounds.json`, `texts.json`), its windows and menus (`menu.ts`) and screens (copyright, intro, title, main menu, New Game with Oak's speech, naming screen) as frame-driven state machines with FireRed's timings, and the overworld (`overworld.ts`: the map `mic-core`'s snapshot names, its music, the fade in, the camera keeping the player at FireRed's spot, server scripts; `player-sprite.ts`: the player's frames and animations; `field-message.ts`: the message box, dialogue or signpost frame). Screens decide nothing: New Game sends the chosen trainer to `mic-core`, which validates and saves it; the overworld shows where `mic-core` says the trainer is and what it answers.
+  - `world/`: the world, the same for every art style: compiled maps (`map.ts`, from `/maps/<id>.binpb`), the movement rules (`rules.ts`, mirroring `mic-core`'s) and the predicted player (`avatar.ts`: FireRed's walking, running, turning and bumping, frame by frame) ([Movement](#movement)), the renderer interface screens use (`view.ts`), and its Phaser implementation (`scene.ts`: tile layers below and above the characters, the characters, the camera and the screen fade). It is a Phaser scene drawn under the GBA screen, whose backdrop is then transparent; both share one fit (`screen.ts`).
 - **Served by nginx**, which also proxies `/auth` and `/ws` to `mic-core` on the **same origin**: first-party cookies, no CORS, strict Content Security Policy.
 
 ### Decoupled Presentation
@@ -137,8 +137,8 @@ Main server: player connections, world, movement, NPCs, items, quests, trades, c
 | **golang-jwt/jwt v5** | Access tokens | Most used Go JWT library; supports EdDSA |
 | **golang.org/x/time/rate** | Per-connection message rate limit | Official, in-memory token bucket |
 
-- **Go 1.27.** Layout: `cmd/mic-core` (wiring), `internal/<module>` (one responsibility each: `auth`, `account`, `admin`, `trainer`, `realtime`, `ratelimit`, `health`, `store`), `migrations/`, `queries/`.
-- **Tables so far:** `accounts`, `roles`, `account_roles`, `refresh_tokens`, `trainers` (one per account: name, gender, rival name, play time, location (map and tile); created, or replaced, by New Game at the end of Oak's speech, in the player's room).
+- **Go 1.27.** Layout: `cmd/mic-core` (wiring), `internal/<module>` (one responsibility each: `auth`, `account`, `admin`, `trainer`, `realtime`, `world` (maps, movement rules, interactions, zones), `live` (live positions in Redis, copied to PostgreSQL), `ratelimit`, `health`, `store`), `migrations/`, `queries/`, `maps/` (the compiled `ServerMap`s, embedded in the binary).
+- **Tables so far:** `accounts`, `roles`, `account_roles`, `refresh_tokens`, `trainers` (one per account: name, gender, rival name, play time, location (map, tile and facing); created, or replaced, by New Game at the end of Oak's speech, in the player's room).
 
 ### Database Access: sqlc
 
@@ -230,7 +230,7 @@ Rules:
 - Generated code is **never edited by hand**; it is regenerated with `buf generate`.
 - `buf breaking` runs on every change so existing clients never break silently.
 - Layout: `proto/` (sources), `gen/go` (Go module `pokeuniverse/lib-contracts`), `gen/ts` (package `@pokeuniverse/contracts`).
-- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**), `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`), `pokeuniverse.battle.v1` (NATS messages between `mic-core` and `mic-battles`) and `pokeuniverse.map.v1` (runtime maps compiled by `tool-maps`: `ClientMap`, `ServerMap`, and `TileBehavior`, the list of tile behaviors).
+- Packages so far: `pokeuniverse.auth.v1` (auth endpoint payloads, sent as **Protocol Buffers JSON**), `pokeuniverse.realtime.v1` (WebSocket envelopes `ClientMessage` / `ServerMessage`), `pokeuniverse.world.v1` (the overworld inside them: `EnterWorld`, `Move`, `Turn`, `Interact`, `ScriptDone`; `WorldSnapshot`, `Correction`, `Script`), `pokeuniverse.battle.v1` (NATS messages between `mic-core` and `mic-battles`) and `pokeuniverse.map.v1` (runtime maps compiled by `tool-maps`: `ClientMap`, `ServerMap`, and `TileBehavior`, the list of tile behaviors).
 
 ## Communication
 
@@ -296,6 +296,18 @@ Goal: send **only the minimum information** needed for each event to happen on e
 - Events per zone are **batched per server tick** (10–20 ticks/second) into one WebSocket message.
 - Rapid repeated intents are rate-limited per player.
 
+### Movement
+
+The client **predicts**, the server **decides** ([Phase 4](phases/phase-4-players-room.md)).
+
+- **Predicted:** the client moves the player at once with the same rules as the server (`rules.ts` ↔ `internal/world/rules.go`, from collision data in `ClientMap`), so walking feels like FireRed at any latency. It never decides anything the server doesn't check.
+- **Checked:** each `Move{step, direction, run, x, y}` says where the step starts. The zone checks the start tile, collision, open scripts and pace; a refused step gets one `Correction{step, x, y, facing}` and the client goes back there. Steps already in flight from the wrong tile are ignored silently.
+- **Pace:** steps no faster than FireRed's (16 frames walking, 8 running), with room for network jitter (300 ms early, 250 ms catch-up); a speed hack gains at most a step or two, once.
+- **Turning and bumping** only change facing (`Turn`), sent when it changes.
+- **A button:** `Interact` (or `walk_into` for signposts) is answered with a `Script` (messages by text ID, sounds), empty when nothing answers; the client waits for it, and the player can't move until `ScriptDone`. Scripts are tables in `internal/world` until the event interpreter ([Phase 5](phases/phase-5-pallet-town.md)).
+- **Offline or in a message:** the client takes no steps.
+- **Zones:** one goroutine per map owns its players (no locks); intents run in arrival order, stamped with their receive time. Every 50 ms tick it saves what changed to Redis in one pipeline, then sends the answers (saved before shown). It ticks only while it has players. Other players in a zone come with [Phase 7](phases/phase-7-multiplayer-world.md).
+
 **One envelope**
 - All messages share one Protocol Buffers envelope (`oneof` payload) with a **sequence number** for ordering.
 - On reconnect, the client receives a fresh snapshot and continues with deltas.
@@ -357,7 +369,7 @@ The login screen has **one button**. One use case covers both sign-up and login:
 
 ### Across Microservices
 
-- **WebSocket:** browsers can't set headers on a WebSocket, and tokens never go in URLs, so the first message must be `Authenticate{access_token}` within 5 seconds. The client sends each refreshed token the same way; if it expires without renewal, the server closes the connection (close codes `4001` unauthenticated, `4002` expired, `4003` bad message). Only the app's own `Origin` may connect.
+- **WebSocket:** browsers can't set headers on a WebSocket, and tokens never go in URLs, so the first message must be `Authenticate{access_token}` within 5 seconds. The client sends each refreshed token the same way; if it expires without renewal, the server closes the connection (close codes `4001` unauthenticated, `4002` expired, `4003` bad message, `4004` replaced: the account entered the world from another connection, so the client doesn't reconnect; `1012` service restart: the client reconnects and gets a fresh snapshot). Only the app's own `Origin` may connect.
 - **NATS:** players never reach NATS. `mic-core` includes the verified player ID (and roles when needed) in each message.
 - **Service-to-service trust:** each microservice connects to NATS with its own credentials (NATS accounts + TLS), so only our services can publish or subscribe.
 - Any future service exposed to players verifies the same JWT with the same public key.
@@ -404,9 +416,11 @@ Goal: **a crash never loses a change a player has seen.** Any container can die 
   | Live and frequent: positions, battles in progress, online players | **Redis** | On every change | Changes many times per second; Redis writes take microseconds |
 
 - **Redis is durable too:** AOF with `appendfsync always` writes every change to disk before Redis answers, so a crash of Redis itself loses nothing confirmed. Redis batches the disk writes of each loop, so this stays fast.
-- **Live state flows to PostgreSQL** for long-term storage: `mic-core` copies positions on map change, logout and every 30 seconds for players who moved (tracked in a Redis set). Redis is the truth while a player is online; PostgreSQL afterwards.
+- **Live state flows to PostgreSQL** for long-term storage: `mic-core` copies positions on disconnect and every 30 seconds for players who moved (tracked in a Redis set). Redis is the truth while a player is online; PostgreSQL afterwards.
 - **One action, one transaction:** everything an action changes is saved together or not at all (e.g. a catch adds the Pokémon and uses the ball; a trade moves both Pokémon). Redis changes that belong together use `MULTI` or a Lua script.
-- **Movement:** each zone saves the moves of its tick to Redis in one pipeline, then broadcasts them. A crash can only drop moves no one saw yet.
+- **Movement:** each zone saves the moves of its tick to Redis in one pipeline, then sends them. A crash can only drop the last tick's steps; the client's prediction of them is rolled back by the snapshot on reconnect.
+- **Live positions** (package `live`): `player:<id>:pos` (map, tile, facing, save), `player:<id>:session` (the one connection allowed to save it: taking over the player in another tab or replica disconnects the old one on its next save, `4004`), `players:moved` (not yet copied). Every write is a Lua script that checks the session. Positions carry their save (the trainer's `created_at`): New Game clears them, and an old save's position is never used or copied.
+- **Copies to PostgreSQL:** on disconnect, and every 30 seconds by any replica (`SPOP` on `players:moved`). A graceful shutdown closes every connection first (`1012`), so each player is saved and copied.
 - **Retries are safe (idempotent):** every request carries an ID or sequence number, and an already-applied request returns its saved result instead of running twice. A crashed request is simply retried.
 - **Recovery:** on restart a service loads live state from Redis and everything else from PostgreSQL. Clients reconnect, get a fresh snapshot and continue.
 - **PostgreSQL durability:** `synchronous_commit` stays on. Backups of PostgreSQL and Redis come with production deployment (Phase 12).

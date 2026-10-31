@@ -3,7 +3,7 @@
 // Run by `make text`: node extract.mjs <pokefirered> <labels.json> <out dir>.
 // Output: strings.json (label -> bytes, ending in 0xFF) and charmap.json (character <-> byte).
 
-import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
 const [src, listPath, out] = process.argv.slice(2);
@@ -61,8 +61,14 @@ for (const file of ["src/strings.c", "src/keyboard_text.c"]) {
   for (const m of readFileSync(join(src, file), "utf8").matchAll(/(\w+)\[\]\s*=\s*_\(((?:\s*"(?:\\.|[^"\\])*")+)\s*\)/g))
     found.set(m[1], () => [...encode(literals(m[2]), m[1]), 0xff]);
 }
-// Assembly: gName:: then .string lines; "$" ends the string.
-for (const file of readdirSync(join(src, "data/text")).filter((f) => f.endsWith(".inc"))) {
+// Assembly: gName:: then .string lines; "$" ends the string. Shared texts, each map's texts and
+// the few defined with the event scripts.
+const asmFiles = [
+  ...readdirSync(join(src, "data/text")).filter((f) => f.endsWith(".inc")).map((f) => join("data/text", f)),
+  ...readdirSync(join(src, "data/maps")).map((m) => join("data/maps", m, "text.inc")).filter((f) => existsSync(join(src, f))),
+  "data/event_scripts.s",
+];
+for (const file of asmFiles) {
   let label = null;
   let parts = [];
   const flush = () => {
@@ -71,7 +77,7 @@ for (const file of readdirSync(join(src, "data/text")).filter((f) => f.endsWith(
       found.set(name, () => encode(text, name));
     }
   };
-  for (const line of readFileSync(join(src, "data/text", file), "utf8").split("\n")) {
+  for (const line of readFileSync(join(src, file), "utf8").split("\n")) {
     const l = /^(\w+)::/.exec(line);
     if (l) {
       flush();

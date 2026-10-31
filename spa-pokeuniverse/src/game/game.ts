@@ -6,6 +6,7 @@
 // (tech-stack.md#decoupled-presentation).
 
 import Phaser from "phaser";
+import type { WorldLink } from "../realtime/connection";
 import { h } from "../ui/dom";
 import { FPS, Gba } from "./gba/gba";
 import { Sound } from "./gba/sound";
@@ -33,6 +34,7 @@ class GbaScreen extends Phaser.Scene {
   constructor(
     private readonly overlay: HTMLElement,
     private readonly world: WorldView,
+    private readonly link: WorldLink,
     private readonly onGba: (gba: Gba) => void,
   ) {
     super({ key: "gba", active: true });
@@ -58,7 +60,7 @@ class GbaScreen extends Phaser.Scene {
       const start = () => {
         this.elapsed = 0;
         this.running = true;
-        startFireRed(this.gba, assets, this.world, trainer);
+        startFireRed(this.gba, assets, this.world, this.link, trainer);
       };
       if (ctx.state === "running") start();
       else this.waitForUnlock(ctx, start);
@@ -110,9 +112,9 @@ class GbaScreen extends Phaser.Scene {
 
 /**
  * Starts the game in `parent`: the screen, plus on-screen controls on touch devices
- * (below the game in portrait, at its sides in landscape).
+ * (below the game in portrait, at its sides in landscape). The world goes through `link`.
  */
-export function startGame(parent: HTMLElement): () => void {
+export function startGame(parent: HTMLElement, link: WorldLink): () => void {
   const screen = h("div", { class: "game-screen" });
   const left = h("div", { class: "game-left" });
   const right = h("div", { class: "game-right" });
@@ -131,7 +133,7 @@ export function startGame(parent: HTMLElement): () => void {
     // Drawn in this order: the world, then the GBA screen over it.
     scene: [
       world,
-      new GbaScreen(screen, world, (g) => {
+      new GbaScreen(screen, world, link, (g) => {
         gba = g;
         const controls = touchControls(g.input);
         left.append(controls.left);

@@ -4,6 +4,8 @@ syntax = "proto3";
 // One envelope per direction; every message carries a sequence number.
 package pokeuniverse.realtime.v1;
 
+import "pokeuniverse/world/v1/world.proto";
+
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1";
 
 // Client -> server: intents only.
@@ -12,6 +14,11 @@ message ClientMessage {
   oneof payload {
     Authenticate authenticate = 2;
     Ping ping = 3;
+    pokeuniverse.world.v1.EnterWorld enter_world = 4;
+    pokeuniverse.world.v1.Move move = 5;
+    pokeuniverse.world.v1.Turn turn = 6;
+    pokeuniverse.world.v1.Interact interact = 7;
+    pokeuniverse.world.v1.ScriptDone script_done = 8;
   }
 }
 
@@ -22,6 +29,9 @@ message ServerMessage {
     Welcome welcome = 2;
     Pong pong = 3;
     Error error = 4;
+    pokeuniverse.world.v1.WorldSnapshot snapshot = 5;
+    pokeuniverse.world.v1.Correction correction = 6;
+    pokeuniverse.world.v1.Script script = 7;
   }
 }
 
@@ -60,4 +70,8 @@ enum ErrorCode {
   ERROR_CODE_TOKEN_EXPIRED = 2;
   // Message could not be decoded or is not allowed now.
   ERROR_CODE_BAD_MESSAGE = 3;
+  // EnterWorld for an account with no trainer (New Game creates it).
+  ERROR_CODE_NO_TRAINER = 4;
+  // The account entered the world from another connection; this one is closed.
+  ERROR_CODE_REPLACED = 5;
 }

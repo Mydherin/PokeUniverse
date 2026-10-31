@@ -1,26 +1,60 @@
 // WebSocket to mic-core: Protocol Buffers envelopes, authenticated with the access token.
+// It also carries the world (WorldLink): entering it, the player's intents and the server's answers.
 
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
-import { ClientMessageSchema, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
+import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
+import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
+import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 
 export type ConnectionStatus =
   | { state: "connecting" }
   | { state: "online"; accountId: bigint; latencyMs?: number }
   | { state: "offline"; retryInMs: number }
+  | { state: "replaced" }
   | { state: "signed-out" };
+
+/** What the server says about the world. */
+export interface WorldEvents {
+  /** Where the player is: on entering, and again after every reconnect. */
+  snapshot(s: WorldSnapshot): void;
+  correction(c: Correction): void;
+  script(s: Script): void;
+  /** The account has no trainer (New Game creates it). */
+  noTrainer(): void;
+}
+
+/** The world over the connection, as the game uses it. */
+export interface WorldLink {
+  /** Enters the world now and after every reconnect, until `leave`. */
+  enter(events: WorldEvents): void;
+  leave(): void;
+  /** In the world right now (connected, snapshot received). */
+  readonly inWorld: boolean;
+  move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
+  turn(direction: Direction): void;
+  interact(walkInto: boolean): void;
+  scriptDone(script: number): void;
+}
 
 const PING_EVERY_MS = 5_000;
 // Close codes sent by mic-core when the token is missing, invalid or expired.
 const AUTH_CLOSE_CODES = new Set([4001, 4002]);
+// The account is played from another connection: don't take it back.
+const CLOSE_REPLACED = 4004;
 
-export class Connection {
+type Payload = MessageInitShape<typeof ClientMessageSchema>["payload"];
+
+export class Connection implements WorldLink {
   private ws: WebSocket | null = null;
   private seq = 0;
   private attempts = 0;
   private pingTimer: number | undefined;
   private retryTimer: number | undefined;
   private stopped = false;
+  private world: WorldEvents | null = null;
+  private entered = false;
+  private welcomed = false;
   private readonly unsubscribe: () => void;
 
   constructor(private readonly onStatus: (status: ConnectionStatus) => void) {
@@ -53,15 +87,52 @@ export class Connection {
     this.ws?.close(1000);
   }
 
+  // WorldLink
+
+  get inWorld(): boolean {
+    return this.entered && this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  enter(events: WorldEvents): void {
+    this.world = events;
+    this.entered = false;
+    // Before Welcome, Welcome sends it.
+    if (this.welcomed) this.send({ case: "enterWorld", value: {} });
+  }
+
+  leave(): void {
+    this.world = null;
+    this.entered = false;
+  }
+
+  move(step: number, direction: Direction, run: boolean, x: number, y: number): void {
+    if (this.inWorld) this.send({ case: "move", value: { step, direction, run, x, y } });
+  }
+
+  turn(direction: Direction): void {
+    if (this.inWorld) this.send({ case: "turn", value: { direction } });
+  }
+
+  interact(walkInto: boolean): void {
+    if (this.inWorld) this.send({ case: "interact", value: { walkInto } });
+  }
+
+  scriptDone(script: number): void {
+    if (this.inWorld) this.send({ case: "scriptDone", value: { script } });
+  }
+
   private receive(data: Uint8Array): void {
     const msg = fromBinary(ServerMessageSchema, data);
     switch (msg.payload.case) {
       case "welcome":
         this.attempts = 0;
+        this.welcomed = true;
         this.onStatus({ state: "online", accountId: msg.payload.value.accountId });
         this.ping();
         window.clearInterval(this.pingTimer);
         this.pingTimer = window.setInterval(() => this.ping(), PING_EVERY_MS);
+        // Back in the world after a reconnect: a fresh snapshot puts the player where the server has it.
+        if (this.world) this.send({ case: "enterWorld", value: {} });
         break;
       case "pong": {
         const latencyMs = Date.now() - Number(msg.payload.value.clientTime);
@@ -69,8 +140,19 @@ export class Connection {
         this.onStatus({ state: "online", accountId, latencyMs });
         break;
       }
+      case "snapshot":
+        this.entered = true;
+        this.world?.snapshot(msg.payload.value);
+        break;
+      case "correction":
+        this.world?.correction(msg.payload.value);
+        break;
+      case "script":
+        this.world?.script(msg.payload.value);
+        break;
       case "error":
-        // The close event that follows decides what to do.
+        if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();
+        // Otherwise the close event that follows decides what to do.
         break;
     }
   }
@@ -79,7 +161,7 @@ export class Connection {
     this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } });
   }
 
-  private send(payload: MessageInitShape<typeof ClientMessageSchema>["payload"]): void {
+  private send(payload: Payload): void {
     if (this.ws?.readyState !== WebSocket.OPEN) return;
     this.ws.send(toBinary(ClientMessageSchema, create(ClientMessageSchema, { seq: ++this.seq, payload })));
   }
@@ -87,7 +169,10 @@ export class Connection {
   private async reconnect(code: number): Promise<void> {
     window.clearInterval(this.pingTimer);
     this.ws = null;
+    this.entered = false;
+    this.welcomed = false;
     if (this.stopped) return;
+    if (code === CLOSE_REPLACED) return this.stop({ state: "replaced" });
     if (AUTH_CLOSE_CODES.has(code)) {
       const session = await refresh().catch(() => getSession());
       if (!session) return this.stop({ state: "signed-out" });

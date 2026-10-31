@@ -22,6 +22,11 @@ message ClientMap {
   string music = 9;
   string weather = 10;
   bool show_name = 11;
+  // What the client needs to predict the player's steps, laid out as in ServerMap
+  // (mic-core still checks every step).
+  bytes walkable = 12;
+  bytes elevation = 13;
+  repeated TileBehavior behaviors = 14;
 }
 
 // What mic-core plays: collision, behaviors, warps and objects.

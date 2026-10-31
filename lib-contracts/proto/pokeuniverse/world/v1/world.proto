@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+// The overworld on the WebSocket (inside pokeuniverse.realtime.v1's envelopes): the player's
+// intents and the server's answers. The client predicts its own steps; mic-core checks every
+// one and corrects the client when it disagrees (tech-stack.md#movement).
+package pokeuniverse.world.v1;
+
+import "pokeuniverse/map/v1/map.proto";
+import "pokeuniverse/trainer/v1/trainer.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1;worldv1";
+
+// Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
+// after every reconnect; answered with a WorldSnapshot (or Error NO_TRAINER).
+message EnterWorld {}
+
+// One step, as the client predicted it.
+message Move {
+  // Client step counter, echoed by a Correction.
+  uint32 step = 1;
+  pokeuniverse.map.v1.Direction direction = 2;
+  // B held: running, when the snapshot allows it.
+  bool run = 3;
+  // The tile the step starts from; a step from anywhere else is ignored.
+  uint32 x = 4;
+  uint32 y = 5;
+}
+
+// Face a direction without moving: turning in place, or bumping into something.
+message Turn {
+  pokeuniverse.map.v1.Direction direction = 1;
+}
+
+// A button: check what the player faces. Always answered with a Script (empty when nothing
+// answers); the client waits for it before moving again.
+message Interact {
+  // Not A: the player walked up to a signpost (FireRed reads it without pressing A); only
+  // signs on signpost tiles answer.
+  bool walk_into = 1;
+}
+
+// The client finished showing a Script; the player can move again.
+message ScriptDone {
+  uint32 script = 1;
+}
+
+// Server -> client: where the player is, on entering the world (and after reconnecting).
+message WorldSnapshot {
+  // A map of lib-maps.
+  string map = 1;
+  Avatar player = 2;
+  // Whether B makes the player run here (the map allows it and the trainer has the Running Shoes).
+  bool can_run = 3;
+}
+
+message Avatar {
+  uint32 x = 1;
+  uint32 y = 2;
+  pokeuniverse.map.v1.Direction facing = 3;
+  pokeuniverse.trainer.v1.Gender gender = 4;
+}
+
+// The server refused a predicted step: where the player really is. The client goes back there;
+// steps it sent before receiving this are ignored.
+message Correction {
+  // The refused step.
+  uint32 step = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  pokeuniverse.map.v1.Direction facing = 4;
+}
+
+// What an interaction runs, step by step. When it has steps, the player can't move until the
+// client sends ScriptDone with its id.
+message Script {
+  uint32 id = 1;
+  repeated ScriptStep steps = 2;
+}
+
+message ScriptStep {
+  oneof action {
+    // Text in the message box, waiting for A or B.
+    Message message = 1;
+    // A sound effect, by ID.
+    string sound = 2;
+  }
+}
+
+message Message {
+  // Text ID; each art style maps it to its own text (tech-stack.md#decoupled-presentation).
+  string text = 1;
+  // Read from a signpost: drawn in the signpost frame.
+  bool sign = 2;
+}

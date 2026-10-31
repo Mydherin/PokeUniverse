@@ -6,14 +6,20 @@ import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { HEIGHT, WIDTH } from "../gba/video";
 import { fitScreen } from "../screen";
 import { TILE, tileAt } from "./map";
-import type { TilesetArt, WorldView } from "./view";
+import type { CharacterSheet, CharacterView, TilesetArt, WorldView } from "./view";
 
 /** Border cells drawn past each edge: a whole screen, wherever the camera goes. */
 const MARGIN_X = WIDTH / TILE;
 const MARGIN_Y = HEIGHT / TILE;
 
+/** Drawing order: tiles below the characters, the characters, tiles above them, the fade. */
+const DEPTH_ABOVE = 2;
+const DEPTH_CHARACTERS = 1;
+const DEPTH_FADE = 3;
+
 export class WorldScene extends Phaser.Scene implements WorldView {
   private tilemaps: Phaser.Tilemaps.Tilemap[] = [];
+  private characters = new Set<Phaser.GameObjects.Sprite>();
   private fade!: Phaser.GameObjects.Rectangle;
   private resolveReady!: () => void;
   private readonly ready = new Promise<void>((r) => (this.resolveReady = r));
@@ -25,7 +31,7 @@ export class WorldScene extends Phaser.Scene implements WorldView {
   create(): void {
     this.cameras.main.setRoundPixels(true).setVisible(false);
     // Covers the camera's view, so the fade also follows it.
-    this.fade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0, 0).setOrigin(0).setDepth(1);
+    this.fade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0, 0).setOrigin(0).setDepth(DEPTH_FADE);
     this.layout();
     this.scale.on("resize", () => this.layout());
     this.resolveReady();
@@ -39,17 +45,34 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     const data = Array.from({ length: map.height + 2 * MARGIN_Y }, (_, y) =>
       Array.from({ length: map.width + 2 * MARGIN_X }, (_, x) => tileAt(map, x - MARGIN_X, y - MARGIN_Y)),
     );
-    for (const sheet of sheets) {
+    sheets.forEach((sheet, i) => {
       const tilemap = this.make.tilemap({ data, tileWidth: TILE, tileHeight: TILE });
-      tilemap.createLayer(0, tilemap.addTilesetImage(sheet, sheet, TILE, TILE)!, -MARGIN_X * TILE, -MARGIN_Y * TILE);
+      tilemap
+        .createLayer(0, tilemap.addTilesetImage(sheet, sheet, TILE, TILE)!, -MARGIN_X * TILE, -MARGIN_Y * TILE)!
+        .setDepth(i === 0 ? 0 : DEPTH_ABOVE);
       this.tilemaps.push(tilemap);
-    }
+    });
     this.cameras.main.setVisible(true);
   }
 
   hide(): void {
     this.clear();
     this.cameras.main.setVisible(false);
+  }
+
+  addCharacter(sheet: CharacterSheet): CharacterView {
+    if (!this.textures.exists(sheet.key))
+      this.textures.addSpriteSheet(sheet.key, sheet.image as unknown as HTMLImageElement, { frameWidth: sheet.frameWidth, frameHeight: sheet.frameHeight });
+    const sprite = this.add.sprite(0, 0, sheet.key, 0).setOrigin(0).setDepth(DEPTH_CHARACTERS);
+    this.characters.add(sprite);
+    return {
+      setPosition: (x, y) => sprite.setPosition(x, y),
+      setFrame: (frame, hFlip) => sprite.setFrame(frame).setFlipX(hFlip),
+      destroy: () => {
+        this.characters.delete(sprite);
+        sprite.destroy();
+      },
+    };
   }
 
   setCamera(x: number, y: number): void {
@@ -66,6 +89,8 @@ export class WorldScene extends Phaser.Scene implements WorldView {
   private clear(): void {
     for (const tilemap of this.tilemaps) tilemap.destroy();
     this.tilemaps = [];
+    for (const sprite of this.characters) sprite.destroy();
+    this.characters.clear();
   }
 
   /** Loads images not loaded yet, keyed by URL. */

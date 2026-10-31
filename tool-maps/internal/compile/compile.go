@@ -51,6 +51,7 @@ func Client(r *world.Resolved) *mapv1.ClientMap {
 		Weather:     r.Map.Weather,
 		ShowName:    r.Map.ShowName,
 	}
+	m.Walkable, m.Elevation, m.Behaviors = collision(r)
 	for i, t := range r.Tiles {
 		m.Tiles[i] = uint32(t.Index)
 	}
@@ -79,9 +80,6 @@ func Server(r *world.Resolved) *mapv1.ServerMap {
 		Width:         uint32(r.Width),
 		Height:        uint32(r.Height),
 		Type:          mapTypes[r.Map.Type],
-		Walkable:      make([]byte, n),
-		Elevation:     make([]byte, n),
-		Behaviors:     make([]mapv1.TileBehavior, n),
 		Encounters:    make([]mapv1.EncounterType, n),
 		Connections:   connections(r.Map),
 		AllowRunning:  allows(r.Map, format.AllowRunning),
@@ -90,12 +88,8 @@ func Server(r *world.Resolved) *mapv1.ServerMap {
 		RequiresFlash: r.Map.Flash,
 		Region:        r.Map.Region,
 	}
+	m.Walkable, m.Elevation, m.Behaviors = collision(r)
 	for i, t := range r.Tiles {
-		if r.Walkable[i] {
-			m.Walkable[i] = 1
-		}
-		m.Elevation[i] = byte(r.Elevation[i])
-		m.Behaviors[i], _ = validate.Behavior(t.Behavior)
 		m.Encounters[i] = encounters[t.Encounter]
 	}
 	for _, w := range r.Map.Warps {
@@ -109,6 +103,20 @@ func Server(r *world.Resolved) *mapv1.ServerMap {
 		m.Objects = append(m.Objects, object(o))
 	}
 	return m
+}
+
+// collision is what both sides move by: walkable, elevation and behavior per cell.
+func collision(r *world.Resolved) (walkable, elevation []byte, behaviors []mapv1.TileBehavior) {
+	n := len(r.Tiles)
+	walkable, elevation, behaviors = make([]byte, n), make([]byte, n), make([]mapv1.TileBehavior, n)
+	for i, t := range r.Tiles {
+		if r.Walkable[i] {
+			walkable[i] = 1
+		}
+		elevation[i] = byte(r.Elevation[i])
+		behaviors[i], _ = validate.Behavior(t.Behavior)
+	}
+	return walkable, elevation, behaviors
 }
 
 var facings = map[string]mapv1.Direction{

@@ -1,6 +1,7 @@
 // What every FireRed screen gets: the machine, the art, and the way to the other screens.
 
 import type { Gender, TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
+import type { WorldLink } from "../../realtime/connection";
 import type { Gba } from "../gba/gba";
 import type { Font, FontId, Text, TextPrinters } from "../gba/text";
 import type { WorldView } from "../world/view";
@@ -18,6 +19,8 @@ export interface Flow {
   readonly assets: Assets;
   /** The world, drawn under the screen. */
   readonly world: WorldView;
+  /** The world on the server: entering it, the player's intents, its answers. */
+  readonly link: WorldLink;
   /** FONT_NORMAL, ready from boot. */
   readonly font: Font;
   /** Every font, and the text printers; ready once `newGameReady` resolved. */

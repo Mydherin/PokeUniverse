@@ -25,5 +25,5 @@ tool-emulator/.fetch/
 
 # Maps compiled and rendered from lib-maps by tool-maps (make maps), and its previews
 spa-pokeuniverse/public/maps/
-mic-core/maps/
+mic-core/maps/*.binpb
 tool-maps/previews/

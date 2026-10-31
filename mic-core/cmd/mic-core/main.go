@@ -24,11 +24,17 @@ import (
 	"pokeuniverse/mic-core/internal/config"
 	"pokeuniverse/mic-core/internal/health"
 	"pokeuniverse/mic-core/internal/httpx"
+	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/ratelimit"
 	"pokeuniverse/mic-core/internal/realtime"
 	"pokeuniverse/mic-core/internal/store"
 	"pokeuniverse/mic-core/internal/trainer"
+	"pokeuniverse/mic-core/internal/world"
+	"pokeuniverse/mic-core/maps"
 )
+
+// positionCopyInterval: how often live positions of players who moved are copied to PostgreSQL.
+const positionCopyInterval = 30 * time.Second
 
 func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -101,13 +107,26 @@ func run(log *slog.Logger) error {
 	}
 	go authHandler.CleanupLoop(ctx, time.Hour)
 
+	worldMaps, err := world.LoadMaps(maps.FS)
+	if err != nil {
+		return err
+	}
+	positions := live.NewStore(rdb, pool, log)
+	go positions.CopyLoop(ctx, positionCopyInterval)
+	game, err := world.New(worldMaps, positions, pool, log)
+	if err != nil {
+		return err
+	}
+	log.Info("world loaded", "maps", len(worldMaps))
+	ws := realtime.NewHandler(tokens, game, cfg.Origin(), log)
+
 	mux := http.NewServeMux()
 	(&health.Checker{Postgres: pool, Redis: rdb, NATS: nc}).Register(mux)
 	limit := ratelimit.New(rdb, log).PerIP
 	authHandler.Register(mux, limit)
 	(&admin.Handler{Tokens: tokens}).Register(mux, limit)
-	(&trainer.Handler{Tokens: tokens, Pool: pool, Log: log}).Register(mux, limit)
-	mux.Handle("GET /ws", realtime.NewHandler(tokens, cfg.Origin(), log))
+	(&trainer.Handler{Tokens: tokens, Pool: pool, Live: positions, Log: log}).Register(mux, limit)
+	mux.Handle("GET /ws", ws)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
@@ -129,6 +148,9 @@ func run(log *slog.Logger) error {
 	log.Info("shutting down")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	// Players leave first (saving where they are), then the zones stop, then HTTP.
+	ws.Shutdown(shutdownCtx)
+	game.Close()
 	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

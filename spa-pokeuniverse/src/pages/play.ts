@@ -40,6 +40,7 @@ export function playPage(): View {
       connecting: ["bg-volt-400 animate-twinkle", "Connecting…"],
       online: ["bg-leaf-400", s.state === "online" && s.latencyMs !== undefined ? `Online · ${s.latencyMs} ms` : "Online"],
       offline: ["bg-berry-400", "Reconnecting…"],
+      replaced: ["bg-berry-400", "Playing in another tab"],
       "signed-out": ["bg-berry-400", "Signed out"],
     }[s.state];
     dot.className = `size-2.5 rounded-full ${color}`;
@@ -63,7 +64,7 @@ export function playPage(): View {
     observer.observe(stage);
   });
   void Promise.all([import("../game/game"), hasSize]).then(([{ startGame }]) => {
-    if (!destroyed) stopGame = startGame(stage);
+    if (!destroyed) stopGame = startGame(stage, connection);
   });
 
   return {

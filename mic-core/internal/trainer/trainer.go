@@ -18,6 +18,8 @@ import (
 	"pokeuniverse/mic-core/internal/auth"
 	"pokeuniverse/mic-core/internal/db"
 	"pokeuniverse/mic-core/internal/httpx"
+	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/world"
 )
 
 // RateLimit wraps a handler with a per-IP limit.
@@ -26,6 +28,7 @@ type RateLimit func(name string, limit int, window time.Duration, next http.Hand
 type Handler struct {
 	Tokens *auth.Tokens
 	Pool   *pgxpool.Pool
+	Live   *live.Store
 	Log    *slog.Logger
 }
 
@@ -34,16 +37,11 @@ func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
 	mux.Handle("PUT /api/trainer", limit("trainer-put", 20, time.Minute, h.Tokens.Require(account.DefaultRole, http.HandlerFunc(h.put))))
 }
 
-// start is where New Game puts the trainer: their room, as FireRed's new game warp does.
-var start = struct {
-	mapID string
-	x, y  int32
-}{"pallet_town_players_house_2f", 6, 6}
-
 // maxBody bounds a NewTrainer request: two short names and a gender.
 const maxBody = 1 << 10
 
 // get returns the caller's trainer, or 404 when the account has none yet (New Game creates it).
+// The location is the live one while the trainer is (or was just) online.
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	p, _ := auth.PrincipalFrom(r.Context())
 	row, err := db.New(h.Pool).GetTrainer(r.Context(), p.AccountID)
@@ -55,6 +53,11 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		h.Log.Error("get trainer", "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
+	}
+	if pos, ok, err := h.Live.Location(r.Context(), p.AccountID, row.CreatedAt.UnixMicro()); err != nil {
+		h.Log.Error("get trainer location", "err", err)
+	} else if ok {
+		row.MapID, row.X, row.Y = pos.Map, int32(pos.X), int32(pos.Y)
 	}
 	httpx.WriteProtoJSON(w, http.StatusOK, summary(row))
 }
@@ -83,12 +86,20 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		Name:      req.Name,
 		Gender:    gender,
 		RivalName: req.RivalName,
-		MapID:     start.mapID,
-		X:         start.x,
-		Y:         start.y,
+		MapID:     world.Start.Map,
+		X:         int32(world.Start.X),
+		Y:         int32(world.Start.Y),
+		Facing:    live.FacingName(world.Start.Facing),
 	})
 	if err != nil {
 		h.Log.Error("put trainer", "err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	// The old save's live position must not win over the new one; a connection still playing
+	// it is disconnected on its next save. On failure the client retries the whole request.
+	if err := h.Live.Clear(r.Context(), p.AccountID); err != nil {
+		h.Log.Error("put trainer: clear live state", "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}

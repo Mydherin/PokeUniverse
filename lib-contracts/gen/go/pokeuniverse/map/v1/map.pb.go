@@ -490,12 +490,17 @@ type ClientMap struct {
 	// One tile index per cell, row by row.
 	Tiles []uint32 `protobuf:"varint,5,rep,packed,name=tiles,proto3" json:"tiles,omitempty"`
 	// Tiles repeated outside the map where no connection is drawn, row by row.
-	BorderWidth   uint32        `protobuf:"varint,6,opt,name=border_width,json=borderWidth,proto3" json:"border_width,omitempty"`
-	Border        []uint32      `protobuf:"varint,7,rep,packed,name=border,proto3" json:"border,omitempty"`
-	Connections   []*Connection `protobuf:"bytes,8,rep,name=connections,proto3" json:"connections,omitempty"`
-	Music         string        `protobuf:"bytes,9,opt,name=music,proto3" json:"music,omitempty"`
-	Weather       string        `protobuf:"bytes,10,opt,name=weather,proto3" json:"weather,omitempty"`
-	ShowName      bool          `protobuf:"varint,11,opt,name=show_name,json=showName,proto3" json:"show_name,omitempty"`
+	BorderWidth uint32        `protobuf:"varint,6,opt,name=border_width,json=borderWidth,proto3" json:"border_width,omitempty"`
+	Border      []uint32      `protobuf:"varint,7,rep,packed,name=border,proto3" json:"border,omitempty"`
+	Connections []*Connection `protobuf:"bytes,8,rep,name=connections,proto3" json:"connections,omitempty"`
+	Music       string        `protobuf:"bytes,9,opt,name=music,proto3" json:"music,omitempty"`
+	Weather     string        `protobuf:"bytes,10,opt,name=weather,proto3" json:"weather,omitempty"`
+	ShowName    bool          `protobuf:"varint,11,opt,name=show_name,json=showName,proto3" json:"show_name,omitempty"`
+	// What the client needs to predict the player's steps, laid out as in ServerMap
+	// (mic-core still checks every step).
+	Walkable      []byte         `protobuf:"bytes,12,opt,name=walkable,proto3" json:"walkable,omitempty"`
+	Elevation     []byte         `protobuf:"bytes,13,opt,name=elevation,proto3" json:"elevation,omitempty"`
+	Behaviors     []TileBehavior `protobuf:"varint,14,rep,packed,name=behaviors,proto3,enum=pokeuniverse.map.v1.TileBehavior" json:"behaviors,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -605,6 +610,27 @@ func (x *ClientMap) GetShowName() bool {
 		return x.ShowName
 	}
 	return false
+}
+
+func (x *ClientMap) GetWalkable() []byte {
+	if x != nil {
+		return x.Walkable
+	}
+	return nil
+}
+
+func (x *ClientMap) GetElevation() []byte {
+	if x != nil {
+		return x.Elevation
+	}
+	return nil
+}
+
+func (x *ClientMap) GetBehaviors() []TileBehavior {
+	if x != nil {
+		return x.Behaviors
+	}
+	return nil
 }
 
 // What mic-core plays: collision, behaviors, warps and objects.
@@ -1342,7 +1368,7 @@ var File_pokeuniverse_map_v1_map_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_map_v1_map_proto_rawDesc = "" +
 	"\n" +
-	"\x1dpokeuniverse/map/v1/map.proto\x12\x13pokeuniverse.map.v1\"\xc4\x02\n" +
+	"\x1dpokeuniverse/map/v1/map.proto\x12\x13pokeuniverse.map.v1\"\xbf\x03\n" +
 	"\tClientMap\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05width\x18\x02 \x01(\rR\x05width\x12\x16\n" +
@@ -1355,7 +1381,10 @@ const file_pokeuniverse_map_v1_map_proto_rawDesc = "" +
 	"\x05music\x18\t \x01(\tR\x05music\x12\x18\n" +
 	"\aweather\x18\n" +
 	" \x01(\tR\aweather\x12\x1b\n" +
-	"\tshow_name\x18\v \x01(\bR\bshowName\"\x98\x05\n" +
+	"\tshow_name\x18\v \x01(\bR\bshowName\x12\x1a\n" +
+	"\bwalkable\x18\f \x01(\fR\bwalkable\x12\x1c\n" +
+	"\televation\x18\r \x01(\fR\televation\x12?\n" +
+	"\tbehaviors\x18\x0e \x03(\x0e2!.pokeuniverse.map.v1.TileBehaviorR\tbehaviors\"\x98\x05\n" +
 	"\tServerMap\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05width\x18\x02 \x01(\rR\x05width\x12\x16\n" +
@@ -1554,23 +1583,24 @@ var file_pokeuniverse_map_v1_map_proto_goTypes = []any{
 }
 var file_pokeuniverse_map_v1_map_proto_depIdxs = []int32{
 	6,  // 0: pokeuniverse.map.v1.ClientMap.connections:type_name -> pokeuniverse.map.v1.Connection
-	0,  // 1: pokeuniverse.map.v1.ServerMap.type:type_name -> pokeuniverse.map.v1.MapType
-	3,  // 2: pokeuniverse.map.v1.ServerMap.behaviors:type_name -> pokeuniverse.map.v1.TileBehavior
-	2,  // 3: pokeuniverse.map.v1.ServerMap.encounters:type_name -> pokeuniverse.map.v1.EncounterType
-	6,  // 4: pokeuniverse.map.v1.ServerMap.connections:type_name -> pokeuniverse.map.v1.Connection
-	7,  // 5: pokeuniverse.map.v1.ServerMap.warps:type_name -> pokeuniverse.map.v1.Warp
-	8,  // 6: pokeuniverse.map.v1.ServerMap.objects:type_name -> pokeuniverse.map.v1.MapObject
-	1,  // 7: pokeuniverse.map.v1.Connection.direction:type_name -> pokeuniverse.map.v1.Direction
-	9,  // 8: pokeuniverse.map.v1.MapObject.npc:type_name -> pokeuniverse.map.v1.Npc
-	10, // 9: pokeuniverse.map.v1.MapObject.sign:type_name -> pokeuniverse.map.v1.Sign
-	11, // 10: pokeuniverse.map.v1.MapObject.hidden_item:type_name -> pokeuniverse.map.v1.HiddenItem
-	12, // 11: pokeuniverse.map.v1.MapObject.trigger:type_name -> pokeuniverse.map.v1.Trigger
-	1,  // 12: pokeuniverse.map.v1.Sign.facing:type_name -> pokeuniverse.map.v1.Direction
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	3,  // 1: pokeuniverse.map.v1.ClientMap.behaviors:type_name -> pokeuniverse.map.v1.TileBehavior
+	0,  // 2: pokeuniverse.map.v1.ServerMap.type:type_name -> pokeuniverse.map.v1.MapType
+	3,  // 3: pokeuniverse.map.v1.ServerMap.behaviors:type_name -> pokeuniverse.map.v1.TileBehavior
+	2,  // 4: pokeuniverse.map.v1.ServerMap.encounters:type_name -> pokeuniverse.map.v1.EncounterType
+	6,  // 5: pokeuniverse.map.v1.ServerMap.connections:type_name -> pokeuniverse.map.v1.Connection
+	7,  // 6: pokeuniverse.map.v1.ServerMap.warps:type_name -> pokeuniverse.map.v1.Warp
+	8,  // 7: pokeuniverse.map.v1.ServerMap.objects:type_name -> pokeuniverse.map.v1.MapObject
+	1,  // 8: pokeuniverse.map.v1.Connection.direction:type_name -> pokeuniverse.map.v1.Direction
+	9,  // 9: pokeuniverse.map.v1.MapObject.npc:type_name -> pokeuniverse.map.v1.Npc
+	10, // 10: pokeuniverse.map.v1.MapObject.sign:type_name -> pokeuniverse.map.v1.Sign
+	11, // 11: pokeuniverse.map.v1.MapObject.hidden_item:type_name -> pokeuniverse.map.v1.HiddenItem
+	12, // 12: pokeuniverse.map.v1.MapObject.trigger:type_name -> pokeuniverse.map.v1.Trigger
+	1,  // 13: pokeuniverse.map.v1.Sign.facing:type_name -> pokeuniverse.map.v1.Direction
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_map_v1_map_proto_init() }

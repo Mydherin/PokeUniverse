@@ -11,10 +11,29 @@ export interface TilesetArt {
   above: string;
 }
 
+/** A character's frames: same-size cells side by side in one image, transparent where empty. */
+export interface CharacterSheet {
+  /** Unique per sheet; a sheet added twice is reused. */
+  key: string;
+  image: HTMLCanvasElement;
+  frameWidth: number;
+  frameHeight: number;
+}
+
+/** A character drawn between the map's layers. */
+export interface CharacterView {
+  /** The world pixel of the frame's top-left corner. */
+  setPosition(x: number, y: number): void;
+  setFrame(frame: number, hFlip: boolean): void;
+  destroy(): void;
+}
+
 export interface WorldView {
   /** Loads the art and draws the map, replacing the one shown. */
   show(map: ClientMap, art: TilesetArt): Promise<void>;
   hide(): void;
+  /** Adds a character to the map shown (removed with it). */
+  addCharacter(sheet: CharacterSheet): CharacterView;
   /** The world pixel at the screen's top-left corner. */
   setCamera(x: number, y: number): void;
   /** Fades toward `color` (BGR555) by y/16, as a palette fade does. */

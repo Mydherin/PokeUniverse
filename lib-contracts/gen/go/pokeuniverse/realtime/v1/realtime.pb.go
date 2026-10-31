@@ -12,6 +12,7 @@ package realtimev1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -34,6 +35,10 @@ const (
 	ErrorCode_ERROR_CODE_TOKEN_EXPIRED ErrorCode = 2
 	// Message could not be decoded or is not allowed now.
 	ErrorCode_ERROR_CODE_BAD_MESSAGE ErrorCode = 3
+	// EnterWorld for an account with no trainer (New Game creates it).
+	ErrorCode_ERROR_CODE_NO_TRAINER ErrorCode = 4
+	// The account entered the world from another connection; this one is closed.
+	ErrorCode_ERROR_CODE_REPLACED ErrorCode = 5
 )
 
 // Enum value maps for ErrorCode.
@@ -43,12 +48,16 @@ var (
 		1: "ERROR_CODE_UNAUTHENTICATED",
 		2: "ERROR_CODE_TOKEN_EXPIRED",
 		3: "ERROR_CODE_BAD_MESSAGE",
+		4: "ERROR_CODE_NO_TRAINER",
+		5: "ERROR_CODE_REPLACED",
 	}
 	ErrorCode_value = map[string]int32{
 		"ERROR_CODE_UNSPECIFIED":     0,
 		"ERROR_CODE_UNAUTHENTICATED": 1,
 		"ERROR_CODE_TOKEN_EXPIRED":   2,
 		"ERROR_CODE_BAD_MESSAGE":     3,
+		"ERROR_CODE_NO_TRAINER":      4,
+		"ERROR_CODE_REPLACED":        5,
 	}
 )
 
@@ -87,6 +96,11 @@ type ClientMessage struct {
 	//
 	//	*ClientMessage_Authenticate
 	//	*ClientMessage_Ping
+	//	*ClientMessage_EnterWorld
+	//	*ClientMessage_Move
+	//	*ClientMessage_Turn
+	//	*ClientMessage_Interact
+	//	*ClientMessage_ScriptDone
 	Payload       isClientMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -154,6 +168,51 @@ func (x *ClientMessage) GetPing() *Ping {
 	return nil
 }
 
+func (x *ClientMessage) GetEnterWorld() *v1.EnterWorld {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_EnterWorld); ok {
+			return x.EnterWorld
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetMove() *v1.Move {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_Move); ok {
+			return x.Move
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetTurn() *v1.Turn {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_Turn); ok {
+			return x.Turn
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetInteract() *v1.Interact {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_Interact); ok {
+			return x.Interact
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetScriptDone() *v1.ScriptDone {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_ScriptDone); ok {
+			return x.ScriptDone
+		}
+	}
+	return nil
+}
+
 type isClientMessage_Payload interface {
 	isClientMessage_Payload()
 }
@@ -166,9 +225,39 @@ type ClientMessage_Ping struct {
 	Ping *Ping `protobuf:"bytes,3,opt,name=ping,proto3,oneof"`
 }
 
+type ClientMessage_EnterWorld struct {
+	EnterWorld *v1.EnterWorld `protobuf:"bytes,4,opt,name=enter_world,json=enterWorld,proto3,oneof"`
+}
+
+type ClientMessage_Move struct {
+	Move *v1.Move `protobuf:"bytes,5,opt,name=move,proto3,oneof"`
+}
+
+type ClientMessage_Turn struct {
+	Turn *v1.Turn `protobuf:"bytes,6,opt,name=turn,proto3,oneof"`
+}
+
+type ClientMessage_Interact struct {
+	Interact *v1.Interact `protobuf:"bytes,7,opt,name=interact,proto3,oneof"`
+}
+
+type ClientMessage_ScriptDone struct {
+	ScriptDone *v1.ScriptDone `protobuf:"bytes,8,opt,name=script_done,json=scriptDone,proto3,oneof"`
+}
+
 func (*ClientMessage_Authenticate) isClientMessage_Payload() {}
 
 func (*ClientMessage_Ping) isClientMessage_Payload() {}
+
+func (*ClientMessage_EnterWorld) isClientMessage_Payload() {}
+
+func (*ClientMessage_Move) isClientMessage_Payload() {}
+
+func (*ClientMessage_Turn) isClientMessage_Payload() {}
+
+func (*ClientMessage_Interact) isClientMessage_Payload() {}
+
+func (*ClientMessage_ScriptDone) isClientMessage_Payload() {}
 
 // Server -> client: events.
 type ServerMessage struct {
@@ -179,6 +268,9 @@ type ServerMessage struct {
 	//	*ServerMessage_Welcome
 	//	*ServerMessage_Pong
 	//	*ServerMessage_Error
+	//	*ServerMessage_Snapshot
+	//	*ServerMessage_Correction
+	//	*ServerMessage_Script
 	Payload       isServerMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -255,6 +347,33 @@ func (x *ServerMessage) GetError() *Error {
 	return nil
 }
 
+func (x *ServerMessage) GetSnapshot() *v1.WorldSnapshot {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_Snapshot); ok {
+			return x.Snapshot
+		}
+	}
+	return nil
+}
+
+func (x *ServerMessage) GetCorrection() *v1.Correction {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_Correction); ok {
+			return x.Correction
+		}
+	}
+	return nil
+}
+
+func (x *ServerMessage) GetScript() *v1.Script {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_Script); ok {
+			return x.Script
+		}
+	}
+	return nil
+}
+
 type isServerMessage_Payload interface {
 	isServerMessage_Payload()
 }
@@ -271,11 +390,29 @@ type ServerMessage_Error struct {
 	Error *Error `protobuf:"bytes,4,opt,name=error,proto3,oneof"`
 }
 
+type ServerMessage_Snapshot struct {
+	Snapshot *v1.WorldSnapshot `protobuf:"bytes,5,opt,name=snapshot,proto3,oneof"`
+}
+
+type ServerMessage_Correction struct {
+	Correction *v1.Correction `protobuf:"bytes,6,opt,name=correction,proto3,oneof"`
+}
+
+type ServerMessage_Script struct {
+	Script *v1.Script `protobuf:"bytes,7,opt,name=script,proto3,oneof"`
+}
+
 func (*ServerMessage_Welcome) isServerMessage_Payload() {}
 
 func (*ServerMessage_Pong) isServerMessage_Payload() {}
 
 func (*ServerMessage_Error) isServerMessage_Payload() {}
+
+func (*ServerMessage_Snapshot) isServerMessage_Payload() {}
+
+func (*ServerMessage_Correction) isServerMessage_Payload() {}
+
+func (*ServerMessage_Script) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
@@ -515,17 +652,29 @@ var File_pokeuniverse_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\"\xb0\x01\n" +
+	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a!pokeuniverse/world/v1/world.proto\"\xe1\x03\n" +
 	"\rClientMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12L\n" +
 	"\fauthenticate\x18\x02 \x01(\v2&.pokeuniverse.realtime.v1.AuthenticateH\x00R\fauthenticate\x124\n" +
-	"\x04ping\x18\x03 \x01(\v2\x1e.pokeuniverse.realtime.v1.PingH\x00R\x04pingB\t\n" +
-	"\apayload\"\xda\x01\n" +
+	"\x04ping\x18\x03 \x01(\v2\x1e.pokeuniverse.realtime.v1.PingH\x00R\x04ping\x12D\n" +
+	"\venter_world\x18\x04 \x01(\v2!.pokeuniverse.world.v1.EnterWorldH\x00R\n" +
+	"enterWorld\x121\n" +
+	"\x04move\x18\x05 \x01(\v2\x1b.pokeuniverse.world.v1.MoveH\x00R\x04move\x121\n" +
+	"\x04turn\x18\x06 \x01(\v2\x1b.pokeuniverse.world.v1.TurnH\x00R\x04turn\x12=\n" +
+	"\binteract\x18\a \x01(\v2\x1f.pokeuniverse.world.v1.InteractH\x00R\binteract\x12D\n" +
+	"\vscript_done\x18\b \x01(\v2!.pokeuniverse.world.v1.ScriptDoneH\x00R\n" +
+	"scriptDoneB\t\n" +
+	"\apayload\"\x9c\x03\n" +
 	"\rServerMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12=\n" +
 	"\awelcome\x18\x02 \x01(\v2!.pokeuniverse.realtime.v1.WelcomeH\x00R\awelcome\x124\n" +
 	"\x04pong\x18\x03 \x01(\v2\x1e.pokeuniverse.realtime.v1.PongH\x00R\x04pong\x127\n" +
-	"\x05error\x18\x04 \x01(\v2\x1f.pokeuniverse.realtime.v1.ErrorH\x00R\x05errorB\t\n" +
+	"\x05error\x18\x04 \x01(\v2\x1f.pokeuniverse.realtime.v1.ErrorH\x00R\x05error\x12B\n" +
+	"\bsnapshot\x18\x05 \x01(\v2$.pokeuniverse.world.v1.WorldSnapshotH\x00R\bsnapshot\x12C\n" +
+	"\n" +
+	"correction\x18\x06 \x01(\v2!.pokeuniverse.world.v1.CorrectionH\x00R\n" +
+	"correction\x127\n" +
+	"\x06script\x18\a \x01(\v2\x1d.pokeuniverse.world.v1.ScriptH\x00R\x06scriptB\t\n" +
 	"\apayload\"1\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"(\n" +
@@ -541,12 +690,14 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\vserver_time\x18\x02 \x01(\x04R\n" +
 	"serverTime\"@\n" +
 	"\x05Error\x127\n" +
-	"\x04code\x18\x01 \x01(\x0e2#.pokeuniverse.realtime.v1.ErrorCodeR\x04code*\x81\x01\n" +
+	"\x04code\x18\x01 \x01(\x0e2#.pokeuniverse.realtime.v1.ErrorCodeR\x04code*\xb5\x01\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aERROR_CODE_UNAUTHENTICATED\x10\x01\x12\x1c\n" +
 	"\x18ERROR_CODE_TOKEN_EXPIRED\x10\x02\x12\x1a\n" +
-	"\x16ERROR_CODE_BAD_MESSAGE\x10\x03BGZEpokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1b\x06proto3"
+	"\x16ERROR_CODE_BAD_MESSAGE\x10\x03\x12\x19\n" +
+	"\x15ERROR_CODE_NO_TRAINER\x10\x04\x12\x17\n" +
+	"\x13ERROR_CODE_REPLACED\x10\x05BGZEpokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1b\x06proto3"
 
 var (
 	file_pokeuniverse_realtime_v1_realtime_proto_rawDescOnce sync.Once
@@ -563,27 +714,43 @@ func file_pokeuniverse_realtime_v1_realtime_proto_rawDescGZIP() []byte {
 var file_pokeuniverse_realtime_v1_realtime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_pokeuniverse_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_pokeuniverse_realtime_v1_realtime_proto_goTypes = []any{
-	(ErrorCode)(0),        // 0: pokeuniverse.realtime.v1.ErrorCode
-	(*ClientMessage)(nil), // 1: pokeuniverse.realtime.v1.ClientMessage
-	(*ServerMessage)(nil), // 2: pokeuniverse.realtime.v1.ServerMessage
-	(*Authenticate)(nil),  // 3: pokeuniverse.realtime.v1.Authenticate
-	(*Welcome)(nil),       // 4: pokeuniverse.realtime.v1.Welcome
-	(*Ping)(nil),          // 5: pokeuniverse.realtime.v1.Ping
-	(*Pong)(nil),          // 6: pokeuniverse.realtime.v1.Pong
-	(*Error)(nil),         // 7: pokeuniverse.realtime.v1.Error
+	(ErrorCode)(0),           // 0: pokeuniverse.realtime.v1.ErrorCode
+	(*ClientMessage)(nil),    // 1: pokeuniverse.realtime.v1.ClientMessage
+	(*ServerMessage)(nil),    // 2: pokeuniverse.realtime.v1.ServerMessage
+	(*Authenticate)(nil),     // 3: pokeuniverse.realtime.v1.Authenticate
+	(*Welcome)(nil),          // 4: pokeuniverse.realtime.v1.Welcome
+	(*Ping)(nil),             // 5: pokeuniverse.realtime.v1.Ping
+	(*Pong)(nil),             // 6: pokeuniverse.realtime.v1.Pong
+	(*Error)(nil),            // 7: pokeuniverse.realtime.v1.Error
+	(*v1.EnterWorld)(nil),    // 8: pokeuniverse.world.v1.EnterWorld
+	(*v1.Move)(nil),          // 9: pokeuniverse.world.v1.Move
+	(*v1.Turn)(nil),          // 10: pokeuniverse.world.v1.Turn
+	(*v1.Interact)(nil),      // 11: pokeuniverse.world.v1.Interact
+	(*v1.ScriptDone)(nil),    // 12: pokeuniverse.world.v1.ScriptDone
+	(*v1.WorldSnapshot)(nil), // 13: pokeuniverse.world.v1.WorldSnapshot
+	(*v1.Correction)(nil),    // 14: pokeuniverse.world.v1.Correction
+	(*v1.Script)(nil),        // 15: pokeuniverse.world.v1.Script
 }
 var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
-	3, // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
-	5, // 1: pokeuniverse.realtime.v1.ClientMessage.ping:type_name -> pokeuniverse.realtime.v1.Ping
-	4, // 2: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
-	6, // 3: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
-	7, // 4: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
-	0, // 5: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3,  // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
+	5,  // 1: pokeuniverse.realtime.v1.ClientMessage.ping:type_name -> pokeuniverse.realtime.v1.Ping
+	8,  // 2: pokeuniverse.realtime.v1.ClientMessage.enter_world:type_name -> pokeuniverse.world.v1.EnterWorld
+	9,  // 3: pokeuniverse.realtime.v1.ClientMessage.move:type_name -> pokeuniverse.world.v1.Move
+	10, // 4: pokeuniverse.realtime.v1.ClientMessage.turn:type_name -> pokeuniverse.world.v1.Turn
+	11, // 5: pokeuniverse.realtime.v1.ClientMessage.interact:type_name -> pokeuniverse.world.v1.Interact
+	12, // 6: pokeuniverse.realtime.v1.ClientMessage.script_done:type_name -> pokeuniverse.world.v1.ScriptDone
+	4,  // 7: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
+	6,  // 8: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
+	7,  // 9: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
+	13, // 10: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
+	14, // 11: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
+	15, // 12: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
+	0,  // 13: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_realtime_v1_realtime_proto_init() }
@@ -594,11 +761,19 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 	file_pokeuniverse_realtime_v1_realtime_proto_msgTypes[0].OneofWrappers = []any{
 		(*ClientMessage_Authenticate)(nil),
 		(*ClientMessage_Ping)(nil),
+		(*ClientMessage_EnterWorld)(nil),
+		(*ClientMessage_Move)(nil),
+		(*ClientMessage_Turn)(nil),
+		(*ClientMessage_Interact)(nil),
+		(*ClientMessage_ScriptDone)(nil),
 	}
 	file_pokeuniverse_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerMessage_Welcome)(nil),
 		(*ServerMessage_Pong)(nil),
 		(*ServerMessage_Error)(nil),
+		(*ServerMessage_Snapshot)(nil),
+		(*ServerMessage_Correction)(nil),
+		(*ServerMessage_Script)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

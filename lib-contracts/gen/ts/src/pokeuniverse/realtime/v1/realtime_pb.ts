@@ -7,13 +7,15 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Correction, EnterWorld, Interact, Move, Script, ScriptDone, Turn, WorldSnapshot } from "../../world/v1/world_pb";
+import { file_pokeuniverse_world_v1_world } from "../../world/v1/world_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file pokeuniverse/realtime/v1/realtime.proto.
  */
 export const file_pokeuniverse_realtime_v1_realtime: GenFile = /*@__PURE__*/
-  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKXAQoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAQgkKB3BheWxvYWQivwEKDVNlcnZlck1lc3NhZ2USCwoDc2VxGAEgASgNEjQKB3dlbGNvbWUYAiABKAsyIS5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuV2VsY29tZUgAEi4KBHBvbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUG9uZ0gAEjAKBWVycm9yGAQgASgLMh8ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9ySABCCQoHcGF5bG9hZCIkCgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJIh0KB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBCIbCgRQaW5nEhMKC2NsaWVudF90aW1lGAEgASgEIjAKBFBvbmcSEwoLY2xpZW50X3RpbWUYASABKAQSEwoLc2VydmVyX3RpbWUYAiABKAQiOgoFRXJyb3ISMQoEY29kZRgBIAEoDjIjLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckNvZGUqgQEKCUVycm9yQ29kZRIaChZFUlJPUl9DT0RFX1VOU1BFQ0lGSUVEEAASHgoaRVJST1JfQ09ERV9VTkFVVEhFTlRJQ0FURUQQARIcChhFUlJPUl9DT0RFX1RPS0VOX0VYUElSRUQQAhIaChZFUlJPUl9DT0RFX0JBRF9NRVNTQUdFEANCR1pFcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9yZWFsdGltZS92MTtyZWFsdGltZXYxYgZwcm90bzM");
+  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSKaAwoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIAEIJCgdwYXlsb2FkIuMCCg1TZXJ2ZXJNZXNzYWdlEgsKA3NlcRgBIAEoDRI0Cgd3ZWxjb21lGAIgASgLMiEucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLldlbGNvbWVIABIuCgRwb25nGAMgASgLMh4ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLlBvbmdIABIwCgVlcnJvchgEIAEoCzIfLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckgAEjgKCHNuYXBzaG90GAUgASgLMiQucG9rZXVuaXZlcnNlLndvcmxkLnYxLldvcmxkU25hcHNob3RIABI3Cgpjb3JyZWN0aW9uGAYgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkNvcnJlY3Rpb25IABIvCgZzY3JpcHQYByABKAsyHS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0SABCCQoHcGF5bG9hZCIkCgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJIh0KB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBCIbCgRQaW5nEhMKC2NsaWVudF90aW1lGAEgASgEIjAKBFBvbmcSEwoLY2xpZW50X3RpbWUYASABKAQSEwoLc2VydmVyX3RpbWUYAiABKAQiOgoFRXJyb3ISMQoEY29kZRgBIAEoDjIjLnBva2V1bml2ZXJzZS5yZWFsdGltZS52MS5FcnJvckNvZGUqtQEKCUVycm9yQ29kZRIaChZFUlJPUl9DT0RFX1VOU1BFQ0lGSUVEEAASHgoaRVJST1JfQ09ERV9VTkFVVEhFTlRJQ0FURUQQARIcChhFUlJPUl9DT0RFX1RPS0VOX0VYUElSRUQQAhIaChZFUlJPUl9DT0RFX0JBRF9NRVNTQUdFEAMSGQoVRVJST1JfQ09ERV9OT19UUkFJTkVSEAQSFwoTRVJST1JfQ09ERV9SRVBMQUNFRBAFQkdaRXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcmVhbHRpbWUvdjE7cmVhbHRpbWV2MWIGcHJvdG8z", [file_pokeuniverse_world_v1_world]);
 
 /**
  * Client -> server: intents only.
@@ -41,6 +43,36 @@ export type ClientMessage = Message<"pokeuniverse.realtime.v1.ClientMessage"> & 
      */
     value: Ping;
     case: "ping";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.EnterWorld enter_world = 4;
+     */
+    value: EnterWorld;
+    case: "enterWorld";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.Move move = 5;
+     */
+    value: Move;
+    case: "move";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.Turn turn = 6;
+     */
+    value: Turn;
+    case: "turn";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.Interact interact = 7;
+     */
+    value: Interact;
+    case: "interact";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.ScriptDone script_done = 8;
+     */
+    value: ScriptDone;
+    case: "scriptDone";
   } | { case: undefined; value?: undefined };
 };
 
@@ -83,6 +115,24 @@ export type ServerMessage = Message<"pokeuniverse.realtime.v1.ServerMessage"> & 
      */
     value: Error;
     case: "error";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.WorldSnapshot snapshot = 5;
+     */
+    value: WorldSnapshot;
+    case: "snapshot";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.Correction correction = 6;
+     */
+    value: Correction;
+    case: "correction";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.Script script = 7;
+     */
+    value: Script;
+    case: "script";
   } | { case: undefined; value?: undefined };
 };
 
@@ -224,6 +274,20 @@ export enum ErrorCode {
    * @generated from enum value: ERROR_CODE_BAD_MESSAGE = 3;
    */
   BAD_MESSAGE = 3,
+
+  /**
+   * EnterWorld for an account with no trainer (New Game creates it).
+   *
+   * @generated from enum value: ERROR_CODE_NO_TRAINER = 4;
+   */
+  NO_TRAINER = 4,
+
+  /**
+   * The account entered the world from another connection; this one is closed.
+   *
+   * @generated from enum value: ERROR_CODE_REPLACED = 5;
+   */
+  REPLACED = 5,
 }
 
 /**

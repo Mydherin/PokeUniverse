@@ -13,6 +13,8 @@
   "se_ball_trade": { "song": "se_ball_trade" },
   "se_warp_in": { "song": "se_warp_in" },
   "se_win_open": { "song": "se_win_open" },
+  "se_wall_hit": { "song": "se_wall_hit" },
+  "se_pc_on": { "song": "se_pc_on" },
   "cry_nidorino_doubles": { "cry": 32, "length": 20, "release": 225, "pan": 63 },
   "cry_charizard": { "cry": 5 },
   "cry_nidoran_f": { "cry": 28 }

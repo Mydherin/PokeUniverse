@@ -2,7 +2,7 @@
 // (maps.md#outputs), the same for every art style. The server decides where the player is.
 
 import { fromBinary } from "@bufbuild/protobuf";
-import { ClientMapSchema, type ClientMap } from "@pokeuniverse/contracts/map/v1/map";
+import { ClientMapSchema, TileBehavior, type ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 
 /** Map cells are 16×16 pixels in every FireRed-sized art style. */
 export const TILE = 16;
@@ -22,3 +22,19 @@ export function tileAt(map: ClientMap, x: number, y: number): number {
 }
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
+
+const inside = (map: ClientMap, x: number, y: number) => x >= 0 && y >= 0 && x < map.width && y < map.height;
+
+export function isWalkable(map: ClientMap, x: number, y: number): boolean {
+  return inside(map, x, y) && map.walkable[y * map.width + x] !== 0;
+}
+
+/** The cell's elevation; 0 outside the map. */
+export function elevationAt(map: ClientMap, x: number, y: number): number {
+  return inside(map, x, y) ? map.elevation[y * map.width + x] : 0;
+}
+
+/** The cell's tile behavior; unspecified outside the map. */
+export function behaviorAt(map: ClientMap, x: number, y: number): TileBehavior {
+  return inside(map, x, y) ? map.behaviors[y * map.width + x] : TileBehavior.UNSPECIFIED;
+}

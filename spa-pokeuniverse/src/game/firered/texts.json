@@ -22,5 +22,10 @@
   "gText_NamingScreenKeyboard_abcdef", "gText_NamingScreenKeyboard_ghijkl", "gText_NamingScreenKeyboard_mnopqrs",
   "gText_NamingScreenKeyboard_tuvwxyz", "gText_NamingScreenKeyboard_ABCDEF", "gText_NamingScreenKeyboard_GHIJKL",
   "gText_NamingScreenKeyboard_MNOPQRS", "gText_NamingScreenKeyboard_TUVWXYZ", "gText_NamingScreenKeyboard_01234",
-  "gText_NamingScreenKeyboard_56789", "gText_NamingScreenKeyboard_Symbols1", "gText_NamingScreenKeyboard_Symbols2"
+  "gText_NamingScreenKeyboard_56789", "gText_NamingScreenKeyboard_Symbols1", "gText_NamingScreenKeyboard_Symbols2",
+  "PalletTown_PlayersHouse_2F_Text_PlayedWithNES", "PalletTown_PlayersHouse_2F_Text_PressLRForHelp", "Text_PlayerBootedUpPC",
+  "Text_Bookshelf", "Text_PokeMartShelf", "Text_Food", "Text_Blueprints", "Text_Burglary", "Text_Computer",
+  "Text_PlayerFacingTVScreen", "Text_DishesPlatesNeatlyLinedUp", "Text_Kitchen", "Text_Dresser", "Text_Painting",
+  "Text_PowerPlantMachine", "Text_Telephone", "Text_AdvertisingPoster", "Text_TastyFood", "Text_TrashBin", "Text_Cup",
+  "Text_BlinkingLights", "Text_NeatlyLinedUpTools", "Text_PokemartSign", "Text_PokecenterSign"
 ]

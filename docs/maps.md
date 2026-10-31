@@ -134,7 +134,7 @@ Generated, gitignored, never edited by hand.
 | Output | Where | Contents |
 |---|---|---|
 | Tileset art | `spa-pokeuniverse/public/firered/tilesets/<id>.png` and `<id>.above.png` | 16×16 frames, 16 per row, frame = tile index; `.above` is drawn over the player. A tileset with a base also holds the base's frames, drawn with its palettes |
-| Client maps | `spa-pokeuniverse/public/maps/<id>.binpb` (served at `/maps/`) | `ClientMap`: size, tileset, tile per cell, border, connections, music, weather |
+| Client maps | `spa-pokeuniverse/public/maps/<id>.binpb` (served at `/maps/`) | `ClientMap`: size, tileset, tile per cell, border, connections, music, weather; walkable, elevation and behavior per cell, to predict movement |
 | Server maps | `mic-core/maps/<id>.binpb` | `ServerMap`: walkable, elevation, behavior and encounter type per cell; connections, warps, objects, map rules |
 
 - Both are Protocol Buffers messages of `pokeuniverse.map.v1` ([lib-contracts](tech-stack.md#lib-contracts)).

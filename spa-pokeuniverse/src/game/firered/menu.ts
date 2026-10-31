@@ -29,6 +29,17 @@ export function loadStdWindowFrameGfx(flow: Flow, bg: Background): void {
   gba.palettes.load(frame.palette, STD_WINDOW_PALETTE * 16, 16);
 }
 
+/** LoadSignpostWindowFrameGfx: the signpost frame in place of the dialogue frame, same palettes otherwise. */
+export function loadSignpostWindowFrameGfx(flow: Flow, bg: Background): void {
+  const { assets, gba } = flow;
+  gba.palettes.load(assets.get("stdMenuPal").palette, STD_WINDOW_PALETTE * 16, 10);
+  copyTiles(bg, assets.get("signpostFrame").tiles, DLG_WINDOW_BASE_TILE, 19);
+  gba.palettes.load(assets.get("textWindowPal1").palette, DLG_WINDOW_PALETTE * 16, 16);
+  const frame = assets.get("textWindowFrame");
+  copyTiles(bg, frame.tiles, STD_WINDOW_BASE_TILE, 9);
+  gba.palettes.load(frame.palette, STD_WINDOW_PALETTE * 16, 16);
+}
+
 /** LoadBgTiles: `count` tiles at `at`, growing the background's tiles when needed. */
 export function copyTiles(bg: Background, tiles: Uint8Array, at: number, count = tiles.length / 64): void {
   const end = (at + count) * 64;
@@ -40,8 +51,11 @@ export function copyTiles(bg: Background, tiles: Uint8Array, at: number, count =
   bg.tiles.set(tiles.subarray(0, count * 64), at * 64);
 }
 
-/** DrawDialogueFrame: the message frame around the window, then an empty white window. */
-export function drawDialogueFrame(win: Window): void {
+/**
+ * DrawDialogueFrame: the message frame around the window, then an empty white window. The
+ * signpost frame mirrors its middle rows the other way.
+ */
+export function drawDialogueFrame(win: Window, signpost = false): void {
   const { bg } = win;
   const { left, top, width } = win.template;
   const t = DLG_WINDOW_BASE_TILE;
@@ -56,8 +70,13 @@ export function drawDialogueFrame(win: Window): void {
   row(top - 1, 0, 1, 2, 3, 4);
   row(top, 5, 6, null, 8, 9);
   row(top + 1, 10, 11, null, 12, 13);
-  row(top + 2, 10, 11, null, 12, 13, V_FLIP);
-  row(top + 3, 5, 6, null, 8, 9, V_FLIP);
+  if (signpost) {
+    row(top + 2, 5, 6, null, 8, 9, V_FLIP);
+    row(top + 3, 10, 11, null, 12, 13, V_FLIP);
+  } else {
+    row(top + 2, 10, 11, null, 12, 13, V_FLIP);
+    row(top + 3, 5, 6, null, 8, 9, V_FLIP);
+  }
   row(top + 4, 0, 1, 2, 3, 4, V_FLIP);
   win.fill(1);
   win.putTilemap();

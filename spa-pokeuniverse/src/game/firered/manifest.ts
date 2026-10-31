@@ -123,6 +123,11 @@ const NEW_GAME_GRAPHICS = {
   owRed: { png: "object_events/pics/people/red_normal.png", meta: [2, 4] },
   owGreen: { png: "object_events/pics/people/green_normal.png", meta: [2, 4] },
   owPlayerPal: { pal: "object_events/palettes/player.pal" },
+  // Overworld: the player's running frames (named surf_run in the game) and the signpost frame
+  owRedRun: { png: "object_events/pics/people/red_surf_run.png" },
+  owGreenRun: { png: "object_events/pics/people/green_surf_run.png" },
+  signpostFrame: { png: "text_window/signpost.png" },
+  textWindowPal1: { pal: "text_window/stdpal_1.pal" },
 } satisfies Record<string, GraphicFiles>;
 
 export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS;
@@ -140,11 +145,41 @@ export const NEW_GAME_SOUNDS = [
   "se_warp_in",
   "se_win_open",
   "cry_nidoran_f",
+  "se_wall_hit",
+  "se_pc_on",
 ] as const;
 export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number];
 
 /** The game's strings `make text` encodes (src/game/firered/texts.json lists them). */
 export type TextId = string;
+
+/** The world's text IDs (sent by mic-core) as FireRed's strings. */
+export const WORLD_TEXTS: Record<string, TextId> = {
+  "pallet_town_players_house_2f.played_with_nes": "PalletTown_PlayersHouse_2F_Text_PlayedWithNES",
+  "pallet_town_players_house_2f.press_lr_for_help": "PalletTown_PlayersHouse_2F_Text_PressLRForHelp",
+  "common.player_booted_up_pc": "Text_PlayerBootedUpPC",
+  "flavor.bookshelf": "Text_Bookshelf",
+  "flavor.pokemart_shelf": "Text_PokeMartShelf",
+  "flavor.food": "Text_Food",
+  "flavor.blueprints": "Text_Blueprints",
+  "flavor.burglary": "Text_Burglary",
+  "flavor.computer": "Text_Computer",
+  "flavor.television": "Text_PlayerFacingTVScreen",
+  "flavor.cabinet": "Text_DishesPlatesNeatlyLinedUp",
+  "flavor.kitchen": "Text_Kitchen",
+  "flavor.dresser": "Text_Dresser",
+  "flavor.painting": "Text_Painting",
+  "flavor.power_plant_machine": "Text_PowerPlantMachine",
+  "flavor.telephone": "Text_Telephone",
+  "flavor.advertising_poster": "Text_AdvertisingPoster",
+  "flavor.tasty_food": "Text_TastyFood",
+  "flavor.trash_bin": "Text_TrashBin",
+  "flavor.cup": "Text_Cup",
+  "flavor.blinking_lights": "Text_BlinkingLights",
+  "flavor.neatly_lined_up_tools": "Text_NeatlyLinedUpTools",
+  "flavor.pokemart_sign": "Text_PokemartSign",
+  "flavor.pokecenter_sign": "Text_PokecenterSign",
+};
 
 export interface Graphic {
   image: IndexedImage | null;

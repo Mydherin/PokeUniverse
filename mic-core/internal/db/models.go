@@ -47,4 +47,5 @@ type Trainer struct {
 	MapID           string
 	X               int32
 	Y               int32
+	Facing          string
 }

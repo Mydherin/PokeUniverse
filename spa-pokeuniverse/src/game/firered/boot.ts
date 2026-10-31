@@ -5,6 +5,7 @@
 import { create, fromJson, toJson } from "@bufbuild/protobuf";
 import { NewTrainerSchema, TrainerSummarySchema, type TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { api } from "../../api/client";
+import type { WorldLink } from "../../realtime/connection";
 import type { Gba } from "../gba/gba";
 import type { WorldView } from "../world/view";
 import { decodeText, encodeText, Font, FontId, TextPrinters } from "../gba/text";
@@ -47,7 +48,7 @@ async function putTrainer(assets: Assets, trainer: NewTrainer): Promise<TrainerS
   }
 }
 
-export function startFireRed(gba: Gba, assets: Assets, world: WorldView, trainer: Promise<TrainerSummary | null>): void {
+export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: WorldLink, trainer: Promise<TrainerSummary | null>): void {
   let summary: TrainerSummary | null = null;
   void trainer.then((t) => (summary = t));
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
@@ -82,6 +83,7 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, trainer
     gba,
     assets,
     world,
+    link,
     font,
     get fonts() {
       return fonts!;
