@@ -112,9 +112,11 @@ async function decodePng(bytes: Uint8Array): Promise<IndexedImage> {
     prev.set(row);
     const perByte = 8 / depth;
     const mask = (1 << depth) - 1;
+    // Like gbagfx, a grayscale PNG's levels are inverted: white is index 0.
+    const invert = colorType === 0 ? mask : 0;
     for (let x = 0; x < width; x++) {
       const byte = row[Math.floor(x / perByte)];
-      pixels[y * width + x] = (byte >> (8 - depth * ((x % perByte) + 1))) & mask;
+      pixels[y * width + x] = ((byte >> (8 - depth * ((x % perByte) + 1))) & mask) ^ invert;
     }
   }
   return { width, height, pixels, palette: colorType === 3 ? palette : null };

@@ -129,7 +129,7 @@ function scene2(intro: Intro): void {
       intro.state++;
       break;
     case 1:
-      palettes.load(assets.get("scene2Bg").palette, 1 * 16, 16);
+      palettes.load(assets.get("scene2Bg").palette, 1 * 16);
       palettes.load(assets.get("gengarPal").palette, 5 * 16, 16);
       palettes.load(assets.get("scene2NidorinoClose").palette, 6 * 16, 16);
       palettes.blendPalettes(ALL_BUT_BG0, 16, RGB_WHITE);
@@ -284,7 +284,7 @@ function scene3Entrance(intro: Intro): void {
   const [gengar, bg] = video.bgs;
   switch (intro.state) {
     case 0:
-      palettes.load(assets.get("scene3Bg").palette, 1 * 16, 16);
+      palettes.load(assets.get("scene3Bg").palette, 1 * 16);
       palettes.load(assets.get("gengarPal").palette, 5 * 16, 16);
       palettes.blendPalettes(ALL_BUT_BG0, 16, RGB_WHITE);
       initBg(bg, 0, 1);
