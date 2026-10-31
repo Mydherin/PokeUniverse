@@ -9,6 +9,7 @@ Instructions for AI agents working on PokeUniverse.
 | Vision: purpose, game scope, art direction, non-functional requirements | [docs/vision.md](docs/vision.md) | Any feature, gameplay, art or scope decision |
 | UI / UX: design, responsive, input, mobile keyboard, platforms, PWA | [docs/ui.md](docs/ui.md) | Any UI, screen, layout or interaction work |
 | Maps: text format, tile catalog, tools, workflow | [docs/maps.md](docs/maps.md) | Any map creation, edit or map tooling work |
+| Audio: rendering FireRed's music, sound effects and cries; web formats, loops, playback | [docs/audio.md](docs/audio.md) | Any music, sound or audio tooling work |
 | Phases: MVP plan, scope and "done when" per phase | [docs/phases/](docs/phases/README.md) | Planning work, or starting/finishing a phase |
 | Tech stack: structure, naming, languages, libraries, communication, auth, infrastructure, containers | [docs/tech-stack.md](docs/tech-stack.md) | Any technical decision or change |
 
@@ -29,7 +30,7 @@ Rules:
 - **Read only.** Never modify, build or commit anything inside `references/`. Only update a submodule's pinned commit when the user asks.
 - **Never copy code.** Understand the behavior, then write it from zero with our design ([tech-stack.md](docs/tech-stack.md#code-principles)).
 - **Our docs win** when they disagree with a reference.
-- Only exception: `tool-maps` reads `pokefirered` data as **input** for the map conversion and to extract FireRed's graphics, music and text into a gitignored folder, never committed ([maps.md](docs/maps.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
+- Only exception: `tool-maps` reads `pokefirered` data as **input** for the map conversion and to extract FireRed's graphics and text, and `make audio` renders its sound; both write to gitignored folders, never committed ([maps.md](docs/maps.md), [audio.md](docs/audio.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
 
 ## Guidelines
 
