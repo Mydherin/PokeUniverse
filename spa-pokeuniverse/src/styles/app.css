@@ -92,6 +92,36 @@
   .safe-top { padding-top: max(0.75rem, env(safe-area-inset-top)); }
   .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
 
+  /* The game screen (ui.md#game-screen): the game fills the stage on mouse and keyboard;
+     touch screens get the controls below it (portrait) or at its sides (landscape),
+     never over it. Portrait leaves room for the top bar. */
+  .game-layout {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template: "screen" minmax(0, 1fr) / minmax(0, 1fr);
+  }
+  .game-screen { grid-area: screen; position: relative; overflow: hidden; }
+  .game-left, .game-right { display: none; }
+  @media (pointer: coarse) {
+    .game-left, .game-right { display: flex; align-items: center; justify-content: center; }
+    .game-left { grid-area: left; }
+    .game-right { grid-area: right; }
+  }
+  @media (pointer: coarse) and (orientation: portrait) {
+    .game-layout {
+      grid-template: "screen screen" auto "left right" minmax(0, 1fr) / 1fr 1fr;
+      padding: calc(env(safe-area-inset-top) + 4rem) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .game-screen { aspect-ratio: 3 / 2; max-height: 62dvh; }
+  }
+  @media (pointer: coarse) and (orientation: landscape) {
+    .game-layout {
+      grid-template: "left screen right" minmax(0, 1fr) / 10rem minmax(0, 1fr) 10rem;
+      padding: calc(env(safe-area-inset-top) + 3.5rem) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+  }
+
   /* Pokémon sprites are pixel art: never smooth them. */
   .sprite {
     image-rendering: pixelated;

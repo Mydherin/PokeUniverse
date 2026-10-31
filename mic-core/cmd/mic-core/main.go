@@ -27,6 +27,7 @@ import (
 	"pokeuniverse/mic-core/internal/ratelimit"
 	"pokeuniverse/mic-core/internal/realtime"
 	"pokeuniverse/mic-core/internal/store"
+	"pokeuniverse/mic-core/internal/trainer"
 )
 
 func main() {
@@ -105,6 +106,7 @@ func run(log *slog.Logger) error {
 	limit := ratelimit.New(rdb, log).PerIP
 	authHandler.Register(mux, limit)
 	(&admin.Handler{Tokens: tokens}).Register(mux, limit)
+	(&trainer.Handler{Tokens: tokens, Pool: pool, Log: log}).Register(mux, limit)
 	mux.Handle("GET /ws", realtime.NewHandler(tokens, cfg.Origin(), log))
 
 	srv := &http.Server{

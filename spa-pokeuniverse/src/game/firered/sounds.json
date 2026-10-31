@@ -1,0 +1,8 @@
+{
+  "mus_game_freak": { "song": "mus_game_freak" },
+  "mus_intro_fight": { "song": "mus_intro_fight" },
+  "mus_title": { "song": "mus_title" },
+  "se_select": { "song": "se_select" },
+  "cry_nidorino_doubles": { "cry": 32, "length": 20, "release": 225, "pan": 63 },
+  "cry_charizard": { "cry": 5 }
+}

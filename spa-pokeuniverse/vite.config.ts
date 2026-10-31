@@ -31,13 +31,18 @@ export default defineConfig({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/auth\//, /^\/api\//, /^\/ws/],
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
-        // Phaser is large; it is cached on first play instead of on install.
-        globIgnores: ["**/game-*.js"],
+        // Phaser and FireRed's art and sound are large; they are cached on first play instead of on install.
+        globIgnores: ["**/game-*.js", "firered/**"],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith("/assets/game-"),
             handler: "CacheFirst",
             options: { cacheName: "game-engine", expiration: { maxEntries: 4 } },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith("/firered/"),
+            handler: "CacheFirst",
+            options: { cacheName: "firered", expiration: { maxEntries: 300 } },
           },
           {
             urlPattern: ({ url }) => url.origin === "https://cdn.jsdelivr.net",

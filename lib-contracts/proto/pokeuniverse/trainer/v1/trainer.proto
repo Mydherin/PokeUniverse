@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// Trainer payloads, sent as Protocol Buffers JSON over the HTTPS API.
+package pokeuniverse.trainer.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1;trainerv1";
+
+enum Gender {
+  GENDER_UNSPECIFIED = 0;
+  GENDER_BOY = 1;
+  GENDER_GIRL = 2;
+}
+
+// Response of GET /api/trainer: what the main menu's CONTINUE window shows.
+message TrainerSummary {
+  string name = 1;
+  Gender gender = 2;
+  uint32 play_time_seconds = 3;
+  uint32 badges = 4;
+  // Pokémon caught; unset until the player has the Pokédex.
+  optional uint32 pokedex_caught = 5;
+}

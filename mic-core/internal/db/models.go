@@ -36,3 +36,11 @@ type Role struct {
 	ID   int16
 	Name string
 }
+
+type Trainer struct {
+	AccountID       int64
+	Name            string
+	Gender          string
+	PlayTimeSeconds int64
+	CreatedAt       time.Time
+}

@@ -30,7 +30,7 @@
 - Used **only to understand behavior**: how actions and events work (movement, collisions, encounters, menus, scripts, formulas).
 - **Never copy code.** Everything is rebuilt from zero with our own code, architecture and patterns.
 - When the reference and our design disagree, **our design wins**; we replicate the behavior, not the implementation.
-- **Assets exception:** FireRed's graphics are copied as they are (no tool; drawn with their palettes and tilemaps at runtime) and `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
+- **Assets exception:** FireRed's graphics are copied as they are by `make graphics` (no tool; drawn with their palettes and tilemaps at runtime; the font's glyph widths are read from `src/text.c` into a JSON file) and `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
 
 ## Code Principles
 
@@ -51,7 +51,7 @@ PokeUniverse/
 ├── lib-contracts/      # Protocol Buffers contracts
 ├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
 ├── references/         # Read-only reference repos (Git submodules)
-├── infra/              # Infrastructure config (e.g. nats/nats.conf)
+├── infra/              # Infrastructure config (e.g. nats/nats.conf; audio/: the `make audio` image)
 ├── docs/
 ├── compose.yaml        # Whole stack
 ├── Makefile            # Shared commands
@@ -62,7 +62,7 @@ PokeUniverse/
 ### Shared Commands
 
 - **Make** runs every shared command; each tool runs in Docker, so only **Docker and Make** are needed on the host.
-- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`. `make help` lists them.
+- `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make audio`: FireRed's art and sound into gitignored folders). `make up` runs `make assets` first. `make help` lists them.
 - **pnpm workspaces** for TypeScript packages; Go modules linked with `replace`.
 - **Generated code is committed** (Protocol Buffers, sqlc), so builds never need the generators.
 
@@ -85,7 +85,7 @@ Shows the game and sends player actions. Contains **no game rules**. Talks only 
 |---|---|
 | **TypeScript** | Language |
 | **Vite** | Dev server and build |
-| **Phaser 3** | Game renderer (world, characters, battles) |
+| **Phaser 3** | Game loop, scaling, Web Audio; shows the game's frame (world, characters, battles) |
 | **Tailwind CSS** | Styling for HTML UI outside the game canvas (login, account screens, overlays) |
 | **@bufbuild/protobuf** | Protocol Buffers runtime |
 | **vite-plugin-pwa** | Web manifest, icons and service worker (Workbox) |
@@ -94,7 +94,10 @@ Shows the game and sends player actions. Contains **no game rules**. Talks only 
 - **No UI framework:** plain TypeScript with a tiny DOM helper (`ui/dom.ts`); text is never parsed as HTML.
 - **Routing:** History API router; signed-in sections share one layout. A section can require a role (e.g. **Admin**, `admin` only): hidden from the navigation and blocked by the route guard for everyone else.
 - **API calls:** one client (`src/api/client.ts`) adds the access token, refreshes once on `401` and retries.
-- **Phaser is lazy-loaded** only when the player opens the game.
+- **Phaser is lazy-loaded** only when the player opens the game; it and the game's art and sound are cached by the service worker on first play, not on install.
+- **Game code** (`src/game/`):
+  - `gba/`: a small GBA-style engine, written from zero: the 240×160 compositor (tile backgrounds, sprites with scale animations, 512-color palette, windows, alpha/lighten/darken blending, per-scanline brightness), palette fades, per-frame tasks, the font and text windows, sound players, buttons and touch controls. Logic runs at the GBA's 59.73 fps; Phaser provides the loop, scaling and Web Audio, and shows the frame as a texture.
+  - `firered/`: the FireRed presentation: its asset manifest (`manifest.ts`), sound list (`sounds.json`) and screens (copyright, intro, title, main menu) as frame-driven state machines with FireRed's timings.
 - **Served by nginx**, which also proxies `/auth` and `/ws` to `mic-core` on the **same origin**: first-party cookies, no CORS, strict Content Security Policy.
 
 ### Decoupled Presentation
@@ -124,7 +127,8 @@ Main server: player connections, world, movement, NPCs, items, quests, trades, c
 | **golang-jwt/jwt v5** | Access tokens | Most used Go JWT library; supports EdDSA |
 | **golang.org/x/time/rate** | Per-connection message rate limit | Official, in-memory token bucket |
 
-- **Go 1.27.** Layout: `cmd/mic-core` (wiring), `internal/<module>` (one responsibility each: `auth`, `account`, `realtime`, `ratelimit`, `health`, `store`), `migrations/`, `queries/`.
+- **Go 1.27.** Layout: `cmd/mic-core` (wiring), `internal/<module>` (one responsibility each: `auth`, `account`, `admin`, `trainer`, `realtime`, `ratelimit`, `health`, `store`), `migrations/`, `queries/`.
+- **Tables so far:** `accounts`, `roles`, `account_roles`, `refresh_tokens`, `trainers` (one per account: name, gender, play time; created by New Game in Phase 3).
 
 ### Database Access: sqlc
 
@@ -227,7 +231,7 @@ spa-pokeuniverse ──► mic-core ──► NATS ──► mic-battles
   - Under **`/api/`** (proxied by the SPA's nginx like `/auth` and `/ws`).
   - Authenticated with the access token in `Authorization: Bearer`, verified locally; permissions checked per route against roles with one shared check (`auth.Tokens.Require`): `401` no or invalid token, `403` missing role.
   - Rate-limited per route; resources named by noun (`/api/admin/players/{id}/ban`, `/api/news`).
-  - Endpoints so far: `GET /api/admin/access` (`admin`; `204` confirms access, used by the Admin page).
+  - Endpoints so far: `GET /api/admin/access` (`admin`; `204` confirms access, used by the Admin page); `GET /api/trainer` (`user`; `200` with the `TrainerSummary` the main menu's CONTINUE shows, `404` when the account has no trainer yet).
 - **When an HTTP action affects the game**, `mic-core` applies it over the live connection (e.g. a kick closes the player's WebSocket; a ban also revokes their sessions).
 - **Microservice ↔ microservice:** Protocol Buffers messages over **NATS**. Services never call each other directly.
 

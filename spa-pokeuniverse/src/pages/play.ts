@@ -3,7 +3,7 @@ import { Connection, type ConnectionStatus } from "../realtime/connection";
 import { h } from "../ui/dom";
 import { icon } from "../ui/icons";
 
-/** Empty game screen with an authenticated WebSocket connection. */
+/** The game screen (FireRed's intro, title and menu) with an authenticated WebSocket connection. */
 export function playPage(): View {
   const stage = h("div", { class: "absolute inset-0 touch-none select-none", "aria-label": "Game", role: "application" });
   const dot = h("span", { class: "size-2.5 rounded-full bg-volt-400" });
@@ -52,7 +52,7 @@ export function playPage(): View {
   let stopGame: (() => void) | undefined;
   let destroyed = false;
   // Phaser is loaded only when the player opens the game. It starts once the stage is
-  // on screen with a real size (screen transitions attach it later) and the fonts are ready.
+  // on screen with a real size (screen transitions attach it later).
   const hasSize = new Promise<void>((resolve) => {
     const observer = new ResizeObserver(([entry]) => {
       if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
@@ -62,12 +62,7 @@ export function playPage(): View {
     });
     observer.observe(stage);
   });
-  void Promise.all([
-    import("../game/game"),
-    document.fonts.load('28px "Pixelify Sans Variable"'),
-    document.fonts.load('16px "Outfit Variable"'),
-    hasSize,
-  ]).then(([{ startGame }]) => {
+  void Promise.all([import("../game/game"), hasSize]).then(([{ startGame }]) => {
     if (!destroyed) stopGame = startGame(stage);
   });
 

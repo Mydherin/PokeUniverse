@@ -9,8 +9,10 @@ pokefirered (MIDI + instruments) ──► [mid2agb] ──► game song data �
                                        (the game's own converter)       (the GBA sound engine)     (local only)                  (served)
 ```
 
-- **One command:** `make audio` runs the whole pipeline in a Docker image (no tools to install on the host).
+- **One command:** `make audio` runs the whole pipeline in a Docker image (`infra/audio/`: `Dockerfile` + `render.sh`, run as the host user; no tools to install on the host). `make up` runs it first.
+- **Input:** the sound list, `spa-pokeuniverse/src/game/firered/sounds.json` (sound ID → song or cry). Adding a sound is one line there.
 - **Output:** a **gitignored** folder in `spa-pokeuniverse` (`public/firered/audio/`), served like any static file.
+- **Incremental:** a sound is rendered again only when the list is newer than its files.
 - **Reproducible:** the submodule commit, the poryaaaa commit (validated at `a047cde`) and the encoder settings are pinned, so every build gives the same files.
 
 ## Source Data
@@ -23,7 +25,7 @@ All of it is in `references/pokefirered/sound/`:
 | Conversion settings per song | `songs/midi/midi.cfg` | `mid2agb` flags: voicegroup (`-G`), volume (`-V`), reverb (`-R`), priority (`-P`), exact gate times (`-E`) |
 | Instruments | `voice_groups.inc`, `direct_sound_samples/`, `programmable_wave_samples/`, `keysplit_tables.inc` | Samples, envelopes and GBA square/noise channels |
 | Players | `song_table.inc` | Which music player each song uses (`bgm`, `se1`, `se2`, `se3`) |
-| Cries | `cry_tables.inc` | Pokémon cries |
+| Cries | `cry_tables.inc` | Pokémon cries (by cry number) |
 
 ## Pipeline
 
@@ -31,12 +33,13 @@ All of it is in `references/pokefirered/sound/`:
 2. **Build `tools/mid2agb`** in that copy and convert every `.mid` with its `midi.cfg` flags. The result is the same song data the game is compiled from.
 3. **Render** with [poryaaaa](https://github.com/huderlem/poryaaaa)'s `poryaaaa_render --song <song.s> --sample-rate 48000`:
    - Default engine settings already match FireRed's sound mode (`src/m4a.c`): **13,379 Hz** PCM mixer, **5** PCM channels.
-   - Sound effects: `--player` from `song_table.inc`. Cries: `--cry <id>`.
-   - **Looping songs:** `--loop-count 2 --fadeout 0 --tail 0` (intro + two passes, see [Loops](#loops)).
+   - Songs and sound effects: `--player` from `song_table.inc` (0 `bgm`, 1 `se1`, 2 `se2`, 3 `se3`).
+   - **Cries:** `--cry <number>` plus the call's mode as `--cry-length`, `--cry-release`, `--cry-pan`, `--cry-pitch`, `--cry-volume`, `--cry-chorus` (e.g. Nidorino in doubles mode: length 20, release 225, pan 63, from `PlayCry_ByMode`); trailing silence trimmed.
+   - **Looping songs** (a `GOTO` in the song data): rendered with `--loop-count 1` and again with `--loop-count 2`, both `--fadeout 0 --tail 0`; the second file is kept, and the first one's length is where the loop starts (see [Loops](#loops)).
    - **One-shot songs:** rendered to their end (`FINE`), trailing silence trimmed.
 4. **Master:** 48 kHz 16-bit stereo WAV, kept locally only.
 5. **Encode** with ffmpeg: **Opus 128 kbps in `.webm`** and **AAC 128 kbps in `.m4a`**.
-6. **Manifest:** one entry per sound ID with both files and, for music, the loop points in samples (48 kHz).
+6. **Output per sound:** `<id>.webm`, `<id>.m4a`, and `manifest.json` for all of them: sound ID → `{ "loop": [start, end] }` in samples at 48 kHz for looping songs, `{}` otherwise.
 
 ## Why poryaaaa
 
@@ -71,6 +74,20 @@ Measured on `mus_title` (45 s: intro + one pass):
 
 ## Playback
 
-- The game uses **sound IDs** (`mus_title`, `se_select`), never file names; the asset manifest maps them to files ([tech-stack.md](tech-stack.md#decoupled-presentation)).
-- Phaser's Web Audio, decoded once per sound; audio is unlocked on the first tap or key (required by Safari and iOS).
-- Music: one at a time, with FireRed's fades between songs. Sound effects and cries: short, kept decoded in memory.
+- The game uses **sound IDs** (`mus_title`, `se_select`), never file names; the FireRed manifest maps them to files ([tech-stack.md](tech-stack.md#decoupled-presentation)).
+- Phaser's Web Audio context, each sound decoded once and kept in memory (`src/game/gba/sound.ts`). The browser gets `.webm` if it can play Opus (`canPlayType`), otherwise `.m4a`.
+- **Players** like the game's: one **BGM** at a time (starting a song stops the one playing, as FireRed's music player does); sound effects and cries on their own players, over the music.
+- **Fade out** as in the game: the BGM volume drops 1/16 every *n* frames, then it stops; the title screen waits for it.
+- Audio is unlocked on the first tap or key (required by Safari and iOS): opening `/play` directly shows "Tap or press any key to start" first ([ui.md](ui.md#audio-unlock)).
+- Paused with the tab hidden.
+
+## Intro Sounds
+
+| ID | Source | Player |
+|---|---|---|
+| `mus_game_freak` | Song | BGM |
+| `mus_intro_fight` | Song (includes the "blast") | BGM |
+| `mus_title` | Song, looping | BGM |
+| `se_select` | Sound effect | SE |
+| `cry_nidorino_doubles` | Cry 32, doubles mode | Cry |
+| `cry_charizard` | Cry 5 | Cry |

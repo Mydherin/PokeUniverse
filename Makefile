@@ -9,7 +9,13 @@ PNPM       := npm install -g pnpm@10 >/dev/null 2>&1 && pnpm
 RUN := docker run --rm -v "$(CURDIR)":/repo
 GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build
 
-.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking
+.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics audio
+
+# FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
+FIRERED     := references/pokefirered
+FIRERED_OUT := spa-pokeuniverse/public/firered
+FIRERED_GFX := intro title_screen main_menu text_window
+NEED_FIRERED = @test -f $(FIRERED)/Makefile || { echo "$(FIRERED) is empty: run git submodule update --init"; exit 1; }
 
 help: ## List commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-10s %s\n", $$1, $$2}'
@@ -23,7 +29,7 @@ env: ## Create .env from .env.example with generated secrets (keeps an existing 
 		    -e "s|^JWT_PRIVATE_KEY=.*|JWT_PRIVATE_KEY=$$(openssl rand -base64 32)|" \
 		    .env.example > .env && echo ".env created: add the Google client ID and secret" )
 
-up: ## Build and start the whole stack
+up: assets ## Build and start the whole stack
 	docker compose up --build -d
 
 down: ## Stop the stack (keeps data)
@@ -37,6 +43,21 @@ ps: ## Show service status
 
 clean: ## Stop the stack and delete its data volumes
 	docker compose down -v
+
+assets: graphics audio ## FireRed's graphics and sounds for the game
+
+graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and tilemaps at runtime)
+	$(NEED_FIRERED)
+	@mkdir -p $(FIRERED_OUT)/graphics/fonts
+	@for d in $(FIRERED_GFX); do rm -rf $(FIRERED_OUT)/graphics/$$d && cp -R $(FIRERED)/graphics/$$d $(FIRERED_OUT)/graphics/; done
+	@cp $(FIRERED)/graphics/fonts/latin_normal.png $(FIRERED_OUT)/graphics/fonts/
+	@# The font's glyph widths are data in the game's source, not in the image.
+	@sed -n '/sFontNormalLatinGlyphWidths\[\] =/,/};/{/=/d;p;}' $(FIRERED)/src/text.c | tr -cd '0-9,' | sed 's/^/[/; s/,*$$/]/' > $(FIRERED_OUT)/graphics/fonts/latin_normal_widths.json
+
+audio: ## Render FireRed's music, sound effects and cries (docs/audio.md)
+	$(NEED_FIRERED)
+	@docker build -q -t pokeuniverse-audio infra/audio >/dev/null
+	$(RUN) --user "$$(id -u):$$(id -g)" pokeuniverse-audio sh /repo/infra/audio/render.sh
 
 generate: contracts sqlc ## Regenerate all generated code
 

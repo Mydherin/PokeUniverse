@@ -35,13 +35,36 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 
 - Native **gestures**: tap, swipe, long-press where they make sense (e.g. swipe between tabs, long-press for details).
 - **On-screen game controls:** D-pad and action buttons, sized for thumbs, never covering important game areas.
+  - In the game: a D-pad you can slide across (8 directions), **A**, **B** and **Start**; at least 44×44 px; shown on touch screens only (`pointer: coarse`).
 - No accidental zoom or text selection inside the game.
 
 ### Desktop
 
 - Full **keyboard** support: game controls, menu navigation, shortcuts (e.g. `Enter` to chat, `Esc` to close).
+- **Game buttons:**
+
+  | GBA button | Keys |
+  |---|---|
+  | D-pad | Arrow keys or `W` `A` `S` `D` |
+  | A | `X` or `Space` |
+  | B | `Z` or `Backspace` |
+  | Start | `Enter` |
+  | Select | `Shift` |
 - **Mouse:** hover states, clickable elements, scroll where expected.
 - Visible focus states for keyboard navigation.
+
+## Game Screen
+
+- The game draws at the **GBA resolution (240×160)**, centered on black: **integer scale** when at least 2× fits, otherwise the largest fit; always nearest-neighbor (crisp pixels).
+- **Mouse and keyboard:** the game fills the screen under the top bar (Home, connection status, fullscreen).
+- **Touch, portrait:** the game at the top under the top bar, the controls below it (D-pad left, A/B and Start right).
+- **Touch, landscape:** the game in the middle, the D-pad on the left side and A/B/Start on the right.
+- The controls never cover the game; the layout follows rotation and browser bars.
+
+### Audio Unlock
+
+- Browsers play sound only after a user gesture. Coming from the **Play** button counts, so the intro starts at once.
+- Opening `/play` directly (reload, link, installed PWA) shows a black screen with **"Tap or press any key to start"**; that first tap or key unlocks audio and starts the game, and isn't also a game button.
 
 ## Mobile Keyboard
 

@@ -13,3 +13,6 @@ bin/
 .DS_Store
 .idea/
 .vscode/
+
+# FireRed assets, copied and rendered at build time (docs/tech-stack.md#firered-as-reference)
+spa-pokeuniverse/public/firered/
