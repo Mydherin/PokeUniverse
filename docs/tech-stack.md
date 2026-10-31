@@ -30,7 +30,7 @@
 - Used **only to understand behavior**: how actions and events work (movement, collisions, encounters, menus, scripts, formulas).
 - **Never copy code.** Everything is rebuilt from zero with our own code, architecture and patterns.
 - When the reference and our design disagree, **our design wins**; we replicate the behavior, not the implementation.
-- **Assets exception:** `tool-maps extract` reads FireRed's graphics and text, and `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
+- **Assets exception:** FireRed's graphics are copied as they are (no tool; drawn with their palettes and tilemaps at runtime) and `make audio` renders its music, sound effects and cries ([audio.md](audio.md)), from the submodule into **gitignored** folders at build time (before the Docker build, since `references/` is excluded from it). They are served by the game but **never committed**.
 
 ## Code Principles
 
@@ -49,7 +49,7 @@ PokeUniverse/
 ├── mic-core/           # Main game server (Go)
 ├── mic-battles/        # Battle service (Node + Pokémon Showdown)
 ├── lib-contracts/      # Protocol Buffers contracts
-├── tool-maps/          # FireRed asset extractor; map converter, validator, compiler, previewer (Go)
+├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
 ├── references/         # Read-only reference repos (Git submodules)
 ├── infra/              # Infrastructure config (e.g. nats/nats.conf)
 ├── docs/

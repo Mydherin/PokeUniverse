@@ -6,7 +6,7 @@
 
 ## Scope
 
-- [x] Monorepo folders: `spa-pokeuniverse`, `mic-core`, `mic-battles`, `lib-contracts` (`tool-maps` comes in [Phase 2](phase-2-firered-intro.md)).
+- [x] Monorepo folders: `spa-pokeuniverse`, `mic-core`, `mic-battles`, `lib-contracts` (`tool-maps` comes in [Phase 4](phase-4-players-room.md), the first phase with maps).
 - [x] Reference repositories as shallow Git submodules in `references/` ([tech-stack.md](../tech-stack.md#how-references-are-kept)).
 - [x] Docker Compose with PostgreSQL, Redis and NATS; one Dockerfile per artifact.
 - [x] `lib-contracts` with Buf, generating Go and TypeScript code.

@@ -95,7 +95,6 @@ All tools live in `tool-maps` (Go) and run from the command line.
 
 | Command | Purpose |
 |---|---|
-| `extract` | **At build:** copies FireRed's graphics and text from the decompilation into a gitignored folder (never committed). Audio is rendered separately ([audio.md](audio.md)) |
 | `convert` | **Once:** reads FireRed's decompilation (`map.json`, `map.bin`, tilesets) and writes text maps, PNG tilesets and catalogs |
 | `validate` | Checks every map: valid IDs, warps lead somewhere, connections match, no object inside a wall, every area reachable |
 | `compile` | Turns text maps into compact runtime maps for `spa-pokeuniverse` and `mic-core`, applying auto-tiling |

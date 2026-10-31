@@ -4,7 +4,8 @@
 
 ## Scope
 
-- `tool-maps extract`: FireRed's graphics and text from `references/pokefirered` into a gitignored folder at build time; never committed ([tech-stack.md](../tech-stack.md#firered-as-reference)).
+- FireRed's graphics **as they are** (`.png` tiles, `.pal` palettes, `.bin` tilemaps, fonts): a plain file copy from `references/pokefirered` into a gitignored folder at build time, no tool; never committed ([tech-stack.md](../tech-stack.md#firered-as-reference)).
+- The game draws them like the GBA: tiles placed by the tilemap, colored by the palette, at runtime. **Why:** FireRed's intro animates palettes (fades, flames), so runtime palettes are needed anyway; pre-baked images would add a tool and lose that.
 - `make audio`: FireRed's music and sound effects rendered exactly from the decompilation to Opus and AAC ([audio.md](../audio.md)).
 - Asset manifest for the FireRed art style ([tech-stack.md](../tech-stack.md#decoupled-presentation)).
 - Game screen at the GBA resolution (240×160), scaled pixel-perfect; fullscreen and orientation handling ([ui.md](../ui.md)).
