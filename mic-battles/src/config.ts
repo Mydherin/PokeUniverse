@@ -5,6 +5,10 @@ export type Config = {
   natsUrl: string;
   natsUser: string;
   natsPassword: string;
+  /** host:port */
+  redisAddr: string;
+  redisUser: string;
+  redisPassword: string;
 };
 
 export function loadConfig(): Config {
@@ -13,6 +17,9 @@ export function loadConfig(): Config {
     natsUrl: required("NATS_URL"),
     natsUser: required("NATS_USER"),
     natsPassword: required("NATS_PASSWORD"),
+    redisAddr: required("REDIS_ADDR"),
+    redisUser: required("REDIS_USER"),
+    redisPassword: required("REDIS_PASSWORD"),
   };
 }
 

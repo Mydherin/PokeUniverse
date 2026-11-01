@@ -4,6 +4,7 @@ syntax = "proto3";
 // One envelope per direction; every message carries a sequence number.
 package pokeuniverse.realtime.v1;
 
+import "pokeuniverse/battle/v1/view.proto";
 import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/item/v1/pc.proto";
 import "pokeuniverse/party/v1/party.proto";
@@ -34,6 +35,7 @@ message ClientMessage {
     pokeuniverse.party.v1.GivePartyItem give_party_item = 18;
     pokeuniverse.party.v1.TakePartyItem take_party_item = 19;
     pokeuniverse.party.v1.SwapPokemonMoves swap_pokemon_moves = 20;
+    pokeuniverse.battle.v1.BattleChoice battle_choice = 21;
   }
 }
 
@@ -51,6 +53,9 @@ message ServerMessage {
     pokeuniverse.item.v1.ItemResult item_result = 9;
     pokeuniverse.item.v1.PcChanged pc_changed = 10;
     pokeuniverse.party.v1.PartyChanged party_changed = 11;
+    pokeuniverse.battle.v1.BattleStarted battle_started = 12;
+    pokeuniverse.battle.v1.BattleTurn battle_turn = 13;
+    pokeuniverse.battle.v1.BattleEnded battle_ended = 14;
   }
 }
 

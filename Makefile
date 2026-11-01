@@ -47,6 +47,7 @@ env: ## Create .env from .env.example with generated secrets (keeps an existing 
 	@test -f .env && echo ".env already exists" || ( \
 		sed -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=$$(openssl rand -hex 24)|" \
+		    -e "s|^REDIS_MIC_BATTLES_PASSWORD=.*|REDIS_MIC_BATTLES_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^NATS_MIC_CORE_PASSWORD=.*|NATS_MIC_CORE_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^NATS_MIC_BATTLES_PASSWORD=.*|NATS_MIC_BATTLES_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^JWT_PRIVATE_KEY=.*|JWT_PRIVATE_KEY=$$(openssl rand -base64 32)|" \

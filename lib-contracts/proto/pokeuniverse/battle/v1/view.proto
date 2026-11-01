@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+// A battle as one side sees it, the choices it can make and the player's messages on the
+// WebSocket (inside pokeuniverse.realtime.v1's envelopes). mic-battles builds the views and
+// requests; mic-core forwards them and checks every choice first (plans/battles D3).
+package pokeuniverse.battle.v1;
+
+import "pokeuniverse/battle/v1/event.proto";
+import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/move/v1/catalog.proto";
+import "pokeuniverse/pokemon/v1/pokemon.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1";
+
+enum BattleKind {
+  BATTLE_KIND_UNSPECIFIED = 0;
+  // Against an NPC trainer: no running, money for the winner.
+  BATTLE_KIND_TRAINER = 1;
+  // Phase 9.
+  BATTLE_KIND_WILD = 2;
+}
+
+// What the party balls show for one Pokémon.
+enum PartyBall {
+  PARTY_BALL_UNSPECIFIED = 0;
+  PARTY_BALL_HEALTHY = 1;
+  PARTY_BALL_STATUS = 2;
+  PARTY_BALL_FAINTED = 3;
+}
+
+// One side of the field.
+message BattleSide {
+  bool foe = 1;
+  // The active Pokémon (one in singles); none while one must be replaced.
+  repeated BattlerInfo active = 2;
+  // Every Pokémon of the party, in the order the battle started with.
+  repeated PartyBall balls = 3;
+}
+
+// The whole battle as one side sees it: to draw the screen at the start or after a reconnect.
+message BattleView {
+  string battle_id = 1;
+  BattleKind kind = 2;
+  // The reader's side first.
+  repeated BattleSide sides = 3;
+  Weather weather = 4;
+  // What the reader must choose now.
+  BattleRequest request = 5;
+}
+
+enum RequestKind {
+  REQUEST_KIND_UNSPECIFIED = 0;
+  // Nothing to choose: the other side is choosing.
+  REQUEST_KIND_WAIT = 1;
+  // FIGHT, BAG, POKéMON or RUN for the active Pokémon.
+  REQUEST_KIND_ACTION = 2;
+  // A Pokémon must be sent out (after a faint, U-turn, Baton Pass): POKéMON only.
+  REQUEST_KIND_SWITCH = 3;
+}
+
+// One of the active Pokémon's moves, for FIGHT.
+message RequestMove {
+  pokeuniverse.move.v1.Move move = 1;
+  uint32 pp = 2;
+  uint32 max_pp = 3;
+  // Can't be chosen now (Disable, Taunt, Torment, Imprison, Choice lock, no PP).
+  bool disabled = 4;
+}
+
+// The reader's party as it is now in the battle, for its POKéMON screen and the summary.
+message PartyMember {
+  // The slot the battle started with (Battler.party_slot).
+  uint32 party_slot = 1;
+  Health health = 2;
+  pokeuniverse.pokemon.v1.Status status = 3;
+  // Unspecified: none (used up, knocked off…).
+  pokeuniverse.item.v1.Item held_item = 4;
+  // Each move's PP now, in the party's move order.
+  repeated uint32 pp = 5;
+  bool active = 6;
+}
+
+// A choice the reader must make. Locked moves (Outrage, recharging, a charged move) are chosen by
+// mic-battles itself: the battle plays on without a request.
+message BattleRequest {
+  RequestKind kind = 1;
+  // The number BattleChoice must carry (plans/battles D2): it grows by one per choice played,
+  // forced switches included, so it isn't the turn number.
+  uint32 step = 2;
+  // ACTION: the active Pokémon's moves. Every one disabled or out of PP: FIGHT uses Struggle.
+  repeated RequestMove moves = 3;
+  // ACTION: it can't switch out (Mean Look, Arena Trap, a partial trap…).
+  bool trapped = 4;
+  repeated PartyMember party = 5;
+}
+
+// FIGHT: one of the active Pokémon's moves.
+message MoveAction {
+  // 0 to 3, in RequestMove order; any slot when every move is disabled (Struggle).
+  uint32 slot = 1;
+  // Doubles only: the target's position; unset in singles.
+  Battler target = 2;
+}
+
+// POKéMON: send out another party Pokémon.
+message SwitchAction {
+  // Battler.party_slot of a party member that isn't active or fainted.
+  uint32 party_slot = 1;
+}
+
+// BAG: use an item (plans/battles D12).
+message ItemAction {
+  pokeuniverse.item.v1.Item item = 1;
+  // The party member it's used on (Battler.party_slot); a Poké Ball ignores it.
+  uint32 party_slot = 2;
+  // Ethers and PP UP-likes: the move (0 to 3).
+  uint32 move_slot = 3;
+}
+
+// RUN.
+message RunAction {}
+
+message BattleAction {
+  oneof kind {
+    MoveAction move = 1;
+    SwitchAction switch = 2;
+    ItemAction item = 3;
+    RunAction run = 4;
+  }
+}
+
+// Client -> server: the player's choice for the request with this step.
+message BattleChoice {
+  string battle_id = 1;
+  uint32 step = 2;
+  BattleAction action = 3;
+}
+
+// Server -> client: a battle started. Draw `view`, then play `events` (the send-outs).
+message BattleStarted {
+  BattleView view = 1;
+  repeated BattleEvent events = 2;
+}
+
+// Server -> client: what happened after a choice, then the next request (WAIT once it's over).
+message BattleTurn {
+  string battle_id = 1;
+  repeated BattleEvent events = 2;
+  BattleRequest request = 3;
+}
+
+enum BattleResult {
+  BATTLE_RESULT_UNSPECIFIED = 0;
+  BATTLE_RESULT_WON = 1;
+  BATTLE_RESULT_LOST = 2;
+  BATTLE_RESULT_TIE = 3;
+  // The other side forfeited or left (PvP).
+  BATTLE_RESULT_FORFEIT_WON = 4;
+  BATTLE_RESULT_FORFEITED = 5;
+  // Ran away (wild battles).
+  BATTLE_RESULT_RAN = 6;
+}
+
+// Server -> client: the battle is over (after the last BattleTurn). The party follows as
+// PartyChanged, saved.
+message BattleEnded {
+  string battle_id = 1;
+  BattleResult result = 2;
+  // Money won (WON) or lost (LOST: FireRed's whiteout).
+  uint32 money = 3;
+}

@@ -1,0 +1,406 @@
+syntax = "proto3";
+
+// What happens in a battle, as compact events (plans/battles D4): mic-battles translates Showdown's
+// log into them, one stream per side (D5), and the client turns each into its art style's text,
+// animation and sound. Every Pokémon is seen from the stream's side: `foe` is the other side.
+package pokeuniverse.battle.v1;
+
+import "pokeuniverse/ability/v1/catalog.proto";
+import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/move/v1/catalog.proto";
+import "pokeuniverse/pokemon/v1/pokemon.proto";
+import "pokeuniverse/species/v1/catalog.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1";
+
+// A Pokémon in the battle.
+message Battler {
+  // Of the other side.
+  bool foe = 1;
+  // Its slot in its trainer's party when the battle started (from 0): the same all battle long.
+  uint32 party_slot = 2;
+  // Where it stands while active: 0 in singles, 0-1 in doubles.
+  uint32 position = 3;
+}
+
+// A Pokémon's HP. The reader's own: exact. A foe's: FireRed's HP bar, in pixels (max_hp 48).
+message Health {
+  uint32 hp = 1;
+  uint32 max_hp = 2;
+}
+
+// What a Pokémon sending out shows.
+message BattlerInfo {
+  Battler battler = 1;
+  pokeuniverse.species.v1.Species species = 2;
+  // Empty: the species' name, in the art style's language.
+  string nickname = 3;
+  uint32 level = 4;
+  pokeuniverse.pokemon.v1.Gender gender = 5;
+  bool shiny = 6;
+  // What some art depends on (Unown's letter, Spinda's spots).
+  uint32 personality = 7;
+  Health health = 8;
+  pokeuniverse.pokemon.v1.Status status = 9;
+}
+
+// The stats a battle raises and lowers.
+enum BattleStat {
+  BATTLE_STAT_UNSPECIFIED = 0;
+  BATTLE_STAT_ATTACK = 1;
+  BATTLE_STAT_DEFENSE = 2;
+  BATTLE_STAT_SPEED = 3;
+  BATTLE_STAT_SP_ATTACK = 4;
+  BATTLE_STAT_SP_DEFENSE = 5;
+  BATTLE_STAT_ACCURACY = 6;
+  BATTLE_STAT_EVASION = 7;
+}
+
+enum Weather {
+  WEATHER_UNSPECIFIED = 0;
+  WEATHER_RAIN = 1;
+  WEATHER_SUN = 2;
+  WEATHER_SANDSTORM = 3;
+  WEATHER_HAIL = 4;
+}
+
+// Battle effects that aren't a move, ability, item, status or weather.
+enum Condition {
+  CONDITION_UNSPECIFIED = 0;
+  CONDITION_CONFUSION = 1;
+  CONDITION_FLINCH = 2;
+  // Must recharge after Hyper Beam and the like.
+  CONDITION_RECHARGE = 3;
+  // The chosen move has no PP left.
+  CONDITION_NO_PP = 4;
+  CONDITION_RECOIL = 5;
+  // HP drained by Absorb, Giga Drain, Drain Punch…
+  CONDITION_DRAIN = 6;
+  // Wrap, Bind, Fire Spin, Whirlpool, Sand Tomb, Clamp, Magma Storm.
+  CONDITION_PARTIALLY_TRAPPED = 7;
+  // Mean Look, Block, Spider Web: can't escape.
+  CONDITION_TRAPPED = 8;
+  // Color Change, Conversion: the Pokémon's type changed (see the event's type).
+  CONDITION_TYPE_CHANGE = 9;
+  // Outrage, Thrash, Petal Dance ended: confused due to fatigue.
+  CONDITION_FATIGUE = 10;
+  // A move continued on its own (Outrage's next turns, Rollout, Uproar…).
+  CONDITION_LOCKED_MOVE = 11;
+}
+
+// What caused an event, or what starts, ends or acts.
+message Effect {
+  oneof kind {
+    pokeuniverse.move.v1.Move move = 1;
+    pokeuniverse.ability.v1.Ability ability = 2;
+    pokeuniverse.item.v1.Item item = 3;
+    pokeuniverse.pokemon.v1.Status status = 4;
+    Weather weather = 5;
+    Condition condition = 6;
+  }
+}
+
+// One thing that happened, in order.
+message BattleEvent {
+  oneof kind {
+    TurnStart turn_start = 1;
+    SwitchIn switch_in = 2;
+    MoveUsed move_used = 3;
+    Prepare prepare = 4;
+    Cant cant = 5;
+    MoveResult move_result = 6;
+    HitCount hit_count = 7;
+    Fail fail = 8;
+    Damage damage = 9;
+    Heal heal = 10;
+    SetHealth set_health = 11;
+    Faint faint = 12;
+    StatusSet status_set = 13;
+    StatusCured status_cured = 14;
+    TeamCured team_cured = 15;
+    StatChange stat_change = 16;
+    StatSet stat_set = 17;
+    StatsReset stats_reset = 18;
+    StatsCopied stats_copied = 19;
+    VolatileStart volatile_start = 20;
+    VolatileEnd volatile_end = 21;
+    Activate activate = 22;
+    WeatherChange weather_change = 23;
+    SideCondition side_condition = 24;
+    FieldCondition field_condition = 25;
+    AbilityShown ability_shown = 26;
+    ItemShown item_shown = 27;
+    ItemEnded item_ended = 28;
+    Transform transform = 29;
+    FormeChange forme_change = 30;
+    Exp exp = 31;
+  }
+  // Changes the battle's state only (HP, status…): no text, animation or sound.
+  bool silent = 50;
+}
+
+// A new turn begins (1, 2…).
+message TurnStart {
+  uint32 turn = 1;
+}
+
+// A Pokémon is sent out (the one in its position, if any, came back first).
+message SwitchIn {
+  BattlerInfo pokemon = 1;
+  // Forced in by Roar, Whirlwind…
+  bool dragged = 2;
+}
+
+message MoveUsed {
+  Battler battler = 1;
+  pokeuniverse.move.v1.Move move = 2;
+  // Unset: no target (self, field…).
+  Battler target = 3;
+  // Called by another move (Metronome, Sleep Talk…) or an ability, when set.
+  Effect from = 4;
+  // Plays no animation (the charging turn's second half, a missed move).
+  bool still = 5;
+}
+
+// The charging turn of a two-turn move (Solar Beam, Fly, Dig…).
+message Prepare {
+  Battler battler = 1;
+  pokeuniverse.move.v1.Move move = 2;
+  Battler target = 3;
+}
+
+// The Pokémon can't act: asleep, frozen, fully paralyzed, flinched, recharging, Taunt, Disable…
+message Cant {
+  Battler battler = 1;
+  Effect reason = 2;
+  // The move it couldn't use, when known.
+  pokeuniverse.move.v1.Move move = 3;
+}
+
+enum HitResult {
+  HIT_RESULT_UNSPECIFIED = 0;
+  HIT_RESULT_CRITICAL = 1;
+  HIT_RESULT_SUPER_EFFECTIVE = 2;
+  HIT_RESULT_NOT_VERY_EFFECTIVE = 3;
+  // It doesn't affect the Pokémon (from: the ability, like Levitate, when set).
+  HIT_RESULT_IMMUNE = 4;
+  HIT_RESULT_MISS = 5;
+  HIT_RESULT_ONE_HIT_KO = 6;
+  // There's no target.
+  HIT_RESULT_NO_TARGET = 7;
+  // But nothing happened (Splash).
+  HIT_RESULT_NOTHING = 8;
+}
+
+// How a move landed on a Pokémon.
+message MoveResult {
+  Battler battler = 1;
+  HitResult result = 2;
+  Effect from = 3;
+}
+
+// Hit N times!
+message HitCount {
+  Battler battler = 1;
+  uint32 hits = 2;
+}
+
+// But it failed! Or what was prevented: `from` (Hyper Cutter…) stopped a `stat` drop.
+message Fail {
+  Battler battler = 1;
+  Effect effect = 2;
+  Effect from = 3;
+  BattleStat stat = 4;
+}
+
+// The battler lost HP: to the last move used, or to `from` (poison, recoil, Stealth Rock…).
+message Damage {
+  Battler battler = 1;
+  Health health = 2;
+  Effect from = 3;
+  // Whose effect it was (Leech Seed's seeder, Rough Skin's owner…).
+  Battler source = 4;
+}
+
+message Heal {
+  Battler battler = 1;
+  Health health = 2;
+  Effect from = 3;
+  Battler source = 4;
+}
+
+// The HP was set (Pain Split).
+message SetHealth {
+  Battler battler = 1;
+  Health health = 2;
+  Effect from = 3;
+}
+
+message Faint {
+  Battler battler = 1;
+}
+
+message StatusSet {
+  Battler battler = 1;
+  pokeuniverse.pokemon.v1.Status status = 2;
+  Effect from = 3;
+  Battler source = 4;
+}
+
+// The battler's status is cured (it may be in the party, not active: Natural Cure).
+message StatusCured {
+  Battler battler = 1;
+  pokeuniverse.pokemon.v1.Status status = 2;
+  Effect from = 3;
+}
+
+// Heal Bell, Aromatherapy: the whole party is cured.
+message TeamCured {
+  Battler battler = 1;
+  Effect from = 2;
+}
+
+// A stat rose or fell. 0 stages: it won't go any higher (or lower).
+message StatChange {
+  Battler battler = 1;
+  BattleStat stat = 2;
+  uint32 stages = 3;
+  bool lower = 4;
+  Effect from = 5;
+}
+
+// A stat stage set outright (Belly Drum: +6).
+message StatSet {
+  Battler battler = 1;
+  BattleStat stat = 2;
+  int32 stage = 3;
+  Effect from = 4;
+}
+
+enum StatsResetKind {
+  STATS_RESET_KIND_UNSPECIFIED = 0;
+  // Haze: every Pokémon's (no battler).
+  STATS_RESET_KIND_ALL = 1;
+  // White Herb: only the lowered ones.
+  STATS_RESET_KIND_NEGATIVE = 2;
+}
+
+message StatsReset {
+  // Unset with ALL.
+  Battler battler = 1;
+  StatsResetKind kind = 2;
+  Effect from = 3;
+}
+
+// Psych Up copies, Guard/Power/Heart Swap swap stat stages with `source`.
+message StatsCopied {
+  Battler battler = 1;
+  Battler source = 2;
+  Effect from = 3;
+  bool swapped = 4;
+}
+
+// A lasting effect on a Pokémon starts: confusion, Substitute, Leech Seed, Taunt, Encore, Perish
+// Song (amount: the count), Stockpile (amount: the stockpile), Protect for the turn…
+message VolatileStart {
+  Battler battler = 1;
+  Effect effect = 2;
+  Effect from = 3;
+  Battler source = 4;
+  uint32 amount = 5;
+  // CONDITION_TYPE_CHANGE's new type.
+  pokeuniverse.species.v1.Type type = 6;
+  // The move it acts on (Disable, Encore, Mimic…).
+  pokeuniverse.move.v1.Move move = 7;
+}
+
+message VolatileEnd {
+  Battler battler = 1;
+  Effect effect = 2;
+  Effect from = 3;
+}
+
+// An effect acts once: Protect blocks, Substitute takes damage, Quick Claw, Forewarn reveals a
+// move, Spite cuts PP (amount), a trap hurts…
+message Activate {
+  Battler battler = 1;
+  Effect effect = 2;
+  Battler source = 3;
+  pokeuniverse.move.v1.Move move = 4;
+  uint32 amount = 5;
+  pokeuniverse.item.v1.Item item = 6;
+}
+
+enum ConditionPhase {
+  CONDITION_PHASE_UNSPECIFIED = 0;
+  CONDITION_PHASE_START = 1;
+  // Still going at the end of the turn (it keeps raining…).
+  CONDITION_PHASE_UPKEEP = 2;
+  CONDITION_PHASE_END = 3;
+}
+
+message WeatherChange {
+  Weather weather = 1;
+  ConditionPhase phase = 2;
+  Effect from = 3;
+  Battler source = 4;
+}
+
+// On one side: Stealth Rock, Spikes, Toxic Spikes, Reflect, Light Screen, Tailwind, Safeguard,
+// Mist, Lucky Chant. Unset on Effect for none of these.
+message SideCondition {
+  // On the other side's field.
+  bool foe = 1;
+  Effect effect = 2;
+  ConditionPhase phase = 3;
+}
+
+// On the whole field: Trick Room, Gravity, Mud Sport, Water Sport.
+message FieldCondition {
+  Effect effect = 1;
+  ConditionPhase phase = 2;
+  Battler source = 3;
+}
+
+// An ability shows itself (Intimidate, Pressure, Trace…).
+message AbilityShown {
+  Battler battler = 1;
+  pokeuniverse.ability.v1.Ability ability = 2;
+  Effect from = 3;
+  Battler source = 4;
+}
+
+// An item shows itself (Frisk, Trick, an Air Balloon-like announcement…).
+message ItemShown {
+  Battler battler = 1;
+  pokeuniverse.item.v1.Item item = 2;
+  Effect from = 3;
+  Battler source = 4;
+}
+
+// An item is gone: eaten (a berry), used up (White Herb) or taken (Knock Off, Thief…).
+message ItemEnded {
+  Battler battler = 1;
+  pokeuniverse.item.v1.Item item = 2;
+  Effect from = 3;
+  bool eaten = 4;
+}
+
+message Transform {
+  Battler battler = 1;
+  Battler target = 2;
+}
+
+// Castform and Cherrim change form.
+message FormeChange {
+  Battler battler = 1;
+  // 0: the base form. Castform: 1 sunny, 2 rainy, 3 snowy. Cherrim: 1 sunshine.
+  uint32 forme = 2;
+  Effect from = 3;
+}
+
+// The reader's Pokémon gained experience.
+message Exp {
+  Battler battler = 1;
+  uint32 amount = 2;
+}

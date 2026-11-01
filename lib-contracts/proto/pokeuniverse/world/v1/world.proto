@@ -5,6 +5,7 @@ syntax = "proto3";
 // one and corrects the client when it disagrees (tech-stack.md#movement).
 package pokeuniverse.world.v1;
 
+import "pokeuniverse/battle/v1/view.proto";
 import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/map/v1/map.proto";
 import "pokeuniverse/party/v1/party.proto";
@@ -68,6 +69,8 @@ message WorldSnapshot {
   pokeuniverse.pokedex.v1.Pokedex pokedex = 6;
   // The trainer's Pokémon.
   pokeuniverse.party.v1.Party party = 7;
+  // The battle the trainer is in, if any: the client redraws it (plans/battles, Resume).
+  pokeuniverse.battle.v1.BattleView battle = 8;
 }
 
 message Avatar {

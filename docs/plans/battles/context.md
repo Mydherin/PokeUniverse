@@ -28,17 +28,17 @@ What FireRed screens use (`spa-pokeuniverse/src/game/`), so a screen can be writ
 - **`Assets`** (`firered/manifest.ts`): `get(graphicId)` → `{tiles, palette, map?, bytes?}`, `text(textId)`, `itemName`, `moveName`, `species(n)`, `pokemonArt(n)` / `loadedPokemonArt(n)`, load sets (`loadParty()`…). New graphics go in a set there and in the `Makefile`; new strings in `texts.json` (`make text`).
 - **Screens to copy the shape from:** `firered/party-menu.ts` (boxes, messages, YES/NO, fades), `firered/summary.ts` (page flips, sprite bars), `firered/bag.ts` (modes and hosts).
 
-## Where the Project Stands (2026-11-01, after M3)
+## Where the Project Stands (2026-11-01, after M4)
 
 What exists that battles build on. Trust it; open these only when a step needs their details.
 
 | Area | State | Where |
 |---|---|---|
-| `mic-battles` | Skeleton: NATS queue group `mic-battles`, only `battles.ping`; format `gen4customgame` checked at startup; `@pkmn/sim` 0.10.11; esbuild bundle; `/healthz` `/readyz` | `mic-battles/src/{main,handlers,rules,config,log}.ts` |
-| Battle contracts | Only `Ping` / `Pong` | `lib-contracts/proto/pokeuniverse/battle/v1/battle.proto` |
+| `mic-battles` (M4) | `battles.{ping,start,turn,forfeit,view}`; Redis `battle:<id>` with a step check; Showdown wrapper, log → events per side, requests, views, outcome, Gen 4 exp/EVs, random AI (until M5); `redis` 6.3.0 | `mic-battles/src/` ([M4](m04-battle-engine.md)) |
+| Battle contracts (M4) | NATS (`battle.proto`), `BattleEvent` (`event.proto`), view/request/actions/client messages (`view.proto`) | `lib-contracts/proto/pokeuniverse/battle/v1/` |
 | `mic-core` ↔ battles | `internal/battles/battles.go`: `Ping`, `WaitReachable` | |
 | World | One zone goroutine per map, 50 ms tick, saved before shown (Redis `live`), scripts as Go tables (`internal/world/interact.go`), `Player.script` blocks movement until `ScriptDone` | `mic-core/internal/world/*.go` |
-| Realtime envelope | `ClientMessage` / `ServerMessage` oneofs (last field numbers: client 20, server 11) | `lib-contracts/proto/pokeuniverse/realtime/v1/realtime.proto` |
+| Realtime envelope | `ClientMessage` / `ServerMessage` oneofs (last field numbers: client 21 `battle_choice`, server 14 `battle_ended`); `WorldSnapshot.battle` (8) | `lib-contracts/proto/pokeuniverse/realtime/v1/realtime.proto` |
 | Species | `species/v1/catalog.proto`: 493 species, `SpeciesInfo{type1, type2, height, weight}` as enum value options; `Type` = FireRed's `TYPE_*` + 1 | |
 | Items | `item/v1/catalog.proto`: FireRed's 307 items with `ItemInfo` rules; bag, PC, use/give/toss in `mic-core/internal/item` | |
 | Pokédex | Seen/caught bitsets per trainer; `internal/pokedex`; the client screen exists | |
@@ -55,7 +55,7 @@ What exists that battles build on. Trust it; open these only when a step needs t
 | # | Decision | Why |
 |---|---|---|
 | D1 | **Showdown (`@pkmn/sim`, `gen4customgame`) resolves every turn** in `mic-battles`; we never reimplement damage, abilities or move effects. | Exact Gen 4 rules, already tested ([tech-stack.md](../../tech-stack.md#mic-battles-node--showdown)). |
-| D2 | **Stateless turns:** each battle is a Redis hash `battle:<id>` (`state`: Showdown's serialized battle with its PRNG, `turn`, `reply`: the last reply). Load → play → save with an atomic turn check (Lua) → reply. A turn already played returns the saved `reply`. | Any replica plays any turn; crashes resume; retries are safe. |
+| D2 | **Stateless steps:** each battle is a Redis hash `battle:<id>` (`step`, `start`, `state`: Showdown's serialized battle with its PRNG, `meta`: ours, `reply`: the last reply). Load → play → save with an atomic step check (Lua) → reply. A step already played returns the saved `reply`. A **step** is one choice played (forced switches too), not Showdown's turn. | Any replica plays any step; crashes resume; retries are safe. |
 | D3 | **`mic-core` decides, `mic-battles` resolves.** `mic-core` builds both teams from its own data (party from PostgreSQL, NPC teams from its trainer table), validates choices it can (owns the bag), forwards them, and saves the outcome. `mic-battles` never touches PostgreSQL. | Same split as the rest of the game; one owner per piece of data. |
 | D4 | **Compact events, not Showdown's text protocol, reach the client.** `mic-battles` translates the battle log into `BattleEvent`s (enums and numbers only). The client turns each event into FireRed's text, animation and sound. | Small payloads; the presentation stays replaceable ([Decoupled Presentation](../../tech-stack.md#decoupled-presentation)). |
 | D5 | **Hidden information stays hidden:** each side gets its own event stream. The player sees exact HP for their own Pokémon and the foe's HP only as FireRed's 48-pixel bar (`hp_bar`: 0-48). The foe's moves, item and ability show only when they're revealed. | Anti-cheat; PvP later needs it anyway. |
@@ -65,7 +65,7 @@ What exists that battles build on. Trust it; open these only when a step needs t
 | D9 | **Battle animations are data plus our own behaviors.** Each move's animation script is converted once into JSON: commands, delays, sounds, which sprite templates, and arguments. Moves 1-354 come from FireRed's `data/battle_anim_scripts.s`, moves 355-467 from the expansion's `gBattleAnimMove_*`. The JSON is committed under `spa-pokeuniverse/src/game/firered/battle/anims/` and becomes our source. The sprite callbacks and tasks the scripts name are **written from zero** in TypeScript, as a library of behaviors. A move whose behaviors aren't written yet plays a **generic animation by type and category**, so every move animates from day one. | Scripts are data, like maps and the item table. The C behind them is code, so it's rebuilt. The fallback keeps the game complete while fidelity grows. **⚠ Confirm with the user before M8** (it extends the "converted once" exception in AGENTS.md). |
 | D10 | **FireRed's battle look (Gen 3 style), with Gen 4 info where FireRed has no slot for it:** the physical/special/status category icon (the expansion's `graphics/interface/category_icons.png`) on the move menu's info and the summary's move page. Abilities show in the summary as in FireRed. Gen 4 abilities announce themselves with Gen 3-style messages. | Vision: Gen 3 graphics, Gen 4 mechanics. |
 | D11 | **Singles first.** Doubles (FireRed's double trainer battles, Gen 4 double rules) come after the core is done (M13). | Smallest working battle first; the contracts already carry a slot per position. |
-| D12 | **Bag items in battle** are applied by `mic-battles` through a custom Showdown action: a hidden internal move or a queued action in our own mod of `gen4customgame`, acting before moves as in Gen 4. `mic-core` checks and spends the item first. Pick the exact hook in M4 and write it here. | Showdown has no player bag. Keeping the effect inside the battle keeps its order and log correct. |
+| D12 | **Bag items in battle** are a queued Showdown `event` action (`BagItem`, order 102: before switches and moves, as in Gen 4), pushed into the side's choice; the item waits in the user's `m.bagItem` (saved with the battle), and a listener registered on every created or restored battle applies it (`engine/bag.ts`). `mic-core` checks and spends the item first. | Showdown has no player bag. Its own queue keeps the order and the log correct, with no fake moves. |
 | D13 | **Test content is marked as such:** the starting test team and the room's test trainer are data in `mic-core` (`internal/battle/testdata.go` or similar) and the map, each with a `// Test content (plans/battles/README.md): removed in Phase 5` comment. In Phase 5 the starter replaces the team and the NPC leaves the room. | The user asked for them to test battles now. They must not leak into the real game. |
 | D14 | **The party is permanent data in PostgreSQL** (`trainer_pokemon`), saved in one transaction per change. Battle damage, PP and status stay after a battle (FireRed), saved with the outcome. During a battle, its live state is Redis only. | [Saving State](../../tech-stack.md#saving-state-resilience). |
 | D15 | **Faint cries are rendered** with FireRed's faint cry mode, once per species, as `cry_<nnn>_faint`, like the cries. Not a Web Audio pitch trick. | Sounds exactly like the game. |
@@ -99,14 +99,15 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 
 ### Contracts
 
-Drafted in [M4](m04-battle-engine.md#contracts-draft) (it writes them); once written, `lib-contracts/proto/pokeuniverse/battle/v1/` is the source.
+`lib-contracts/proto/pokeuniverse/battle/v1/` is the source; conventions (sides, `party_slot`, HP, `step`, `silent`) in [M4](m04-battle-engine.md#conventions-for-m5-m7).
 
 ### Code Layout (new)
 
 | Path | Owns |
 |---|---|
-| `mic-battles/src/engine/` | Create a battle from `StartBattle`, serialize/deserialize, apply choices, our `gen4customgame` mod (D12) |
-| `mic-battles/src/protocol/` | Showdown log lines → `BattleEvent` per side (D4, D5); requests → `BattleRequest` |
+| `mic-battles/src/engine/` | Create a battle from `StartBattle`, serialize/deserialize, apply choices, play on (`advance`), bag items (D12) |
+| `mic-battles/src/protocol/` | Showdown log lines → `BattleEvent` per side (D4, D5); requests, views, outcome |
+| `mic-battles/src/battles.ts` | The subjects: load → play → translate → save → reply |
 | `mic-battles/src/ai/` | Move scoring per flag, switching, item use (D6); one file per flag |
 | `mic-battles/src/store.ts` | Redis `battle:<id>` with the turn check (Lua) |
 | `mic-battles/src/exp.ts` | Gen 4 experience (not in Showdown) |
