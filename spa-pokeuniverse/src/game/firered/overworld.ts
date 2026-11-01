@@ -8,9 +8,12 @@
 // SELECT uses the item registered to it (the TM CASE and BERRY POUCH open, faded in from the
 // world and back to it); an item used from the bag may work back on the field. The bedroom PC's
 // script flickers its screen on, shows its menus and opens WITHDRAW ITEM or the BAG's DEPOSIT
-// ITEM from black, coming back to ITEM STORAGE.
+// ITEM from black, coming back to ITEM STORAGE. NPCs stand on the map; talking to one turns it
+// to the player, and a trainer's script asks YES/NO and starts a battle (plans/battles M6; the
+// battle screen comes with M7), going on after a win.
 
 import { create } from "@bufbuild/protobuf";
+import { BattleResult, type BattleEnded, type BattleStarted, type BattleTurn } from "@pokeuniverse/contracts/battle/v1/view";
 import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
@@ -30,6 +33,8 @@ import { PartyState } from "../world/party";
 import { PokedexState } from "../world/pokedex";
 import { loadMap, TILE } from "../world/map";
 import { FieldMessage } from "./field-message";
+import { DLG_WINDOW_PALETTE, MENU_NOTHING_CHOSEN, YesNoMenu } from "./menu";
+import { NpcSprite } from "./npc-sprite";
 import type { Flow } from "./flow";
 import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
@@ -94,6 +99,9 @@ export function startOverworld(flow: Flow): void {
     pcChanged: (p) => overworld?.pcChanged(p),
     partyChanged: (p) => overworld?.partyChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
+    battleStarted: (b) => overworld?.battleStarted(b),
+    battleTurn: (b) => overworld?.battleTurn(b),
+    battleEnded: (b) => overworld?.battleEnded(b),
     noTrainer: leave,
   });
 }
@@ -151,13 +159,31 @@ interface Running {
   index: number;
   /** The current message is printed: waiting for A or B. */
   waiting: boolean;
+  /** The YES/NO menu of a yesNo step, while it waits for an answer. */
+  yesNo: YesNoMenu | null;
+  /** A trainerBattle step was sent: waiting for the battle to end. */
+  battling: boolean;
 }
+
+/** DisplayYesNoMenuDefaultYes: the field's YES/NO window, over the message box's right end. */
+const FIELD_YES_NO = { left: 21, top: 9, width: 6, height: 4, palette: DLG_WINDOW_PALETTE, baseBlock: 0x125 };
+
+/** Where an NPC turns to face the player who faces it (faceplayer). */
+const FACING_PLAYER: Partial<Record<Direction, Direction>> = {
+  [Direction.NORTH]: Direction.SOUTH,
+  [Direction.SOUTH]: Direction.NORTH,
+  [Direction.WEST]: Direction.EAST,
+  [Direction.EAST]: Direction.WEST,
+};
 
 class Overworld {
   readonly mapId: string;
   private readonly avatar: Avatar;
   private readonly sprite: PlayerSprite;
+  private readonly npcs: NpcSprite[];
   private message!: FieldMessage;
+  /** The battle the trainer is in (its ID): the player can't move until it ends. */
+  private battle: string | null;
   private script: Running | null = null;
   private menu: Menu | null = null;
   /** Off in a screen opened from the START menu: the world waits under it. */
@@ -200,6 +226,8 @@ class Overworld {
       bump: () => flow.play("se_wall_hit"),
     });
     this.sprite = new PlayerSprite(world, flow.assets, p.gender);
+    this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
+    this.battle = snapshot.battle?.battleId ?? null;
     if (map.music) gba.sound.playBgm(map.music);
     this.enter(false);
   }
@@ -248,6 +276,7 @@ class Overworld {
     this.flow.gba.tasks.destroy(this.pcFlicker);
     this.bag = new BagState(s.bag);
     this.party = new PartyState(s.party);
+    this.battle = s.battle?.battleId ?? null;
     // Answers lost with the connection: nothing happened.
     for (const answer of this.itemAnswers.splice(0)) answer(create(ItemResultSchema));
   }
@@ -266,6 +295,23 @@ class Overworld {
 
   itemResult(r: ItemResult): void {
     this.itemAnswers.shift()?.(r);
+  }
+
+  /** The battle screen draws it (plans/battles M7); until then the player waits for its end. */
+  battleStarted(b: BattleStarted): void {
+    this.battle = b.view?.battleId ?? null;
+  }
+
+  battleTurn(_b: BattleTurn): void {}
+
+  /** After a win the script goes on; a loss (whiteout) or a battle that couldn't start ends it. */
+  battleEnded(b: BattleEnded): void {
+    this.battle = null;
+    const s = this.script;
+    if (!s?.battling) return;
+    s.battling = false;
+    if (b.result === BattleResult.WON) s.index++;
+    else this.endScript(false);
   }
 
   /** Sends an item intent and waits for its ItemResult; offline, nothing happens. */
@@ -402,11 +448,15 @@ class Overworld {
   /** The answer to an interaction: nothing, or a script to show. */
   run(s: Script): void {
     this.avatar.waiting = false;
-    if (s.steps.length) this.script = { id: s.id, steps: s.steps, index: 0, waiting: false };
+    if (!s.steps.length) return;
+    this.script = { id: s.id, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false };
+    const facing = FACING_PLAYER[this.avatar.facing];
+    if (facing) this.npcs.find((n) => n.npc.id === s.npc)?.face(facing);
   }
 
   destroy(): void {
     this.sprite.destroy();
+    for (const npc of this.npcs) npc.destroy();
     this.message.hide();
   }
 
@@ -435,7 +485,7 @@ class Overworld {
       select: input.isPressed(Button.Select),
     };
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
-    const locked = this.script !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
+    const locked = this.script !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
     this.draw();
   }
@@ -537,6 +587,24 @@ class Overworld {
         s.index++;
         continue;
       }
+      if (step.action.case === "yesNo") {
+        const yes = this.runYesNo(s);
+        if (yes === null) return;
+        if (yes) s.index++;
+        else {
+          s.steps = step.action.value.no;
+          s.index = 0;
+        }
+        continue;
+      }
+      if (step.action.case === "trainerBattle") {
+        if (!s.battling) {
+          s.battling = true;
+          this.message.hide();
+          this.flow.link.scriptBattle(s.id);
+        }
+        return;
+      }
       if (step.action.case !== "message") {
         s.index++;
         continue;
@@ -548,12 +616,26 @@ class Overworld {
         s.waiting = true;
         return;
       }
-      if (this.message.printing || !this.flow.gba.input.isPressed(Button.A | Button.B)) return;
+      if (this.message.printing) return;
+      // A question (msgbox MSGBOX_YESNO): the YES/NO menu opens as soon as it's printed.
+      const asks = s.steps[s.index + 1]?.action.case === "yesNo";
+      if (!asks && !this.flow.gba.input.isPressed(Button.A | Button.B)) return;
       s.waiting = false;
       s.index++;
       // Pressed this frame: the player doesn't also act on it.
       this.flow.gba.input.pressed &= ~(Button.A | Button.B);
     }
+  }
+
+  /** The YES/NO menu over the message: true YES, false NO (or B), null while it waits. */
+  private runYesNo(s: Running): boolean | null {
+    s.yesNo ??= new YesNoMenu(this.flow, this.flow.gba.video.bgs[0], FIELD_YES_NO, FontId.Normal, 0, 2, 0);
+    const answer = s.yesNo.processInput();
+    if (answer === MENU_NOTHING_CHOSEN) return null;
+    s.yesNo = null;
+    // Pressed this frame: the player doesn't also act on it.
+    this.flow.gba.input.pressed &= ~(Button.A | Button.B);
+    return answer === 0;
   }
 
   private endScript(done: boolean): void {

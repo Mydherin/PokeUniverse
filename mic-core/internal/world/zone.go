@@ -143,7 +143,7 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 		}
 		return
 	}
-	if p.script != 0 {
+	if p.busy() {
 		z.correct(p, m.Step)
 		return
 	}
@@ -160,7 +160,7 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 }
 
 func (z *zone) turn(p *Player, d mapv1.Direction) {
-	if _, ok := z.players[p]; !ok || !ValidDirection(d) || p.script != 0 || p.facing == d {
+	if _, ok := z.players[p]; !ok || !ValidDirection(d) || p.busy() || p.facing == d {
 		return
 	}
 	p.facing, p.dirty = d, true
@@ -171,21 +171,25 @@ func (z *zone) interact(p *Player, walkInto bool) {
 		return
 	}
 	reply := &worldv1.Script{}
-	if p.script == 0 {
-		if steps := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
+	if !p.busy() {
+		if steps, npc := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
 			p.lastScript++
 			p.script = p.lastScript
-			reply.Id, reply.Steps = p.script, z.withPlayer(p, steps)
+			reply.Id, reply.Steps, reply.Npc = p.script, z.withPlayer(p, steps), npc
 		}
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Script{Script: reply}})
 }
 
 // withPlayer fills in what a script's steps show of the player: what their PC stores (which
-// also allows its item actions while the script runs). The scripts' tables stay untouched.
+// also allows its item actions while the script runs). It notes the trainer battle the script
+// may start. The scripts' tables stay untouched.
 func (z *zone) withPlayer(p *Player, steps Script) Script {
 	out := make(Script, len(steps))
 	for i, step := range steps {
+		if b := step.GetTrainerBattle(); b != nil {
+			p.scriptTrainer = b.GetTrainer()
+		}
 		if step.GetPlayersPc() != nil {
 			p.pcScript = p.script
 			step = &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PlayersPc{PlayersPc: &worldv1.PlayersPc{Items: p.items.PC.Proto()}}}

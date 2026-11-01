@@ -82,7 +82,7 @@ func allowed(p *Player, atPC bool) bool {
 	if atPC {
 		return p.atPC()
 	}
-	return p.script == 0
+	return !p.busy()
 }
 
 // itemAction runs an action the client waits for: what changed is saved, then sent with the

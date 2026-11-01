@@ -3,7 +3,7 @@
 // FireRed on foot: field_player_avatar.c, CheckForObjectEventCollision.
 
 import { Direction, TileBehavior, type ClientMap } from "@pokeuniverse/contracts/map/v1/map";
-import { behaviorAt, elevationAt, isWalkable } from "./map";
+import { behaviorAt, elevationAt, isWalkable, npcAt } from "./map";
 
 export const enum Collision {
   None,
@@ -36,7 +36,7 @@ const IMPASSABLE: Partial<Record<Direction, TileBehavior>> = {
   [Direction.EAST]: TileBehavior.IMPASSABLE_EAST,
 };
 
-/** What stops a step from (x, y) in direction d, at the player's elevation. */
+/** What stops a step from (x, y) in direction d, at the player's elevation. NPCs block their cell. */
 export function checkStep(map: ClientMap, x: number, y: number, elevation: number, d: Direction): Collision {
   const here = behaviorAt(map, x, y);
   if (isStairWarp(here, d)) return Collision.StairWarp;
@@ -45,6 +45,7 @@ export function checkStep(map: ClientMap, x: number, y: number, elevation: numbe
   const ty = y + dy;
   if (
     !isWalkable(map, tx, ty) ||
+    npcAt(map, tx, ty) ||
     here === IMPASSABLE[d] ||
     behaviorAt(map, tx, ty) === IMPASSABLE[OPPOSITE[d]] ||
     elevationMismatch(elevation, elevationAt(map, tx, ty))

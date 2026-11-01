@@ -46,6 +46,20 @@ message BattleView {
   Weather weather = 4;
   // What the reader must choose now.
   BattleRequest request = 5;
+  // The opponent in a trainer battle; filled in by mic-core, which owns the trainer table.
+  BattleTrainer trainer = 6;
+}
+
+// An NPC trainer as the battle screen shows them.
+message BattleTrainer {
+  // FireRed's trainer class, lowercase (e.g. "cooltrainer"): its name, music and money rate.
+  string trainer_class = 1;
+  // As printed (FireRed's characters), e.g. "ROLANDO".
+  string name = 2;
+  // Trainer art, by ID (each art style maps it to its images), e.g. "cooltrainer_m".
+  string pic = 3;
+  // Text ID shown when they lose.
+  string defeat_text = 4;
 }
 
 enum RequestKind {

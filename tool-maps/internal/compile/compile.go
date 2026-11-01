@@ -61,7 +61,21 @@ func Client(r *world.Resolved) *mapv1.ClientMap {
 			m.Border = append(m.Border, uint32(t.Index))
 		}
 	}
+	for _, o := range r.Map.Objects {
+		if o.Type == format.ObjectNPC {
+			m.Npcs = append(m.Npcs, &mapv1.ClientNpc{Id: o.ID, X: uint32(o.At.X()), Y: uint32(o.At.Y()), Sprite: o.Sprite, Facing: npcFacing(o.Movement)})
+		}
+	}
 	return m
+}
+
+// npcFacing is where an NPC faces as the map loads: its face_* movement's way, else down
+// (FireRed's initial facing for the other movement types).
+func npcFacing(movement string) mapv1.Direction {
+	if d, ok := facings[strings.TrimPrefix(movement, "face_")]; ok {
+		return d
+	}
+	return mapv1.Direction_DIRECTION_SOUTH
 }
 
 var mapTypes = map[string]mapv1.MapType{

@@ -17,6 +17,8 @@ import (
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
+	"pokeuniverse/mic-core/internal/battle"
+	"pokeuniverse/mic-core/internal/battles"
 	"pokeuniverse/mic-core/internal/db"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
@@ -50,12 +52,14 @@ const keepAliveEvery = live.SessionTTL / 3
 const hasRunningShoes = false
 
 type World struct {
-	maps Maps
-	live *live.Store
-	bus  Bus
-	pool *pgxpool.Pool
-	log  *slog.Logger
-	stop chan struct{}
+	maps    Maps
+	live    *live.Store
+	bus     Bus
+	pool    *pgxpool.Pool
+	battles *battles.Client
+	active  *battle.Store
+	log     *slog.Logger
+	stop    chan struct{}
 
 	mu      sync.Mutex
 	zones   map[string]*zone
@@ -63,11 +67,11 @@ type World struct {
 	closed  bool
 }
 
-func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, log *slog.Logger) (*World, error) {
+func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
 	if maps[Start.Map] == nil {
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
-	w := &World{maps: maps, live: store, bus: bus, pool: pool, log: log, stop: make(chan struct{}),
+	w := &World{maps: maps, live: store, bus: bus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
 		zones: map[string]*zone{}, players: map[int64]*Player{}}
 	go w.keepAlive()
 	return w, nil
@@ -98,6 +102,10 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if err != nil {
 		return nil, nil, fmt.Errorf("join: %w", err)
 	}
+	inBattle, battleView, err := w.joinBattle(ctx, accountID, saved.Gen)
+	if err != nil {
+		return nil, nil, fmt.Errorf("join: %w", err)
+	}
 	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
 		return nil, nil, err
@@ -106,6 +114,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 
 	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party,
+		trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -130,7 +139,12 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if previous != "" && (old == nil || old.conn != previous) {
 		w.bus.SessionTaken(accountID, previous) // Played from another replica.
 	}
-	z.call(func() { z.add(p) })
+	z.call(func() {
+		z.add(p)
+		if p.battle != nil && p.battle.request == nil {
+			z.resumeBattle(p) // mic-battles didn't answer in time, or the battle was over.
+		}
+	})
 
 	return p, &worldv1.WorldSnapshot{
 		Map:    m.ID,
@@ -141,6 +155,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		Bag:             items.Bag.Proto(),
 		Pokedex:         pokedex.Load(row).Proto(),
 		Party:           party.Proto(),
+		Battle:          battleView,
 	}, nil
 }
 

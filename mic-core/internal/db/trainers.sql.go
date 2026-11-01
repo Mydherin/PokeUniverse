@@ -257,6 +257,27 @@ func (q *Queries) UpdateTrainerLive(ctx context.Context, arg UpdateTrainerLivePa
 	return result.RowsAffected(), nil
 }
 
+const updateTrainerMoney = `-- name: UpdateTrainerMoney :execrows
+UPDATE trainers
+SET money = $2
+WHERE account_id = $1 AND created_at = $3
+`
+
+type UpdateTrainerMoneyParams struct {
+	AccountID int64
+	Money     int32
+	CreatedAt time.Time
+}
+
+// Money after a battle; only into the save it belongs to.
+func (q *Queries) UpdateTrainerMoney(ctx context.Context, arg UpdateTrainerMoneyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerMoney, arg.AccountID, arg.Money, arg.CreatedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateTrainerOptions = `-- name: UpdateTrainerOptions :execrows
 UPDATE trainers
 SET text_speed = $2, battle_scene = $3, battle_style = $4, sound = $5, button_mode = $6, frame = $7

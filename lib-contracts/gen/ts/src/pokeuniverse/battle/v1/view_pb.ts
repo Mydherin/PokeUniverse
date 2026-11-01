@@ -22,7 +22,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/battle/v1/view.proto.
  */
 export const file_pokeuniverse_battle_v1_view: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2UvYmF0dGxlL3YxL3ZpZXcucHJvdG8SFnBva2V1bml2ZXJzZS5iYXR0bGUudjEigAEKCkJhdHRsZVNpZGUSCwoDZm9lGAEgASgIEjMKBmFjdGl2ZRgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlckluZm8SMAoFYmFsbHMYAyADKA4yIS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLlBhcnR5QmFsbCLuAQoKQmF0dGxlVmlldxIRCgliYXR0bGVfaWQYASABKAkSMAoEa2luZBgCIAEoDjIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlS2luZBIxCgVzaWRlcxgDIAMoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlU2lkZRIwCgd3ZWF0aGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5XZWF0aGVyEjYKB3JlcXVlc3QYBSABKAsyJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVJlcXVlc3QiZQoLUmVxdWVzdE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNEhAKCGRpc2FibGVkGAQgASgIIs0BCgtQYXJ0eU1lbWJlchISCgpwYXJ0eV9zbG90GAEgASgNEi4KBmhlYWx0aBgCIAEoCzIeLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuSGVhbHRoEi8KBnN0YXR1cxgDIAEoDjIfLnBva2V1bml2ZXJzZS5wb2tlbW9uLnYxLlN0YXR1cxItCgloZWxkX2l0ZW0YBCABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEgoKAnBwGAUgAygNEg4KBmFjdGl2ZRgGIAEoCCLJAQoNQmF0dGxlUmVxdWVzdBIxCgRraW5kGAEgASgOMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5SZXF1ZXN0S2luZBIMCgRzdGVwGAIgASgNEjIKBW1vdmVzGAMgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5SZXF1ZXN0TW92ZRIPCgd0cmFwcGVkGAQgASgIEjIKBXBhcnR5GAUgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5QYXJ0eU1lbWJlciJLCgpNb3ZlQWN0aW9uEgwKBHNsb3QYASABKA0SLwoGdGFyZ2V0GAIgASgLMh8ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVyIiIKDFN3aXRjaEFjdGlvbhISCgpwYXJ0eV9zbG90GAEgASgNIl0KCkl0ZW1BY3Rpb24SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEgoKcGFydHlfc2xvdBgCIAEoDRIRCgltb3ZlX3Nsb3QYAyABKA0iCwoJUnVuQWN0aW9uIugBCgxCYXR0bGVBY3Rpb24SMgoEbW92ZRgBIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuTW92ZUFjdGlvbkgAEjYKBnN3aXRjaBgCIAEoCzIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuU3dpdGNoQWN0aW9uSAASMgoEaXRlbRgDIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuSXRlbUFjdGlvbkgAEjAKA3J1bhgEIAEoCzIhLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUnVuQWN0aW9uSABCBgoEa2luZCJlCgxCYXR0bGVDaG9pY2USEQoJYmF0dGxlX2lkGAEgASgJEgwKBHN0ZXAYAiABKA0SNAoGYWN0aW9uGAMgASgLMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVBY3Rpb24idgoNQmF0dGxlU3RhcnRlZBIwCgR2aWV3GAEgASgLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVWaWV3EjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQijAEKCkJhdHRsZVR1cm4SEQoJYmF0dGxlX2lkGAEgASgJEjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQSNgoHcmVxdWVzdBgDIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVxdWVzdCJlCgtCYXR0bGVFbmRlZBIRCgliYXR0bGVfaWQYASABKAkSNAoGcmVzdWx0GAIgASgOMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVSZXN1bHQSDQoFbW9uZXkYAyABKA0qWAoKQmF0dGxlS2luZBIbChdCQVRUTEVfS0lORF9VTlNQRUNJRklFRBAAEhcKE0JBVFRMRV9LSU5EX1RSQUlORVIQARIUChBCQVRUTEVfS0lORF9XSUxEEAIqbgoJUGFydHlCYWxsEhoKFlBBUlRZX0JBTExfVU5TUEVDSUZJRUQQABIWChJQQVJUWV9CQUxMX0hFQUxUSFkQARIVChFQQVJUWV9CQUxMX1NUQVRVUxACEhYKElBBUlRZX0JBTExfRkFJTlRFRBADKnQKC1JlcXVlc3RLaW5kEhwKGFJFUVVFU1RfS0lORF9VTlNQRUNJRklFRBAAEhUKEVJFUVVFU1RfS0lORF9XQUlUEAESFwoTUkVRVUVTVF9LSU5EX0FDVElPThACEhcKE1JFUVVFU1RfS0lORF9TV0lUQ0gQAyrGAQoMQmF0dGxlUmVzdWx0Eh0KGUJBVFRMRV9SRVNVTFRfVU5TUEVDSUZJRUQQABIVChFCQVRUTEVfUkVTVUxUX1dPThABEhYKEkJBVFRMRV9SRVNVTFRfTE9TVBACEhUKEUJBVFRMRV9SRVNVTFRfVElFEAMSHQoZQkFUVExFX1JFU1VMVF9GT1JGRUlUX1dPThAEEhsKF0JBVFRMRV9SRVNVTFRfRk9SRkVJVEVEEAUSFQoRQkFUVExFX1JFU1VMVF9SQU4QBkJDWkFwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2JhdHRsZS92MTtiYXR0bGV2MWIGcHJvdG8z", [file_pokeuniverse_battle_v1_event, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_pokemon]);
+  fileDesc("CiFwb2tldW5pdmVyc2UvYmF0dGxlL3YxL3ZpZXcucHJvdG8SFnBva2V1bml2ZXJzZS5iYXR0bGUudjEigAEKCkJhdHRsZVNpZGUSCwoDZm9lGAEgASgIEjMKBmFjdGl2ZRgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlckluZm8SMAoFYmFsbHMYAyADKA4yIS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLlBhcnR5QmFsbCKmAgoKQmF0dGxlVmlldxIRCgliYXR0bGVfaWQYASABKAkSMAoEa2luZBgCIAEoDjIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlS2luZBIxCgVzaWRlcxgDIAMoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlU2lkZRIwCgd3ZWF0aGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5XZWF0aGVyEjYKB3JlcXVlc3QYBSABKAsyJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVJlcXVlc3QSNgoHdHJhaW5lchgGIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlVHJhaW5lciJWCg1CYXR0bGVUcmFpbmVyEhUKDXRyYWluZXJfY2xhc3MYASABKAkSDAoEbmFtZRgCIAEoCRILCgNwaWMYAyABKAkSEwoLZGVmZWF0X3RleHQYBCABKAkiZQoLUmVxdWVzdE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNEhAKCGRpc2FibGVkGAQgASgIIs0BCgtQYXJ0eU1lbWJlchISCgpwYXJ0eV9zbG90GAEgASgNEi4KBmhlYWx0aBgCIAEoCzIeLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuSGVhbHRoEi8KBnN0YXR1cxgDIAEoDjIfLnBva2V1bml2ZXJzZS5wb2tlbW9uLnYxLlN0YXR1cxItCgloZWxkX2l0ZW0YBCABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEgoKAnBwGAUgAygNEg4KBmFjdGl2ZRgGIAEoCCLJAQoNQmF0dGxlUmVxdWVzdBIxCgRraW5kGAEgASgOMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5SZXF1ZXN0S2luZBIMCgRzdGVwGAIgASgNEjIKBW1vdmVzGAMgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5SZXF1ZXN0TW92ZRIPCgd0cmFwcGVkGAQgASgIEjIKBXBhcnR5GAUgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5QYXJ0eU1lbWJlciJLCgpNb3ZlQWN0aW9uEgwKBHNsb3QYASABKA0SLwoGdGFyZ2V0GAIgASgLMh8ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVyIiIKDFN3aXRjaEFjdGlvbhISCgpwYXJ0eV9zbG90GAEgASgNIl0KCkl0ZW1BY3Rpb24SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEgoKcGFydHlfc2xvdBgCIAEoDRIRCgltb3ZlX3Nsb3QYAyABKA0iCwoJUnVuQWN0aW9uIugBCgxCYXR0bGVBY3Rpb24SMgoEbW92ZRgBIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuTW92ZUFjdGlvbkgAEjYKBnN3aXRjaBgCIAEoCzIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuU3dpdGNoQWN0aW9uSAASMgoEaXRlbRgDIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuSXRlbUFjdGlvbkgAEjAKA3J1bhgEIAEoCzIhLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUnVuQWN0aW9uSABCBgoEa2luZCJlCgxCYXR0bGVDaG9pY2USEQoJYmF0dGxlX2lkGAEgASgJEgwKBHN0ZXAYAiABKA0SNAoGYWN0aW9uGAMgASgLMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVBY3Rpb24idgoNQmF0dGxlU3RhcnRlZBIwCgR2aWV3GAEgASgLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVWaWV3EjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQijAEKCkJhdHRsZVR1cm4SEQoJYmF0dGxlX2lkGAEgASgJEjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQSNgoHcmVxdWVzdBgDIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVxdWVzdCJlCgtCYXR0bGVFbmRlZBIRCgliYXR0bGVfaWQYASABKAkSNAoGcmVzdWx0GAIgASgOMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVSZXN1bHQSDQoFbW9uZXkYAyABKA0qWAoKQmF0dGxlS2luZBIbChdCQVRUTEVfS0lORF9VTlNQRUNJRklFRBAAEhcKE0JBVFRMRV9LSU5EX1RSQUlORVIQARIUChBCQVRUTEVfS0lORF9XSUxEEAIqbgoJUGFydHlCYWxsEhoKFlBBUlRZX0JBTExfVU5TUEVDSUZJRUQQABIWChJQQVJUWV9CQUxMX0hFQUxUSFkQARIVChFQQVJUWV9CQUxMX1NUQVRVUxACEhYKElBBUlRZX0JBTExfRkFJTlRFRBADKnQKC1JlcXVlc3RLaW5kEhwKGFJFUVVFU1RfS0lORF9VTlNQRUNJRklFRBAAEhUKEVJFUVVFU1RfS0lORF9XQUlUEAESFwoTUkVRVUVTVF9LSU5EX0FDVElPThACEhcKE1JFUVVFU1RfS0lORF9TV0lUQ0gQAyrGAQoMQmF0dGxlUmVzdWx0Eh0KGUJBVFRMRV9SRVNVTFRfVU5TUEVDSUZJRUQQABIVChFCQVRUTEVfUkVTVUxUX1dPThABEhYKEkJBVFRMRV9SRVNVTFRfTE9TVBACEhUKEUJBVFRMRV9SRVNVTFRfVElFEAMSHQoZQkFUVExFX1JFU1VMVF9GT1JGRUlUX1dPThAEEhsKF0JBVFRMRV9SRVNVTFRfRk9SRkVJVEVEEAUSFQoRQkFUVExFX1JFU1VMVF9SQU4QBkJDWkFwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2JhdHRsZS92MTtiYXR0bGV2MWIGcHJvdG8z", [file_pokeuniverse_battle_v1_event, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_pokemon]);
 
 /**
  * One side of the field.
@@ -91,6 +91,13 @@ export type BattleView = Message<"pokeuniverse.battle.v1.BattleView"> & {
    * @generated from field: pokeuniverse.battle.v1.BattleRequest request = 5;
    */
   request?: BattleRequest | undefined;
+
+  /**
+   * The opponent in a trainer battle; filled in by mic-core, which owns the trainer table.
+   *
+   * @generated from field: pokeuniverse.battle.v1.BattleTrainer trainer = 6;
+   */
+  trainer?: BattleTrainer | undefined;
 };
 
 /**
@@ -99,6 +106,48 @@ export type BattleView = Message<"pokeuniverse.battle.v1.BattleView"> & {
  */
 export const BattleViewSchema: GenMessage<BattleView> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_battle_v1_view, 1);
+
+/**
+ * An NPC trainer as the battle screen shows them.
+ *
+ * @generated from message pokeuniverse.battle.v1.BattleTrainer
+ */
+export type BattleTrainer = Message<"pokeuniverse.battle.v1.BattleTrainer"> & {
+  /**
+   * FireRed's trainer class, lowercase (e.g. "cooltrainer"): its name, music and money rate.
+   *
+   * @generated from field: string trainer_class = 1;
+   */
+  trainerClass: string;
+
+  /**
+   * As printed (FireRed's characters), e.g. "ROLANDO".
+   *
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * Trainer art, by ID (each art style maps it to its images), e.g. "cooltrainer_m".
+   *
+   * @generated from field: string pic = 3;
+   */
+  pic: string;
+
+  /**
+   * Text ID shown when they lose.
+   *
+   * @generated from field: string defeat_text = 4;
+   */
+  defeatText: string;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.BattleTrainer.
+ * Use `create(BattleTrainerSchema)` to create a new message.
+ */
+export const BattleTrainerSchema: GenMessage<BattleTrainer> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_view, 2);
 
 /**
  * One of the active Pokémon's moves, for FIGHT.
@@ -134,7 +183,7 @@ export type RequestMove = Message<"pokeuniverse.battle.v1.RequestMove"> & {
  * Use `create(RequestMoveSchema)` to create a new message.
  */
 export const RequestMoveSchema: GenMessage<RequestMove> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 2);
+  messageDesc(file_pokeuniverse_battle_v1_view, 3);
 
 /**
  * The reader's party as it is now in the battle, for its POKéMON screen and the summary.
@@ -184,7 +233,7 @@ export type PartyMember = Message<"pokeuniverse.battle.v1.PartyMember"> & {
  * Use `create(PartyMemberSchema)` to create a new message.
  */
 export const PartyMemberSchema: GenMessage<PartyMember> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 3);
+  messageDesc(file_pokeuniverse_battle_v1_view, 4);
 
 /**
  * A choice the reader must make. Locked moves (Outrage, recharging, a charged move) are chosen by
@@ -231,7 +280,7 @@ export type BattleRequest = Message<"pokeuniverse.battle.v1.BattleRequest"> & {
  * Use `create(BattleRequestSchema)` to create a new message.
  */
 export const BattleRequestSchema: GenMessage<BattleRequest> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 4);
+  messageDesc(file_pokeuniverse_battle_v1_view, 5);
 
 /**
  * FIGHT: one of the active Pokémon's moves.
@@ -259,7 +308,7 @@ export type MoveAction = Message<"pokeuniverse.battle.v1.MoveAction"> & {
  * Use `create(MoveActionSchema)` to create a new message.
  */
 export const MoveActionSchema: GenMessage<MoveAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 5);
+  messageDesc(file_pokeuniverse_battle_v1_view, 6);
 
 /**
  * POKéMON: send out another party Pokémon.
@@ -280,7 +329,7 @@ export type SwitchAction = Message<"pokeuniverse.battle.v1.SwitchAction"> & {
  * Use `create(SwitchActionSchema)` to create a new message.
  */
 export const SwitchActionSchema: GenMessage<SwitchAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 6);
+  messageDesc(file_pokeuniverse_battle_v1_view, 7);
 
 /**
  * BAG: use an item (plans/battles D12).
@@ -313,7 +362,7 @@ export type ItemAction = Message<"pokeuniverse.battle.v1.ItemAction"> & {
  * Use `create(ItemActionSchema)` to create a new message.
  */
 export const ItemActionSchema: GenMessage<ItemAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 7);
+  messageDesc(file_pokeuniverse_battle_v1_view, 8);
 
 /**
  * RUN.
@@ -328,7 +377,7 @@ export type RunAction = Message<"pokeuniverse.battle.v1.RunAction"> & {
  * Use `create(RunActionSchema)` to create a new message.
  */
 export const RunActionSchema: GenMessage<RunAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 8);
+  messageDesc(file_pokeuniverse_battle_v1_view, 9);
 
 /**
  * @generated from message pokeuniverse.battle.v1.BattleAction
@@ -369,7 +418,7 @@ export type BattleAction = Message<"pokeuniverse.battle.v1.BattleAction"> & {
  * Use `create(BattleActionSchema)` to create a new message.
  */
 export const BattleActionSchema: GenMessage<BattleAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 9);
+  messageDesc(file_pokeuniverse_battle_v1_view, 10);
 
 /**
  * Client -> server: the player's choice for the request with this step.
@@ -398,7 +447,7 @@ export type BattleChoice = Message<"pokeuniverse.battle.v1.BattleChoice"> & {
  * Use `create(BattleChoiceSchema)` to create a new message.
  */
 export const BattleChoiceSchema: GenMessage<BattleChoice> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 10);
+  messageDesc(file_pokeuniverse_battle_v1_view, 11);
 
 /**
  * Server -> client: a battle started. Draw `view`, then play `events` (the send-outs).
@@ -422,7 +471,7 @@ export type BattleStarted = Message<"pokeuniverse.battle.v1.BattleStarted"> & {
  * Use `create(BattleStartedSchema)` to create a new message.
  */
 export const BattleStartedSchema: GenMessage<BattleStarted> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 11);
+  messageDesc(file_pokeuniverse_battle_v1_view, 12);
 
 /**
  * Server -> client: what happened after a choice, then the next request (WAIT once it's over).
@@ -451,7 +500,7 @@ export type BattleTurn = Message<"pokeuniverse.battle.v1.BattleTurn"> & {
  * Use `create(BattleTurnSchema)` to create a new message.
  */
 export const BattleTurnSchema: GenMessage<BattleTurn> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 12);
+  messageDesc(file_pokeuniverse_battle_v1_view, 13);
 
 /**
  * Server -> client: the battle is over (after the last BattleTurn). The party follows as
@@ -483,7 +532,7 @@ export type BattleEnded = Message<"pokeuniverse.battle.v1.BattleEnded"> & {
  * Use `create(BattleEndedSchema)` to create a new message.
  */
 export const BattleEndedSchema: GenMessage<BattleEnded> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 13);
+  messageDesc(file_pokeuniverse_battle_v1_view, 14);
 
 /**
  * @generated from enum pokeuniverse.battle.v1.BattleKind

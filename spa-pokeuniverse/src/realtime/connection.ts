@@ -7,6 +7,7 @@
 // for good too (`onEnded("disconnected")`).
 
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
+import type { BattleAction, BattleEnded, BattleStarted, BattleTurn } from "@pokeuniverse/contracts/battle/v1/view";
 import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
@@ -41,6 +42,12 @@ export interface WorldEvents {
   partyChanged(p: PartyChanged): void;
   /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
+  /** A battle started (or was redrawn after a resume): draw its view, then play its events. */
+  battleStarted(b: BattleStarted): void;
+  /** What a choice did, and the next request (the same one again when the choice was refused). */
+  battleTurn(b: BattleTurn): void;
+  /** The battle is over (the party follows as PartyChanged); no result: it couldn't start. */
+  battleEnded(b: BattleEnded): void;
   /** The account has no trainer (New Game creates it). */
   noTrainer(): void;
 }
@@ -56,6 +63,10 @@ export interface WorldLink {
   turn(direction: Direction): void;
   interact(walkInto: boolean): void;
   scriptDone(script: number): void;
+  /** The running script reached its TrainerBattle step: answered with BattleStarted (or BattleEnded). */
+  scriptBattle(script: number): void;
+  /** The choice for the battle's request with this step: answered with a BattleTurn. */
+  battleChoice(battleId: string, step: number, action: BattleAction): void;
   /** USE from the bag, or the registered item with SELECT (`field`); answered with an ItemResult. */
   useItem(item: Item, field: boolean): void;
   /** GIVE from the bag, or from the PC (`pc`). */
@@ -174,6 +185,14 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "scriptDone", value: { script } });
   }
 
+  scriptBattle(script: number): void {
+    if (this.inWorld) this.send({ case: "scriptBattle", value: { script } });
+  }
+
+  battleChoice(battleId: string, step: number, action: BattleAction): void {
+    if (this.inWorld) this.send({ case: "battleChoice", value: { battleId, step, action } });
+  }
+
   useItem(item: Item, field: boolean): void {
     if (this.inWorld) this.send({ case: "useItem", value: { item, field } });
   }
@@ -264,6 +283,15 @@ export class Connection implements WorldLink {
         break;
       case "itemResult":
         this.world?.itemResult(msg.payload.value);
+        break;
+      case "battleStarted":
+        this.world?.battleStarted(msg.payload.value);
+        break;
+      case "battleTurn":
+        this.world?.battleTurn(msg.payload.value);
+        break;
+      case "battleEnded":
+        this.world?.battleEnded(msg.payload.value);
         break;
       case "error":
         if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();

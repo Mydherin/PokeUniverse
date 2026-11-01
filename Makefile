@@ -23,6 +23,7 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	pokemon/nidoran_f/front.png pokemon/nidoran_f/normal.pal \
 	object_events/pics/people/red_normal.png object_events/pics/people/green_normal.png object_events/palettes/player.pal \
 	object_events/pics/people/red_surf_run.png object_events/pics/people/green_surf_run.png \
+	object_events/pics/people/cooltrainer_m.png object_events/palettes/npc_blue.pal \
 	help_system/msg_window.png trainer_card/tiles.png trainer_card/front.bin trainer_card/back.bin trainer_card/bg.bin \
 	trainer_card/blue.pal trainer_card/female_bg.pal trainers/front_pics/red_front_pic.png trainers/front_pics/leaf_front_pic.png \
 	trainers/palettes/red.pal trainers/palettes/leaf.pal \

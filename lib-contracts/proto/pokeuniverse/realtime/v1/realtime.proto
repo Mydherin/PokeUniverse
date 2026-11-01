@@ -36,6 +36,7 @@ message ClientMessage {
     pokeuniverse.party.v1.TakePartyItem take_party_item = 19;
     pokeuniverse.party.v1.SwapPokemonMoves swap_pokemon_moves = 20;
     pokeuniverse.battle.v1.BattleChoice battle_choice = 21;
+    pokeuniverse.world.v1.ScriptBattle script_battle = 22;
   }
 }
 

@@ -34,6 +34,11 @@ export function elevationAt(map: ClientMap, x: number, y: number): number {
   return inside(map, x, y) ? map.elevation[y * map.width + x] : 0;
 }
 
+/** Whether an NPC stands on the cell (a map has a handful: a scan is enough). */
+export function npcAt(map: ClientMap, x: number, y: number): boolean {
+  return map.npcs.some((n) => n.x === x && n.y === y);
+}
+
 /** The cell's tile behavior; unspecified outside the map. */
 export function behaviorAt(map: ClientMap, x: number, y: number): TileBehavior {
   return inside(map, x, y) ? map.behaviors[y * map.width + x] : TileBehavior.UNSPECIFIED;

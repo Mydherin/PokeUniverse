@@ -5,7 +5,6 @@ package pokemon
 import (
 	"context"
 	"fmt"
-	"math/rand/v2"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -20,37 +19,28 @@ import (
 
 const testLevel = 50
 
-// testSet is one test Pokémon: legal Gen 4 sets at Lv. 50 (moves checked against Showdown's Gen 4
-// learnsets: level-up, TM, tutor or egg), FireRed's items only until plans/battles M12.
-type testSet struct {
-	species speciesv1.Species
-	nature  pokemonv1.Nature
-	item    itemv1.Item
-	moves   []movev1.Move
-	evs     Stats // HP, ATK, DEF, SPEED, SP. ATK, SP. DEF.
-}
-
-var testTeam = []testSet{
+// testTeam: legal Gen 4 sets at Lv. 50, FireRed's items only until plans/battles M12.
+var testTeam = []Set{
 	{speciesv1.Species_SPECIES_CHARIZARD, pokemonv1.Nature_NATURE_TIMID, itemv1.Item_ITEM_UNSPECIFIED,
 		[]movev1.Move{movev1.Move_MOVE_FLAMETHROWER, movev1.Move_MOVE_AIR_SLASH, movev1.Move_MOVE_DRAGON_PULSE, movev1.Move_MOVE_ROOST},
-		Stats{4, 0, 0, 252, 252, 0}},
+		Stats{4, 0, 0, 252, 252, 0}, nil},
 	{speciesv1.Species_SPECIES_PIKACHU, pokemonv1.Nature_NATURE_HASTY, itemv1.Item_ITEM_LIGHT_BALL,
 		[]movev1.Move{movev1.Move_MOVE_THUNDERBOLT, movev1.Move_MOVE_QUICK_ATTACK, movev1.Move_MOVE_IRON_TAIL, movev1.Move_MOVE_THUNDER_WAVE},
-		Stats{0, 4, 0, 252, 252, 0}},
+		Stats{0, 4, 0, 252, 252, 0}, nil},
 	{speciesv1.Species_SPECIES_GARCHOMP, pokemonv1.Nature_NATURE_JOLLY, itemv1.Item_ITEM_UNSPECIFIED,
 		[]movev1.Move{movev1.Move_MOVE_EARTHQUAKE, movev1.Move_MOVE_DRAGON_CLAW, movev1.Move_MOVE_STEALTH_ROCK, movev1.Move_MOVE_SWORDS_DANCE},
-		Stats{4, 252, 0, 252, 0, 0}},
+		Stats{4, 252, 0, 252, 0, 0}, nil},
 	// Bullet Punch is a Riolu egg move: Extreme Speed comes at Lv. 51.
 	{speciesv1.Species_SPECIES_LUCARIO, pokemonv1.Nature_NATURE_NAIVE, itemv1.Item_ITEM_UNSPECIFIED,
 		[]movev1.Move{movev1.Move_MOVE_AURA_SPHERE, movev1.Move_MOVE_CLOSE_COMBAT, movev1.Move_MOVE_BULLET_PUNCH, movev1.Move_MOVE_SWORDS_DANCE},
-		Stats{0, 252, 0, 252, 4, 0}},
+		Stats{0, 252, 0, 252, 4, 0}, nil},
 	{speciesv1.Species_SPECIES_GARDEVOIR, pokemonv1.Nature_NATURE_MODEST, itemv1.Item_ITEM_UNSPECIFIED,
 		[]movev1.Move{movev1.Move_MOVE_PSYCHIC, movev1.Move_MOVE_SHADOW_BALL, movev1.Move_MOVE_CALM_MIND, movev1.Move_MOVE_THUNDERBOLT},
-		Stats{4, 0, 0, 252, 252, 0}},
+		Stats{4, 0, 0, 252, 252, 0}, nil},
 	// Curse is an egg move (Munchlax).
 	{speciesv1.Species_SPECIES_SNORLAX, pokemonv1.Nature_NATURE_CAREFUL, itemv1.Item_ITEM_LEFTOVERS,
 		[]movev1.Move{movev1.Move_MOVE_BODY_SLAM, movev1.Move_MOVE_EARTHQUAKE, movev1.Move_MOVE_REST, movev1.Move_MOVE_CURSE},
-		Stats{252, 4, 0, 0, 0, 252}},
+		Stats{252, 4, 0, 0, 0, 252}, nil},
 }
 
 // GiveTestTeam gives a trainer with no Pokémon the test team, in one transaction; a trainer who
@@ -79,23 +69,7 @@ func GiveTestTeam(ctx context.Context, pool *pgxpool.Pool, accountID int64, save
 func newTestTeam(ot Trainer) Party {
 	party := make(Party, len(testTeam))
 	for i, set := range testTeam {
-		r := rand.New(rand.NewPCG(uint64(ot.ID), uint64(i)))
-		// CreateMonWithNature: personalities until one has the nature.
-		personality := r.Uint32()
-		for NatureOf(personality) != set.nature {
-			personality = r.Uint32()
-		}
-		var ivs Stats
-		for s := range ivs {
-			ivs[s] = r.IntN(MaxIV + 1)
-		}
-		p := Create(set.species, testLevel, personality, ivs, set.evs, ot)
-		p.HeldItem = set.item
-		p.Moves = make([]Move, len(set.moves))
-		for m, id := range set.moves {
-			p.Moves[m] = Move{ID: id, PP: MaxPP(id, 0)}
-		}
-		party[i] = p
+		party[i] = set.Create(testLevel, ot, uint64(ot.ID))
 	}
 	return party
 }

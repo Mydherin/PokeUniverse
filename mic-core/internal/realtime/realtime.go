@@ -280,6 +280,12 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
 		return true
+	case *realtimev1.ClientMessage_ScriptBattle:
+		c.player.ScriptBattle(p.ScriptBattle)
+		return true
+	case *realtimev1.ClientMessage_BattleChoice:
+		c.player.BattleChoice(p.BattleChoice)
+		return true
 	}
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 	return false

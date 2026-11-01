@@ -6,6 +6,8 @@ package db
 
 import (
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Account struct {
@@ -21,6 +23,14 @@ type Account struct {
 type AccountRole struct {
 	AccountID int64
 	RoleID    int16
+}
+
+type BattleOutcome struct {
+	BattleID  pgtype.UUID
+	AccountID int64
+	Result    int16
+	Money     int32
+	CreatedAt time.Time
 }
 
 type RefreshToken struct {

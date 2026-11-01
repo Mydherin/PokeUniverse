@@ -26,6 +26,27 @@ func playersPC() *worldv1.ScriptStep {
 	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PlayersPc{PlayersPc: &worldv1.PlayersPc{}}}
 }
 
+// yesNo is a YES/NO menu over the last message; `no` plays on NO, then the script ends.
+func yesNo(no ...*worldv1.ScriptStep) *worldv1.ScriptStep {
+	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_YesNo{YesNo: &worldv1.YesNo{No: no}}}
+}
+
+// trainerBattle starts a battle with a trainer of internal/battle's table.
+func trainerBattle(trainer string) *worldv1.ScriptStep {
+	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_TrainerBattle{TrainerBattle: &worldv1.TrainerBattle{Trainer: trainer}}}
+}
+
+// npcScripts are the scripts of NPC objects, by map and name (lib-maps objects' `script`).
+var npcScripts = map[string]Script{
+	// Test content (plans/battles/README.md): removed in Phase 5. Asks, heals both teams
+	// (the trainer table's Heals) and battles; after a win, the post-battle text.
+	"pallet_town_players_house_2f.test_trainer": {
+		message("test_trainer.question"), yesNo(),
+		message("test_trainer.intro"), trainerBattle("test_trainer"),
+		message("test_trainer.post_battle"),
+	},
+}
+
 // signScripts are the scripts of sign objects, by map and name (lib-maps objects' `script`).
 var signScripts = map[string]Script{
 	"pallet_town_players_house_2f.nes":  {message("pallet_town_players_house_2f.played_with_nes")},
@@ -70,20 +91,26 @@ var tileScripts = map[mapv1.TileBehavior]tileScript{
 	mapv1.TileBehavior_TILE_BEHAVIOR_POKEMON_CENTER_SIGN:   {text: "flavor.pokecenter_sign", north: true, sign: true},
 }
 
-// Interaction is what the player at p facing d checks with A, in FireRed's order: a sign on the
-// faced tile, then the faced tile's behavior (NPCs come first once they exist). walkInto is
-// walking up to a signpost, which only reads signs on signpost tiles. Nil when nothing answers.
-func Interaction(m *Map, p Point, d mapv1.Direction, walkInto bool) Script {
+// Interaction is what the player at p facing d checks with A, in FireRed's order: an NPC on
+// the faced tile (it turns to the player: the NPC's ID is returned), a sign there, then the
+// faced tile's behavior. walkInto is walking up to a signpost, which only reads signs on
+// signpost tiles. Nil when nothing answers.
+func Interaction(m *Map, p Point, d mapv1.Direction, walkInto bool) (Script, string) {
 	at := p.Step(d)
+	if o := m.NpcAt(at); o != nil && !walkInto {
+		if script := npcScripts[m.ID+"."+o.GetNpc().GetScript()]; len(script) > 0 {
+			return script, o.Id
+		}
+	}
 	behavior := m.Behavior(at)
 	signpost := behavior == mapv1.TileBehavior_TILE_BEHAVIOR_SIGNPOST
 	if walkInto && (!signpost || (d != mapv1.Direction_DIRECTION_NORTH && d != mapv1.Direction_DIRECTION_SOUTH)) {
-		return nil
+		return nil, ""
 	}
 	if s := m.SignAt(at); s != nil && (s.Facing == mapv1.Direction_DIRECTION_UNSPECIFIED || s.Facing == d) {
 		script := signScripts[m.ID+"."+s.Script]
 		if !signpost {
-			return script
+			return script, ""
 		}
 		// Read from a signpost: every message shows in the signpost frame (MsgSetSignpost).
 		out := make(Script, len(script))
@@ -93,13 +120,13 @@ func Interaction(m *Map, p Point, d mapv1.Direction, walkInto bool) Script {
 			}
 			out[i] = step
 		}
-		return out
+		return out, ""
 	}
 	if walkInto {
-		return nil
+		return nil, ""
 	}
 	if t, ok := tileScripts[behavior]; ok && (!t.north || d == mapv1.Direction_DIRECTION_NORTH) {
-		return Script{{Action: &worldv1.ScriptStep_Message{Message: &worldv1.Message{Text: t.text, Sign: t.sign}}}}
+		return Script{{Action: &worldv1.ScriptStep_Message{Message: &worldv1.Message{Text: t.text, Sign: t.sign}}}}, ""
 	}
-	return nil
+	return nil, ""
 }

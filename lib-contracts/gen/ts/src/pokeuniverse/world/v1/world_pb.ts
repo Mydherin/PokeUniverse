@@ -26,7 +26,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/world/v1/world.proto.
  */
 export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcifwoGQXZhdGFyEgkKAXgYASABKA0SCQoBeRgCIAEoDRIuCgZmYWNpbmcYAyABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIvCgZnZW5kZXIYBCABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXIiYAoKQ29ycmVjdGlvbhIMCgRzdGVwGAEgASgNEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbiJGCgZTY3JpcHQSCgoCaWQYASABKA0SMAoFc3RlcHMYAiADKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0U3RlcCLIAQoKU2NyaXB0U3RlcBIxCgdtZXNzYWdlGAEgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1lc3NhZ2VIABIPCgVzb3VuZBgCIAEoCUgAEjQKCXBjX3NjcmVlbhgDIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5QY1NjcmVlbkgAEjYKCnBsYXllcnNfcGMYBCABKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyc1BjSABCCAoGYWN0aW9uIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcifwoGQXZhdGFyEgkKAXgYASABKA0SCQoBeRgCIAEoDRIuCgZmYWNpbmcYAyABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIvCgZnZW5kZXIYBCABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXIiYAoKQ29ycmVjdGlvbhIMCgRzdGVwGAEgASgNEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbiJTCgZTY3JpcHQSCgoCaWQYASABKA0SMAoFc3RlcHMYAiADKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0U3RlcBILCgNucGMYAyABKAkiuAIKClNjcmlwdFN0ZXASMQoHbWVzc2FnZRgBIAEoCzIeLnBva2V1bml2ZXJzZS53b3JsZC52MS5NZXNzYWdlSAASDwoFc291bmQYAiABKAlIABI0CglwY19zY3JlZW4YAyABKAsyHy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGNTY3JlZW5IABI2CgpwbGF5ZXJzX3BjGAQgASgLMiAucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllcnNQY0gAEi4KBnllc19ubxgFIAEoCzIcLnBva2V1bml2ZXJzZS53b3JsZC52MS5ZZXNOb0gAEj4KDnRyYWluZXJfYmF0dGxlGAYgASgLMiQucG9rZXVuaXZlcnNlLndvcmxkLnYxLlRyYWluZXJCYXR0bGVIAEIICgZhY3Rpb24iNgoFWWVzTm8SLQoCbm8YASADKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0U3RlcCIgCg1UcmFpbmVyQmF0dGxlEg8KB3RyYWluZXIYASABKAkiHgoMU2NyaXB0QmF0dGxlEg4KBnNjcmlwdBgBIAEoDSI9CghQY1NjcmVlbhIlCgJwYxgBIAEoDjIZLnBva2V1bml2ZXJzZS53b3JsZC52MS5QYxIKCgJvbhgCIAEoCCI5CglQbGF5ZXJzUGMSLAoFaXRlbXMYASADKAsyHS5wb2tldW5pdmVyc2UuaXRlbS52MS5CYWdTbG90IiUKB01lc3NhZ2USDAoEdGV4dBgBIAEoCRIMCgRzaWduGAIgASgIIjAKDFNlc3Npb25UYWtlbhISCgphY2NvdW50X2lkGAEgASgEEgwKBGNvbm4YAiABKAkqKAoCUGMSEgoOUENfVU5TUEVDSUZJRUQQABIOCgpQQ19QTEFZRVJTEAFCQVo/cG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS93b3JsZC92MTt3b3JsZHYxYgZwcm90bzM", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
@@ -312,6 +312,13 @@ export type Script = Message$1<"pokeuniverse.world.v1.Script"> & {
    * @generated from field: repeated pokeuniverse.world.v1.ScriptStep steps = 2;
    */
   steps: ScriptStep[];
+
+  /**
+   * The NPC (ClientNpc.id) that answers: it turns to face the player (faceplayer).
+   *
+   * @generated from field: string npc = 3;
+   */
+  npc: string;
 };
 
 /**
@@ -360,6 +367,23 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
      */
     value: PlayersPc;
     case: "playersPc";
+  } | {
+    /**
+     * A YES/NO menu over the last message (YesNoBox). YES goes on with the next step.
+     *
+     * @generated from field: pokeuniverse.world.v1.YesNo yes_no = 5;
+     */
+    value: YesNo;
+    case: "yesNo";
+  } | {
+    /**
+     * A trainer battle: the client sends ScriptBattle and waits for BattleStarted. After a
+     * win the script goes on once BattleEnded is shown; a loss (whiteout) ends it there.
+     *
+     * @generated from field: pokeuniverse.world.v1.TrainerBattle trainer_battle = 6;
+     */
+    value: TrainerBattle;
+    case: "trainerBattle";
   } | { case: undefined; value?: undefined };
 };
 
@@ -369,6 +393,63 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
  */
 export const ScriptStepSchema: GenMessage<ScriptStep> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_world_v1_world, 9);
+
+/**
+ * @generated from message pokeuniverse.world.v1.YesNo
+ */
+export type YesNo = Message$1<"pokeuniverse.world.v1.YesNo"> & {
+  /**
+   * What NO shows; the script ends after them.
+   *
+   * @generated from field: repeated pokeuniverse.world.v1.ScriptStep no = 1;
+   */
+  no: ScriptStep[];
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.YesNo.
+ * Use `create(YesNoSchema)` to create a new message.
+ */
+export const YesNoSchema: GenMessage<YesNo> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 10);
+
+/**
+ * @generated from message pokeuniverse.world.v1.TrainerBattle
+ */
+export type TrainerBattle = Message$1<"pokeuniverse.world.v1.TrainerBattle"> & {
+  /**
+   * A trainer of mic-core's trainer table.
+   *
+   * @generated from field: string trainer = 1;
+   */
+  trainer: string;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.TrainerBattle.
+ * Use `create(TrainerBattleSchema)` to create a new message.
+ */
+export const TrainerBattleSchema: GenMessage<TrainerBattle> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 11);
+
+/**
+ * The client reached the running script's TrainerBattle step: the battle starts.
+ *
+ * @generated from message pokeuniverse.world.v1.ScriptBattle
+ */
+export type ScriptBattle = Message$1<"pokeuniverse.world.v1.ScriptBattle"> & {
+  /**
+   * @generated from field: uint32 script = 1;
+   */
+  script: number;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.ScriptBattle.
+ * Use `create(ScriptBattleSchema)` to create a new message.
+ */
+export const ScriptBattleSchema: GenMessage<ScriptBattle> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 12);
 
 /**
  * AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
@@ -392,7 +473,7 @@ export type PcScreen = Message$1<"pokeuniverse.world.v1.PcScreen"> & {
  * Use `create(PcScreenSchema)` to create a new message.
  */
 export const PcScreenSchema: GenMessage<PcScreen> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 10);
+  messageDesc(file_pokeuniverse_world_v1_world, 13);
 
 /**
  * BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
@@ -414,7 +495,7 @@ export type PlayersPc = Message$1<"pokeuniverse.world.v1.PlayersPc"> & {
  * Use `create(PlayersPcSchema)` to create a new message.
  */
 export const PlayersPcSchema: GenMessage<PlayersPc> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 11);
+  messageDesc(file_pokeuniverse_world_v1_world, 14);
 
 /**
  * @generated from message pokeuniverse.world.v1.Message
@@ -440,7 +521,7 @@ export type Message = Message$1<"pokeuniverse.world.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 12);
+  messageDesc(file_pokeuniverse_world_v1_world, 15);
 
 /**
  * mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
@@ -465,7 +546,7 @@ export type SessionTaken = Message$1<"pokeuniverse.world.v1.SessionTaken"> & {
  * Use `create(SessionTakenSchema)` to create a new message.
  */
 export const SessionTakenSchema: GenMessage<SessionTaken> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 13);
+  messageDesc(file_pokeuniverse_world_v1_world, 16);
 
 /**
  * @generated from enum pokeuniverse.world.v1.Pc

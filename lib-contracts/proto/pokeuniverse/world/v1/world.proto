@@ -95,6 +95,8 @@ message Correction {
 message Script {
   uint32 id = 1;
   repeated ScriptStep steps = 2;
+  // The NPC (ClientNpc.id) that answers: it turns to face the player (faceplayer).
+  string npc = 3;
 }
 
 message ScriptStep {
@@ -107,7 +109,27 @@ message ScriptStep {
     PcScreen pc_screen = 3;
     // The player's PC menu; the script goes on once the player turns it off.
     PlayersPc players_pc = 4;
+    // A YES/NO menu over the last message (YesNoBox). YES goes on with the next step.
+    YesNo yes_no = 5;
+    // A trainer battle: the client sends ScriptBattle and waits for BattleStarted. After a
+    // win the script goes on once BattleEnded is shown; a loss (whiteout) ends it there.
+    TrainerBattle trainer_battle = 6;
   }
+}
+
+message YesNo {
+  // What NO shows; the script ends after them.
+  repeated ScriptStep no = 1;
+}
+
+message TrainerBattle {
+  // A trainer of mic-core's trainer table.
+  string trainer = 1;
+}
+
+// The client reached the running script's TrainerBattle step: the battle starts.
+message ScriptBattle {
+  uint32 script = 1;
 }
 
 // AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.

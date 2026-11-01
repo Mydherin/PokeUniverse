@@ -28,7 +28,7 @@ What FireRed screens use (`spa-pokeuniverse/src/game/`), so a screen can be writ
 - **`Assets`** (`firered/manifest.ts`): `get(graphicId)` → `{tiles, palette, map?, bytes?}`, `text(textId)`, `itemName`, `moveName`, `species(n)`, `pokemonArt(n)` / `loadedPokemonArt(n)`, load sets (`loadParty()`…). New graphics go in a set there and in the `Makefile`; new strings in `texts.json` (`make text`).
 - **Screens to copy the shape from:** `firered/party-menu.ts` (boxes, messages, YES/NO, fades), `firered/summary.ts` (page flips, sprite bars), `firered/bag.ts` (modes and hosts).
 
-## Where the Project Stands (2026-11-01, after M5)
+## Where the Project Stands (2026-11-01, after M6)
 
 What exists that battles build on. Trust it; open these only when a step needs their details.
 
@@ -36,15 +36,15 @@ What exists that battles build on. Trust it; open these only when a step needs t
 |---|---|---|
 | `mic-battles` (M4, M5) | `battles.{ping,start,turn,forfeit,view}`; Redis `battle:<id>` with a step check; Showdown wrapper, log → events per side, requests, views, outcome, Gen 4 exp/EVs; NPC AI (FireRed flags, switching, trainer items; wild random); `redis` 6.3.0 | `mic-battles/src/` ([M4](m04-battle-engine.md), [M5](m05-npc-ai.md)) |
 | Battle contracts (M4) | NATS (`battle.proto`), `BattleEvent` (`event.proto`), view/request/actions/client messages (`view.proto`) | `lib-contracts/proto/pokeuniverse/battle/v1/` |
-| `mic-core` ↔ battles | `internal/battles/battles.go`: `Ping`, `WaitReachable` | |
-| World | One zone goroutine per map, 50 ms tick, saved before shown (Redis `live`), scripts as Go tables (`internal/world/interact.go`), `Player.script` blocks movement until `ScriptDone` | `mic-core/internal/world/*.go` |
-| Realtime envelope | `ClientMessage` / `ServerMessage` oneofs (last field numbers: client 21 `battle_choice`, server 14 `battle_ended`); `WorldSnapshot.battle` (8) | `lib-contracts/proto/pokeuniverse/realtime/v1/realtime.proto` |
+| `mic-core` battles (M6) | `internal/battles` (NATS: `Start`, `Turn` retried until answered; `View`); `internal/battle` (trainer table + test trainer, `NewStart`, outcome rules, whiteout money, `player:<id>:battle`, `battle_outcomes`); `internal/world/battle.go` (zone: start, choices, outcome transaction, whiteout, resume) | [M6](m06-mic-core-battles.md) |
+| World | One zone goroutine per map, 50 ms tick, saved before shown (Redis `live`), scripts as Go tables (`internal/world/interact.go`: `npcScripts`, `signScripts`), `Player.busy()` (a script or a battle) blocks movement and actions | `mic-core/internal/world/*.go` |
+| Realtime envelope | `ClientMessage` / `ServerMessage` oneofs (last field numbers: client 22 `script_battle`, server 14 `battle_ended`); `WorldSnapshot.battle` (8); `BattleView.trainer` (6, filled in by mic-core) | `lib-contracts/proto/pokeuniverse/realtime/v1/realtime.proto` |
 | Species | `species/v1/catalog.proto`: 493 species, `SpeciesInfo{type1, type2, height, weight}` as enum value options; `Type` = FireRed's `TYPE_*` + 1 | |
 | Items | `item/v1/catalog.proto`: FireRed's 307 items with `ItemInfo` rules; bag, PC, use/give/toss in `mic-core/internal/item` | |
 | Pokédex | Seen/caught bitsets per trainer; `internal/pokedex`; the client screen exists | |
 | Trainer | `trainers` table: options include `battle_scene` and `battle_style` (saved, not used yet), money, trainer ID | `mic-core/internal/trainer` |
 | Party (M2, M3) | `trainer_pokemon` table; `internal/pokemon` (Gen 4 stats, growth rates, personality, default moves, `Party`, store, test team); `party/v1` contracts; `Party` in the snapshot; SWITCH and held items saved with the bag in one transaction (`world/save.go`) | `mic-core/internal/{pokemon,world}`, `spa-pokeuniverse/src/game/world/party.ts` |
-| Maps | `MapObject.npc` (sprite, movement, script, flag, trainer_type, trainer_sight) exists in `map/v1/map.proto` and the text format, but **no NPC is compiled, drawn or blocks movement yet** | `lib-maps/maps/pallet_town_players_house_2f.yaml` (12×9 room, player starts at 6,6) |
+| Maps | NPCs: `ServerMap.objects`, `ClientMap.npcs` (`ClientNpc`: id, cell, sprite, facing from `face_*`); they block steps (both `rules`), A talks to them before signs, they face the player; client art in `firered/npc-sprite.ts` (`SPRITES`: only `cooltrainer_m`) | `lib-maps/maps/pallet_town_players_house_2f.yaml` (12×9 room, player starts at 6,6; test trainer at 9,4) |
 | Client engine | `gba/`: 240×160 compositor, tile and affine backgrounds, affine sprites, 512-color palette, windows, blending, per-scanline brightness, fades, tasks, text printer, sound players | `spa-pokeuniverse/src/game/gba/` |
 | Client screens | FireRed screens as frame-driven state machines (`firered/`), START menu (`start-menu.ts`: POKéMON gated by `hasPokemon`), BAG (with `BagLocation.Party` to pick an item to give), OPTION, Trainer Card, Pokédex, party menu (`party-menu.ts`: field and give modes; battle mode in M7) and summary (`summary.ts`) | `spa-pokeuniverse/src/game/firered/` |
 | Assets | `make graphics` copies listed FireRed folders/files (`FIRERED_GFX`, `FIRERED_GFX_FILES` in `Makefile`) and the expansion's (`EXPANSION_GFX_FILES`: category icons); `make pokemon` builds per-species front/back/shiny/footprint/icon + `species.json` (with `noFlip`) + `cries.json`; `make text` encodes `texts.json`; `make audio` renders `sounds.json` + all cries | `Makefile`, `infra/` |
@@ -72,11 +72,12 @@ What exists that battles build on. Trust it; open these only when a step needs t
 | D16 | **The party's contracts are their own package, `pokeuniverse.party.v1`**; `pokemon/v1` keeps what needs no catalog (`Gender`, `Status`, stats, natures). The client's `Pokemon` never carries IVs, EVs or friendship. Held-item rules live in `internal/item` (`Hold`, `TakeHeld`) and answer with `ItemResult`. Details: [M2](m02-party.md). | `party.v1` uses the catalogs and `species/v1` imports `pokemon/v1`: buf forbids the cycle. `item` never depends on `pokemon`. |
 | D17 | **The AI's move effects come from Showdown's move data** (`ai/effects.ts`: boosts, status, side conditions, healing… plus a table by ID), named as FireRed's `EFFECT_*`, not converted from the decompilations. | Gen 4 moves get an effect for free; no new converted file. |
 | D18 | **AI fidelity:** FireRed's scripts and switching, with the bugs its scripts mark fixed (Facade, Psych Up, the swapped weather checks…), Emerald's Safeguard checks, and Gen 4 knowledge (abilities, the physical/special split for "physical attacker", hazards, Trick Room, Tailwind, U-turn, Taunt). FireRed's switch-in choice keeps the type the foe's types hit **hardest** (a bug); ours keeps the one they hit least. | "Original" behavior without its known mistakes. |
+| D19 | **Trainer battles start from scripts:** `YesNo{no}` branches on the client (the answer is the player's own choice), `TrainerBattle{trainer}` makes the client send `ScriptBattle{script}`; the zone only accepts it while that script runs, once. After a win the script goes on; a loss or a failed start ends it. `BattleView.trainer` (class, name, pic, defeat text) comes from mic-core's table. | No server round trip per answer; the server still decides what starts. Phase 5's interpreter replaces the tables. |
+| D20 | **Outcome rules (Gen 4):** HP, PP and status stay; Toxic becomes poison; a used-up held item (berries, herbs) is gone, any other change (Knock Off, Thief, Trick) is undone; exp and EVs (255/510 caps) applied, HP rises with max HP. Won: 4 × last level × class rate. Lost or tie: whiteout (highest level × 4 × badge multiplier, ×2 with no badges), party healed, back to `world.Start`. | FireRed/Gen 4 behavior. |
 
 ### Open Questions (ask the user when the milestone comes)
 
 - D9 conversion of animation scripts as data (before M8).
-- Should the test NPC heal both teams before each battle? Proposed: **yes**, it asks "Want to battle?" (YES/NO), heals everyone, and the battle starts. Losing whites out as FireRed does: "<PLAYER> is out of usable POKéMON!", money lost, back to the room with a healed team (Mom's spot comes in Phase 5).
 - Battle style SHIFT: Showdown has no "Will you switch?" prompt after a foe faints. Proposed: emulate it in `mic-battles` (M13); until then the game behaves like SET.
 
 ## Architecture

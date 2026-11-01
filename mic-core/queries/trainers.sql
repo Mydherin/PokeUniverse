@@ -64,3 +64,9 @@ SELECT account_id
 FROM trainers
 WHERE account_id = $1 AND created_at = $2
 FOR UPDATE;
+
+-- name: UpdateTrainerMoney :execrows
+-- Money after a battle; only into the save it belongs to.
+UPDATE trainers
+SET money = $2
+WHERE account_id = $1 AND created_at = $3;

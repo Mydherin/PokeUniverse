@@ -140,6 +140,9 @@ const NEW_GAME_GRAPHICS = {
   owPlayerPal: { pal: "object_events/palettes/player.pal" },
   // Overworld: the player's running frames (named surf_run in the game) and the signpost frame
   owRedRun: { png: "object_events/pics/people/red_surf_run.png" },
+  // Overworld NPCs (npc-sprite.ts): their frames and palettes
+  owCooltrainerM: { png: "object_events/pics/people/cooltrainer_m.png" },
+  owNpcBluePal: { pal: "object_events/palettes/npc_blue.pal" },
   owGreenRun: { png: "object_events/pics/people/green_surf_run.png" },
   signpostFrame: { png: "text_window/signpost.png" },
   textWindowPal1: { pal: "text_window/stdpal_1.pal" },
@@ -339,6 +342,11 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "pallet_town_players_house_2f.played_with_nes": "PalletTown_PlayersHouse_2F_Text_PlayedWithNES",
   "pallet_town_players_house_2f.press_lr_for_help": "PalletTown_PlayersHouse_2F_Text_PressLRForHelp",
   "common.player_booted_up_pc": "Text_PlayerBootedUpPC",
+  // Test content (plans/battles/README.md): the room's test trainer, removed in Phase 5.
+  "test_trainer.question": "Route13_Text_SheilaIntro",
+  "test_trainer.intro": "VictoryRoad_1F_Text_RolandoIntro",
+  "test_trainer.defeat": "VictoryRoad_1F_Text_RolandoDefeat",
+  "test_trainer.post_battle": "VictoryRoad_1F_Text_RolandoPostBattle",
   "flavor.bookshelf": "Text_Bookshelf",
   "flavor.pokemart_shelf": "Text_PokeMartShelf",
   "flavor.food": "Text_Food",

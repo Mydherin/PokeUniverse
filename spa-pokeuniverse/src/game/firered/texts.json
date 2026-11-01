@@ -70,5 +70,7 @@
   "gText_PokeSum_NoData", "gText_PokeSum_ExpPoints", "gText_PokeSum_NextLv", "gText_PokeSum_Controls_PageCancel",
   "gText_PokeSum_Controls_Page", "gText_PokeSum_Controls_PageDetail", "gText_PokeSum_Controls_PickSwitch",
   "gText_PokeSum_FatefulEncounterMet", "gText_PokeSum_Met", "gText_PokeSum_ApparentlyMet", "gText_PokeSum_MetInATrade",
-  "gText_Somewhere", "gText_PokeSum_ATrade", "gText_PokeSum_DexNoUnknown"
+  "gText_Somewhere", "gText_PokeSum_ATrade", "gText_PokeSum_DexNoUnknown",
+  "Route13_Text_SheilaIntro", "VictoryRoad_1F_Text_RolandoIntro", "VictoryRoad_1F_Text_RolandoDefeat",
+  "VictoryRoad_1F_Text_RolandoPostBattle"
 ]

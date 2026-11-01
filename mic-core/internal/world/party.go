@@ -54,7 +54,7 @@ func (z *zone) partyChange(p *Player, change func(pokemon.Party) bool) {
 		return
 	}
 	before := p.party.Clone()
-	if p.script != 0 || !change(p.party) || !z.saveTrainer(p, item.Changed{}, true) {
+	if p.busy() || !change(p.party) || !z.saveTrainer(p, item.Changed{}, true) {
 		p.party = before
 		z.sendParty(p)
 	}
