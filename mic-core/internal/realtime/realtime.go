@@ -277,6 +277,9 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_TakePartyItem:
 		c.player.TakePartyItem(p.TakePartyItem)
 		return true
+	case *realtimev1.ClientMessage_SwapPokemonMoves:
+		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
+		return true
 	}
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 	return false

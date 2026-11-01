@@ -71,6 +71,12 @@ export class Sound {
     p.source.onended = () => this.others.get(player) === p && this.others.delete(player);
   }
 
+  /** Stops what a player plays (StopCryAndClearCrySongs is stop("cry")). */
+  stop(player: string): void {
+    this.others.get(player)?.source.stop();
+    this.others.delete(player);
+  }
+
   /** True while a sound plays on that player (IsCryFinished is !isPlaying("cry")). */
   isPlaying(player: string): boolean {
     return this.others.has(player);

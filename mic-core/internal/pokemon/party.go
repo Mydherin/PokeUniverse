@@ -36,6 +36,17 @@ func (pt Party) Swap(a, b int) bool {
 	return true
 }
 
+// SwapMoves is SWITCH on the summary's move page: two of a Pokémon's moves trade places, each
+// with its PP and PP UPs. False when either move or the Pokémon is missing, or they're the same.
+func (pt Party) SwapMoves(slot, a, b int) bool {
+	p := pt.At(slot)
+	if p == nil || a == b || a < 0 || b < 0 || a >= len(p.Moves) || b >= len(p.Moves) {
+		return false
+	}
+	p.Moves[a], p.Moves[b] = p.Moves[b], p.Moves[a]
+	return true
+}
+
 // Proto is the party as its trainer sees it.
 func (pt Party) Proto() *partyv1.Party {
 	out := &partyv1.Party{Pokemon: make([]*partyv1.Pokemon, len(pt))}

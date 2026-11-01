@@ -73,6 +73,8 @@ export interface WorldLink {
   givePartyItem(item: Item, slot: number, pc: boolean): void;
   /** A party Pokémon's held item into the bag; answered with an ItemResult. */
   takePartyItem(slot: number): void;
+  /** SWITCH on the summary's move page (slots and moves from 0); shown at once, corrected like swapPartySlots. */
+  swapPokemonMoves(slot: number, from: number, to: number): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -214,6 +216,10 @@ export class Connection implements WorldLink {
 
   takePartyItem(slot: number): void {
     if (this.inWorld) this.send({ case: "takePartyItem", value: { slot } });
+  }
+
+  swapPokemonMoves(slot: number, from: number, to: number): void {
+    if (this.inWorld) this.send({ case: "swapPokemonMoves", value: { slot, from, to } });
   }
 
   private receive(data: Uint8Array): void {

@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/party/v1/party.proto.
  */
 export const file_pokeuniverse_party_v1_party: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iOwoMUGFydHlDaGFuZ2VkEisKBXBhcnR5GAEgASgLMhwucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlBhcnR5QkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcGFydHkvdjE7cGFydHl2MWIGcHJvdG8z", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iOwoMUGFydHlDaGFuZ2VkEisKBXBhcnR5GAEgASgLMhwucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlBhcnR5QkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcGFydHkvdjE7cGFydHl2MWIGcHJvdG8z", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * One of the trainer's Pokémon, as its trainer sees it (the summary). IVs, EVs and friendship
@@ -253,6 +253,36 @@ export const SwapPartySlotsSchema: GenMessage<SwapPartySlots> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_party_v1_party, 3);
 
 /**
+ * Client -> server: SWITCH two moves of a party Pokémon (the summary's move page; slots and
+ * moves from 0), each keeping its PP and PP UPs. Shown at once like SwapPartySlots.
+ *
+ * @generated from message pokeuniverse.party.v1.SwapPokemonMoves
+ */
+export type SwapPokemonMoves = Message<"pokeuniverse.party.v1.SwapPokemonMoves"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+
+  /**
+   * @generated from field: uint32 from = 2;
+   */
+  from: number;
+
+  /**
+   * @generated from field: uint32 to = 3;
+   */
+  to: number;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.SwapPokemonMoves.
+ * Use `create(SwapPokemonMovesSchema)` to create a new message.
+ */
+export const SwapPokemonMovesSchema: GenMessage<SwapPokemonMoves> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 4);
+
+/**
  * Client -> server: a party Pokémon is given an item to hold, from the bag or the PC (after
  * YES when it already holds one: they're switched, the held one back into the bag). Answered with
  * PartyChanged, BagChanged and PcChanged (what changed), then an ItemResult: GIVEN, SWAPPED,
@@ -284,7 +314,7 @@ export type GivePartyItem = Message<"pokeuniverse.party.v1.GivePartyItem"> & {
  * Use `create(GivePartyItemSchema)` to create a new message.
  */
 export const GivePartyItemSchema: GenMessage<GivePartyItem> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 4);
+  messageDesc(file_pokeuniverse_party_v1_party, 5);
 
 /**
  * Client -> server: TAKE a party Pokémon's held item into the bag. Answered like GivePartyItem:
@@ -304,11 +334,11 @@ export type TakePartyItem = Message<"pokeuniverse.party.v1.TakePartyItem"> & {
  * Use `create(TakePartyItemSchema)` to create a new message.
  */
 export const TakePartyItemSchema: GenMessage<TakePartyItem> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 5);
+  messageDesc(file_pokeuniverse_party_v1_party, 6);
 
 /**
  * Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
- * or alone to correct a refused SwapPartySlots.
+ * or alone to correct a refused SwapPartySlots or SwapPokemonMoves.
  *
  * @generated from message pokeuniverse.party.v1.PartyChanged
  */
@@ -324,5 +354,5 @@ export type PartyChanged = Message<"pokeuniverse.party.v1.PartyChanged"> & {
  * Use `create(PartyChangedSchema)` to create a new message.
  */
 export const PartyChangedSchema: GenMessage<PartyChanged> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 6);
+  messageDesc(file_pokeuniverse_party_v1_party, 7);
 

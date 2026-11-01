@@ -60,5 +60,15 @@
   "gText_NumericalModeNational", "gText_Owned", "gText_Page", "gText_PickFlipPageCheckCancel", "gText_PickOK",
   "gText_PickOKExit", "gText_PokedexNo", "gText_PokedexOther", "gText_PokedexPokemon", "gText_PokedexTableOfContents",
   "gText_PokemonHabitats", "gText_PokemonList", "gText_PokemonListNoColor", "gText_Search", "gText_SearchNoColor",
-  "gText_Seen", "gText_Size", "gText_SmallestMode", "gText_TypeMode", "gText_WT"
+  "gText_Seen", "gText_Size", "gText_SmallestMode", "gText_TypeMode", "gText_WT",
+  "gText_ChoosePokemon", "gText_ChoosePokemonCancel", "gText_MoveToWhere", "gText_GiveToWhichPokemon", "gText_DoWhatWithPokemon",
+  "gText_DoWhatWithItem", "gText_Summary5", "gText_Switch2", "gText_Item", "gText_Take", "gText_PkmnWasGivenItem",
+  "gText_ReceivedItemFromPkmn", "gText_PkmnAlreadyHoldingItemSwitch", "gText_SwitchedPkmnItem", "gText_PkmnNotHolding",
+  "gText_BagFullCouldNotRemoveItem", "gText_RemoveMailBeforeItem", "gText_Lv", "gText_Slash", "gText_MaleSymbol", "gText_FemaleSymbol",
+  "gText_PokeSum_Item_None", "gText_PokeSum_OneHyphen", "gText_PokeSum_TwoHyphens", "gText_PokeSum_PP",
+  "gText_PokeSum_PageName_PokemonInfo", "gText_PokeSum_PageName_PokemonSkills", "gText_PokeSum_PageName_KnownMoves",
+  "gText_PokeSum_NoData", "gText_PokeSum_ExpPoints", "gText_PokeSum_NextLv", "gText_PokeSum_Controls_PageCancel",
+  "gText_PokeSum_Controls_Page", "gText_PokeSum_Controls_PageDetail", "gText_PokeSum_Controls_PickSwitch",
+  "gText_PokeSum_FatefulEncounterMet", "gText_PokeSum_Met", "gText_PokeSum_ApparentlyMet", "gText_PokeSum_MetInATrade",
+  "gText_Somewhere", "gText_PokeSum_ATrade", "gText_PokeSum_DexNoUnknown"
 ]

@@ -2,10 +2,11 @@
 // graphic, sound and text IDs, this maps them to the files `make assets` puts in public/firered/.
 // A graphic's palette is its .pal file when it has one, otherwise the PNG's own palette.
 // The boot set (intro, title, menu) loads first; the New Game set loads in the background; the
-// Pokédex set (and every species' text) the first time the Pokédex opens; each species' art and cry
-// when it's first shown.
+// Pokédex set the first time the Pokédex opens, the party set (party menu and summary, with
+// ability and nature names) the first time POKéMON opens, both with every species' text; each
+// species' art and cry when it's first shown.
 
-import { fetchBin, fetchPal, fetchPng, toTiles, type IndexedImage } from "../gba/assets";
+import { fetchBin, fetchBytes, fetchPal, fetchPng, toTiles, type IndexedImage } from "../gba/assets";
 import type { SoundInfo } from "../gba/sound";
 import type { Charmap, Text } from "../gba/text";
 import type { TilesetArt } from "../world/view";
@@ -16,6 +17,8 @@ interface GraphicFiles {
   png?: string;
   pal?: string;
   bin?: string;
+  /** A table of bytes (INCBIN_U8), e.g. tile numbers. */
+  bytes?: string;
   /** An 8-bit PNG built as 4bpp tiles (pixel % 16), as gbagfx does. */
   bpp4?: boolean;
   /** Frames of `[width, height]` tiles, each frame's tiles in a row (gbagfx -mwidth -mheight). */
@@ -225,7 +228,72 @@ const POKEDEX_GRAPHICS = {
   selectorOutline: { png: "interface/selector_outline.png" },
 } satisfies Record<string, GraphicFiles>;
 
-export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS | keyof typeof POKEDEX_GRAPHICS;
+/**
+ * The party menu (party_menu.c) and the summary (pokemon_summary_screen.c): their backgrounds,
+ * slot layouts, icons and bars, every ball's icon, and the Gen 4 move category icons
+ * (pokeemerald-expansion's, plans/battles.md D10).
+ */
+const PARTY_GRAPHICS = {
+  partyBg: { png: "party_menu/bg.png", bin: "party_menu/bg.bin", bpp4: true },
+  // The slots' layouts: tile numbers in the background's tiles (sSlotTilemap_*)
+  partySlotMain: { bytes: "party_menu/slot_main.bin" },
+  partySlotWide: { bytes: "party_menu/slot_wide.bin" },
+  partySlotWideEmpty: { bytes: "party_menu/slot_wide_empty.bin" },
+  partyCancelButton: { bin: "party_menu/cancel_button.bin" },
+  partyHoldIcons: { png: "party_menu/hold_icons.png" },
+  partyPokeball: { png: "party_menu/pokeball.png" },
+  statusIcons: { png: "interface/status_icons.png" },
+  // Summary: the pages' tilemaps over one set of tiles and colors
+  summaryBg: { png: "summary_screen/bg.png", bpp4: true },
+  summaryPageInfo: { bin: "summary_screen/page_info.bin" },
+  summaryPageSkills: { bin: "summary_screen/page_skills.bin" },
+  summaryPageMoves: { bin: "summary_screen/page_moves.bin" },
+  summaryPageMovesInfo: { bin: "summary_screen/page_moves_info.bin" },
+  summaryMovesPage: { bin: "summary_screen/moves_page.bin" },
+  summaryMovesInfoPage: { bin: "summary_screen/moves_info_page.bin" },
+  summaryTextHeaderPal: { pal: "summary_screen/text_header.pal" },
+  summaryTextMovesPal: { pal: "summary_screen/text_moves.pal" },
+  summaryHpBar: { png: "summary_screen/hp_bar.png" },
+  summaryExpBar: { png: "summary_screen/exp_bar.png" },
+  summaryHpBarYellowPal: { pal: "summary_screen/hp_bar_yellow.pal" },
+  summaryHpBarRedPal: { pal: "summary_screen/hp_bar_red.pal" },
+  summaryStatusIcons: { png: "summary_screen/status_ailment_icons.png" },
+  summaryShinyStar: { png: "summary_screen/shiny_star.png" },
+  summaryCursorLeft: { png: "summary_screen/move_selection_cursor_left.png" },
+  summaryCursorRight: { png: "summary_screen/move_selection_cursor_right.png" },
+  summaryCursorPal: { pal: "summary_screen/move_selection_cursor.pal" },
+  ballMaster: { png: "interface/ball/master.png" },
+  ballUltra: { png: "interface/ball/ultra.png" },
+  ballGreat: { png: "interface/ball/great.png" },
+  ballPoke: { png: "interface/ball/poke.png" },
+  ballSafari: { png: "interface/ball/safari.png" },
+  ballNet: { png: "interface/ball/net.png" },
+  ballDive: { png: "interface/ball/dive.png" },
+  ballNest: { png: "interface/ball/nest.png" },
+  ballRepeat: { png: "interface/ball/repeat.png" },
+  ballTimer: { png: "interface/ball/timer.png" },
+  ballLuxury: { png: "interface/ball/luxury.png" },
+  ballPremier: { png: "interface/ball/premier.png" },
+  categoryIcons: { png: "expansion/interface/category_icons.png" },
+} satisfies Record<string, GraphicFiles>;
+
+/** Each ball's icon, by its item ID (ITEM_MASTER_BALL 1 to ITEM_PREMIER_BALL 12). */
+export const BALL_ICONS = [
+  "ballMaster",
+  "ballUltra",
+  "ballGreat",
+  "ballPoke",
+  "ballSafari",
+  "ballNet",
+  "ballDive",
+  "ballNest",
+  "ballRepeat",
+  "ballTimer",
+  "ballLuxury",
+  "ballPremier",
+] as const satisfies readonly (keyof typeof PARTY_GRAPHICS)[];
+
+export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS | keyof typeof POKEDEX_GRAPHICS | keyof typeof PARTY_GRAPHICS;
 
 /** The window frames, TYPE1 to TYPE10. */
 export const FRAME_TYPES = 10;
@@ -300,6 +368,7 @@ export interface Graphic {
   tiles: Uint8Array;
   palette: Uint16Array;
   map: Uint16Array | null;
+  bytes: Uint8Array | null;
 }
 
 /** Glyph widths per font sheet, read from the game's source (`make graphics`). */
@@ -313,10 +382,11 @@ export interface FontWidths {
 async function loadGraphics(files: Record<string, GraphicFiles>): Promise<[GraphicId, Graphic][]> {
   return Promise.all(
     Object.entries(files).map(async ([id, f]) => {
-      const [image, pal, map] = await Promise.all([
+      const [image, pal, map, bytes] = await Promise.all([
         f.png ? fetchPng(`${ROOT}/graphics/${f.png}`) : null,
         f.pal ? fetchPal(`${ROOT}/graphics/${f.pal}`) : null,
         f.bin ? fetchBin(`${ROOT}/graphics/${f.bin}`) : null,
+        f.bytes ? fetchBytes(`${ROOT}/graphics/${f.bytes}`) : null,
       ]);
       if (image && f.bpp4) for (let i = 0; i < image.pixels.length; i++) image.pixels[i] &= 15;
       const graphic: Graphic = {
@@ -324,6 +394,7 @@ async function loadGraphics(files: Record<string, GraphicFiles>): Promise<[Graph
         tiles: image ? toTiles(image, f.meta) : new Uint8Array(0),
         palette: pal ?? image?.palette ?? new Uint16Array(16),
         map,
+        bytes,
       };
       return [id as GraphicId, graphic] as [GraphicId, Graphic];
     }),
@@ -347,20 +418,25 @@ export type ItemIcon = Pick<Graphic, "image" | "palette">;
 
 /**
  * A species as the FireRed art style shows it (`make pokemon`, by national number): name,
- * category and description encoded, and the area page's size comparison (pokemonScale,
- * pokemonOffset, trainerScale, trainerOffset).
+ * category and description encoded, the area page's size comparison (pokemonScale,
+ * pokemonOffset, trainerScale, trainerOffset), and whether the summary shows its picture unmirrored.
  */
 export interface SpeciesText {
   name: number[];
   category: number[];
   description: number[];
   scale: [number, number, number, number];
+  noFlip?: boolean;
 }
 
-/** A species' pictures: the front pic (64×64, or two frames stacked), its icon (two 32×32 frames) and footprint (16×16). */
+/**
+ * A species' pictures: the front pic (64×64, or two frames stacked) with its normal and shiny
+ * colors, its icon (two 32×32 frames) and footprint (16×16).
+ */
 export interface PokemonArt {
   front: IndexedImage;
   frontPalette: Uint16Array;
+  shinyPalette: Uint16Array;
   icon: IndexedImage;
   iconPalette: Uint16Array;
   footprint: IndexedImage;
@@ -383,7 +459,11 @@ export class Assets {
   private itemIconFiles: Record<string, [string, string]> = {};
   private readonly itemIcons = new Map<number, Promise<ItemIcon>>();
   private pokedex: Promise<void> | null = null;
+  private party: Promise<void> | null = null;
+  private speciesSet: Promise<void> | null = null;
   private speciesTexts: Record<string, SpeciesText> = {};
+  private abilityTexts: Record<string, NamedText> = {};
+  private natureNames: Record<string, number[]> = {};
   private readonly pokemonArts = new Map<number, Promise<PokemonArt>>();
   private readonly loadedArts = new Map<number, PokemonArt>();
   fontWidths!: FontWidths;
@@ -430,15 +510,54 @@ export class Assets {
 
   /** The Pokédex set: its graphics and every species' text; loaded once. */
   loadPokedex(): Promise<void> {
-    this.pokedex ??= Promise.all([loadGraphics(POKEDEX_GRAPHICS), json<Record<string, SpeciesText>>("pokemon/species.json")]).then(([entries, texts]) => {
+    this.pokedex ??= Promise.all([loadGraphics(POKEDEX_GRAPHICS), this.loadSpecies()]).then(([entries]) => {
       for (const [id, g] of entries) this.graphics.set(id, g);
-      this.speciesTexts = texts;
     });
     this.pokedex.catch(() => (this.pokedex = null));
     return this.pokedex;
   }
 
-  /** A species' text (loadPokedex first); EOS strings for an unknown one. */
+  /** The party set: the party menu's and summary's graphics, every species' text, abilities and natures; loaded once. */
+  loadParty(): Promise<void> {
+    this.party ??= Promise.all([
+      loadGraphics(PARTY_GRAPHICS),
+      this.loadSpecies(),
+      json<Record<string, NamedText>>("text/abilities.json"),
+      json<Record<string, number[]>>("text/natures.json"),
+    ]).then(([entries, , abilities, natures]) => {
+      for (const [id, g] of entries) this.graphics.set(id, g);
+      this.abilityTexts = abilities;
+      this.natureNames = natures;
+    });
+    this.party.catch(() => (this.party = null));
+    return this.party;
+  }
+
+  /** Every species' text, shared by the Pokédex and party sets. */
+  private loadSpecies(): Promise<void> {
+    this.speciesSet ??= json<Record<string, SpeciesText>>("pokemon/species.json").then((texts) => {
+      this.speciesTexts = texts;
+    });
+    this.speciesSet.catch(() => (this.speciesSet = null));
+    return this.speciesSet;
+  }
+
+  /** The ability's name (catalog number, loadParty first), encoded; ends with EOS. */
+  abilityName(ability: number): Text {
+    return this.abilityTexts[ability]?.name ?? [0xff];
+  }
+
+  /** The ability's description, encoded; ends with EOS. */
+  abilityDescription(ability: number): Text {
+    return this.abilityTexts[ability]?.description ?? [0xff];
+  }
+
+  /** The nature's name (catalog number, loadParty first), encoded; ends with EOS. */
+  natureName(nature: number): Text {
+    return this.natureNames[nature] ?? [0xff];
+  }
+
+  /** A species' text (loadPokedex or loadParty first); EOS strings for an unknown one. */
   species(n: number): SpeciesText {
     return this.speciesTexts[n] ?? { name: [0xff], category: [0xff], description: [0xff], scale: [256, 0, 256, 0] };
   }
@@ -448,9 +567,16 @@ export class Assets {
     let art = this.pokemonArts.get(n);
     if (!art) {
       const dir = `${ROOT}/pokemon/${nnn(n)}`;
-      art = Promise.all([fetchPng(`${dir}/front.png`), fetchPal(`${dir}/front.pal`), fetchPng(`${dir}/icon.png`), fetchPal(`${dir}/icon.pal`), fetchPng(`${dir}/footprint.png`)]).then(
-        ([front, frontPalette, icon, iconPalette, footprint]) => {
-          const a = { front, frontPalette, icon, iconPalette, footprint };
+      art = Promise.all([
+        fetchPng(`${dir}/front.png`),
+        fetchPal(`${dir}/front.pal`),
+        fetchPal(`${dir}/shiny.pal`),
+        fetchPng(`${dir}/icon.png`),
+        fetchPal(`${dir}/icon.pal`),
+        fetchPng(`${dir}/footprint.png`),
+      ]).then(
+        ([front, frontPalette, shinyPalette, icon, iconPalette, footprint]) => {
+          const a = { front, frontPalette, shinyPalette, icon, iconPalette, footprint };
           this.loadedArts.set(n, a);
           return a;
         },

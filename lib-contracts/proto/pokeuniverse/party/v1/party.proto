@@ -74,6 +74,14 @@ message SwapPartySlots {
   uint32 to = 2;
 }
 
+// Client -> server: SWITCH two moves of a party Pokémon (the summary's move page; slots and
+// moves from 0), each keeping its PP and PP UPs. Shown at once like SwapPartySlots.
+message SwapPokemonMoves {
+  uint32 slot = 1;
+  uint32 from = 2;
+  uint32 to = 3;
+}
+
 // Client -> server: a party Pokémon is given an item to hold, from the bag or the PC (after
 // YES when it already holds one: they're switched, the held one back into the bag). Answered with
 // PartyChanged, BagChanged and PcChanged (what changed), then an ItemResult: GIVEN, SWAPPED,
@@ -92,7 +100,7 @@ message TakePartyItem {
 }
 
 // Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
-// or alone to correct a refused SwapPartySlots.
+// or alone to correct a refused SwapPartySlots or SwapPokemonMoves.
 message PartyChanged {
   Party party = 1;
 }

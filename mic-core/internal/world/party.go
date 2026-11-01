@@ -15,6 +15,15 @@ func (p *Player) SwapPartySlots(m *partyv1.SwapPartySlots) {
 	})
 }
 
+// SwapPokemonMoves is SWITCH on the summary's move page; the client already shows it.
+func (p *Player) SwapPokemonMoves(m *partyv1.SwapPokemonMoves) {
+	p.zone.do(func() {
+		p.zone.partyChange(p, func(party pokemon.Party) bool {
+			return party.SwapMoves(int(m.GetSlot()), int(m.GetFrom()), int(m.GetTo()))
+		})
+	})
+}
+
 // GivePartyItem gives a party Pokémon an item to hold, from the bag or (while the PC is on) the PC.
 func (p *Player) GivePartyItem(m *partyv1.GivePartyItem) {
 	p.zone.do(func() {

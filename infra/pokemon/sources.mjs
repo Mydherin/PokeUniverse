@@ -7,7 +7,7 @@
 // { nat, constant (NATIONAL_DEX_ suffix), name, category, description, types: [t1, t2], height, weight, scale: [pokemonScale,
 //   pokemonOffset, trainerScale, trainerOffset], front, palette, back, shinyPalette, footprint, icon, iconPalette,
 //   coords: { front: y offset, back: y offset, elevation } (where the battle draws its pictures),
-//   battle: { catchRate, expYield, evYield: [hp, atk, def, spe, spa, spd], growthRate (GROWTH_ name), genderRatio (0-255), friendship },
+//   noFlip (the summary shows its picture unmirrored), battle: { catchRate, expYield, evYield: [hp, atk, def, spe, spa, spd], growthRate (GROWTH_ name), genderRatio (0-255), friendship },
 //   cry: { firered: number } | { wav: path }, source: "firered" | "expansion" }.
 // Text is plain (FireRed's escapes such as \n kept); paths are relative to their reference.
 
@@ -123,6 +123,7 @@ function readFireRed(src) {
       back: formDir(path(backs, "back pic")),
       shinyPalette: formDir(path(shinyPalettes, "shiny palette")),
       coords: { front: frontY.get(key), back: backY.get(key), elevation: elevation.get(key) ?? 0 },
+      noFlip: /\.noFlip\s*=\s*TRUE/.test(si),
       battle: battleFacts(si),
       footprint: path(footprints, "footprint"),
       icon: path(icons, "icon"),
@@ -376,6 +377,7 @@ function readExpansion(root) {
         back: file("backPic", "back pic"),
         shinyPalette: file("shinyPalette", "shiny palette"),
         coords: { front: num("frontPicYOffset"), back: num("backPicYOffset"), elevation: numberField(block, "enemyMonElevation", 0) },
+        noFlip: /\.noFlip\s*=\s*TRUE/.test(block),
         battle: battleFacts(block),
         footprint: file("footprint", "footprint"),
         icon: file("iconSprite", "icon"),

@@ -14,6 +14,7 @@ import { decimalText, EOS, expandPlaceholders, FontId, joinText, NumberMode, PLA
 import { RGB_BLACK, type Background } from "../gba/video";
 import type { BagSlot } from "../world/items";
 import type { BagHost } from "./bag";
+import { startPartyMenu } from "./party-menu";
 import { iconTiles, initBg } from "./common";
 import type { Flow } from "./flow";
 import { itemMessage, ItemMessagePlayer } from "./item-messages";
@@ -30,8 +31,8 @@ const position: ListPosition = { scroll: 0, row: 0 };
  * Shows the BERRY POUCH, then `done` once it faded out. `fromField`: opened with SELECT on
  * the field, where SELECT also closes it (allowSelect).
  */
-export function startBerryPouch(flow: Flow, gender: Gender, host: BagHost, fromField: boolean, done: () => void): void {
-  new BerryPouch(flow, gender, host, fromField, done);
+export function startBerryPouch(flow: Flow, gender: Gender, host: BagHost, fromField: boolean, done: (picked?: Item) => void, pick = false): void {
+  new BerryPouch(flow, gender, host, fromField, done, pick);
 }
 
 /** BG0 (priority 1) and BG2 (priority 0) share the windows' tiles; BG1 (priority 2) is the screen. */
@@ -137,10 +138,12 @@ class BerryPouch {
   /** RunBerryPouchInit: every step runs in the first frame. */
   constructor(
     private readonly flow: Flow,
-    gender: Gender,
+    private readonly gender: Gender,
     private readonly host: BagHost,
     private readonly fromField: boolean,
-    private readonly done: () => void,
+    private readonly done: (picked?: Item) => void,
+    /** Opened from the party menu's GIVE: A chooses the item to give. */
+    private readonly pick: boolean,
   ) {
     const { gba, assets } = flow;
     gba.setVBlank(null);
@@ -316,7 +319,8 @@ class BerryPouch {
     this.setDescriptionBorder(true);
     this.printCursor(COLORS_GRAY);
     this.selected = { slot: this.slots[chosen], index: chosen };
-    this.openContextMenu();
+    if (this.pick) this.pickToGive();
+    else this.openContextMenu();
   }
 
   /** Task_CleanUpAndReturnToMain. */
@@ -379,12 +383,22 @@ class BerryPouch {
     this.ask(this.host.use(this.selected!.slot.item), (r) => this.onResult(r));
   }
 
-  /** Task_BerryPouch_Give: "There is no POKéMON.", or the party menu to come. */
+  /** Task_BerryPouch_Give: "There is no POKéMON.", or the party menu chooses who holds it (CB2_ChooseMonToGiveItem). */
   private giveAction(): void {
     this.hideContextMenu();
     this.list.putTilemap();
     this.description.putTilemap();
-    this.ask(this.host.give(this.selected!.slot.item), (r) => this.onResult(r));
+    const item = this.selected!.slot.item;
+    this.ask(this.host.give(item), (r) => {
+      if (r.outcome !== ItemOutcome.PARTY_MENU) return this.onResult(r);
+      const { flow, gender, host, fromField, done, pick } = this;
+      this.close(undefined, () => startPartyMenu(flow, host.party, { kind: "give", item, pc: false }, () => startBerryPouch(flow, gender, host, fromField, done, pick)));
+    });
+  }
+
+  /** Task_ContextMenu_FromPartyGiveMenu: back to the party menu with the berry. */
+  private pickToGive(): void {
+    this.close(this.selected!.slot.item);
   }
 
   /** Task_BerryPouch_Exit. */
@@ -405,8 +419,8 @@ class BerryPouch {
   }
 
   /**
-   * DisplayItemMessageInBerryPouch: the answer's message, then the list built again.
-   * PARTY_MENU: the party menu comes with the party (phase 8); until then, back to the list.
+   * DisplayItemMessageInBerryPouch: the answer's message, then the list built again. USE's
+   * PARTY_MENU (a berry used on a Pokémon) comes with items' effects on Pokémon; until then, back to the list.
    */
   private onResult(r: ItemResult): void {
     const msg = itemMessage(this.flow, r, this.host.playerName);
@@ -608,7 +622,7 @@ class BerryPouch {
   }
 
   /** BerryPouch_StartFadeToExitCallback. */
-  private close(): void {
+  private close(picked?: Item, next?: () => void): void {
     this.closeList();
     this.flow.gba.palettes.beginFade(PALETTES_ALL, -2, 0, 16, RGB_BLACK);
     this.step = () => {
@@ -617,7 +631,8 @@ class BerryPouch {
       this.destroyScrollArrows();
       this.destroyIcon();
       gba.tasks.reset();
-      this.done();
+      if (next) next();
+      else this.done(picked);
     };
   }
 }

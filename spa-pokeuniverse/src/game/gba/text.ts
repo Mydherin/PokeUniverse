@@ -64,6 +64,26 @@ export function expandPlaceholders(text: Text, vars: Partial<Record<number, Text
   return out;
 }
 
+const DYNAMIC = 0xf7;
+
+/** DynamicPlaceholderTextUtil_ExpandPlaceholders: each {DYNAMIC n} becomes vars[n]. */
+export function expandDynamic(text: Text, vars: readonly Text[]): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const b = text[i];
+    if (b === DYNAMIC) {
+      for (const v of vars[text[++i]] ?? []) {
+        if (v === EOS) break;
+        out.push(v);
+      }
+    } else {
+      out.push(b);
+      if (b === EOS) break;
+    }
+  }
+  return out;
+}
+
 /** Joins texts (StringCopy, StringAppend): each one's EOS dropped, one at the end. */
 export function joinText(...texts: Text[]): number[] {
   const out: number[] = [];

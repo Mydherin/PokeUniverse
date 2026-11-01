@@ -29,7 +29,7 @@ What exists that battles build on. You don't need to re-read these unless a mile
 | Battle contracts | Only `Ping` / `Pong` | `lib-contracts/proto/pokeuniverse/battle/v1/battle.proto` |
 | `mic-core` ↔ battles | `internal/battles/battles.go`: `Ping`, `WaitReachable` | |
 | World | One zone goroutine per map, 50 ms tick, saved before shown (Redis `live`), scripts as Go tables (`internal/world/interact.go`), `Player.script` blocks movement until `ScriptDone` | `mic-core/internal/world/*.go` |
-| Realtime envelope | `ClientMessage` / `ServerMessage` oneofs (last field numbers: client 16, server 10) | `lib-contracts/proto/pokeuniverse/realtime/v1/realtime.proto` |
+| Realtime envelope | `ClientMessage` / `ServerMessage` oneofs (last field numbers: client 20, server 11) | `lib-contracts/proto/pokeuniverse/realtime/v1/realtime.proto` |
 | Species | `species/v1/catalog.proto`: 493 species, `SpeciesInfo{type1, type2, height, weight}` as enum value options; `Type` = FireRed's `TYPE_*` + 1 | |
 | Items | `item/v1/catalog.proto`: FireRed's 307 items with `ItemInfo` rules; bag, PC, use/give/toss in `mic-core/internal/item` | |
 | Pokédex | Seen/caught bitsets per trainer; `internal/pokedex`; the client screen exists | |
@@ -37,8 +37,8 @@ What exists that battles build on. You don't need to re-read these unless a mile
 | Party (M2) | `trainer_pokemon` table; `internal/pokemon` (Gen 4 stats, growth rates, personality, default moves, `Party`, store, test team); `party/v1` contracts; `Party` in the snapshot; SWITCH and held items saved with the bag in one transaction (`world/save.go`) | `mic-core/internal/{pokemon,world}`, `spa-pokeuniverse/src/game/world/party.ts` |
 | Maps | `MapObject.npc` (sprite, movement, script, flag, trainer_type, trainer_sight) exists in `map/v1/map.proto` and the text format, but **no NPC is compiled, drawn or blocks movement yet** | `lib-maps/maps/pallet_town_players_house_2f.yaml` (12×9 room, player starts at 6,6) |
 | Client engine | `gba/`: 240×160 compositor, tile and affine backgrounds, affine sprites, 512-color palette, windows, blending, per-scanline brightness, fades, tasks, text printer, sound players | `spa-pokeuniverse/src/game/gba/` |
-| Client screens | FireRed screens as frame-driven state machines (`firered/`), START menu (`start-menu.ts`: POKéMON entry exists, gated by `hasPokemon`), BAG, OPTION, Trainer Card, Pokédex | `spa-pokeuniverse/src/game/firered/` |
-| Assets | `make graphics` copies listed FireRed folders/files (`FIRERED_GFX`, `FIRERED_GFX_FILES` in `Makefile`); `make pokemon` builds per-species front/footprint/icon + `species.json` + `cries.json`; `make text` encodes `texts.json`; `make audio` renders `sounds.json` + all cries | `Makefile`, `infra/` |
+| Client screens | FireRed screens as frame-driven state machines (`firered/`), START menu (`start-menu.ts`: POKéMON gated by `hasPokemon`), BAG (with `BagLocation.Party` to pick an item to give), OPTION, Trainer Card, Pokédex, party menu (`party-menu.ts`: field and give modes; battle mode in M7) and summary (`summary.ts`) | `spa-pokeuniverse/src/game/firered/` |
+| Assets | `make graphics` copies listed FireRed folders/files (`FIRERED_GFX`, `FIRERED_GFX_FILES` in `Makefile`) and the expansion's (`EXPANSION_GFX_FILES`: category icons); `make pokemon` builds per-species front/back/shiny/footprint/icon + `species.json` (with `noFlip`) + `cries.json`; `make text` encodes `texts.json`; `make audio` renders `sounds.json` + all cries | `Makefile`, `infra/` |
 | References | All three checked out (`pokemon-showdown` since M0; empty after a fresh clone? `git submodule update --init`) | `references/` |
 
 ---
@@ -157,14 +157,25 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 - [x] The START menu's POKéMON entry shows when the snapshot's party isn't empty (until story flags, Phase 5); choosing it does nothing until M3.
 - **Done when:** a reload shows the same team with the same stats; swapping and held items persist. Server and client build; not run in the game yet (swapping and GIVE/TAKE have no screen until M3).
 
-### M3 Party Screen and Summary ⬜
+### M3 Party Screen and Summary ✅
 
 **Read:** `firered/start-menu.ts`, `firered/bag.ts` (structure only), `firered/overworld.ts` (`runMenu`, `openScreen`), `references/pokefirered/src/party_menu.c`, `src/pokemon_summary_screen.c` (behavior only).
 
-- [ ] `make graphics`: `party_menu/`, `summary_screen/`, Pokémon icons (already from `make pokemon`), status icons, and the expansion's `category_icons.png`.
-- [ ] Party screen (`party-menu.ts`): six slots (main and wide layouts), animated icons, HP bars and colors, levels, gender, held-item marker, CANCEL. Menu: SUMMARY, SWITCH (the slide animation), ITEM (GIVE, TAKE), CANCEL. Field moves come later. FireRed's texts and sounds.
-- [ ] Summary (`summary.ts`): INFO (species, name, OT, ID, item, trainer memo with nature and met), SKILLS (stats, HP bar, exp bar, ability and its description), MOVES (PP, type; the move detail page with power, accuracy, description and the Gen 4 category icon, D10). UP/DOWN change Pokémon; LEFT/RIGHT change page; shiny star.
-- [ ] One party screen with modes: field (START), choose for an item (BAG GIVE), battle (M7).
+Done (2026-11-01, not run in the game):
+- [x] `make graphics`: `party_menu/`, `summary_screen/` (FIRERED_GFX), `interface/status_icons.png`, the 12 `interface/ball/*.png`; new `EXPANSION_GFX_FILES` copies the expansion's `interface/category_icons.png` to `graphics/expansion/` (`graphics` now needs the expansion).
+- [x] `make pokemon`: `noFlip: true` in `species.json` for species whose summary picture isn't mirrored (`infra/pokemon/sources.mjs` + `build.mjs`).
+- [x] `make text`: 42 party/summary strings added to `texts.json` (ChoosePokemon…, PokeSum_*, DexNoUnknown).
+- [x] Contracts: `party.v1.SwapPokemonMoves{slot, from, to}` (realtime client field 20) for the summary's move SWITCH; `mic-core`: `pokemon.Party.SwapMoves`, `world.Player.SwapPokemonMoves` (via `partyChange`), `realtime.go` case; `link.swapPokemonMoves`; `PartyState.swapMoves`. `go build`, `make contracts`, `make breaking` pass.
+- [x] Client shared: `manifest.ts` (PARTY_GRAPHICS set, `loadParty()` with species/abilities/natures text, species text shared with the Pokédex, `abilityName/Description`, `natureName`, `BALL_ICONS`, `bytes` graphics, `PokemonArt.shinyPalette`); `gba/text.ts` `expandDynamic` ({DYNAMIC n}); `gba/sound.ts` `stop(player)`; `gba/assets.ts` exports `fetchBytes`; `firered/hp-bar.ts` (GetHPBarLevel), `firered/menu-info.ts` (type icons; TM CASE and Pokédex pages now use it), `firered/mon-icon.ts` (icon frames by HP, UpdateMonIconFrame timing).
+- [x] `firered/party-menu.ts`: single layout, boxes (palettes per selection/faint/switch, HP bar, gender, level, held item/status/ball sprites, bouncing icon), cursor (incl. LEFT/RIGHT memory, L/R in LR mode), CANCEL, std messages; field mode: SUMMARY, SWITCH (slide out/in, sprites swapped, `host.swap`), ITEM → GIVE (bag in `BagLocation.Party`, back with item: give or "already holding… switch?" YES/NO) / TAKE / CANCEL; give mode (`{kind:"give", item, pc}`) from BAG, TM CASE, BERRY POUCH, PC WITHDRAW; FireRed messages for GIVEN/SWAPPED/TAKEN/NOT_HOLDING/BAG_FULL/REMOVE_MAIL. `PartyHost` (party, playerName, gender, nationalDex, bag, give, take, swap, swapMoves).
+- [x] `firered/summary.ts`: INFO, SKILLS, KNOWN MOVES and move details, page flips replicating FireRed's BG1/BG2 slide + priority swaps + HP/EXP bar sprites, WIN1 sprite clipping, picture bounce by HP (mirrored unless `noFlip`, shiny palette), ball, shiny star, status icon, trainer memo (nature, fateful encounter / met / apparently met; met map names use "Somewhere" until Phase 9), UP/DOWN other Pokémon with cry, move details: power, accuracy, description, cursors, SWITCH moves, Gen 4 category icon sprite at (104, 70) (D10).
+- [x] `bag.ts`: `BagLocation.Party` (pockets switch, A chooses; TM CASE/BERRY POUCH open in pick mode; important/key items "can't be held"); GIVE answered PARTY_MENU → party menu → bag again; `BagExit` adds `{chosen}`. `tm-case.ts`, `berry-pouch.ts`: `pick` mode and GIVE → party menu → reopen. `item-pc.ts`: GIVE fades out to the party menu (pc: true) and back at the same position (fade, no turn-on). `overworld.ts`: START POKéMON opens the party menu; `partyHost()`; bag/PC hosts carry `party`.
+- [x] `tsc --noEmit` passes; `vite build` passes (run in Docker: host `node_modules` are Linux's).
+
+- [x] Docs: `tech-stack.md`, `phase-4-players-room.md` (POKéMON ✅), `AGENTS.md`, this file's "Where the Project Stands".
+- [x] Review pass of `party-menu.ts` and `summary.ts`: behavior checked against the references; the HP/EXP bars can't loop on a 0 max; `shownGender` shared by both screens.
+- Not checked in the game (manual tests only when the user asks): the category icon's spot, the page-flip layering, the switch slide.
+- Out of M3 scope (kept as-is): USE of items on Pokémon (PARTY_MENU from USE still returns to the list), TM teaching, field moves, MAIL (READ/TAKE; mail is held like an item), eggs, Pokérus, markings, battle mode (M7).
 - **Done when:** POKéMON in the START menu works like FireRed for the test team, on desktop and mobile.
 
 ### M4 Battle Engine in `mic-battles` ⬜
@@ -298,3 +309,4 @@ Manual, only when the user asks: start a battle on desktop and mobile; play to w
 | 2026-11-01 | Plan | This plan; battles moved into Phase 4 | M0, then M1 | |
 | 2026-11-01 | M0 + M1 | Showdown reference; move, ability, nature, stats catalogs; species battle facts and learnsets; TM moves in the item catalog; `ids.ts`; move/ability/nature text; back pics, shiny palettes, battle coords | M2 (Pokémon in `mic-core`), M3 can follow | `@pkmn/sim` isn't in the host's `node_modules` (mic-battles installs it in Docker); TM CASE now shows Gen 4 move data; nothing committed |
 | 2026-11-01 | M2 | Party in `mic-core` (stats, growth, personality, store, test team), `party/v1` contracts, SWITCH and held items, snapshot party, POKéMON in the START menu | M3 (party screen and summary) | Party contracts moved to `party.v1` (D16); Lucario's Extreme Speed → Bullet Punch, the M6 Infernape's Flare Blitz → Fire Punch (both illegal at Lv 50); with the test team, USE of party items and GIVE now answer PARTY_MENU and the client goes back to the list until M3; nothing run in the game |
+| 2026-11-01 | M3 | Party menu, summary, bag/TM CASE/BERRY POUCH/PC GIVE → party menu, `SwapPokemonMoves`, assets (party/summary graphics, category icons, `noFlip`, texts) | M4 (battle engine in `mic-battles`) | Builds pass (tsc, vite in Docker, go, buf breaking); not run in the game (category icon spot, page-flip layering, switch slide unchecked) |

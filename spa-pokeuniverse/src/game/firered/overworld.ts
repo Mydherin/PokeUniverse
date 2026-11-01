@@ -3,7 +3,8 @@
 // and the player walks, predicted here and checked by the server step by step. The camera
 // keeps the player at FireRed's spot on screen. A checks what the player faces; the server
 // answers with a script (messages, sounds) during which the player can't move. START opens the
-// START menu; its screens (the BAG, the Trainer Card, OPTION) fade out of the world and back into it, menu open.
+// START menu; its screens (the POKéDEX, POKéMON's party menu, the BAG, the Trainer Card, OPTION) fade out of the
+// world and back into it, menu open.
 // SELECT uses the item registered to it (the TM CASE and BERRY POUCH open, faded in from the
 // world and back to it); an item used from the bag may work back on the field. The bedroom PC's
 // script flickers its screen on, shows its menus and opens WITHDRAW ITEM or the BAG's DEPOSIT
@@ -37,6 +38,7 @@ import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-message
 import { startItemPc, type ItemPcHost } from "./item-pc";
 import { beginPcScreenFlicker, PC_SCREEN_TILES, pcScreenOffset, PcChoice, PlayersPcMenu, StorageEntry } from "./players-pc";
 import { startOptionMenu } from "./option-menu";
+import { startPartyMenu, type PartyHost } from "./party-menu";
 import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
@@ -295,13 +297,45 @@ class Overworld {
         if (this.bag.move(pocket, from, to)) link.moveItem(pocket, from, to);
       },
       deposit: (item, quantity) => this.askItem(() => link.depositItem(item, quantity)),
+      get party() {
+        return self.partyHost();
+      },
+    };
+  }
+
+  /** The party menu's way to the trainer's Pokémon (and to the bag, for GIVE). */
+  private partyHost(): PartyHost {
+    const { link } = this.flow;
+    const self = this;
+    return {
+      get party() {
+        return self.party;
+      },
+      playerName: this.playerName,
+      gender: this.flow.trainer!.gender,
+      nationalDex: this.pokedex.national,
+      get bag() {
+        return self.bagHost();
+      },
+      give: (item, slot, pc) => this.askItem(() => link.givePartyItem(item, slot, pc)),
+      take: (slot) => this.askItem(() => link.takePartyItem(slot)),
+      swap: (a, b) => {
+        if (this.party.swap(a, b)) link.swapPartySlots(a, b);
+      },
+      swapMoves: (slot, a, b) => {
+        if (this.party.swapMoves(slot, a, b)) link.swapPokemonMoves(slot, a, b);
+      },
     };
   }
 
   /** WITHDRAW ITEM's way to what the PC stores. */
   private pcHost(pc: OpenPc): ItemPcHost {
     const { link } = this.flow;
+    const self = this;
     return {
+      get party() {
+        return self.partyHost();
+      },
       stored: pc.stored,
       withdraw: (item, quantity) => this.askItem(() => link.withdrawItem(item, quantity)),
       give: (item) => this.askItem(() => link.giveItem(item, true)),
@@ -443,7 +477,7 @@ class Overworld {
       this.openScreen((back) =>
         startBag(this.flow, this.flow.trainer!.gender, this.bagHost(), (exit: BagExit) => {
           back(exit === null);
-          if (exit) this.useOnField(exit.field);
+          if (exit && "field" in exit) this.useOnField(exit.field);
         }),
       );
     else if (chosen === StartMenuEntry.Pokedex)
@@ -454,9 +488,10 @@ class Overworld {
           () => back(),
         ),
       );
+    else if (chosen === StartMenuEntry.Pokemon) this.openScreen((back) => startPartyMenu(this.flow, this.partyHost(), { kind: "field" }, back));
     else if (chosen === StartMenuEntry.Player) this.openScreen((back) => startTrainerCard(this.flow, this.flow.trainer!, this.playerName, back));
     else if (chosen === StartMenuEntry.Option) this.openScreen((back) => startOptionMenu(this.flow, FIELD_BACKDROP, back));
-    // SAVE comes next (phase 4) and POKéMON's party screen with plans/battles.md M3; until then choosing them does nothing more.
+    // SAVE comes next (phase 4); until then choosing it does nothing more.
   }
 
   /**

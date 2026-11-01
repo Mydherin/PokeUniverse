@@ -33,6 +33,7 @@ message ClientMessage {
     pokeuniverse.party.v1.SwapPartySlots swap_party_slots = 17;
     pokeuniverse.party.v1.GivePartyItem give_party_item = 18;
     pokeuniverse.party.v1.TakePartyItem take_party_item = 19;
+    pokeuniverse.party.v1.SwapPokemonMoves swap_pokemon_moves = 20;
   }
 }
 

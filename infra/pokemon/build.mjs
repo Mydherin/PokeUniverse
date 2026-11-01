@@ -9,7 +9,8 @@
 //   <nnn>/footprint.png, <nnn>/icon.png + icon.pal.
 // - species.json: { "<n>": { name, category, description: FireRed-encoded bytes ending 0xFF,
 //   scale: [pokemonScale, pokemonOffset, trainerScale, trainerOffset],
-//   coords: [front y offset, back y offset, enemy elevation] (where the battle draws the pictures) } }.
+//   coords: [front y offset, back y offset, enemy elevation] (where the battle draws the pictures),
+//   noFlip: true when the summary shows the front picture unmirrored (else left out) } }.
 // - cries.json: what `make audio` renders for each cry: { "<nnn>": { cry: FireRed cry number } | { wav: repo path } }.
 //
 // The expansion's names and categories are uppercased and its descriptions reflowed as FireRed
@@ -59,6 +60,7 @@ for (const s of species.values()) {
     description: encoded(gen4 ? reflow(fireRed(s.description), label) : s.description, label),
     scale: s.scale,
     coords: [s.coords.front, s.coords.back, s.coords.elevation],
+    ...(s.noFlip && { noFlip: true }),
   };
   cries[pad(s.nat)] = "firered" in s.cry ? { cry: s.cry.firered } : { wav: relative(repo, join(expansion, s.cry.wav)) };
 }
