@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+// What a Pokémon is besides its species: its gender and its status condition.
+package pokeuniverse.pokemon.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1;pokemonv1";
+
+// Decided by the personality and the species' gender ratio.
+enum Gender {
+  GENDER_UNSPECIFIED = 0;
+  GENDER_MALE = 1;
+  GENDER_FEMALE = 2;
+  GENDER_GENDERLESS = 3;
+}
+
+// A status condition, which stays after a battle (FireRed); none when unspecified.
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_SLEEP = 1;
+  STATUS_POISON = 2;
+  STATUS_BURN = 3;
+  STATUS_FREEZE = 4;
+  STATUS_PARALYSIS = 5;
+  // Bad poison (Toxic): worse every turn in battle.
+  STATUS_TOXIC = 6;
+}

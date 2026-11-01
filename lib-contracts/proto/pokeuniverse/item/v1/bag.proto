@@ -75,7 +75,8 @@ message BagChanged {
 message ItemResult {
   ItemOutcome outcome = 1;
   Item item = 2;
-  // TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount.
+  // TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount; SWAPPED:
+  // the item taken back (`item` is the one given).
   uint32 value = 3;
 }
 
@@ -112,8 +113,18 @@ enum ItemOutcome {
   ITEM_OUTCOME_WITHDRAWN = 16;
   // Stored in the PC from the bag: "Deposited <n> <item>(s)."
   ITEM_OUTCOME_DEPOSITED = 17;
-  // Nothing withdrawn: "There is no more room in the BAG."
+  // Nothing withdrawn (or, for a party Pokémon, taken or switched): the BAG has no room.
   ITEM_OUTCOME_BAG_FULL = 18;
   // Nothing deposited: "There's no room to store items."
   ITEM_OUTCOME_PC_FULL = 19;
+  // A party Pokémon holds the item now: "<MON> was given the <ITEM> to hold."
+  ITEM_OUTCOME_GIVEN = 20;
+  // A party Pokémon's held item was switched for this one, back into the bag.
+  ITEM_OUTCOME_SWAPPED = 21;
+  // A party Pokémon's held item is in the bag now: "Received the <ITEM> from <MON>."
+  ITEM_OUTCOME_TAKEN = 22;
+  // TAKE from a Pokémon holding nothing.
+  ITEM_OUTCOME_NOT_HOLDING = 23;
+  // GIVE to a Pokémon holding MAIL: it must be removed first.
+  ITEM_OUTCOME_REMOVE_MAIL = 24;
 }

@@ -21,6 +21,7 @@ import (
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/pokedex"
+	"pokeuniverse/mic-core/internal/pokemon"
 )
 
 // Start is where New Game puts the trainer: their room, facing north, as FireRed's new game
@@ -89,6 +90,14 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if err != nil {
 		return nil, nil, fmt.Errorf("join: %w", err)
 	}
+	gender := trainerv1.Gender_GENDER_BOY
+	if row.Gender == "girl" {
+		gender = trainerv1.Gender_GENDER_GIRL
+	}
+	party, err := w.loadParty(ctx, accountID, row, gender)
+	if err != nil {
+		return nil, nil, fmt.Errorf("join: %w", err)
+	}
 	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
 		return nil, nil, err
@@ -96,7 +105,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	m, at, facing := w.place(pos)
 
 	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
-		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items,
+		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -123,10 +132,6 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}
 	z.call(func() { z.add(p) })
 
-	gender := trainerv1.Gender_GENDER_BOY
-	if row.Gender == "girl" {
-		gender = trainerv1.Gender_GENDER_GIRL
-	}
 	return p, &worldv1.WorldSnapshot{
 		Map:    m.ID,
 		Player: &worldv1.Avatar{X: uint32(at.X), Y: uint32(at.Y), Facing: facing, Gender: gender},
@@ -135,7 +140,18 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		PlayTimeSeconds: uint32(pos.Played / time.Second),
 		Bag:             items.Bag.Proto(),
 		Pokedex:         pokedex.Load(row).Proto(),
+		Party:           party.Proto(),
 	}, nil
+}
+
+// loadParty reads the trainer's Pokémon. Test content (plans/battles.md): until the starter
+// (Phase 5), a trainer with none gets the test team.
+func (w *World) loadParty(ctx context.Context, accountID int64, row db.GetTrainerRow, gender trainerv1.Gender) (pokemon.Party, error) {
+	party, err := pokemon.Load(ctx, db.New(w.pool), accountID)
+	if err != nil || len(party) > 0 {
+		return party, err
+	}
+	return pokemon.GiveTestTeam(ctx, w.pool, accountID, row.CreatedAt, pokemon.Trainer{Name: row.Name, ID: uint32(row.TrainerID), Gender: gender})
 }
 
 // place checks a saved position against the maps: an unknown map or a tile outside it means Start.

@@ -16,6 +16,7 @@ import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
+import type { PartyChanged } from "@pokeuniverse/contracts/party/v1/party";
 import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
@@ -24,6 +25,7 @@ import { expandPlaceholders, FontId, PLACEHOLDER_PLAYER, type Text } from "../gb
 import { rgb, RGB_BLACK } from "../gba/video";
 import { Avatar, type AvatarInput } from "../world/avatar";
 import { BagState, StoredItems } from "../world/items";
+import { PartyState } from "../world/party";
 import { PokedexState } from "../world/pokedex";
 import { loadMap, TILE } from "../world/map";
 import { FieldMessage } from "./field-message";
@@ -88,6 +90,7 @@ export function startOverworld(flow: Flow): void {
     script: (s) => overworld?.run(s),
     bagChanged: (b) => overworld?.bagChanged(b),
     pcChanged: (p) => overworld?.pcChanged(p),
+    partyChanged: (p) => overworld?.partyChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     noTrainer: leave,
   });
@@ -162,6 +165,8 @@ class Overworld {
   private bag: BagState;
   /** The trainer's Pokédex, as mic-core last said. */
   private readonly pokedex: PokedexState;
+  /** The trainer's Pokémon, as mic-core last said. */
+  private party: PartyState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
   private itemAnswers: ((r: ItemResult) => void)[] = [];
   /** An item's message on the field (SELECT, or back from the bag); the player can't move. */
@@ -183,6 +188,7 @@ class Overworld {
     this.playerName = flow.encode(flow.trainer?.name ?? "");
     this.bag = new BagState(snapshot.bag);
     this.pokedex = new PokedexState(snapshot.pokedex);
+    this.party = new PartyState(snapshot.party);
     this.avatar = new Avatar(map, p.x, p.y, p.facing, snapshot.canRun, {
       move: (step, d, run, x, y) => link.move(step, d, run, x, y),
       turn: (d) => link.turn(d),
@@ -239,6 +245,7 @@ class Overworld {
     this.pcScreen = null;
     this.flow.gba.tasks.destroy(this.pcFlicker);
     this.bag = new BagState(s.bag);
+    this.party = new PartyState(s.party);
     // Answers lost with the connection: nothing happened.
     for (const answer of this.itemAnswers.splice(0)) answer(create(ItemResultSchema));
   }
@@ -249,6 +256,10 @@ class Overworld {
 
   pcChanged(p: PcChanged): void {
     this.pc?.stored.apply(p.slots);
+  }
+
+  partyChanged(p: PartyChanged): void {
+    this.party.apply(p);
   }
 
   itemResult(r: ItemResult): void {
@@ -400,7 +411,7 @@ class Overworld {
     const { flow } = this;
     if (!returning) flow.play("se_win_open");
     const helpBar = flow.options.buttonMode === ButtonMode.HELP;
-    const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: this.pokedex.obtained, hasPokemon: false, helpBar });
+    const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: this.pokedex.obtained, hasPokemon: this.party.count > 0, helpBar });
     this.menu = { menu, returning: returning ? Return.Drawing : Return.None, opening: null };
     menu.draw();
   }
@@ -445,7 +456,7 @@ class Overworld {
       );
     else if (chosen === StartMenuEntry.Player) this.openScreen((back) => startTrainerCard(this.flow, this.flow.trainer!, this.playerName, back));
     else if (chosen === StartMenuEntry.Option) this.openScreen((back) => startOptionMenu(this.flow, FIELD_BACKDROP, back));
-    // SAVE comes next (phase 4); until then choosing it does nothing more.
+    // SAVE comes next (phase 4) and POKéMON's party screen with plans/battles.md M3; until then choosing them does nothing more.
   }
 
   /**

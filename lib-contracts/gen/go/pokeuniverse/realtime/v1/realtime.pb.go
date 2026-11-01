@@ -13,6 +13,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	reflect "reflect"
 	sync "sync"
@@ -115,6 +116,9 @@ type ClientMessage struct {
 	//	*ClientMessage_WithdrawItem
 	//	*ClientMessage_DepositItem
 	//	*ClientMessage_MovePcItem
+	//	*ClientMessage_SwapPartySlots
+	//	*ClientMessage_GivePartyItem
+	//	*ClientMessage_TakePartyItem
 	Payload       isClientMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -299,6 +303,33 @@ func (x *ClientMessage) GetMovePcItem() *v11.MovePcItem {
 	return nil
 }
 
+func (x *ClientMessage) GetSwapPartySlots() *v12.SwapPartySlots {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_SwapPartySlots); ok {
+			return x.SwapPartySlots
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetGivePartyItem() *v12.GivePartyItem {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_GivePartyItem); ok {
+			return x.GivePartyItem
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetTakePartyItem() *v12.TakePartyItem {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_TakePartyItem); ok {
+			return x.TakePartyItem
+		}
+	}
+	return nil
+}
+
 type isClientMessage_Payload interface {
 	isClientMessage_Payload()
 }
@@ -363,6 +394,18 @@ type ClientMessage_MovePcItem struct {
 	MovePcItem *v11.MovePcItem `protobuf:"bytes,16,opt,name=move_pc_item,json=movePcItem,proto3,oneof"`
 }
 
+type ClientMessage_SwapPartySlots struct {
+	SwapPartySlots *v12.SwapPartySlots `protobuf:"bytes,17,opt,name=swap_party_slots,json=swapPartySlots,proto3,oneof"`
+}
+
+type ClientMessage_GivePartyItem struct {
+	GivePartyItem *v12.GivePartyItem `protobuf:"bytes,18,opt,name=give_party_item,json=givePartyItem,proto3,oneof"`
+}
+
+type ClientMessage_TakePartyItem struct {
+	TakePartyItem *v12.TakePartyItem `protobuf:"bytes,19,opt,name=take_party_item,json=takePartyItem,proto3,oneof"`
+}
+
 func (*ClientMessage_Authenticate) isClientMessage_Payload() {}
 
 func (*ClientMessage_Ping) isClientMessage_Payload() {}
@@ -393,6 +436,12 @@ func (*ClientMessage_DepositItem) isClientMessage_Payload() {}
 
 func (*ClientMessage_MovePcItem) isClientMessage_Payload() {}
 
+func (*ClientMessage_SwapPartySlots) isClientMessage_Payload() {}
+
+func (*ClientMessage_GivePartyItem) isClientMessage_Payload() {}
+
+func (*ClientMessage_TakePartyItem) isClientMessage_Payload() {}
+
 // Server -> client: events.
 type ServerMessage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -408,6 +457,7 @@ type ServerMessage struct {
 	//	*ServerMessage_BagChanged
 	//	*ServerMessage_ItemResult
 	//	*ServerMessage_PcChanged
+	//	*ServerMessage_PartyChanged
 	Payload       isServerMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -538,6 +588,15 @@ func (x *ServerMessage) GetPcChanged() *v11.PcChanged {
 	return nil
 }
 
+func (x *ServerMessage) GetPartyChanged() *v12.PartyChanged {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_PartyChanged); ok {
+			return x.PartyChanged
+		}
+	}
+	return nil
+}
+
 type isServerMessage_Payload interface {
 	isServerMessage_Payload()
 }
@@ -578,6 +637,10 @@ type ServerMessage_PcChanged struct {
 	PcChanged *v11.PcChanged `protobuf:"bytes,10,opt,name=pc_changed,json=pcChanged,proto3,oneof"`
 }
 
+type ServerMessage_PartyChanged struct {
+	PartyChanged *v12.PartyChanged `protobuf:"bytes,11,opt,name=party_changed,json=partyChanged,proto3,oneof"`
+}
+
 func (*ServerMessage_Welcome) isServerMessage_Payload() {}
 
 func (*ServerMessage_Pong) isServerMessage_Payload() {}
@@ -595,6 +658,8 @@ func (*ServerMessage_BagChanged) isServerMessage_Payload() {}
 func (*ServerMessage_ItemResult) isServerMessage_Payload() {}
 
 func (*ServerMessage_PcChanged) isServerMessage_Payload() {}
+
+func (*ServerMessage_PartyChanged) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
@@ -843,7 +908,7 @@ var File_pokeuniverse_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/item/v1/pc.proto\x1a!pokeuniverse/world/v1/world.proto\"\xfe\a\n" +
+	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/item/v1/pc.proto\x1a!pokeuniverse/party/v1/party.proto\x1a!pokeuniverse/world/v1/world.proto\"\xf1\t\n" +
 	"\rClientMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12L\n" +
 	"\fauthenticate\x18\x02 \x01(\v2&.pokeuniverse.realtime.v1.AuthenticateH\x00R\fauthenticate\x124\n" +
@@ -864,8 +929,11 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\rwithdraw_item\x18\x0e \x01(\v2\".pokeuniverse.item.v1.WithdrawItemH\x00R\fwithdrawItem\x12F\n" +
 	"\fdeposit_item\x18\x0f \x01(\v2!.pokeuniverse.item.v1.DepositItemH\x00R\vdepositItem\x12D\n" +
 	"\fmove_pc_item\x18\x10 \x01(\v2 .pokeuniverse.item.v1.MovePcItemH\x00R\n" +
-	"movePcItemB\t\n" +
-	"\apayload\"\xe8\x04\n" +
+	"movePcItem\x12Q\n" +
+	"\x10swap_party_slots\x18\x11 \x01(\v2%.pokeuniverse.party.v1.SwapPartySlotsH\x00R\x0eswapPartySlots\x12N\n" +
+	"\x0fgive_party_item\x18\x12 \x01(\v2$.pokeuniverse.party.v1.GivePartyItemH\x00R\rgivePartyItem\x12N\n" +
+	"\x0ftake_party_item\x18\x13 \x01(\v2$.pokeuniverse.party.v1.TakePartyItemH\x00R\rtakePartyItemB\t\n" +
+	"\apayload\"\xb4\x05\n" +
 	"\rServerMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12=\n" +
 	"\awelcome\x18\x02 \x01(\v2!.pokeuniverse.realtime.v1.WelcomeH\x00R\awelcome\x124\n" +
@@ -882,7 +950,8 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"itemResult\x12@\n" +
 	"\n" +
 	"pc_changed\x18\n" +
-	" \x01(\v2\x1f.pokeuniverse.item.v1.PcChangedH\x00R\tpcChangedB\t\n" +
+	" \x01(\v2\x1f.pokeuniverse.item.v1.PcChangedH\x00R\tpcChanged\x12J\n" +
+	"\rparty_changed\x18\v \x01(\v2#.pokeuniverse.party.v1.PartyChangedH\x00R\fpartyChangedB\t\n" +
 	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
@@ -924,33 +993,37 @@ func file_pokeuniverse_realtime_v1_realtime_proto_rawDescGZIP() []byte {
 var file_pokeuniverse_realtime_v1_realtime_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_pokeuniverse_realtime_v1_realtime_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_pokeuniverse_realtime_v1_realtime_proto_goTypes = []any{
-	(ErrorCode)(0),           // 0: pokeuniverse.realtime.v1.ErrorCode
-	(*ClientMessage)(nil),    // 1: pokeuniverse.realtime.v1.ClientMessage
-	(*ServerMessage)(nil),    // 2: pokeuniverse.realtime.v1.ServerMessage
-	(*Authenticate)(nil),     // 3: pokeuniverse.realtime.v1.Authenticate
-	(*Welcome)(nil),          // 4: pokeuniverse.realtime.v1.Welcome
-	(*Ping)(nil),             // 5: pokeuniverse.realtime.v1.Ping
-	(*Pong)(nil),             // 6: pokeuniverse.realtime.v1.Pong
-	(*Error)(nil),            // 7: pokeuniverse.realtime.v1.Error
-	(*v1.EnterWorld)(nil),    // 8: pokeuniverse.world.v1.EnterWorld
-	(*v1.Move)(nil),          // 9: pokeuniverse.world.v1.Move
-	(*v1.Turn)(nil),          // 10: pokeuniverse.world.v1.Turn
-	(*v1.Interact)(nil),      // 11: pokeuniverse.world.v1.Interact
-	(*v1.ScriptDone)(nil),    // 12: pokeuniverse.world.v1.ScriptDone
-	(*v11.UseItem)(nil),      // 13: pokeuniverse.item.v1.UseItem
-	(*v11.GiveItem)(nil),     // 14: pokeuniverse.item.v1.GiveItem
-	(*v11.TossItem)(nil),     // 15: pokeuniverse.item.v1.TossItem
-	(*v11.RegisterItem)(nil), // 16: pokeuniverse.item.v1.RegisterItem
-	(*v11.MoveItem)(nil),     // 17: pokeuniverse.item.v1.MoveItem
-	(*v11.WithdrawItem)(nil), // 18: pokeuniverse.item.v1.WithdrawItem
-	(*v11.DepositItem)(nil),  // 19: pokeuniverse.item.v1.DepositItem
-	(*v11.MovePcItem)(nil),   // 20: pokeuniverse.item.v1.MovePcItem
-	(*v1.WorldSnapshot)(nil), // 21: pokeuniverse.world.v1.WorldSnapshot
-	(*v1.Correction)(nil),    // 22: pokeuniverse.world.v1.Correction
-	(*v1.Script)(nil),        // 23: pokeuniverse.world.v1.Script
-	(*v11.BagChanged)(nil),   // 24: pokeuniverse.item.v1.BagChanged
-	(*v11.ItemResult)(nil),   // 25: pokeuniverse.item.v1.ItemResult
-	(*v11.PcChanged)(nil),    // 26: pokeuniverse.item.v1.PcChanged
+	(ErrorCode)(0),             // 0: pokeuniverse.realtime.v1.ErrorCode
+	(*ClientMessage)(nil),      // 1: pokeuniverse.realtime.v1.ClientMessage
+	(*ServerMessage)(nil),      // 2: pokeuniverse.realtime.v1.ServerMessage
+	(*Authenticate)(nil),       // 3: pokeuniverse.realtime.v1.Authenticate
+	(*Welcome)(nil),            // 4: pokeuniverse.realtime.v1.Welcome
+	(*Ping)(nil),               // 5: pokeuniverse.realtime.v1.Ping
+	(*Pong)(nil),               // 6: pokeuniverse.realtime.v1.Pong
+	(*Error)(nil),              // 7: pokeuniverse.realtime.v1.Error
+	(*v1.EnterWorld)(nil),      // 8: pokeuniverse.world.v1.EnterWorld
+	(*v1.Move)(nil),            // 9: pokeuniverse.world.v1.Move
+	(*v1.Turn)(nil),            // 10: pokeuniverse.world.v1.Turn
+	(*v1.Interact)(nil),        // 11: pokeuniverse.world.v1.Interact
+	(*v1.ScriptDone)(nil),      // 12: pokeuniverse.world.v1.ScriptDone
+	(*v11.UseItem)(nil),        // 13: pokeuniverse.item.v1.UseItem
+	(*v11.GiveItem)(nil),       // 14: pokeuniverse.item.v1.GiveItem
+	(*v11.TossItem)(nil),       // 15: pokeuniverse.item.v1.TossItem
+	(*v11.RegisterItem)(nil),   // 16: pokeuniverse.item.v1.RegisterItem
+	(*v11.MoveItem)(nil),       // 17: pokeuniverse.item.v1.MoveItem
+	(*v11.WithdrawItem)(nil),   // 18: pokeuniverse.item.v1.WithdrawItem
+	(*v11.DepositItem)(nil),    // 19: pokeuniverse.item.v1.DepositItem
+	(*v11.MovePcItem)(nil),     // 20: pokeuniverse.item.v1.MovePcItem
+	(*v12.SwapPartySlots)(nil), // 21: pokeuniverse.party.v1.SwapPartySlots
+	(*v12.GivePartyItem)(nil),  // 22: pokeuniverse.party.v1.GivePartyItem
+	(*v12.TakePartyItem)(nil),  // 23: pokeuniverse.party.v1.TakePartyItem
+	(*v1.WorldSnapshot)(nil),   // 24: pokeuniverse.world.v1.WorldSnapshot
+	(*v1.Correction)(nil),      // 25: pokeuniverse.world.v1.Correction
+	(*v1.Script)(nil),          // 26: pokeuniverse.world.v1.Script
+	(*v11.BagChanged)(nil),     // 27: pokeuniverse.item.v1.BagChanged
+	(*v11.ItemResult)(nil),     // 28: pokeuniverse.item.v1.ItemResult
+	(*v11.PcChanged)(nil),      // 29: pokeuniverse.item.v1.PcChanged
+	(*v12.PartyChanged)(nil),   // 30: pokeuniverse.party.v1.PartyChanged
 }
 var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	3,  // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
@@ -968,21 +1041,25 @@ var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	18, // 12: pokeuniverse.realtime.v1.ClientMessage.withdraw_item:type_name -> pokeuniverse.item.v1.WithdrawItem
 	19, // 13: pokeuniverse.realtime.v1.ClientMessage.deposit_item:type_name -> pokeuniverse.item.v1.DepositItem
 	20, // 14: pokeuniverse.realtime.v1.ClientMessage.move_pc_item:type_name -> pokeuniverse.item.v1.MovePcItem
-	4,  // 15: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
-	6,  // 16: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
-	7,  // 17: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
-	21, // 18: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
-	22, // 19: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
-	23, // 20: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
-	24, // 21: pokeuniverse.realtime.v1.ServerMessage.bag_changed:type_name -> pokeuniverse.item.v1.BagChanged
-	25, // 22: pokeuniverse.realtime.v1.ServerMessage.item_result:type_name -> pokeuniverse.item.v1.ItemResult
-	26, // 23: pokeuniverse.realtime.v1.ServerMessage.pc_changed:type_name -> pokeuniverse.item.v1.PcChanged
-	0,  // 24: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	21, // 15: pokeuniverse.realtime.v1.ClientMessage.swap_party_slots:type_name -> pokeuniverse.party.v1.SwapPartySlots
+	22, // 16: pokeuniverse.realtime.v1.ClientMessage.give_party_item:type_name -> pokeuniverse.party.v1.GivePartyItem
+	23, // 17: pokeuniverse.realtime.v1.ClientMessage.take_party_item:type_name -> pokeuniverse.party.v1.TakePartyItem
+	4,  // 18: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
+	6,  // 19: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
+	7,  // 20: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
+	24, // 21: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
+	25, // 22: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
+	26, // 23: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
+	27, // 24: pokeuniverse.realtime.v1.ServerMessage.bag_changed:type_name -> pokeuniverse.item.v1.BagChanged
+	28, // 25: pokeuniverse.realtime.v1.ServerMessage.item_result:type_name -> pokeuniverse.item.v1.ItemResult
+	29, // 26: pokeuniverse.realtime.v1.ServerMessage.pc_changed:type_name -> pokeuniverse.item.v1.PcChanged
+	30, // 27: pokeuniverse.realtime.v1.ServerMessage.party_changed:type_name -> pokeuniverse.party.v1.PartyChanged
+	0,  // 28: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_realtime_v1_realtime_proto_init() }
@@ -1006,6 +1083,9 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ClientMessage_WithdrawItem)(nil),
 		(*ClientMessage_DepositItem)(nil),
 		(*ClientMessage_MovePcItem)(nil),
+		(*ClientMessage_SwapPartySlots)(nil),
+		(*ClientMessage_GivePartyItem)(nil),
+		(*ClientMessage_TakePartyItem)(nil),
 	}
 	file_pokeuniverse_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerMessage_Welcome)(nil),
@@ -1017,6 +1097,7 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ServerMessage_BagChanged)(nil),
 		(*ServerMessage_ItemResult)(nil),
 		(*ServerMessage_PcChanged)(nil),
+		(*ServerMessage_PartyChanged)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

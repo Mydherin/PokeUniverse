@@ -81,6 +81,27 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 	return i, err
 }
 
+const lockTrainerSave = `-- name: LockTrainerSave :one
+SELECT account_id
+FROM trainers
+WHERE account_id = $1 AND created_at = $2
+FOR UPDATE
+`
+
+type LockTrainerSaveParams struct {
+	AccountID int64
+	CreatedAt time.Time
+}
+
+// Inside a transaction: the trainer's row locked, only while it's still the save `created_at`
+// (no rows: a New Game replaced it). Changes that touch no other trainer column check with it.
+func (q *Queries) LockTrainerSave(ctx context.Context, arg LockTrainerSaveParams) (int64, error) {
+	row := q.db.QueryRow(ctx, lockTrainerSave, arg.AccountID, arg.CreatedAt)
+	var account_id int64
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
 const putTrainer = `-- name: PutTrainer :one
 INSERT INTO trainers (account_id, name, gender, rival_name, map_id, x, y, facing, trainer_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)

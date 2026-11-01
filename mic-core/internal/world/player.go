@@ -9,6 +9,7 @@ import (
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/pokemon"
 )
 
 // Sink is a player's connection: Send queues a message without blocking; Kick closes the
@@ -46,6 +47,8 @@ type Player struct {
 	pcScript uint32
 	// The bag and what items keep; saved to PostgreSQL on every change.
 	items *item.State
+	// The trainer's Pokémon; saved to PostgreSQL on every change.
+	party pokemon.Party
 	// Messages waiting for the next tick, sent once the state they show is saved.
 	out []*realtimev1.ServerMessage
 }

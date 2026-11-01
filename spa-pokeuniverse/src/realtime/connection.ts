@@ -11,6 +11,7 @@ import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
+import type { PartyChanged } from "@pokeuniverse/contracts/party/v1/party";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
 import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
@@ -36,7 +37,9 @@ export interface WorldEvents {
   bagChanged(b: BagChanged): void;
   /** What the PC stores (before the ItemResult that changed it), or a correction. */
   pcChanged(p: PcChanged): void;
-  /** What using, giving, tossing, withdrawing or depositing an item did. */
+  /** The whole party (before the ItemResult that changed it), or a correction. */
+  partyChanged(p: PartyChanged): void;
+  /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
   /** The account has no trainer (New Game creates it). */
   noTrainer(): void;
@@ -64,6 +67,12 @@ export interface WorldLink {
   withdrawItem(item: Item, quantity: number): void;
   depositItem(item: Item, quantity: number): void;
   movePcItem(from: number, to: number): void;
+  /** SWITCH in the party menu (slots from 0); shown at once, corrected with PartyChanged if refused. */
+  swapPartySlots(from: number, to: number): void;
+  /** A party Pokémon holds the item, from the bag or the PC (`pc`); answered with an ItemResult. */
+  givePartyItem(item: Item, slot: number, pc: boolean): void;
+  /** A party Pokémon's held item into the bag; answered with an ItemResult. */
+  takePartyItem(slot: number): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -195,6 +204,18 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "movePcItem", value: { from, to } });
   }
 
+  swapPartySlots(from: number, to: number): void {
+    if (this.inWorld) this.send({ case: "swapPartySlots", value: { from, to } });
+  }
+
+  givePartyItem(item: Item, slot: number, pc: boolean): void {
+    if (this.inWorld) this.send({ case: "givePartyItem", value: { item, slot, pc } });
+  }
+
+  takePartyItem(slot: number): void {
+    if (this.inWorld) this.send({ case: "takePartyItem", value: { slot } });
+  }
+
   private receive(data: Uint8Array): void {
     const msg = fromBinary(ServerMessageSchema, data);
     switch (msg.payload.case) {
@@ -231,6 +252,9 @@ export class Connection implements WorldLink {
         break;
       case "pcChanged":
         this.world?.pcChanged(msg.payload.value);
+        break;
+      case "partyChanged":
+        this.world?.partyChanged(msg.payload.value);
         break;
       case "itemResult":
         this.world?.itemResult(msg.payload.value);

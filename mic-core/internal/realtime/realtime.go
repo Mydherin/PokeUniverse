@@ -268,6 +268,15 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_MovePcItem:
 		c.player.MovePcItem(p.MovePcItem)
 		return true
+	case *realtimev1.ClientMessage_SwapPartySlots:
+		c.player.SwapPartySlots(p.SwapPartySlots)
+		return true
+	case *realtimev1.ClientMessage_GivePartyItem:
+		c.player.GivePartyItem(p.GivePartyItem)
+		return true
+	case *realtimev1.ClientMessage_TakePartyItem:
+		c.player.TakePartyItem(p.TakePartyItem)
+		return true
 	}
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 	return false

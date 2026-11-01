@@ -1,17 +1,11 @@
 package world
 
 import (
-	"context"
-	"time"
-
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	"pokeuniverse/mic-core/internal/item"
 )
-
-// itemSaveTimeout bounds an item action's PostgreSQL transaction, run in the zone's goroutine.
-const itemSaveTimeout = 2 * time.Second
 
 // UseItem is USE from the bag, or the registered item with SELECT on the field.
 func (p *Player) UseItem(m *itemv1.UseItem) {
@@ -101,7 +95,7 @@ func (z *zone) itemAction(p *Player, id itemv1.Item, atPC bool, act func(*item.S
 	if allowed(p, atPC) {
 		before := p.items.Clone()
 		res = act(p.items, z.itemField(p))
-		if res.Any() && !z.saveItems(p, res.Changed) {
+		if res.Any() && !z.saveTrainer(p, res.Changed, false) {
 			p.items, res = before, item.Result{}
 		}
 	}
@@ -118,20 +112,10 @@ func (z *zone) itemChange(p *Player, atPC bool, changed item.Changed, change fun
 		return
 	}
 	before := p.items.Clone()
-	if !allowed(p, atPC) || !change(p.items) || !z.saveItems(p, changed) {
+	if !allowed(p, atPC) || !change(p.items) || !z.saveTrainer(p, changed, false) {
 		p.items = before
 		z.sendChanged(p, changed)
 	}
-}
-
-func (z *zone) saveItems(p *Player, changed item.Changed) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), itemSaveTimeout)
-	defer cancel()
-	if err := item.Save(ctx, z.w.pool, p.accountID, time.UnixMicro(p.gen), p.items, changed); err != nil {
-		z.w.log.Error("save items", "account_id", p.accountID, "err", err)
-		return false
-	}
-	return true
 }
 
 // sendChanged sends what an action changed: the PC, and the bag's pockets with its registered
@@ -161,10 +145,11 @@ var fishable = map[mapv1.TileBehavior]bool{
 // landElevation is where a player walks beside water (water is elevation 1).
 const landElevation = 3
 
-// itemField is what items depend on around the player. No party until Phase 8.
+// itemField is what items depend on around the player.
 func (z *zone) itemField(p *Player) item.Field {
 	ahead := p.pos.Step(p.facing)
 	return item.Field{
+		PartySize:     len(p.party),
 		MapType:       z.m.Type,
 		AllowCycling:  z.m.AllowCycling,
 		AllowEscaping: z.m.AllowEscaping,

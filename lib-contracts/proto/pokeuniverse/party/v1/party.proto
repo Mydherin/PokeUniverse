@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+// The trainer's party on the WebSocket (inside pokeuniverse.realtime.v1's envelopes): the
+// Pokémon as their trainer sees them, the player's intents on them and mic-core's answers.
+// mic-core decides every change and saves it before answering (tech-stack.md#saving-state-resilience).
+// Its own package: it uses the species, move, item and ability catalogs, and species/v1 already
+// imports pokemon/v1 (buf forbids package cycles).
+package pokeuniverse.party.v1;
+
+import "pokeuniverse/ability/v1/catalog.proto";
+import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/move/v1/catalog.proto";
+import "pokeuniverse/pokemon/v1/nature.proto";
+import "pokeuniverse/pokemon/v1/pokemon.proto";
+import "pokeuniverse/pokemon/v1/stats.proto";
+import "pokeuniverse/species/v1/catalog.proto";
+import "pokeuniverse/trainer/v1/trainer.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1;partyv1";
+
+// One of the trainer's Pokémon, as its trainer sees it (the summary). IVs, EVs and friendship
+// stay on the server.
+message Pokemon {
+  pokeuniverse.species.v1.Species species = 1;
+  // Empty: the species' name, in the art style's language.
+  string nickname = 2;
+  // 1 to 100.
+  uint32 level = 3;
+  // Total experience, and the totals the current and the next level start at (the same at Lv. 100).
+  uint32 exp = 4;
+  uint32 level_exp = 5;
+  uint32 next_level_exp = 6;
+  // 0 (fainted) to stats.hp.
+  uint32 hp = 7;
+  pokeuniverse.pokemon.v1.Stats stats = 8;
+  // One to four, in order.
+  repeated Move moves = 9;
+  pokeuniverse.pokemon.v1.Status status = 10;
+  // Unspecified: none.
+  pokeuniverse.item.v1.Item held_item = 11;
+  pokeuniverse.ability.v1.Ability ability = 12;
+  pokeuniverse.pokemon.v1.Nature nature = 13;
+  pokeuniverse.pokemon.v1.Gender gender = 14;
+  bool shiny = 15;
+  // What some art depends on (Unown's letter, Spinda's spots).
+  uint32 personality = 16;
+  // The ball it was caught in.
+  pokeuniverse.item.v1.Item ball = 17;
+  // The original trainer: name, ID No. (the low 16 bits of their trainer ID) and gender.
+  string ot_name = 18;
+  uint32 ot_id_no = 19;
+  pokeuniverse.trainer.v1.Gender ot_gender = 20;
+  uint32 met_level = 21;
+  // Where it was met: a lib-maps map; empty: a fateful encounter.
+  string met_map = 22;
+}
+
+message Move {
+  pokeuniverse.move.v1.Move move = 1;
+  uint32 pp = 2;
+  // With its PP UPs.
+  uint32 max_pp = 3;
+}
+
+// The party, in order: up to six Pokémon.
+message Party {
+  repeated Pokemon pokemon = 1;
+}
+
+// Client -> server: SWITCH two Pokémon of the party (slots from 0). The client shows it at once;
+// a refused one gets PartyChanged.
+message SwapPartySlots {
+  uint32 from = 1;
+  uint32 to = 2;
+}
+
+// Client -> server: a party Pokémon is given an item to hold, from the bag or the PC (after
+// YES when it already holds one: they're switched, the held one back into the bag). Answered with
+// PartyChanged, BagChanged and PcChanged (what changed), then an ItemResult: GIVEN, SWAPPED,
+// BAG_FULL, REMOVE_MAIL or CANT_BE_HELD.
+message GivePartyItem {
+  pokeuniverse.item.v1.Item item = 1;
+  uint32 slot = 2;
+  // An item stored in the PC (its WITHDRAW screen), not one in the bag.
+  bool pc = 3;
+}
+
+// Client -> server: TAKE a party Pokémon's held item into the bag. Answered like GivePartyItem:
+// TAKEN, NOT_HOLDING or BAG_FULL.
+message TakePartyItem {
+  uint32 slot = 1;
+}
+
+// Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
+// or alone to correct a refused SwapPartySlots.
+message PartyChanged {
+  Party party = 1;
+}

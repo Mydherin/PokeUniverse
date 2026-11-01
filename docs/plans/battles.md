@@ -34,6 +34,7 @@ What exists that battles build on. You don't need to re-read these unless a mile
 | Items | `item/v1/catalog.proto`: FireRed's 307 items with `ItemInfo` rules; bag, PC, use/give/toss in `mic-core/internal/item` | |
 | Pokédex | Seen/caught bitsets per trainer; `internal/pokedex`; the client screen exists | |
 | Trainer | `trainers` table: options include `battle_scene` and `battle_style` (saved, not used yet), money, trainer ID | `mic-core/internal/trainer` |
+| Party (M2) | `trainer_pokemon` table; `internal/pokemon` (Gen 4 stats, growth rates, personality, default moves, `Party`, store, test team); `party/v1` contracts; `Party` in the snapshot; SWITCH and held items saved with the bag in one transaction (`world/save.go`) | `mic-core/internal/{pokemon,world}`, `spa-pokeuniverse/src/game/world/party.ts` |
 | Maps | `MapObject.npc` (sprite, movement, script, flag, trainer_type, trainer_sight) exists in `map/v1/map.proto` and the text format, but **no NPC is compiled, drawn or blocks movement yet** | `lib-maps/maps/pallet_town_players_house_2f.yaml` (12×9 room, player starts at 6,6) |
 | Client engine | `gba/`: 240×160 compositor, tile and affine backgrounds, affine sprites, 512-color palette, windows, blending, per-scanline brightness, fades, tasks, text printer, sound players | `spa-pokeuniverse/src/game/gba/` |
 | Client screens | FireRed screens as frame-driven state machines (`firered/`), START menu (`start-menu.ts`: POKéMON entry exists, gated by `hasPokemon`), BAG, OPTION, Trainer Card, Pokédex | `spa-pokeuniverse/src/game/firered/` |
@@ -61,6 +62,7 @@ What exists that battles build on. You don't need to re-read these unless a mile
 | D13 | **Test content is marked as such:** the starting test team and the room's test trainer are data in `mic-core` (`internal/battle/testdata.go` or similar) and the map, each with a `// Test content (plans/battles.md): removed in Phase 5` comment. In Phase 5 the starter replaces the team and the NPC leaves the room. | The user asked for them to test battles now. They must not leak into the real game. |
 | D14 | **The party is permanent data in PostgreSQL** (`trainer_pokemon`), saved in one transaction per change. Battle damage, PP and status stay after a battle (FireRed), saved with the outcome. During a battle, its live state is Redis only. | [Saving State](../tech-stack.md#saving-state-resilience). |
 | D15 | **Faint cries are rendered** with FireRed's faint cry mode, once per species, as `cry_<nnn>_faint`, like the cries. Not a Web Audio pitch trick. | Sounds exactly like the game. |
+| D16 | **The party's contracts are their own package, `pokeuniverse.party.v1`** (`Pokemon`, `Party`, intents, `PartyChanged`); `pokemon/v1` keeps what needs no catalog (`Gender`, `Status`, stats, natures). The client's `Pokemon` carries what the summary shows (stats, exp bounds, ability, nature, gender, shiny, ID No.), never IVs, EVs or friendship. Held-item rules live in `internal/item` (`Hold`, `TakeHeld`: given what the Pokémon holds, they return what it holds after) and answer with `ItemResult`. | `party.v1` uses the species, move and item catalogs, and `species/v1` imports `pokemon/v1`: buf forbids the package cycle. Item rules stay with items; `item` never depends on `pokemon`. |
 
 ### Open Questions (ask the user when the milestone comes)
 
@@ -92,7 +94,7 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 
 ### Contracts (to write in M4; field lists are the minimum)
 
-- `pokeuniverse.pokemon.v1` (`pokemon.proto`): `Pokemon` (the client's view of the player's own Pokémon: `species`, `nickname` (encoded text bytes), `level`, `exp`, `hp`, `stats{hp, atk, def, spa, spd, spe}`, `moves[{move, pp, max_pp}]`, `status`, `held_item`, `ability`, `nature`, `gender`, `shiny`, `ball`, `ot_name`, `ot_id`, `met_level`, `met_location`). `Party` goes in `WorldSnapshot`. Intents: `SwapPartySlots`, `GivePartyItem`, `TakePartyItem`. Answer: `PartyChanged`.
+- ✅ (M2, D16) `pokeuniverse.party.v1` (`party.proto`): `Pokemon`, `Party` (in `WorldSnapshot`), `SwapPartySlots`, `GivePartyItem`, `TakePartyItem`, `PartyChanged`; `pokemon/v1/pokemon.proto`: `Gender`, `Status`; `ItemOutcome` GIVEN, SWAPPED, TAKEN, NOT_HOLDING, REMOVE_MAIL.
 - `pokeuniverse.battle.v1`:
   - NATS: `StartBattle{battle_id, kind, sides[{side, trainer (class, name text id), team[BattleMon full: species, level, nature, ability, item, ivs, evs, moves+pp, hp, status, gender, shiny, personality]}, ai_flags], seed}`; `StartReply`; `TurnRequest{battle_id, turn, choices[{side, action}]}`; `TurnReply{battle_id, turn, per_side[{events, request}], outcome?}`; `Forfeit{battle_id, side}`.
   - Client (in the realtime envelope): `BattleStarted{view, events, request}`, `BattleTurn{turn, events, request}`, `BattleEnded{outcome view}`; intent `BattleChoice{battle_id, turn, oneof action{move{slot (1-4), target}, switch{party_slot}, item{item, party_slot, move_slot}, run}}`.
@@ -108,7 +110,7 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 | `mic-battles/src/ai/` | Move scoring per flag, switching, item use (D6); one file per flag |
 | `mic-battles/src/store.ts` | Redis `battle:<id>` with the turn check (Lua) |
 | `mic-battles/src/exp.ts` | Gen 4 experience (not in Showdown) |
-| `mic-core/internal/pokemon/` | Stats (Gen 4 formula), natures, IVs/EVs, gender, shiny, growth rates, party store (sqlc), party intents |
+| `mic-core/internal/pokemon/` | Stats (Gen 4 formula), natures, IVs/EVs, gender, shiny, growth rates, default moves, the party and its store (sqlc), the test team; party intents run in `internal/world/party.go` |
 | `mic-core/internal/battle/` | Starting battles, a player's active battle (Redis `player:<id>:battle`), choices, outcome transaction, NPC trainer table, whiteout |
 | `spa-pokeuniverse/src/game/battle/` | Battle state for any art style: applies events, holds the request (like `world/`) |
 | `spa-pokeuniverse/src/game/firered/battle/` | The FireRed battle screen: transition, terrain, intro, healthboxes, menus, messages, sprites, `anims/` (engine, behaviors, converted scripts) |
@@ -144,16 +146,16 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 - [x] `make contracts` and `make breaking` pass; `mic-core`, `tool-maps` and the SPA build.
 - **Done when:** Go and TypeScript read any move, ability and species battle fact by enum; all names and descriptions encode. ✅
 
-### M2 Pokémon and the Party in `mic-core` ⬜
+### M2 Pokémon and the Party in `mic-core` ✅
 
-**Read:** `mic-core/internal/item/{store,bag}.go`, `internal/trainer/trainer.go`, `internal/world/world.go` (Join), `queries/trainers.sql`, the latest migration.
+**Read (only to change them):** `mic-core/internal/pokemon/*`, `internal/item/held.go`, `internal/world/{party,save}.go`, `migrations/00012_create_trainer_pokemon.sql`, `lib-contracts/proto/pokeuniverse/party/v1/party.proto`, `spa-pokeuniverse/src/game/world/party.ts`.
 
-- [ ] `internal/pokemon`: Gen 4 stat formula, natures, IVs/EVs, personality → gender, nature (`personality % 25`) and shiny (with the trainer ID), ability slot, the six growth rates (level ↔ exp), and default moves: the last four level-up moves at or below the level.
-- [ ] Migration `trainer_pokemon` (trainer, slot 1-6, species, nickname, level, exp, personality, ivs, evs, ability slot, held item, moves + pp + pp ups, hp, status, friendship, ball, ot name/id, met level/location). New Game deletes it in its transaction.
-- [ ] **Test team (D13):** if the trainer has no Pokémon, `Join` gives the test team in one transaction. Lv 50, legal Gen 4 sets, FireRed items only until M12. Proposed: CHARIZARD (Flamethrower, Air Slash, Dragon Pulse, Roost), PIKACHU @ LIGHT BALL (Thunderbolt, Quick Attack, Iron Tail, Thunder Wave), GARCHOMP (Earthquake, Dragon Claw, Stealth Rock, Swords Dance), LUCARIO (Aura Sphere, Close Combat, Extreme Speed, Swords Dance), GARDEVOIR (Psychic, Shadow Ball, Calm Mind, Thunderbolt), SNORLAX @ LEFTOVERS (Body Slam, Earthquake, Rest, Curse). Check every move against the learnsets once M1 has them (TMs included). Fix any that isn't legal.
-- [ ] `Party` in `WorldSnapshot`. Intents `SwapPartySlots`, `GivePartyItem`, `TakePartyItem` with `PartyChanged`, saved before answering. Bag GIVE now targets a party Pokémon ("There is no POKéMON." stays for an empty party).
-- [ ] The START menu's POKéMON entry: the snapshot's party count decides it, until story flags (Phase 5).
-- **Done when:** a reload shows the same team with the same stats; swapping and held items persist.
+- [x] `internal/pokemon`: Gen 4 stat formula (SHEDINJA's 1 HP), natures, IVs/EVs, personality → gender, nature (`personality % 25`), shiny (with the OT's ID) and ability slot (lowest bit), the six growth rates (level ↔ exp; Gen 4's 0 exp at Lv 1, FireRed's table says 1), default moves (the level-up moves in order, the oldest pushed out past four), max PP with PP UPs.
+- [x] Migration `00012` `trainer_pokemon` (slot 0-5, species, nickname (empty: the species' name), level, exp, personality, IVs/EVs as 6-element arrays, ability slot, held item, moves + PP + PP UPs as parallel arrays, HP, status, friendship, ball, OT name/ID/gender, met level/map (empty: fateful encounter)). New Game empties it in its transaction. Every party change rewrites the party (≤6 rows) after `LockTrainerSave` (the trainer's row, only for the current save).
+- [x] **Test team (D13, `internal/pokemon/testteam.go`):** given by `Join` in one transaction when the trainer has none; Lv 50, natures and EV spreads per set, IVs and personalities from the trainer ID (the same team for two joins at once), OT = the trainer, POKé BALL, fateful encounter. CHARIZARD (Flamethrower, Air Slash, Dragon Pulse, Roost), PIKACHU @ LIGHT BALL (Thunderbolt, Quick Attack, Iron Tail, Thunder Wave), GARCHOMP (Earthquake, Dragon Claw, Stealth Rock, Swords Dance), LUCARIO (Aura Sphere, Close Combat, **Bullet Punch** (Riolu egg move; Extreme Speed is Lv 51), Swords Dance), GARDEVOIR (Psychic, Shadow Ball, Calm Mind, Thunderbolt), SNORLAX @ LEFTOVERS (Body Slam, Earthquake, Rest, Curse (egg)). All checked against Showdown's Gen 4 learnsets.
+- [x] `Party` in `WorldSnapshot`. Intents `SwapPartySlots` (predicted; refused → `PartyChanged`), `GivePartyItem` (bag or PC; switching sends the held one to the bag; MAIL must be taken first; a full bag changes nothing) and `TakePartyItem`, answered with `PartyChanged`/`BagChanged`/`PcChanged` then `ItemResult`, saved with the bag in one transaction before answering. Bag and PC GIVE now answer PARTY_MENU when there's a party.
+- [x] The START menu's POKéMON entry shows when the snapshot's party isn't empty (until story flags, Phase 5); choosing it does nothing until M3.
+- **Done when:** a reload shows the same team with the same stats; swapping and held items persist. Server and client build; not run in the game yet (swapping and GIVE/TAKE have no screen until M3).
 
 ### M3 Party Screen and Summary ⬜
 
@@ -198,7 +200,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 - [ ] Client: NPC sprites in the overworld (`world/scene.ts`, `firered/` object event art: `cooltrainer_m.png` + palette), standing and facing.
 - [ ] Room: `- { type: npc, id: test_trainer, at: [9, 4], sprite: cooltrainer_m, movement: face_down, script: test_trainer }` (D13). Validate, compile and preview it.
 - [ ] Script steps: `YesNo` and `StartBattle{trainer}` (the zone asks `internal/battle` to start one, and the script continues after the battle).
-- [ ] `internal/battle`: the trainer table (`test_trainer`: COOLTRAINER class, name, intro, defeat and victory texts, money ×, AI flags = gym-leader set, team Lv 50: GENGAR (Shadow Ball, Sludge Bomb, Hypnosis, Destiny Bond), GYARADOS (Waterfall, Dragon Dance, Ice Fang, Earthquake), SCIZOR (Bullet Punch, X-Scissor, Swords Dance, Roost), TYRANITAR (Stone Edge, Crunch, Earthquake, Fire Blast), TOGEKISS (Air Slash, Aura Sphere, Thunder Wave, Roost), INFERNAPE (Close Combat, Flare Blitz, Mach Punch, U-turn), checked against learnsets, items: 2 HYPER POTION).
+- [ ] `internal/battle`: the trainer table (`test_trainer`: COOLTRAINER class, name, intro, defeat and victory texts, money ×, AI flags = gym-leader set, team Lv 50: GENGAR (Shadow Ball, Sludge Bomb, Hypnosis, Destiny Bond), GYARADOS (Waterfall, Dragon Dance, Ice Fang, Earthquake), SCIZOR (Bullet Punch, X-Scissor, Swords Dance, Roost), TYRANITAR (Stone Edge, Crunch, Earthquake, Fire Blast), TOGEKISS (Air Slash, Aura Sphere, Thunder Wave, Roost), INFERNAPE (Close Combat, Fire Punch, Mach Punch, U-turn; Flare Blitz is Lv 57), checked against learnsets, items: 2 HYPER POTION).
 - [ ] Active battle per player in Redis (`player:<id>:battle`); `BattleChoice` handling (turn check, item ownership; a bag item is spent in PostgreSQL once `mic-battles` confirms the turn, before the turn is shown); retries to `mic-battles` with the same turn.
 - [ ] Outcome transaction keyed by battle ID: party HP/PP/status/exp/level/stats, money won or lost (FireRed's whiteout amount), `battle_outcomes` row. Whiteout: healed party, back in the room.
 - [ ] The snapshot's `battle` for resume; the zone blocks moves and interactions while in battle.
@@ -239,7 +241,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 ### M10 Gen 4 Move Animations (355-467) ⬜
 
 - [ ] The expansion's behaviors for Gen 4 moves (from `src/battle_anim_new.c` and related, behavior only), plus their art and any sounds FireRed lacks (render from the expansion's sound or map them to the closest FireRed one; record which).
-- [ ] The test teams' Gen 4 moves first: Air Slash, Dragon Pulse, Roost, Stealth Rock, Aura Sphere, Close Combat, Bullet Punch, X-Scissor, Stone Edge, Ice Fang, Flare Blitz, U-turn.
+- [ ] The test teams' Gen 4 moves first: Air Slash, Dragon Pulse, Roost, Stealth Rock, Aura Sphere, Close Combat, Bullet Punch, X-Scissor, Stone Edge, Ice Fang, U-turn.
 - **Done when:** moves 355-467 animate in Gen 3 style.
 
 ### M11 Experience, Level Up, Moves and Evolution ⬜
@@ -295,3 +297,4 @@ Manual, only when the user asks: start a battle on desktop and mobile; play to w
 |---|---|---|---|---|
 | 2026-11-01 | Plan | This plan; battles moved into Phase 4 | M0, then M1 | |
 | 2026-11-01 | M0 + M1 | Showdown reference; move, ability, nature, stats catalogs; species battle facts and learnsets; TM moves in the item catalog; `ids.ts`; move/ability/nature text; back pics, shiny palettes, battle coords | M2 (Pokémon in `mic-core`), M3 can follow | `@pkmn/sim` isn't in the host's `node_modules` (mic-battles installs it in Docker); TM CASE now shows Gen 4 move data; nothing committed |
+| 2026-11-01 | M2 | Party in `mic-core` (stats, growth, personality, store, test team), `party/v1` contracts, SWITCH and held items, snapshot party, POKéMON in the START menu | M3 (party screen and summary) | Party contracts moved to `party.v1` (D16); Lucario's Extreme Speed → Bullet Punch, the M6 Infernape's Flare Blitz → Fire Punch (both illegal at Lv 50); with the test team, USE of party items and GIVE now answer PARTY_MENU and the client goes back to the list until M3; nothing run in the game |

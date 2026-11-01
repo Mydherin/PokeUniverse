@@ -81,3 +81,29 @@ type TrainerPcItem struct {
 	Item      int16
 	Quantity  int16
 }
+
+type TrainerPokemon struct {
+	AccountID   int64
+	Slot        int16
+	Species     int16
+	Nickname    string
+	Level       int16
+	Exp         int32
+	Personality int64
+	Ivs         []int16
+	Evs         []int16
+	AbilitySlot int16
+	HeldItem    int16
+	Moves       []int16
+	Pp          []int16
+	PpUps       []int16
+	Hp          int16
+	Status      int16
+	Friendship  int16
+	Ball        int16
+	OtName      string
+	OtID        int64
+	OtGender    string
+	MetLevel    int16
+	MetMap      string
+}

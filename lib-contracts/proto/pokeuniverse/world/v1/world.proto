@@ -7,6 +7,7 @@ package pokeuniverse.world.v1;
 
 import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/map/v1/map.proto";
+import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/pokedex/v1/pokedex.proto";
 import "pokeuniverse/trainer/v1/trainer.proto";
 
@@ -65,6 +66,8 @@ message WorldSnapshot {
   pokeuniverse.item.v1.Bag bag = 5;
   // The trainer's Pokédex.
   pokeuniverse.pokedex.v1.Pokedex pokedex = 6;
+  // The trainer's Pokémon.
+  pokeuniverse.party.v1.Party party = 7;
 }
 
 message Avatar {

@@ -60,10 +60,20 @@ const (
 	ItemOutcome_ITEM_OUTCOME_WITHDRAWN ItemOutcome = 16
 	// Stored in the PC from the bag: "Deposited <n> <item>(s)."
 	ItemOutcome_ITEM_OUTCOME_DEPOSITED ItemOutcome = 17
-	// Nothing withdrawn: "There is no more room in the BAG."
+	// Nothing withdrawn (or, for a party Pokémon, taken or switched): the BAG has no room.
 	ItemOutcome_ITEM_OUTCOME_BAG_FULL ItemOutcome = 18
 	// Nothing deposited: "There's no room to store items."
 	ItemOutcome_ITEM_OUTCOME_PC_FULL ItemOutcome = 19
+	// A party Pokémon holds the item now: "<MON> was given the <ITEM> to hold."
+	ItemOutcome_ITEM_OUTCOME_GIVEN ItemOutcome = 20
+	// A party Pokémon's held item was switched for this one, back into the bag.
+	ItemOutcome_ITEM_OUTCOME_SWAPPED ItemOutcome = 21
+	// A party Pokémon's held item is in the bag now: "Received the <ITEM> from <MON>."
+	ItemOutcome_ITEM_OUTCOME_TAKEN ItemOutcome = 22
+	// TAKE from a Pokémon holding nothing.
+	ItemOutcome_ITEM_OUTCOME_NOT_HOLDING ItemOutcome = 23
+	// GIVE to a Pokémon holding MAIL: it must be removed first.
+	ItemOutcome_ITEM_OUTCOME_REMOVE_MAIL ItemOutcome = 24
 )
 
 // Enum value maps for ItemOutcome.
@@ -89,6 +99,11 @@ var (
 		17: "ITEM_OUTCOME_DEPOSITED",
 		18: "ITEM_OUTCOME_BAG_FULL",
 		19: "ITEM_OUTCOME_PC_FULL",
+		20: "ITEM_OUTCOME_GIVEN",
+		21: "ITEM_OUTCOME_SWAPPED",
+		22: "ITEM_OUTCOME_TAKEN",
+		23: "ITEM_OUTCOME_NOT_HOLDING",
+		24: "ITEM_OUTCOME_REMOVE_MAIL",
 	}
 	ItemOutcome_value = map[string]int32{
 		"ITEM_OUTCOME_UNSPECIFIED":   0,
@@ -111,6 +126,11 @@ var (
 		"ITEM_OUTCOME_DEPOSITED":     17,
 		"ITEM_OUTCOME_BAG_FULL":      18,
 		"ITEM_OUTCOME_PC_FULL":       19,
+		"ITEM_OUTCOME_GIVEN":         20,
+		"ITEM_OUTCOME_SWAPPED":       21,
+		"ITEM_OUTCOME_TAKEN":         22,
+		"ITEM_OUTCOME_NOT_HOLDING":   23,
+		"ITEM_OUTCOME_REMOVE_MAIL":   24,
 	}
 )
 
@@ -631,7 +651,8 @@ type ItemResult struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	Outcome ItemOutcome            `protobuf:"varint,1,opt,name=outcome,proto3,enum=pokeuniverse.item.v1.ItemOutcome" json:"outcome,omitempty"`
 	Item    Item                   `protobuf:"varint,2,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
-	// TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount.
+	// TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount; SWAPPED:
+	// the item taken back (`item` is the one given).
 	Value         uint32 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -729,7 +750,7 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"ItemResult\x12;\n" +
 	"\aoutcome\x18\x01 \x01(\x0e2!.pokeuniverse.item.v1.ItemOutcomeR\aoutcome\x12.\n" +
 	"\x04item\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x14\n" +
-	"\x05value\x18\x03 \x01(\rR\x05value*\xbd\x04\n" +
+	"\x05value\x18\x03 \x01(\rR\x05value*\xc3\x05\n" +
 	"\vItemOutcome\x12\x1c\n" +
 	"\x18ITEM_OUTCOME_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ITEM_OUTCOME_NOT_NOW\x10\x01\x12\x1b\n" +
@@ -751,7 +772,12 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"\x16ITEM_OUTCOME_WITHDRAWN\x10\x10\x12\x1a\n" +
 	"\x16ITEM_OUTCOME_DEPOSITED\x10\x11\x12\x19\n" +
 	"\x15ITEM_OUTCOME_BAG_FULL\x10\x12\x12\x18\n" +
-	"\x14ITEM_OUTCOME_PC_FULL\x10\x13B?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
+	"\x14ITEM_OUTCOME_PC_FULL\x10\x13\x12\x16\n" +
+	"\x12ITEM_OUTCOME_GIVEN\x10\x14\x12\x18\n" +
+	"\x14ITEM_OUTCOME_SWAPPED\x10\x15\x12\x16\n" +
+	"\x12ITEM_OUTCOME_TAKEN\x10\x16\x12\x1c\n" +
+	"\x18ITEM_OUTCOME_NOT_HOLDING\x10\x17\x12\x1c\n" +
+	"\x18ITEM_OUTCOME_REMOVE_MAIL\x10\x18B?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
 
 var (
 	file_pokeuniverse_item_v1_bag_proto_rawDescOnce sync.Once

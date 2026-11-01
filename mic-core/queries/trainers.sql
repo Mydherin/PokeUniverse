@@ -56,3 +56,11 @@ WHERE account_id = $1 AND created_at = $7;
 UPDATE trainers
 SET text_speed = $2, battle_scene = $3, battle_style = $4, sound = $5, button_mode = $6, frame = $7
 WHERE account_id = $1;
+
+-- name: LockTrainerSave :one
+-- Inside a transaction: the trainer's row locked, only while it's still the save `created_at`
+-- (no rows: a New Game replaced it). Changes that touch no other trainer column check with it.
+SELECT account_id
+FROM trainers
+WHERE account_id = $1 AND created_at = $2
+FOR UPDATE;
