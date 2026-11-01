@@ -1,0 +1,627 @@
+syntax = "proto3";
+
+// The move catalog: every move up to Gen 4, by its number in the games, with the rules mic-core,
+// mic-battles and the client read. Converted once by infra/battle/catalog.mjs from Showdown's Gen 4
+// data (@pkmn/sim) with FireRed's constant names for 1-354 and pokeemerald-expansion's for 355-467;
+// this file is the source now. Names, descriptions and animations belong to each art style
+// (tech-stack.md#decoupled-presentation); the FireRed one reads them by number at build time.
+package pokeuniverse.move.v1;
+
+import "google/protobuf/descriptor.proto";
+import "pokeuniverse/species/v1/catalog.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1;movev1";
+
+// Gen 4's split: each move is physical or special by itself, not by its type.
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  CATEGORY_PHYSICAL = 1;
+  CATEGORY_SPECIAL = 2;
+  CATEGORY_STATUS = 3;
+}
+
+// Who a move can hit.
+enum Target {
+  TARGET_UNSPECIFIED = 0;
+  // One adjacent Pokémon the user picks.
+  TARGET_NORMAL = 1;
+  // The user.
+  TARGET_SELF = 2;
+  // An adjacent ally.
+  TARGET_ADJACENT_ALLY = 3;
+  // The user or an adjacent ally.
+  TARGET_ADJACENT_ALLY_OR_SELF = 4;
+  // One adjacent foe the user picks.
+  TARGET_ADJACENT_FOE = 5;
+  // Every adjacent Pokémon, allies included.
+  TARGET_ALL_ADJACENT = 6;
+  // Every adjacent foe.
+  TARGET_ALL_ADJACENT_FOES = 7;
+  // The user and its allies.
+  TARGET_ALLIES = 8;
+  // The user's side of the field.
+  TARGET_ALLY_SIDE = 9;
+  // The user's whole party.
+  TARGET_ALLY_TEAM = 10;
+  // Any other Pokémon, even far away.
+  TARGET_ANY = 11;
+  // The foes' side of the field.
+  TARGET_FOE_SIDE = 12;
+  // A random adjacent foe.
+  TARGET_RANDOM_NORMAL = 13;
+  // Decided by the move (e.g. Counter: whoever last hit the user).
+  TARGET_SCRIPTED = 14;
+  // The whole field.
+  TARGET_ALL = 15;
+}
+
+enum MoveFlag {
+  MOVE_FLAG_UNSPECIFIED = 0;
+  // Animated against an ally.
+  MOVE_FLAG_ALLYANIM = 1;
+  // Biting (Strong Jaw).
+  MOVE_FLAG_BITE = 2;
+  // Ball or bomb (Bulletproof).
+  MOVE_FLAG_BULLET = 3;
+  // Hits through a Substitute.
+  MOVE_FLAG_BYPASSSUB = 4;
+  // Charges on the first turn.
+  MOVE_FLAG_CHARGE = 5;
+  // Makes contact (Rough Skin, Static, …).
+  MOVE_FLAG_CONTACT = 6;
+  // A dance (Dancer).
+  MOVE_FLAG_DANCE = 7;
+  // Thaws the user out.
+  MOVE_FLAG_DEFROST = 8;
+  // Reaches any Pokémon in triple battles.
+  MOVE_FLAG_DISTANCE = 9;
+  // Can't be called by Copycat.
+  MOVE_FLAG_FAILCOPYCAT = 10;
+  // Encore fails on it.
+  MOVE_FLAG_FAILENCORE = 11;
+  // Fails with Instruct.
+  MOVE_FLAG_FAILINSTRUCT = 12;
+  // Fails with Me First.
+  MOVE_FLAG_FAILMEFIRST = 13;
+  // Can't be copied by Mimic.
+  MOVE_FLAG_FAILMIMIC = 14;
+  // Hits a few turns later.
+  MOVE_FLAG_FUTUREMOVE = 15;
+  // Can't be used under Gravity.
+  MOVE_FLAG_GRAVITY = 16;
+  // Heals (blocked by Heal Block).
+  MOVE_FLAG_HEAL = 17;
+  // Can be called by Metronome.
+  MOVE_FLAG_METRONOME = 18;
+  // Double damage against a Minimized target (Stomp).
+  MOVE_FLAG_MINIMIZE = 19;
+  // Can be copied by Mirror Move.
+  MOVE_FLAG_MIRROR = 20;
+  // Pressure takes PP even when it doesn't target the holder.
+  MOVE_FLAG_MUSTPRESSURE = 21;
+  // Can't be called by Assist.
+  MOVE_FLAG_NOASSIST = 22;
+  // Fails in Sky Battles.
+  MOVE_FLAG_NONSKY = 23;
+  // Hits once with Parental Bond.
+  MOVE_FLAG_NOPARENTALBOND = 24;
+  // Can't be copied by Sketch.
+  MOVE_FLAG_NOSKETCH = 25;
+  // Can't be called by Sleep Talk.
+  MOVE_FLAG_NOSLEEPTALK = 26;
+  // Powder (Grass types are immune since Gen 6).
+  MOVE_FLAG_POWDER = 27;
+  // Blocked by Protect and Detect.
+  MOVE_FLAG_PROTECT = 28;
+  // A pulse (Mega Launcher).
+  MOVE_FLAG_PULSE = 29;
+  // Punching (Iron Fist).
+  MOVE_FLAG_PUNCH = 30;
+  // The user must recharge next turn.
+  MOVE_FLAG_RECHARGE = 31;
+  // Bounced back by Magic Coat.
+  MOVE_FLAG_REFLECTABLE = 32;
+  // Slicing (Sharpness).
+  MOVE_FLAG_SLICING = 33;
+  // Stolen by Snatch.
+  MOVE_FLAG_SNATCH = 34;
+  // Sound-based (Soundproof).
+  MOVE_FLAG_SOUND = 35;
+  // Wind (Wind Rider).
+  MOVE_FLAG_WIND = 36;
+}
+
+// A move's rules, set on each Move value.
+message MoveInfo {
+  pokeuniverse.species.v1.Type type = 1;
+  Category category = 2;
+  // 0 for status moves and moves whose power varies (Low Kick, Return, …).
+  uint32 power = 3;
+  // Percent; 0 never misses.
+  uint32 accuracy = 4;
+  uint32 pp = 5;
+  // -7 to +5: higher moves first.
+  int32 priority = 6;
+  Target target = 7;
+  repeated MoveFlag flags = 8;
+  // Percent chance of the secondary effect (Flamethrower's burn: 10); 0 when it has none or always.
+  uint32 effect_chance = 9;
+  // Extra critical-hit stages (Slash: 1).
+  uint32 crit_stage = 10;
+}
+
+extend google.protobuf.EnumValueOptions {
+  MoveInfo info = 50002;
+}
+
+// Every move up to Gen 4, numbered as in the games.
+enum Move {
+  MOVE_UNSPECIFIED = 0;
+  MOVE_POUND = 1 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_KARATE_CHOP = 2 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 50, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_DOUBLE_SLAP = 3 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 15, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_COMET_PUNCH = 4 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 18, accuracy: 85, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_MEGA_PUNCH = 5 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 80, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_PAY_DAY = 6 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FIRE_PUNCH = 7 [(info) = {type: TYPE_FIRE, category: CATEGORY_PHYSICAL, power: 75, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH], effect_chance: 10}];
+  MOVE_ICE_PUNCH = 8 [(info) = {type: TYPE_ICE, category: CATEGORY_PHYSICAL, power: 75, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH], effect_chance: 10}];
+  MOVE_THUNDER_PUNCH = 9 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_PHYSICAL, power: 75, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH], effect_chance: 10}];
+  MOVE_SCRATCH = 10 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_VICE_GRIP = 11 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 55, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_GUILLOTINE = 12 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 30, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_RAZOR_WIND = 13 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 10, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_SWORDS_DANCE = 14 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_DANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_CUT = 15 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 50, accuracy: 95, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING]}];
+  MOVE_GUST = 16 [(info) = {type: TYPE_FLYING, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 35, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_WIND]}];
+  MOVE_WING_ATTACK = 17 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 35, target: TARGET_ANY, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_WHIRLWIND = 18 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, priority: -6, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FLY = 19 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 90, accuracy: 95, pp: 15, target: TARGET_ANY, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_GRAVITY, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BIND = 20 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 15, accuracy: 75, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SLAM = 21 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 80, accuracy: 75, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_VINE_WHIP = 22 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 35, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_STOMP = 23 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 65, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MINIMIZE, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_DOUBLE_KICK = 24 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 30, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MEGA_KICK = 25 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 120, accuracy: 75, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_JUMP_KICK = 26 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 85, accuracy: 95, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_GRAVITY, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ROLLING_KICK = 27 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 85, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_SAND_ATTACK = 28 [(info) = {type: TYPE_GROUND, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_HEADBUTT = 29 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_HORN_ATTACK = 30 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 65, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FURY_ATTACK = 31 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 15, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_HORN_DRILL = 32 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 30, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TACKLE = 33 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 35, accuracy: 95, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BODY_SLAM = 34 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 85, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_WRAP = 35 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 15, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TAKE_DOWN = 36 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 90, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_THRASH = 37 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 90, accuracy: 100, pp: 20, target: TARGET_RANDOM_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DOUBLE_EDGE = 38 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TAIL_WHIP = 39 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 30, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_POISON_STING = 40 [(info) = {type: TYPE_POISON, category: CATEGORY_PHYSICAL, power: 15, accuracy: 100, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_TWINEEDLE = 41 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 25, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_PIN_MISSILE = 42 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 14, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LEER = 43 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 30, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_BITE = 44 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_GROWL = 45 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 40, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE, MOVE_FLAG_SOUND]}];
+  MOVE_ROAR = 46 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, priority: -6, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SOUND]}];
+  MOVE_SING = 47 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 55, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE, MOVE_FLAG_SOUND]}];
+  MOVE_SUPERSONIC = 48 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 55, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE, MOVE_FLAG_SOUND]}];
+  MOVE_SONIC_BOOM = 49 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, accuracy: 90, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DISABLE = 50 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 80, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ACID = 51 [(info) = {type: TYPE_POISON, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 30, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_EMBER = 52 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_FLAMETHROWER = 53 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 95, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_MIST = 54 [(info) = {type: TYPE_ICE, category: CATEGORY_STATUS, pp: 30, target: TARGET_ALLY_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_WATER_GUN = 55 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_HYDRO_PUMP = 56 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 120, accuracy: 80, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SURF = 57 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 95, accuracy: 100, pp: 15, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_ICE_BEAM = 58 [(info) = {type: TYPE_ICE, category: CATEGORY_SPECIAL, power: 95, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_BLIZZARD = 59 [(info) = {type: TYPE_ICE, category: CATEGORY_SPECIAL, power: 120, accuracy: 70, pp: 5, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_WIND], effect_chance: 10}];
+  MOVE_PSYBEAM = 60 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 65, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_BUBBLE_BEAM = 61 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 65, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_AURORA_BEAM = 62 [(info) = {type: TYPE_ICE, category: CATEGORY_SPECIAL, power: 65, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_HYPER_BEAM = 63 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_PECK = 64 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 35, accuracy: 100, pp: 35, target: TARGET_ANY, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DRILL_PECK = 65 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SUBMISSION = 66 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 80, accuracy: 80, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LOW_KICK = 67 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_COUNTER = 68 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 20, priority: -5, target: TARGET_SCRIPTED, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_SEISMIC_TOSS = 69 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_STRENGTH = 70 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ABSORB = 71 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 20, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MEGA_DRAIN = 72 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LEECH_SEED = 73 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_GROWTH = 74 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_RAZOR_LEAF = 75 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 55, accuracy: 95, pp: 25, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], crit_stage: 1}];
+  MOVE_SOLAR_BEAM = 76 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 120, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT]}];
+  MOVE_POISON_POWDER = 77 [(info) = {type: TYPE_POISON, category: CATEGORY_STATUS, accuracy: 75, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_POWDER, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_STUN_SPORE = 78 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 75, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_POWDER, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_SLEEP_POWDER = 79 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 75, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_POWDER, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_PETAL_DANCE = 80 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 20, target: TARGET_RANDOM_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DANCE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_STRING_SHOT = 81 [(info) = {type: TYPE_BUG, category: CATEGORY_STATUS, accuracy: 95, pp: 40, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_DRAGON_RAGE = 82 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FIRE_SPIN = 83 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 15, accuracy: 70, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_THUNDER_SHOCK = 84 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_THUNDERBOLT = 85 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 95, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_THUNDER_WAVE = 86 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_THUNDER = 87 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 120, accuracy: 70, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_ROCK_THROW = 88 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 50, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_EARTHQUAKE = 89 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, power: 100, accuracy: 100, pp: 10, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_FISSURE = 90 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, accuracy: 30, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_DIG = 91 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT]}];
+  MOVE_TOXIC = 92 [(info) = {type: TYPE_POISON, category: CATEGORY_STATUS, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_CONFUSION = 93 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 50, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_PSYCHIC = 94 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_HYPNOSIS = 95 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, accuracy: 60, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_MEDITATE = 96 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_AGILITY = 97 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_QUICK_ATTACK = 98 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 30, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_RAGE = 99 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 20, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TELEPORT = 100 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_NIGHT_SHADE = 101 [(info) = {type: TYPE_GHOST, category: CATEGORY_SPECIAL, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MIMIC = 102 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILENCORE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_FAILMIMIC, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_SCREECH = 103 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 85, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE, MOVE_FLAG_SOUND]}];
+  MOVE_DOUBLE_TEAM = 104 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 15, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_RECOVER = 105 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HARDEN = 106 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_MINIMIZE = 107 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_SMOKESCREEN = 108 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_CONFUSE_RAY = 109 [(info) = {type: TYPE_GHOST, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_WITHDRAW = 110 [(info) = {type: TYPE_WATER, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_DEFENSE_CURL = 111 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_BARRIER = 112 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_LIGHT_SCREEN = 113 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 30, target: TARGET_ALLY_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HAZE = 114 [(info) = {type: TYPE_ICE, category: CATEGORY_STATUS, pp: 30, target: TARGET_ALL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME]}];
+  MOVE_REFLECT = 115 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 20, target: TARGET_ALLY_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_FOCUS_ENERGY = 116 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_BIDE = 117 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, pp: 10, priority: 1, target: TARGET_SELF, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT]}];
+  MOVE_METRONOME = 118 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMIMIC, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK]}];
+  MOVE_MIRROR_MOVE = 119 [(info) = {type: TYPE_FLYING, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILENCORE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK]}];
+  MOVE_SELF_DESTRUCT = 120 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 200, accuracy: 100, pp: 5, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOPARENTALBOND, MOVE_FLAG_PROTECT]}];
+  MOVE_EGG_BOMB = 121 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 100, accuracy: 75, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LICK = 122 [(info) = {type: TYPE_GHOST, category: CATEGORY_PHYSICAL, power: 20, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_SMOG = 123 [(info) = {type: TYPE_POISON, category: CATEGORY_SPECIAL, power: 20, accuracy: 70, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 40}];
+  MOVE_SLUDGE = 124 [(info) = {type: TYPE_POISON, category: CATEGORY_SPECIAL, power: 65, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_BONE_CLUB = 125 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, power: 65, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_FIRE_BLAST = 126 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 120, accuracy: 85, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_WATERFALL = 127 [(info) = {type: TYPE_WATER, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_CLAMP = 128 [(info) = {type: TYPE_WATER, category: CATEGORY_PHYSICAL, power: 35, accuracy: 75, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SWIFT = 129 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 60, pp: 20, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SKULL_BASH = 130 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 100, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_CONTACT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT]}];
+  MOVE_SPIKE_CANNON = 131 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 20, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_CONSTRICT = 132 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 10, accuracy: 100, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_AMNESIA = 133 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_KINESIS = 134 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, accuracy: 80, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_SOFT_BOILED = 135 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HI_JUMP_KICK = 136 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 100, accuracy: 90, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_GRAVITY, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_GLARE = 137 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 75, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_DREAM_EATER = 138 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 100, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_POISON_GAS = 139 [(info) = {type: TYPE_POISON, category: CATEGORY_STATUS, accuracy: 55, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_BARRAGE = 140 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 15, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LEECH_LIFE = 141 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 20, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LOVELY_KISS = 142 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 75, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_SKY_ATTACK = 143 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 140, accuracy: 90, pp: 5, target: TARGET_ANY, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_DISTANCE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT], effect_chance: 30, crit_stage: 1}];
+  MOVE_TRANSFORM = 144 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILENCORE, MOVE_FLAG_METRONOME]}];
+  MOVE_BUBBLE = 145 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 20, accuracy: 100, pp: 30, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_DIZZY_PUNCH = 146 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH], effect_chance: 20}];
+  MOVE_SPORE = 147 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_POWDER, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_FLASH = 148 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_PSYWAVE = 149 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, accuracy: 80, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SPLASH = 150 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_GRAVITY, MOVE_FLAG_METRONOME]}];
+  MOVE_ACID_ARMOR = 151 [(info) = {type: TYPE_POISON, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_CRABHAMMER = 152 [(info) = {type: TYPE_WATER, category: CATEGORY_PHYSICAL, power: 90, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_EXPLOSION = 153 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 250, accuracy: 100, pp: 5, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOPARENTALBOND, MOVE_FLAG_PROTECT]}];
+  MOVE_FURY_SWIPES = 154 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 18, accuracy: 80, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BONEMERANG = 155 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, power: 50, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_REST = 156 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_ROCK_SLIDE = 157 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 75, accuracy: 90, pp: 10, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_HYPER_FANG = 158 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 80, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SHARPEN = 159 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_CONVERSION = 160 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_TRI_ATTACK = 161 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_SUPER_FANG = 162 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SLASH = 163 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], crit_stage: 1}];
+  MOVE_SUBSTITUTE = 164 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_NONSKY, MOVE_FLAG_SNATCH]}];
+  MOVE_STRUGGLE = 165 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 50, pp: 1, target: TARGET_RANDOM_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILENCORE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_FAILMIMIC, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSKETCH, MOVE_FLAG_PROTECT]}];
+  MOVE_SKETCH = 166 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILENCORE, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_FAILMIMIC, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSKETCH]}];
+  MOVE_TRIPLE_KICK = 167 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 10, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_THIEF = 168 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_MIRROR, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_SPIDER_WEB = 169 [(info) = {type: TYPE_BUG, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_MIND_READER = 170 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_NIGHTMARE = 171 [(info) = {type: TYPE_GHOST, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FLAME_WHEEL = 172 [(info) = {type: TYPE_FIRE, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DEFROST, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SNORE = 173 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SOUND], effect_chance: 30}];
+  MOVE_CURSE = 174 [(info) = {type: TYPE_MYSTERY, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_FLAIL = 175 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_CONVERSION_2 = 176 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME]}];
+  MOVE_AEROBLAST = 177 [(info) = {type: TYPE_FLYING, category: CATEGORY_SPECIAL, power: 100, accuracy: 95, pp: 5, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_WIND], crit_stage: 1}];
+  MOVE_COTTON_SPORE = 178 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 85, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_POWDER, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_REVERSAL = 179 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SPITE = 180 [(info) = {type: TYPE_GHOST, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_POWDER_SNOW = 181 [(info) = {type: TYPE_ICE, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 25, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_PROTECT = 182 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, priority: 3, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_MACH_PUNCH = 183 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 30, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_SCARY_FACE = 184 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_FAINT_ATTACK = 185 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 60, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SWEET_KISS = 186 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 75, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_BELLY_DRUM = 187 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_SLUDGE_BOMB = 188 [(info) = {type: TYPE_POISON, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_MUD_SLAP = 189 [(info) = {type: TYPE_GROUND, category: CATEGORY_SPECIAL, power: 20, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 100}];
+  MOVE_OCTAZOOKA = 190 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 65, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 50}];
+  MOVE_SPIKES = 191 [(info) = {type: TYPE_GROUND, category: CATEGORY_STATUS, pp: 20, target: TARGET_FOE_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MUSTPRESSURE]}];
+  MOVE_ZAP_CANNON = 192 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 120, accuracy: 50, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 100}];
+  MOVE_FORESIGHT = 193 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DESTINY_BOND = 194 [(info) = {type: TYPE_GHOST, category: CATEGORY_STATUS, pp: 5, target: TARGET_SELF, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_PERISH_SONG = 195 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_ALL, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_SOUND]}];
+  MOVE_ICY_WIND = 196 [(info) = {type: TYPE_ICE, category: CATEGORY_SPECIAL, power: 55, accuracy: 95, pp: 15, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_WIND], effect_chance: 100}];
+  MOVE_DETECT = 197 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_STATUS, pp: 5, priority: 3, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_BONE_RUSH = 198 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, power: 25, accuracy: 80, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LOCK_ON = 199 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_OUTRAGE = 200 [(info) = {type: TYPE_DRAGON, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 15, target: TARGET_RANDOM_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SANDSTORM = 201 [(info) = {type: TYPE_ROCK, category: CATEGORY_STATUS, pp: 10, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_WIND]}];
+  MOVE_GIGA_DRAIN = 202 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ENDURE = 203 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, priority: 4, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_CHARM = 204 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_ROLLOUT = 205 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 30, accuracy: 90, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOPARENTALBOND, MOVE_FLAG_PROTECT]}];
+  MOVE_FALSE_SWIPE = 206 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SWAGGER = 207 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_MILK_DRINK = 208 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_SPARK = 209 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_PHYSICAL, power: 65, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_FURY_CUTTER = 210 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 10, accuracy: 95, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING]}];
+  MOVE_STEEL_WING = 211 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 70, accuracy: 90, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_MEAN_LOOK = 212 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_ATTRACT = 213 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_SLEEP_TALK = 214 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK]}];
+  MOVE_HEAL_BELL = 215 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_ALLY_TEAM, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH, MOVE_FLAG_SOUND]}];
+  MOVE_RETURN = 216 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_PRESENT = 217 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FRUSTRATION = 218 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SAFEGUARD = 219 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 25, target: TARGET_ALLY_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_PAIN_SPLIT = 220 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SACRED_FIRE = 221 [(info) = {type: TYPE_FIRE, category: CATEGORY_PHYSICAL, power: 100, accuracy: 95, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_DEFROST, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 50}];
+  MOVE_MAGNITUDE = 222 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 30, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_DYNAMIC_PUNCH = 223 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 100, accuracy: 50, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH], effect_chance: 100}];
+  MOVE_MEGAHORN = 224 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 120, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DRAGON_BREATH = 225 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_BATON_PASS = 226 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_ENCORE = 227 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILENCORE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_PURSUIT = 228 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_RAPID_SPIN = 229 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 20, accuracy: 100, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SWEET_SCENT = 230 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_IRON_TAIL = 231 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 100, accuracy: 75, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_METAL_CLAW = 232 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 50, accuracy: 95, pp: 35, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_VITAL_THROW = 233 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 70, pp: 10, priority: -1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MORNING_SUN = 234 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_SYNTHESIS = 235 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, pp: 5, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_MOONLIGHT = 236 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HIDDEN_POWER = 237 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_CROSS_CHOP = 238 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 100, accuracy: 80, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_TWISTER = 239 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 20, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_WIND], effect_chance: 20}];
+  MOVE_RAIN_DANCE = 240 [(info) = {type: TYPE_WATER, category: CATEGORY_STATUS, pp: 5, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_SUNNY_DAY = 241 [(info) = {type: TYPE_FIRE, category: CATEGORY_STATUS, pp: 5, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_CRUNCH = 242 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_MIRROR_COAT = 243 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, accuracy: 100, pp: 20, priority: -5, target: TARGET_SCRIPTED, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_PSYCH_UP = 244 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_EXTREME_SPEED = 245 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 5, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ANCIENT_POWER = 246 [(info) = {type: TYPE_ROCK, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SHADOW_BALL = 247 [(info) = {type: TYPE_GHOST, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_FUTURE_SIGHT = 248 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 80, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_FUTUREMOVE, MOVE_FLAG_METRONOME]}];
+  MOVE_ROCK_SMASH = 249 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 50}];
+  MOVE_WHIRLPOOL = 250 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 15, accuracy: 70, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BEAT_UP = 251 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 10, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FAKE_OUT = 252 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 10, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 100}];
+  MOVE_UPROAR = 253 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 50, accuracy: 100, pp: 10, target: TARGET_RANDOM_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT, MOVE_FLAG_SOUND]}];
+  MOVE_STOCKPILE = 254 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_SPIT_UP = 255 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_PROTECT]}];
+  MOVE_SWALLOW = 256 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HEAT_WAVE = 257 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 100, accuracy: 90, pp: 10, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_WIND], effect_chance: 10}];
+  MOVE_HAIL = 258 [(info) = {type: TYPE_ICE, category: CATEGORY_STATUS, pp: 10, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_TORMENT = 259 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FLATTER = 260 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_WILL_O_WISP = 261 [(info) = {type: TYPE_FIRE, category: CATEGORY_STATUS, accuracy: 75, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_MEMENTO = 262 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FACADE = 263 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FOCUS_PUNCH = 264 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 150, accuracy: 100, pp: 20, priority: -3, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_SMELLING_SALT = 265 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FOLLOW_ME = 266 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, priority: 3, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_NATURE_POWER = 267 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_CHARGE = 268 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_TAUNT = 269 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_HELPING_HAND = 270 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, priority: 5, target: TARGET_ADJACENT_ALLY, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_TRICK = 271 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_MIRROR, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_ROLE_PLAY = 272 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME]}];
+  MOVE_WISH = 273 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME]}];
+  MOVE_ASSIST = 274 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK]}];
+  MOVE_INGRAIN = 275 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_NONSKY, MOVE_FLAG_SNATCH]}];
+  MOVE_SUPERPOWER = 276 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MAGIC_COAT = 277 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 15, priority: 4, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_RECYCLE = 278 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_REVENGE = 279 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 10, priority: -4, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BRICK_BREAK = 280 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 75, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_YAWN = 281 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_KNOCK_OFF = 282 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 20, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ENDEAVOR = 283 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOPARENTALBOND, MOVE_FLAG_PROTECT]}];
+  MOVE_ERUPTION = 284 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 150, accuracy: 100, pp: 5, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SKILL_SWAP = 285 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_IMPRISON = 286 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME]}];
+  MOVE_REFRESH = 287 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_GRUDGE = 288 [(info) = {type: TYPE_GHOST, category: CATEGORY_STATUS, pp: 5, target: TARGET_SELF, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME]}];
+  MOVE_SNATCH = 289 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, pp: 10, priority: 4, target: TARGET_SELF, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_SECRET_POWER = 290 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_DIVE = 291 [(info) = {type: TYPE_WATER, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT]}];
+  MOVE_ARM_THRUST = 292 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 15, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_CAMOUFLAGE = 293 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_TAIL_GLOW = 294 [(info) = {type: TYPE_BUG, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_LUSTER_PURGE = 295 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 70, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 50}];
+  MOVE_MIST_BALL = 296 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 70, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 50}];
+  MOVE_FEATHER_DANCE = 297 [(info) = {type: TYPE_FLYING, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_DANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_TEETER_DANCE = 298 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_DANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BLAZE_KICK = 299 [(info) = {type: TYPE_FIRE, category: CATEGORY_PHYSICAL, power: 85, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10, crit_stage: 1}];
+  MOVE_MUD_SPORT = 300 [(info) = {type: TYPE_GROUND, category: CATEGORY_STATUS, pp: 15, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_NONSKY]}];
+  MOVE_ICE_BALL = 301 [(info) = {type: TYPE_ICE, category: CATEGORY_PHYSICAL, power: 30, accuracy: 90, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_CONTACT, MOVE_FLAG_FAILINSTRUCT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOPARENTALBOND, MOVE_FLAG_PROTECT]}];
+  MOVE_NEEDLE_ARM = 302 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_SLACK_OFF = 303 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HYPER_VOICE = 304 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 10, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SOUND]}];
+  MOVE_POISON_FANG = 305 [(info) = {type: TYPE_POISON, category: CATEGORY_PHYSICAL, power: 50, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_CRUSH_CLAW = 306 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 75, accuracy: 95, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 50}];
+  MOVE_BLAST_BURN = 307 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_HYDRO_CANNON = 308 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_METEOR_MASH = 309 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 100, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH], effect_chance: 20}];
+  MOVE_ASTONISH = 310 [(info) = {type: TYPE_GHOST, category: CATEGORY_PHYSICAL, power: 30, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_WEATHER_BALL = 311 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 50, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_AROMATHERAPY = 312 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, pp: 5, target: TARGET_ALLY_TEAM, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_FAKE_TEARS = 313 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_AIR_CUTTER = 314 [(info) = {type: TYPE_FLYING, category: CATEGORY_SPECIAL, power: 55, accuracy: 95, pp: 25, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING, MOVE_FLAG_WIND], crit_stage: 1}];
+  MOVE_OVERHEAT = 315 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 140, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ODOR_SLEUTH = 316 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ROCK_TOMB = 317 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 50, accuracy: 80, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 100}];
+  MOVE_SILVER_WIND = 318 [(info) = {type: TYPE_BUG, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_METAL_SOUND = 319 [(info) = {type: TYPE_STEEL, category: CATEGORY_STATUS, accuracy: 85, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE, MOVE_FLAG_SOUND]}];
+  MOVE_GRASS_WHISTLE = 320 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 55, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE, MOVE_FLAG_SOUND]}];
+  MOVE_TICKLE = 321 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_COSMIC_POWER = 322 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_WATER_SPOUT = 323 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 150, accuracy: 100, pp: 5, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SIGNAL_BEAM = 324 [(info) = {type: TYPE_BUG, category: CATEGORY_SPECIAL, power: 75, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SHADOW_PUNCH = 325 [(info) = {type: TYPE_GHOST, category: CATEGORY_PHYSICAL, power: 60, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_EXTRASENSORY = 326 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SKY_UPPERCUT = 327 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 85, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_SAND_TOMB = 328 [(info) = {type: TYPE_GROUND, category: CATEGORY_PHYSICAL, power: 15, accuracy: 70, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SHEER_COLD = 329 [(info) = {type: TYPE_ICE, category: CATEGORY_SPECIAL, accuracy: 30, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MUDDY_WATER = 330 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 95, accuracy: 85, pp: 10, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_BULLET_SEED = 331 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 10, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_AERIAL_ACE = 332 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 60, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING]}];
+  MOVE_ICICLE_SPEAR = 333 [(info) = {type: TYPE_ICE, category: CATEGORY_PHYSICAL, power: 10, accuracy: 100, pp: 30, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_IRON_DEFENSE = 334 [(info) = {type: TYPE_STEEL, category: CATEGORY_STATUS, pp: 15, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_BLOCK = 335 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_HOWL = 336 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 40, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_DRAGON_CLAW = 337 [(info) = {type: TYPE_DRAGON, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FRENZY_PLANT = 338 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_BULK_UP = 339 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_BOUNCE = 340 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 85, accuracy: 85, pp: 5, target: TARGET_ANY, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_GRAVITY, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_MUD_SHOT = 341 [(info) = {type: TYPE_GROUND, category: CATEGORY_SPECIAL, power: 55, accuracy: 95, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 100}];
+  MOVE_POISON_TAIL = 342 [(info) = {type: TYPE_POISON, category: CATEGORY_PHYSICAL, power: 50, accuracy: 100, pp: 25, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10, crit_stage: 1}];
+  MOVE_COVET = 343 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_MIRROR, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_VOLT_TACKLE = 344 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_MAGICAL_LEAF = 345 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 60, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_WATER_SPORT = 346 [(info) = {type: TYPE_WATER, category: CATEGORY_STATUS, pp: 15, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_NONSKY]}];
+  MOVE_CALM_MIND = 347 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_LEAF_BLADE = 348 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 90, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], crit_stage: 1}];
+  MOVE_DRAGON_DANCE = 349 [(info) = {type: TYPE_DRAGON, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_DANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_ROCK_BLAST = 350 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 25, accuracy: 80, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SHOCK_WAVE = 351 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 60, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_WATER_PULSE = 352 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PULSE], effect_chance: 20}];
+  MOVE_DOOM_DESIRE = 353 [(info) = {type: TYPE_STEEL, category: CATEGORY_SPECIAL, power: 120, accuracy: 85, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_FUTUREMOVE, MOVE_FLAG_METRONOME]}];
+  MOVE_PSYCHO_BOOST = 354 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_SPECIAL, power: 140, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ROOST = 355 [(info) = {type: TYPE_FLYING, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_GRAVITY = 356 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 5, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_NONSKY]}];
+  MOVE_MIRACLE_EYE = 357 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 40, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_WAKE_UP_SLAP = 358 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_HAMMER_ARM = 359 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 100, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_GYRO_BALL = 360 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_HEALING_WISH = 361 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME]}];
+  MOVE_BRINE = 362 [(info) = {type: TYPE_WATER, category: CATEGORY_SPECIAL, power: 65, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_NATURAL_GIFT = 363 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FEINT = 364 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 50, accuracy: 100, pp: 10, priority: 2, target: TARGET_NORMAL, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST]}];
+  MOVE_PLUCK = 365 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TAILWIND = 366 [(info) = {type: TYPE_FLYING, category: CATEGORY_STATUS, pp: 30, target: TARGET_ALLY_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH, MOVE_FLAG_WIND]}];
+  MOVE_ACUPRESSURE = 367 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_ADJACENT_ALLY_OR_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_METAL_BURST = 368 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 10, target: TARGET_SCRIPTED, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_U_TURN = 369 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_CLOSE_COMBAT = 370 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_PAYBACK = 371 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 50, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ASSURANCE = 372 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 50, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_EMBARGO = 373 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FLING = 374 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOPARENTALBOND, MOVE_FLAG_PROTECT]}];
+  MOVE_PSYCHO_SHIFT = 375 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TRUMP_CARD = 376 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_HEAL_BLOCK = 377 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, accuracy: 100, pp: 15, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_WRING_OUT = 378 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_POWER_TRICK = 379 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_GASTRO_ACID = 380 [(info) = {type: TYPE_POISON, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_LUCKY_CHANT = 381 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 30, target: TARGET_ALLY_SIDE, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_ME_FIRST = 382 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_ADJACENT_FOE, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT]}];
+  MOVE_COPYCAT = 383 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSLEEPTALK]}];
+  MOVE_POWER_SWAP = 384 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_GUARD_SWAP = 385 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_PUNISHMENT = 386 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_LAST_RESORT = 387 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 130, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_WORRY_SEED = 388 [(info) = {type: TYPE_GRASS, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_SUCKER_PUNCH = 389 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 5, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TOXIC_SPIKES = 390 [(info) = {type: TYPE_POISON, category: CATEGORY_STATUS, pp: 20, target: TARGET_FOE_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MUSTPRESSURE]}];
+  MOVE_HEART_SWAP = 391 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_AQUA_RING = 392 [(info) = {type: TYPE_WATER, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME]}];
+  MOVE_MAGNET_RISE = 393 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_GRAVITY, MOVE_FLAG_METRONOME]}];
+  MOVE_FLARE_BLITZ = 394 [(info) = {type: TYPE_FIRE, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DEFROST, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_FORCE_PALM = 395 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_AURA_SPHERE = 396 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_SPECIAL, power: 90, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PULSE]}];
+  MOVE_ROCK_POLISH = 397 [(info) = {type: TYPE_ROCK, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_POISON_JAB = 398 [(info) = {type: TYPE_POISON, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_DARK_PULSE = 399 [(info) = {type: TYPE_DARK, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 15, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PULSE], effect_chance: 20}];
+  MOVE_NIGHT_SLASH = 400 [(info) = {type: TYPE_DARK, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], crit_stage: 1}];
+  MOVE_AQUA_TAIL = 401 [(info) = {type: TYPE_WATER, category: CATEGORY_PHYSICAL, power: 90, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SEED_BOMB = 402 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_AIR_SLASH = 403 [(info) = {type: TYPE_FLYING, category: CATEGORY_SPECIAL, power: 75, accuracy: 95, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], effect_chance: 30}];
+  MOVE_X_SCISSOR = 404 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING]}];
+  MOVE_BUG_BUZZ = 405 [(info) = {type: TYPE_BUG, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SOUND], effect_chance: 10}];
+  MOVE_DRAGON_PULSE = 406 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 10, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PULSE]}];
+  MOVE_DRAGON_RUSH = 407 [(info) = {type: TYPE_DRAGON, category: CATEGORY_PHYSICAL, power: 100, accuracy: 75, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_POWER_GEM = 408 [(info) = {type: TYPE_ROCK, category: CATEGORY_SPECIAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DRAIN_PUNCH = 409 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_VACUUM_WAVE = 410 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_SPECIAL, power: 40, accuracy: 100, pp: 30, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_FOCUS_BLAST = 411 [(info) = {type: TYPE_FIGHTING, category: CATEGORY_SPECIAL, power: 120, accuracy: 70, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_ENERGY_BALL = 412 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_BRAVE_BIRD = 413 [(info) = {type: TYPE_FLYING, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 15, target: TARGET_ANY, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_DISTANCE, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_EARTH_POWER = 414 [(info) = {type: TYPE_GROUND, category: CATEGORY_SPECIAL, power: 90, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SWITCHEROO = 415 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_ALLYANIM, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_MIRROR, MOVE_FLAG_NOASSIST, MOVE_FLAG_PROTECT]}];
+  MOVE_GIGA_IMPACT = 416 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_NASTY_PLOT = 417 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, pp: 20, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_BULLET_PUNCH = 418 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 30, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_PUNCH]}];
+  MOVE_AVALANCHE = 419 [(info) = {type: TYPE_ICE, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 10, priority: -4, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ICE_SHARD = 420 [(info) = {type: TYPE_ICE, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 30, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_SHADOW_CLAW = 421 [(info) = {type: TYPE_GHOST, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_THUNDER_FANG = 422 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_PHYSICAL, power: 65, accuracy: 95, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_ICE_FANG = 423 [(info) = {type: TYPE_ICE, category: CATEGORY_PHYSICAL, power: 65, accuracy: 95, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_FIRE_FANG = 424 [(info) = {type: TYPE_FIRE, category: CATEGORY_PHYSICAL, power: 65, accuracy: 95, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BITE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SHADOW_SNEAK = 425 [(info) = {type: TYPE_GHOST, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 30, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MUD_BOMB = 426 [(info) = {type: TYPE_GROUND, category: CATEGORY_SPECIAL, power: 65, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_PSYCHO_CUT = 427 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], crit_stage: 1}];
+  MOVE_ZEN_HEADBUTT = 428 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_PHYSICAL, power: 80, accuracy: 90, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_MIRROR_SHOT = 429 [(info) = {type: TYPE_STEEL, category: CATEGORY_SPECIAL, power: 65, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_FLASH_CANNON = 430 [(info) = {type: TYPE_STEEL, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_ROCK_CLIMB = 431 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 90, accuracy: 85, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 20}];
+  MOVE_DEFOG = 432 [(info) = {type: TYPE_FLYING, category: CATEGORY_STATUS, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_BYPASSSUB, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_TRICK_ROOM = 433 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 5, priority: -7, target: TARGET_ALL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR]}];
+  MOVE_DRACO_METEOR = 434 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, power: 140, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DISCHARGE = 435 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 15, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_LAVA_PLUME = 436 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 80, accuracy: 100, pp: 15, target: TARGET_ALL_ADJACENT, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_LEAF_STORM = 437 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 140, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_POWER_WHIP = 438 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 120, accuracy: 85, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ROCK_WRECKER = 439 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_CROSS_POISON = 440 [(info) = {type: TYPE_POISON, category: CATEGORY_PHYSICAL, power: 70, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_SLICING], effect_chance: 10, crit_stage: 1}];
+  MOVE_GUNK_SHOT = 441 [(info) = {type: TYPE_POISON, category: CATEGORY_PHYSICAL, power: 120, accuracy: 70, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_IRON_HEAD = 442 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 80, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 30}];
+  MOVE_MAGNET_BOMB = 443 [(info) = {type: TYPE_STEEL, category: CATEGORY_PHYSICAL, power: 60, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_BULLET, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_STONE_EDGE = 444 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 100, accuracy: 80, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_CAPTIVATE = 445 [(info) = {type: TYPE_NORMAL, category: CATEGORY_STATUS, accuracy: 100, pp: 20, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_STEALTH_ROCK = 446 [(info) = {type: TYPE_ROCK, category: CATEGORY_STATUS, pp: 20, target: TARGET_FOE_SIDE, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MUSTPRESSURE]}];
+  MOVE_GRASS_KNOT = 447 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NONSKY, MOVE_FLAG_PROTECT]}];
+  MOVE_CHATTER = 448 [(info) = {type: TYPE_FLYING, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 20, target: TARGET_ANY, flags: [MOVE_FLAG_DISTANCE, MOVE_FLAG_FAILCOPYCAT, MOVE_FLAG_FAILMEFIRST, MOVE_FLAG_FAILMIMIC, MOVE_FLAG_NOASSIST, MOVE_FLAG_NOSKETCH, MOVE_FLAG_NOSLEEPTALK, MOVE_FLAG_PROTECT, MOVE_FLAG_SOUND], effect_chance: 31}];
+  MOVE_JUDGMENT = 449 [(info) = {type: TYPE_NORMAL, category: CATEGORY_SPECIAL, power: 100, accuracy: 100, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_BUG_BITE = 450 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 60, accuracy: 100, pp: 20, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_CHARGE_BEAM = 451 [(info) = {type: TYPE_ELECTRIC, category: CATEGORY_SPECIAL, power: 50, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 70}];
+  MOVE_WOOD_HAMMER = 452 [(info) = {type: TYPE_GRASS, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_AQUA_JET = 453 [(info) = {type: TYPE_WATER, category: CATEGORY_PHYSICAL, power: 40, accuracy: 100, pp: 20, priority: 1, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ATTACK_ORDER = 454 [(info) = {type: TYPE_BUG, category: CATEGORY_PHYSICAL, power: 90, accuracy: 100, pp: 15, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_DEFEND_ORDER = 455 [(info) = {type: TYPE_BUG, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HEAL_ORDER = 456 [(info) = {type: TYPE_BUG, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME, MOVE_FLAG_SNATCH]}];
+  MOVE_HEAD_SMASH = 457 [(info) = {type: TYPE_ROCK, category: CATEGORY_PHYSICAL, power: 150, accuracy: 80, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DOUBLE_HIT = 458 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, power: 35, accuracy: 90, pp: 10, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_ROAR_OF_TIME = 459 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, power: 150, accuracy: 90, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_RECHARGE]}];
+  MOVE_SPACIAL_REND = 460 [(info) = {type: TYPE_DRAGON, category: CATEGORY_SPECIAL, power: 100, accuracy: 95, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], crit_stage: 1}];
+  MOVE_LUNAR_DANCE = 461 [(info) = {type: TYPE_PSYCHIC, category: CATEGORY_STATUS, pp: 10, target: TARGET_SELF, flags: [MOVE_FLAG_HEAL, MOVE_FLAG_METRONOME]}];
+  MOVE_CRUSH_GRIP = 462 [(info) = {type: TYPE_NORMAL, category: CATEGORY_PHYSICAL, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_MAGMA_STORM = 463 [(info) = {type: TYPE_FIRE, category: CATEGORY_SPECIAL, power: 120, accuracy: 70, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT]}];
+  MOVE_DARK_VOID = 464 [(info) = {type: TYPE_DARK, category: CATEGORY_STATUS, accuracy: 80, pp: 10, target: TARGET_ALL_ADJACENT_FOES, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT, MOVE_FLAG_REFLECTABLE]}];
+  MOVE_SEED_FLARE = 465 [(info) = {type: TYPE_GRASS, category: CATEGORY_SPECIAL, power: 120, accuracy: 85, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 40}];
+  MOVE_OMINOUS_WIND = 466 [(info) = {type: TYPE_GHOST, category: CATEGORY_SPECIAL, power: 60, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_PROTECT], effect_chance: 10}];
+  MOVE_SHADOW_FORCE = 467 [(info) = {type: TYPE_GHOST, category: CATEGORY_PHYSICAL, power: 120, accuracy: 100, pp: 5, target: TARGET_NORMAL, flags: [MOVE_FLAG_CHARGE, MOVE_FLAG_CONTACT, MOVE_FLAG_METRONOME, MOVE_FLAG_MIRROR, MOVE_FLAG_NOSLEEPTALK]}];
+}

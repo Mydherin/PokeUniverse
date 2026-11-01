@@ -11,6 +11,7 @@ import type { Task } from "../gba/tasks";
 import { decimalText, expandPlaceholders, FontId, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import type { Background } from "../gba/video";
 import { itemInfo, type StoredItems } from "../world/items";
+import { tmMove } from "../world/moves";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { ItemMenuIcons } from "./item-menu-icons";
@@ -261,7 +262,7 @@ class ItemPc {
     const slot = this.slots[id];
     this.icons.showIcon(slot?.item ?? null);
     let text: Text = flow.assets.text("gText_ReturnToPC");
-    if (slot) text = itemInfo(slot.item)?.pocket === Pocket.TM_CASE ? (flow.assets.tmMove(slot.item)?.name ?? [0xff]) : flow.assets.itemDescription(slot.item);
+    if (slot) text = itemInfo(slot.item)?.pocket === Pocket.TM_CASE ? flow.assets.moveName(tmMove(slot.item)) : flow.assets.itemDescription(slot.item);
     this.printDescription(text, Color.Description, 0);
   }
 

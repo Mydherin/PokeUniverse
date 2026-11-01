@@ -5,7 +5,9 @@
 //
 // readSpecies(firered, expansion) -> Map<national number, Species>, where Species is
 // { nat, constant (NATIONAL_DEX_ suffix), name, category, description, types: [t1, t2], height, weight, scale: [pokemonScale,
-//   pokemonOffset, trainerScale, trainerOffset], front, palette, footprint, icon, iconPalette,
+//   pokemonOffset, trainerScale, trainerOffset], front, palette, back, shinyPalette, footprint, icon, iconPalette,
+//   coords: { front: y offset, back: y offset, elevation } (where the battle draws its pictures),
+//   battle: { catchRate, expYield, evYield: [hp, atk, def, spe, spa, spd], growthRate (GROWTH_ name), genderRatio (0-255), friendship },
 //   cry: { firered: number } | { wav: path }, source: "firered" | "expansion" }.
 // Text is plain (FireRed's escapes such as \n kept); paths are relative to their reference.
 
@@ -25,6 +27,34 @@ function nationalNumbers(root) {
   const numbers = new Map();
   for (const m of body.matchAll(/^\s*(NATIONAL_DEX_\w+)\s*,/gm)) if (!numbers.has(m[1])) numbers.set(m[1], numbers.size);
   return numbers;
+}
+
+const EV_FIELDS = ["HP", "Attack", "Defense", "Speed", "SpAttack", "SpDefense"];
+
+/** A numeric field as a Gen 4 game would set it: plain, a conditional on the config, or a macro below. */
+function numberField(block, name, fallback) {
+  const raw = new RegExp(`\\.${name}\\s*=\\s*([^,\\n]+)`).exec(block)?.[1].trim();
+  if (raw === undefined) {
+    if (fallback === undefined) throw new Error(`no .${name}`);
+    return fallback;
+  }
+  const female = /^PERCENT_FEMALE\(([\d.]+)\)$/.exec(raw);
+  if (female) return Math.min(254, Math.floor((Number(female[1]) * 255) / 100));
+  const named = { MON_MALE: 0, MON_FEMALE: 0xfe, MON_GENDERLESS: 0xff, STANDARD_FRIENDSHIP: 70 }[raw];
+  if (named !== undefined) return named;
+  return Number(evalExpression(raw));
+}
+
+/** What the battle needs of a species block (species_info.h in both references). */
+function battleFacts(block) {
+  return {
+    catchRate: numberField(block, "catchRate"),
+    expYield: numberField(block, "expYield"),
+    evYield: EV_FIELDS.map((f) => numberField(block, `evYield_${f}`, 0)),
+    growthRate: /\.growthRate\s*=\s*(GROWTH_\w+)/.exec(block)[1],
+    genderRatio: numberField(block, "genderRatio"),
+    friendship: numberField(block, "friendship"),
+  };
 }
 
 // FireRed
@@ -47,7 +77,13 @@ function readFireRed(src) {
     if (!files.has(m[1])) files.set(m[1], `graphics/${m[2]}.${m[3] === "gbapal" ? "pal" : "png"}`);
   const table = (file, re) => new Map([...read(file).matchAll(re)].map((m) => [`SPECIES_${m[1]}`, m[2]]));
   const fronts = table("src/data/pokemon_graphics/front_pic_table.h", /SPECIES_SPRITE\((\w+),\s*(\w+)\)/g);
+  const backs = table("src/data/pokemon_graphics/back_pic_table.h", /SPECIES_SPRITE\((\w+),\s*(\w+)\)/g);
   const palettes = table("src/data/pokemon_graphics/palette_table.h", /SPECIES_PAL\((\w+),\s*(\w+)\)/g);
+  const shinyPalettes = table("src/data/pokemon_graphics/shiny_palette_table.h", /SPECIES_SHINY_PAL\((\w+),\s*(\w+)\)/g);
+  const yOffsets = (file) => new Map(speciesBlocks(read(file)).map(([k, b]) => [k, Number(/\.y_offset\s*=\s*(\d+)/.exec(b)[1])]));
+  const frontY = yOffsets("src/data/pokemon_graphics/front_pic_coordinates.h");
+  const backY = yOffsets("src/data/pokemon_graphics/back_pic_coordinates.h");
+  const elevation = new Map([...read("src/data/pokemon_graphics/enemy_mon_elevation.h").matchAll(/\[(SPECIES_\w+)\]\s*=\s*(\d+)/g)].map((m) => [m[1], Number(m[2])]));
   const footprints = table("src/data/pokemon_graphics/footprint_table.h", /\[SPECIES_(\w+)\]\s*=\s*(\w+)/g);
   const icon = read("src/pokemon_icon.c");
   const icons = table("src/pokemon_icon.c", /\[SPECIES_(\w+)\]\s*=\s*(gMonIcon_\w+)/g);
@@ -84,6 +120,10 @@ function readFireRed(src) {
       scale: ["pokemonScale", "pokemonOffset", "trainerScale", "trainerOffset"].map((f) => Number(field(entry, f))),
       front: formDir(path(fronts, "front pic")),
       palette: formDir(path(palettes, "palette")),
+      back: formDir(path(backs, "back pic")),
+      shinyPalette: formDir(path(shinyPalettes, "shiny palette")),
+      coords: { front: frontY.get(key), back: backY.get(key), elevation: elevation.get(key) ?? 0 },
+      battle: battleFacts(si),
       footprint: path(footprints, "footprint"),
       icon: path(icons, "icon"),
       iconPalette: `graphics/pokemon/icon_palettes/icon_palette_${iconPals.get(key)}.pal`,
@@ -107,12 +147,17 @@ function configValue(name) {
 }
 
 function evalCondition(expr) {
+  return Boolean(evalExpression(expr));
+}
+
+/** A C constant expression with the config's values (configValue): numbers, comparisons, ?: and logic. */
+export function evalExpression(expr) {
   const js = expr
     .replace(/defined\s*\(?\s*\w+\s*\)?/g, "0")
     .replace(/\b[A-Za-z_]\w*\b/g, (id) => String(configValue(id)))
     .replace(/\/\/.*$/, "");
-  if (!/^[\d\s()!&|<>=+\-*/?:]*$/.test(js)) throw new Error(`expansion: can't evaluate #if ${expr}`);
-  return Boolean(Function(`return (${js});`)());
+  if (!/^[\d\s().!&|<>=+\-*/?:]*$/.test(js)) throw new Error(`expansion: can't evaluate ${expr}`);
+  return Function(`return (${js});`)();
 }
 
 /** Splits a macro call's arguments at top-level commas. */
@@ -148,7 +193,7 @@ function splitArgs(s) {
  * function-like, with ##), #if/#ifdef/#elif/#else/#endif by configValue. Global macros the
  * files rely on are passed in `macros`.
  */
-function preprocess(text, macros) {
+export function preprocess(text, macros = new Map()) {
   const lines = text.replace(/\\\r?\n/g, " ").split("\n");
   const kept = [];
   const stack = [];
@@ -246,7 +291,7 @@ function expand(text, macros, depth) {
 }
 
 /** The `[SPECIES_X] = { ... }` blocks, braces balanced, in file order. */
-function speciesBlocks(text, start = /\[(SPECIES_\w+)\]\s*=\s*\{/g) {
+export function speciesBlocks(text, start = /\[(SPECIES_\w+)\]\s*=\s*\{/g) {
   const blocks = [];
   let m;
   while ((m = start.exec(text))) {
@@ -328,6 +373,10 @@ function readExpansion(root) {
         scale: ["pokemonScale", "pokemonOffset", "trainerScale", "trainerOffset"].map(num),
         front: file("frontPic", "front pic"),
         palette: file("palette", "palette"),
+        back: file("backPic", "back pic"),
+        shinyPalette: file("shinyPalette", "shiny palette"),
+        coords: { front: num("frontPicYOffset"), back: num("backPicYOffset"), elevation: numberField(block, "enemyMonElevation", 0) },
+        battle: battleFacts(block),
         footprint: file("footprint", "footprint"),
         icon: file("iconSprite", "icon"),
         iconPalette: `graphics/pokemon/icon_palettes/pal${iconPal}.pal`,

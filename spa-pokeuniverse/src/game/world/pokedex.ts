@@ -1,9 +1,9 @@
 // The trainer's Pokédex, the same for every art style: which species they have seen and caught
 // as mic-core last said (pokedex/v1), and each species' facts from the catalog in lib-contracts.
 
-import { getOption } from "@bufbuild/protobuf";
+import { create, getOption } from "@bufbuild/protobuf";
 import type { Pokedex } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
-import { info, SpeciesSchema, Type, type SpeciesInfo } from "@pokeuniverse/contracts/species/v1/catalog";
+import { info, SpeciesInfoSchema, SpeciesSchema, type SpeciesInfo } from "@pokeuniverse/contracts/species/v1/catalog";
 
 const INFOS: SpeciesInfo[] = [];
 for (const v of SpeciesSchema.values) if (v.number) INFOS[v.number] = getOption(v, info);
@@ -13,9 +13,11 @@ export const NATIONAL_COUNT = INFOS.length - 1;
 /** The Kanto Pokédex: species 1 to 151. */
 export const KANTO_COUNT = 151;
 
-/** The species' facts (national number); types UNSPECIFIED for an unknown one. */
+const UNKNOWN = create(SpeciesInfoSchema);
+
+/** The species' facts (national number); empty (types UNSPECIFIED) for an unknown one. */
 export function speciesInfo(n: number): SpeciesInfo {
-  return INFOS[n] ?? { $typeName: "pokeuniverse.species.v1.SpeciesInfo", type1: Type.UNSPECIFIED, type2: Type.UNSPECIFIED, height: 0, weight: 0 };
+  return INFOS[n] ?? UNKNOWN;
 }
 
 export class PokedexState {

@@ -14,6 +14,7 @@ import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import { decimalText, EOS, expandPlaceholders, FontId, joinText, NumberMode, PLACEHOLDER_STR_VAR_1, Window, type Text, type WindowTemplate } from "../gba/text";
 import { rgb, RGB_BLACK, type Background } from "../gba/video";
 import { itemInfo, type BagSlot } from "../world/items";
+import { moveInfo, tmMove } from "../world/moves";
 import type { BagHost } from "./bag";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
@@ -297,11 +298,12 @@ class TmCase {
     const hyphens = assets.text("gText_ThreeHyphens");
     const print = (text: Text, row: number) => win.print(font, 7, INFO_HEIGHT * row, COLORS_MOVE_INFO, text, 0, 0);
     win.fillRect(0, 0, 0, 40, 48);
-    const move = item === null ? undefined : assets.tmMove(item);
-    if (!move) {
+    const move = item === null ? undefined : moveInfo(tmMove(item));
+    if (!move?.type) {
       for (let i = 0; i < 4; i++) print(hyphens, i);
     } else {
-      const icon = TYPE_ICONS[move.type] ?? TYPE_ICONS[0];
+      // The catalog's types are FireRed's TYPE_ numbers plus one.
+      const icon = TYPE_ICONS[move.type - 1] ?? TYPE_ICONS[0];
       win.blitRect(assets.get("menuInfo").image!, (icon % 16) * 8, (icon >> 4) * 8, 0, 0, TYPE_ICON_WIDTH, INFO_HEIGHT);
       print(move.power < 2 ? hyphens : decimalText(move.power, NumberMode.RightAlign, 3), 1);
       print(move.accuracy === 0 ? hyphens : decimalText(move.accuracy, NumberMode.RightAlign, 3), 2);
@@ -507,7 +509,7 @@ class TmCase {
   /** TintDiscpriteByType. */
   private tintDisc(item: Item): void {
     const { palettes } = this.flow.gba;
-    const type = this.flow.assets.tmMove(item)?.type ?? 0;
+    const type = Math.max(0, moveInfo(tmMove(item)).type - 1);
     const offset = DISC_TYPE_PALETTE[type] ?? 0;
     palettes.load(this.discPalettes.subarray(offset, offset + 16), 256 + palettes.spritePaletteSlot("tmDisc") * 16, 16);
   }
@@ -570,7 +572,7 @@ function tmLabel(flow: Flow, item: Item): Text {
   const { assets } = flow;
   const hm = item >= Item.HM01;
   const number = hm ? decimalText(item - Item.HM01 + 1, NumberMode.LeadingZeros, 1) : decimalText(item - Item.TM01 + 1, NumberMode.LeadingZeros, 2);
-  const move = assets.tmMove(item)?.name ?? [EOS];
+  const move = assets.moveName(tmMove(item));
   return joinText(assets.text("gText_FontSmall"), hm ? CLEAR_TO_18 : [EOS], assets.text("gText_NumberClear01"), number, SPACE, assets.text("gText_FontNormal"), move);
 }
 

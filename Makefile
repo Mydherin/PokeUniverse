@@ -76,9 +76,10 @@ graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and 
 			> $(FIRERED_OUT)/graphics/fonts/latin_$${font##*:}_widths.json; done
 	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/graphics/item-icons.mjs /repo/$(FIRERED) /repo/$(FIRERED_OUT)/graphics/items/icons.json
 
-text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lists the strings)
+text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lists the strings; moves, abilities and natures by catalog, Gen 4's from the expansion)
 	$(NEED_FIRERED)
-	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/text/extract.mjs /repo/$(FIRERED) /repo/spa-pokeuniverse/src/game/firered/texts.json /repo/$(FIRERED_OUT)/text
+	$(NEED_EXPANSION)
+	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/text/extract.mjs /repo/$(FIRERED) /repo/spa-pokeuniverse/src/game/firered/texts.json /repo/$(FIRERED_OUT)/text /repo/$(EXPANSION) /repo/lib-contracts/proto/pokeuniverse
 
 pokemon: ## Every species' pictures, footprints, icons, Pokédex text and cry list, FireRed's for 1-386 and the expansion's for 387-493
 	$(NEED_FIRERED)
