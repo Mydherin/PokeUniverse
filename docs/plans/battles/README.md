@@ -9,7 +9,7 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 ## Resume Here
 
 - **Next:** [M6 battles in `mic-core` and the room trainer](m06-mic-core-battles.md), first task. Its trainer table fills `BattleTeam.ai_flags` and `items` (M5). M7 can start in parallel (contracts exist).
-- **Last state:** M5 done (NPC AI in `mic-battles/src/ai/`), not committed; every build passing (mic-battles tsc + bundle, mic-core, buf breaking). The running stack still has the old mic-battles: `make up` recreates Redis with the new user (`.env` needs `REDIS_MIC_BATTLES_PASSWORD`).
+- **Last state:** M5 committed (`Add the NPC battle AI in mic-battles`); every build passing (mic-battles tsc + bundle, mic-core, buf breaking). The running stack still has the old mic-battles: `make up` recreates Redis with the new user (`.env` needs `REDIS_MIC_BATTLES_PASSWORD`).
 - **M3 in the game:** the user played it, and the main features work. Fix any bugs they report.
 
 ## Cold Start (every new session)
@@ -51,4 +51,4 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-01 | M3 | Party menu, summary, bag/TM CASE/BERRY POUCH/PC GIVE → party menu, `SwapPokemonMoves`, assets (party/summary graphics, category icons, `noFlip`, texts) | M4 (battle engine in `mic-battles`) | Builds pass (tsc, vite in Docker, go, buf breaking); not run in the game (category icon spot, page-flip layering, switch slide unchecked) |
 | 2026-11-01 | Plan split | `battles.md` split into this folder (overview, context, references, a file per milestone); cold-start rule in AGENTS.md | M4 | Committed M3 as `4169be9` first; the user then played M3, and the main features work |
 | 2026-11-01 | M4 | Battle contracts (NATS, events, views, realtime, snapshot); Redis user; Showdown wrapper with carried-over HP/PP/status; log → events per side; requests, views, outcome; Gen 4 exp/EVs; random AI; D12 hook | M5 | Checked with a one-off in-process script and a throwaway Redis; NATS round trip not run; committed |
-| 2026-11-01 | M5 | NPC AI: move effects from Showdown's data, the 8 flags, switching, trainer items (`BattleTeam.items`, `ItemUsed` event, item effects in `engine/bag.ts`), wild random | M6 | Checked with a one-off in-process script (deleted); FireRed's marked bugs fixed, and its switch-in choice (D18); not committed |
+| 2026-11-01 | M5 | NPC AI: move effects from Showdown's data, the 8 flags, switching, trainer items (`BattleTeam.items`, `ItemUsed` event, item effects in `engine/bag.ts`), wild random | M6 | Checked with a one-off in-process script (deleted); FireRed's marked bugs fixed, and its switch-in choice (D18); committed |
