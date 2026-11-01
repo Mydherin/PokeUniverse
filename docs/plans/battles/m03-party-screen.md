@@ -1,6 +1,6 @@
 # M3 Party Screen and Summary ✅
 
-Part of the [battles plan](README.md). Finished and committed 2026-11-01 (`4169be9`). Not run in the game: the category icon's spot, the summary's page-flip layering and the SWITCH slide are unchecked. What later milestones can use, without re-reading:
+Part of the [battles plan](README.md). Finished and committed 2026-11-01 (`4169be9`). Played by the user on 2026-11-01: the main features work. Not every edge case has been tested; fix bugs as they're reported. What later milestones can use, without re-reading:
 
 - **`firered/party-menu.ts`:** `startPartyMenu(flow, host, mode, done, resume?)` (loads the party set and every party Pokémon's art first). `PartyHost {party, playerName, gender, nationalDex, bag, give, take, swap, swapMoves}`. `PartyMenuMode`: `{kind:"field"}` (SUMMARY, SWITCH with slide, ITEM GIVE/TAKE) or `{kind:"give", item, pc}`. Exports `STATUS_ICON_TEMPLATE`, `Ailment`, `ailmentOf`, `monName`, `shownGender`. Single layout only. **M7 adds the battle mode** (SHIFT, SUMMARY, CANCEL, forced switch).
 - **`firered/summary.ts`:** `startSummary(flow, host, slot, done(last))`: INFO, SKILLS, KNOWN MOVES, move details with the Gen 4 category icon (sprite at 104, 70; D10), move SWITCH → `host.swapMoves`. M11 reuses its move page for "forget a move".

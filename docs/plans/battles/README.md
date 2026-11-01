@@ -10,7 +10,7 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 - **Next:** [M4 Battle Engine in `mic-battles`](m04-battle-engine.md), first task (the battle contracts). Nothing started.
 - **Last state:** M3 committed (`4169be9`), working tree clean, every build passing.
-- **Unchecked in the game:** M3's category icon spot, summary page-flip layering, party SWITCH slide (manual tests only when the user asks).
+- **M3 in the game:** the user played it, and the main features work. Fix any bugs they report.
 
 ## Cold Start (every new session)
 
@@ -49,4 +49,4 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-01 | M0 + M1 | Showdown reference; move, ability, nature, stats catalogs; species battle facts and learnsets; TM moves in the item catalog; `ids.ts`; move/ability/nature text; back pics, shiny palettes, battle coords | M2 (Pokémon in `mic-core`), M3 can follow | `@pkmn/sim` isn't in the host's `node_modules` (mic-battles installs it in Docker); TM CASE now shows Gen 4 move data; nothing committed |
 | 2026-11-01 | M2 | Party in `mic-core` (stats, growth, personality, store, test team), `party/v1` contracts, SWITCH and held items, snapshot party, POKéMON in the START menu | M3 (party screen and summary) | Party contracts moved to `party.v1` (D16); Lucario's Extreme Speed → Bullet Punch, the M6 Infernape's Flare Blitz → Fire Punch (both illegal at Lv 50); with the test team, USE of party items and GIVE now answer PARTY_MENU and the client goes back to the list until M3; nothing run in the game |
 | 2026-11-01 | M3 | Party menu, summary, bag/TM CASE/BERRY POUCH/PC GIVE → party menu, `SwapPokemonMoves`, assets (party/summary graphics, category icons, `noFlip`, texts) | M4 (battle engine in `mic-battles`) | Builds pass (tsc, vite in Docker, go, buf breaking); not run in the game (category icon spot, page-flip layering, switch slide unchecked) |
-| 2026-11-01 | Plan split | `battles.md` split into this folder (overview, context, references, a file per milestone); cold-start rule in AGENTS.md | M4 | Committed M3 as `4169be9` first |
+| 2026-11-01 | Plan split | `battles.md` split into this folder (overview, context, references, a file per milestone); cold-start rule in AGENTS.md | M4 | Committed M3 as `4169be9` first; the user then played M3, and the main features work |
