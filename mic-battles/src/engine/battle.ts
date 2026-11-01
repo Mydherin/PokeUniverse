@@ -55,6 +55,22 @@ export function serializeBattle(battle: Battle): string {
   }
 }
 
+/** A throwaway copy for the AI to read and try damage on: the real battle stays untouched. */
+export function cloneBattle(battle: Battle): Battle {
+  const b = battle as unknown as { events: Battle["events"]; log: string[]; inputLog: string[] };
+  const { events, log, inputLog } = b;
+  b.events = null;
+  b.log = [];
+  b.inputLog = [];
+  try {
+    return State.deserializeBattle(State.serializeBattle(battle));
+  } finally {
+    b.events = events;
+    b.log = log;
+    b.inputLog = inputLog;
+  }
+}
+
 /** The Pokémon in this party slot (as the battle started). */
 export function pokemonAt(battle: Battle, side: number, slot: number): Pokemon {
   const pokemon = battle.sides[side].pokemon.find((p) => p.name === String(slot));

@@ -13,6 +13,7 @@ import {
   type ViewRequest,
 } from "@pokeuniverse/contracts/battle/v1/battle";
 import { BattleViewSchema, type BattleView } from "@pokeuniverse/contracts/battle/v1/view";
+import { newAiMemory, type AiMemory } from "./ai/index.ts";
 import { createBattle, restoreBattle, serializeBattle, sideId } from "./engine/battle.ts";
 import { advance, applyChoice, InvalidChoice } from "./engine/choices.ts";
 import { newExpState, type ExpState } from "./exp.ts";
@@ -22,7 +23,7 @@ import { outcome, request, view } from "./protocol/views.ts";
 import { ACTIVE_TTL, ENDED_TTL, type Saved, type Store } from "./store.ts";
 
 /** Our state beside Showdown's, saved as JSON. */
-type Meta = { exp: ExpState; forfeit?: number };
+type Meta = { exp: ExpState; ai?: AiMemory; forfeit?: number };
 
 type Loaded = { saved: Saved; start: StartBattle; battle: Battle; meta: Meta };
 
@@ -33,8 +34,8 @@ export class Battles {
     const existing = await this.store.load(start.battleId);
     if (existing) return decodeReply(existing.reply);
     const battle = createBattle(start);
-    const meta: Meta = { exp: newExpState(start) };
-    advance(battle, start);
+    const meta: Meta = { exp: newExpState(start), ai: newAiMemory(start) };
+    advance(battle, start, meta.ai!);
     const update = buildUpdate(battle, start, meta, 1, true);
     return this.save(start, battle, meta, 1, update, undefined);
   }
@@ -52,7 +53,7 @@ export class Battles {
       // Not played: every side gets its request again, with nothing new to show.
       return buildUpdate(restoreBattle(saved.state), start, meta, saved.step, false, []);
     }
-    advance(battle, start);
+    advance(battle, start, (meta.ai ??= newAiMemory(start)));
     const update = buildUpdate(battle, start, meta, saved.step + 1, false);
     return this.save(start, battle, meta, saved.step + 1, update, saved.step);
   }

@@ -28,13 +28,13 @@ What FireRed screens use (`spa-pokeuniverse/src/game/`), so a screen can be writ
 - **`Assets`** (`firered/manifest.ts`): `get(graphicId)` → `{tiles, palette, map?, bytes?}`, `text(textId)`, `itemName`, `moveName`, `species(n)`, `pokemonArt(n)` / `loadedPokemonArt(n)`, load sets (`loadParty()`…). New graphics go in a set there and in the `Makefile`; new strings in `texts.json` (`make text`).
 - **Screens to copy the shape from:** `firered/party-menu.ts` (boxes, messages, YES/NO, fades), `firered/summary.ts` (page flips, sprite bars), `firered/bag.ts` (modes and hosts).
 
-## Where the Project Stands (2026-11-01, after M4)
+## Where the Project Stands (2026-11-01, after M5)
 
 What exists that battles build on. Trust it; open these only when a step needs their details.
 
 | Area | State | Where |
 |---|---|---|
-| `mic-battles` (M4) | `battles.{ping,start,turn,forfeit,view}`; Redis `battle:<id>` with a step check; Showdown wrapper, log → events per side, requests, views, outcome, Gen 4 exp/EVs, random AI (until M5); `redis` 6.3.0 | `mic-battles/src/` ([M4](m04-battle-engine.md)) |
+| `mic-battles` (M4, M5) | `battles.{ping,start,turn,forfeit,view}`; Redis `battle:<id>` with a step check; Showdown wrapper, log → events per side, requests, views, outcome, Gen 4 exp/EVs; NPC AI (FireRed flags, switching, trainer items; wild random); `redis` 6.3.0 | `mic-battles/src/` ([M4](m04-battle-engine.md), [M5](m05-npc-ai.md)) |
 | Battle contracts (M4) | NATS (`battle.proto`), `BattleEvent` (`event.proto`), view/request/actions/client messages (`view.proto`) | `lib-contracts/proto/pokeuniverse/battle/v1/` |
 | `mic-core` ↔ battles | `internal/battles/battles.go`: `Ping`, `WaitReachable` | |
 | World | One zone goroutine per map, 50 ms tick, saved before shown (Redis `live`), scripts as Go tables (`internal/world/interact.go`), `Player.script` blocks movement until `ScriptDone` | `mic-core/internal/world/*.go` |
@@ -70,6 +70,8 @@ What exists that battles build on. Trust it; open these only when a step needs t
 | D14 | **The party is permanent data in PostgreSQL** (`trainer_pokemon`), saved in one transaction per change. Battle damage, PP and status stay after a battle (FireRed), saved with the outcome. During a battle, its live state is Redis only. | [Saving State](../../tech-stack.md#saving-state-resilience). |
 | D15 | **Faint cries are rendered** with FireRed's faint cry mode, once per species, as `cry_<nnn>_faint`, like the cries. Not a Web Audio pitch trick. | Sounds exactly like the game. |
 | D16 | **The party's contracts are their own package, `pokeuniverse.party.v1`**; `pokemon/v1` keeps what needs no catalog (`Gender`, `Status`, stats, natures). The client's `Pokemon` never carries IVs, EVs or friendship. Held-item rules live in `internal/item` (`Hold`, `TakeHeld`) and answer with `ItemResult`. Details: [M2](m02-party.md). | `party.v1` uses the catalogs and `species/v1` imports `pokemon/v1`: buf forbids the cycle. `item` never depends on `pokemon`. |
+| D17 | **The AI's move effects come from Showdown's move data** (`ai/effects.ts`: boosts, status, side conditions, healing… plus a table by ID), named as FireRed's `EFFECT_*`, not converted from the decompilations. | Gen 4 moves get an effect for free; no new converted file. |
+| D18 | **AI fidelity:** FireRed's scripts and switching, with the bugs its scripts mark fixed (Facade, Psych Up, the swapped weather checks…), Emerald's Safeguard checks, and Gen 4 knowledge (abilities, the physical/special split for "physical attacker", hazards, Trick Room, Tailwind, U-turn, Taunt). FireRed's switch-in choice keeps the type the foe's types hit **hardest** (a bug); ours keeps the one they hit least. | "Original" behavior without its known mistakes. |
 
 ### Open Questions (ask the user when the milestone comes)
 
@@ -108,7 +110,7 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 | `mic-battles/src/engine/` | Create a battle from `StartBattle`, serialize/deserialize, apply choices, play on (`advance`), bag items (D12) |
 | `mic-battles/src/protocol/` | Showdown log lines → `BattleEvent` per side (D4, D5); requests, views, outcome |
 | `mic-battles/src/battles.ts` | The subjects: load → play → translate → save → reply |
-| `mic-battles/src/ai/` | Move scoring per flag, switching, item use (D6); one file per flag |
+| `mic-battles/src/ai/` | `index.ts` (decide), `view.ts` (what the AI reads), `effects.ts`, `score.ts`, `flags/` (one file per flag), `switch.ts`, `items.ts`, `random.ts` (wild) (D6, D17, D18) |
 | `mic-battles/src/store.ts` | Redis `battle:<id>` with the turn check (Lua) |
 | `mic-battles/src/exp.ts` | Gen 4 experience (not in Showdown) |
 | `mic-core/internal/pokemon/` | Stats (Gen 4 formula), natures, IVs/EVs, gender, shiny, growth rates, default moves, the party and its store (sqlc), the test team; party intents run in `internal/world/party.go` |

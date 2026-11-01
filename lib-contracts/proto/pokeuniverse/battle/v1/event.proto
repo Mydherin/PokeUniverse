@@ -134,6 +134,7 @@ message BattleEvent {
     Transform transform = 29;
     FormeChange forme_change = 30;
     Exp exp = 31;
+    ItemUsed item_used = 32;
   }
   // Changes the battle's state only (HP, status…): no text, animation or sound.
   bool silent = 50;
@@ -384,6 +385,15 @@ message ItemEnded {
   pokeuniverse.item.v1.Item item = 2;
   Effect from = 3;
   bool eaten = 4;
+}
+
+// A trainer used a bag item ("<TRAINER> used <ITEM>!"); its effect follows as its own events.
+message ItemUsed {
+  // The foe's trainer (otherwise the viewer).
+  bool foe = 1;
+  pokeuniverse.item.v1.Item item = 2;
+  // The Pokémon it was used on (active or not).
+  Battler target = 3;
 }
 
 message Transform {

@@ -11,6 +11,7 @@ Part of the [battles plan](README.md). **Needs:** M4's contracts (fake events ar
 - [ ] Action menu FIGHT / BAG / POKéMON / RUN ("What will <MON> do?"); move menu with PP, TYPE and the category icon (D10); disabled or 0-PP moves refused with FireRed's text.
 - [ ] Event playback queue: each event → text (text speed option) + sound + general animation (hit flash or shake, faint slide with the faint cry, stat arrows, status), effectiveness sounds (`se_effective`, `se_super_effective`, `se_not_effective`).
 - [ ] Battle party screen (M3 in battle mode: SHIFT, SUMMARY, CANCEL; forced switch); BAG in battle mode (BATTLE-usable items, `UseItem` → `BattleChoice.item`); RUN: "No! There's no running from a TRAINER battle!".
+- [ ] `ItemUsed` (M5): "<TRAINER> used <ITEM>!" for the foe, then its effect events (`Heal`, `StatusCured`… with `from` = the item).
 - [ ] End: the foe trainer slides back in with the defeat text, `mus_victory_trainer`, "<PLAYER> got ¥X for winning!", fade to the room. Whiteout text and fade.
 - [ ] Music: `mus_encounter_*` when the trainer talks, `mus_vs_trainer`, `mus_victory_trainer`; new entries in `sounds.json` (+ `make audio`), faint cries (D15).
 - [ ] Mobile: same GBA screen, touch controls (existing A/B/D-pad).

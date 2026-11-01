@@ -175,6 +175,9 @@ export function toEvents(line: Line, ctx: Context): BattleEvent[] {
     case "-enditem":
       add({ case: "itemEnded", value: { battler: who(0), item: itemNumber(args[1]), from: from(), eaten: "eat" in kw } });
       break;
+    case "bagitem":
+      add({ case: "itemUsed", value: { foe: parseSide(args[0]) !== ctx.viewer, item: Number(args[1]), target: who(2) } });
+      break;
     case "-transform":
       add({ case: "transform", value: { battler: who(0), target: who(1) } });
       break;

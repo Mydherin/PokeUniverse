@@ -75,8 +75,11 @@ message BattleMon {
 message BattleTeam {
   // In party order: Battler.party_slot is the index.
   repeated BattleMon pokemon = 1;
-  // Empty: a player chooses for this side. Otherwise mic-battles' AI does, with these flags.
+  // Empty: a player chooses for this side (or, in a wild battle, side 1 picks a random move).
+  // Otherwise mic-battles' AI does, with these flags.
   repeated AiFlag ai_flags = 2;
+  // An AI trainer's items (up to 4, FireRed's rules: plans/battles M5). Each is used once.
+  repeated pokeuniverse.item.v1.Item items = 3;
 }
 
 // Request on `battles.start`: create and begin a battle. Replied with BattleUpdate (views set).

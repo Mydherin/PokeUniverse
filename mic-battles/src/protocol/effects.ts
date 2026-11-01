@@ -32,7 +32,8 @@ export function parseEffect(name: string | undefined): Effect | undefined {
 
   if (kind === "move") return effect({ case: "move", value: moveNumber(id) });
   if (kind === "ability") return effect({ case: "ability", value: abilityNumber(id) });
-  if (kind === "item") return effect({ case: "item", value: itemNumber(id) });
+  // Bag items have no Showdown ID: engine/bag.ts writes our number ("item: 13").
+  if (kind === "item") return effect({ case: "item", value: /^\d+$/.test(id) ? Number(id) : itemNumber(id) });
 
   const status = statusNumber(id);
   if (status) return effect({ case: "status", value: status });

@@ -2,10 +2,11 @@
 
 import type { Battle } from "@pkmn/sim";
 import type { StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
-import type { BattleAction } from "@pokeuniverse/contracts/battle/v1/view";
-import { randomChoice } from "../ai/random.ts";
+import { create } from "@bufbuild/protobuf";
+import { ItemActionSchema, type BattleAction } from "@pokeuniverse/contracts/battle/v1/view";
+import { decide, isAiSide, type AiMemory } from "../ai/index.ts";
 import { chooseBagItem } from "./bag.ts";
-import { moveOptions, pokemonAt, sideId } from "./battle.ts";
+import { moveOptions, partySlot, pokemonAt, sideId } from "./battle.ts";
 
 /** A choice the request doesn't allow. The step isn't played: the side gets its request again. */
 export class InvalidChoice extends Error {}
@@ -39,15 +40,23 @@ export function applyChoice(battle: Battle, side: number, action: BattleAction |
 
 /** Chooses for the AI's sides and for locked moves (Outrage, recharging…) until a player must
  *  choose or the battle ends. */
-export function advance(battle: Battle, start: StartBattle): void {
+export function advance(battle: Battle, start: StartBattle, memory: AiMemory): void {
   for (let progressed = true; progressed && !battle.ended; ) {
     progressed = false;
     for (const [side, s] of battle.sides.entries()) {
       if (battle.ended || !s.activeRequest || s.activeRequest.wait || s.isChoiceDone()) continue;
       const locked = !s.activeRequest.forceSwitch && s.active[0]?.getLockedMove();
       if (locked) battle.choose(sideId(side), "move 1");
-      else if (start.sides[side].aiFlags.length) battle.choose(sideId(side), randomChoice(battle, side));
-      else continue;
+      else if (isAiSide(start, side)) {
+        const decision = decide(battle, start, side, memory);
+        if ("choice" in decision) {
+          if (!battle.choose(sideId(side), decision.choice)) throw new Error(`AI choice refused: ${decision.choice} (${s.choice.error})`);
+        } else {
+          const user = s.active[0];
+          chooseBagItem(user, create(ItemActionSchema, { item: decision.item, partySlot: partySlot(user) }));
+          if (battle.allChoicesDone()) battle.commitChoices();
+        }
+      } else continue;
       progressed = true;
     }
   }
