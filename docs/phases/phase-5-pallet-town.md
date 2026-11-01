@@ -9,9 +9,9 @@
 - NPCs and dialogue: Mom, the rival's sister, townsfolk, signs.
 - Oak stops the player at the edge of Route 1 and leads them to the lab.
 - Choosing a starter (Bulbasaur, Charmander or Squirtle); the rival takes the one strong against it.
-- Minimal Pokémon data model to save the starter ([Phase 8](phase-8-pokemon-party.md) extends it).
+- The starter is saved with the Pokémon data model from [Phase 4](phase-4-players-room.md) ([plans/battles.md](../plans/battles.md)), and it replaces the test team; the test trainer leaves the room.
 - Oak gives the POKéDEX (`FLAG_SYS_POKEDEX_GET`: the START menu shows it; the screen exists since [Phase 4](phase-4-players-room.md)), and the starters seen and caught are registered.
-- The START menu shows POKéMON once the starter is chosen, as in FireRed: party screen and summary for what the game has then ([Phase 8](phase-8-pokemon-party.md) extends them).
+- The START menu shows POKéMON once the starter is chosen, as in FireRed (the party screen and summary exist since [Phase 4](phase-4-players-room.md)).
 - **Per-player story:** each player sees their own Oak, rival and events, even in a shared world.
 - The first rival battle comes with [Phase 9](phase-9-battles.md); until then the event continues without it.
 

@@ -1,16 +1,15 @@
 # Phase 9: Battles
 
-**Goal:** Gen 4 battles through `mic-battles`.
+**Goal:** wild encounters, catching and the story's trainer battles, on the Gen 4 battle system.
+
+The battle system itself (`mic-battles` on Showdown, battles saved in Redis every turn, the battle screen, animations and sounds, the NPC AI, experience, leveling, evolution, learning moves) moved to [Phase 4](phase-4-players-room.md): [plans/battles.md](../plans/battles.md).
 
 ## Scope
 
-- `mic-battles` running Showdown with Gen 4 rules, over NATS.
-- Battles saved to Redis after every turn, outcomes to PostgreSQL; retried turns never run twice.
-- Wild encounters in grass, caves and water.
-- Battle UI on desktop and mobile; animations and sounds triggered by name.
-- Catching, experience, leveling, evolution, learning moves.
-- The Pokédex registers what's seen and caught (`mic-core` sends the change), with FireRed's page after a catch.
-- Trainer battles (NPCs), starting with the first rival battle in Oak's lab (deferred from [Phase 5](phase-5-pallet-town.md)).
+- Wild encounters in grass, caves and water (encounter tables, the wild AI from the plan).
+- Catching: Poké Balls in wild battles, Gen 4 catch formula, FireRed's ball animations, the caught Pokémon going to the party (or the PC boxes, [Phase 8](phase-8-pokemon-party.md)).
+- The Pokédex registers what's caught (`mic-core` sends the change), with FireRed's page after a catch.
+- Trainer battles (NPCs) from the story, starting with the first rival battle in Oak's lab (deferred from [Phase 5](phase-5-pallet-town.md)); trainers spotting the player (sight range).
 
 ## Done When
 
