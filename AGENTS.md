@@ -11,11 +11,19 @@ Instructions for AI agents working on PokeUniverse.
 | Maps: text format, tile catalog, tools, workflow | [docs/maps.md](docs/maps.md) | Any map creation, edit or map tooling work |
 | Audio: rendering FireRed's music, sound effects and cries; web formats, loops, playback | [docs/audio.md](docs/audio.md) | Any music, sound or audio tooling work |
 | Phases: MVP plan, scope and "done when" per phase | [docs/phases/](docs/phases/README.md) | Planning work, or starting/finishing a phase |
-| Plans: self-contained plans for large features, with decisions and progress across chats ([battles](docs/plans/battles.md)) | [docs/plans/](docs/plans/) | Working on that feature: read its plan first, update it at the end of each session |
+| Plans: self-contained plans for large features, with decisions and progress across chats ([battles](docs/plans/battles/README.md)) | [docs/plans/](docs/plans/) | Working on that feature: follow [Cold Start](#cold-start-temporary) |
 | Tech stack: structure, naming, languages, libraries, communication, auth, infrastructure, containers | [docs/tech-stack.md](docs/tech-stack.md) | Any technical decision or change |
 
 - Check the relevant doc **before** making any decision or change.
 - Follow what the docs say; don't introduce technologies or patterns that contradict them.
+
+## Cold Start (temporary)
+
+**Current limitation:** the context window is small for big plans, and re-reading files to check the status wastes most of a new session. Until the user lifts this rule:
+
+- **Continuing a plan** (now: [battles](docs/plans/battles/README.md)): read this file, the plan's `README.md` (Resume Here, Cold Start), its `context.md` and the current milestone's file. Nothing else up front.
+- **Trust the plan:** never re-check ✅ items, the status or the context in the code. Open another file only when the milestone file isn't enough to do the step at hand, and only that file.
+- **Save progress:** at the end of a session, and whenever the user is about to compact the context, write the progress into the milestone file (tasks, exact next step, files touched, build state, gotchas), then the plan's README (Resume Here, status, Log).
 
 ## Reference Repositories
 

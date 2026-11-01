@@ -1,5 +1,5 @@
 // Run once to write the battle catalogs; they are our source from then on, edited by hand like the
-// item and species catalogs (docs/tech-stack.md#firered-as-reference, docs/plans/battles.md D7).
+// item and species catalogs (docs/tech-stack.md#firered-as-reference, docs/plans/battles D7).
 // Kept for reference.
 //
 // docker run --rm -v "$PWD":/repo -w /tmp node:26-alpine sh -c 'npm init -y >/dev/null && npm i @pkmn/sim@<mic-battles version> >/dev/null &&

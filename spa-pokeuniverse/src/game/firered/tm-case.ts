@@ -465,7 +465,7 @@ class TmCase {
 
   /**
    * PrintMessageWithFollowupTask: the answer's message, then back to the list. USE's PARTY_MENU
-   * (teaching the move) comes with move learning (plans/battles.md M11); until then, back to the list.
+   * (teaching the move) comes with move learning (plans/battles M11); until then, back to the list.
    */
   private onResult(r: ItemResult): void {
     const msg = itemMessage(this.flow, r, this.host.playerName);

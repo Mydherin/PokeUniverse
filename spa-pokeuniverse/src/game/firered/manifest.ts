@@ -231,7 +231,7 @@ const POKEDEX_GRAPHICS = {
 /**
  * The party menu (party_menu.c) and the summary (pokemon_summary_screen.c): their backgrounds,
  * slot layouts, icons and bars, every ball's icon, and the Gen 4 move category icons
- * (pokeemerald-expansion's, plans/battles.md D10).
+ * (pokeemerald-expansion's, plans/battles D10).
  */
 const PARTY_GRAPHICS = {
   partyBg: { png: "party_menu/bg.png", bin: "party_menu/bg.bin", bpp4: true },

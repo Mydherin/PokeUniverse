@@ -6,7 +6,7 @@
 // description by catalog number), natures.json (name by catalog number) and charmap.json
 // (character <-> byte). Moves 1-354 and FireRed's abilities use FireRed's text; Gen 4's
 // (moves 355-467, abilities from Tangled Feet on) use pokeemerald-expansion's, written and
-// fitted as FireRed's (docs/plans/battles.md D8).
+// fitted as FireRed's (docs/plans/battles D8).
 
 import { existsSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";

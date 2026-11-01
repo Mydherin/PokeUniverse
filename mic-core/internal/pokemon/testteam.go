@@ -1,4 +1,4 @@
-// Test content (plans/battles.md): removed in Phase 5, when the starter replaces the test team.
+// Test content (plans/battles): removed in Phase 5, when the starter replaces the test team.
 
 package pokemon
 
@@ -21,7 +21,7 @@ import (
 const testLevel = 50
 
 // testSet is one test Pokémon: legal Gen 4 sets at Lv. 50 (moves checked against Showdown's Gen 4
-// learnsets: level-up, TM, tutor or egg), FireRed's items only until plans/battles.md M12.
+// learnsets: level-up, TM, tutor or egg), FireRed's items only until plans/battles M12.
 type testSet struct {
 	species speciesv1.Species
 	nature  pokemonv1.Nature

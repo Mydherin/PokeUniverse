@@ -1,5 +1,5 @@
 -- +goose Up
--- The party (plans/battles.md M2): up to six Pokémon in the player's order, saved in one
+-- The party (plans/battles M2): up to six Pokémon in the player's order, saved in one
 -- transaction per change. Numbers are lib-contracts' enums (species, items, moves, status);
 -- stats, gender, nature, shiny and the ability come from the species and the personality.
 -- IVs and EVs in FireRed's stat order (HP, ATTACK, DEFENSE, SPEED, SP. ATK, SP. DEF); moves with

@@ -31,7 +31,7 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	interface/select_button.png interface/bag_swap.png interface/selector_outline.png \
 	interface/menu_info.png interface/pokemon_types.pal interface/dex_caught_pokeball.pal \
 	misc/option_menu.pal
-# The expansion's Gen 4 art FireRed has no slot for (plans/battles.md D10), under graphics/expansion/.
+# The expansion's Gen 4 art FireRed has no slot for (plans/battles D10), under graphics/expansion/.
 EXPANSION_GFX_FILES := interface/category_icons.png
 # The fonts' glyph widths are data in the game's source, not in the images.
 FIRERED_FONTS := Normal:normal Male:male Small:small NormalCopy1:normal_copy_1

@@ -5,7 +5,7 @@
 // boxes slide out and back in swapped), ITEM (GIVE from the bag, TAKE) and CANCEL; opened to
 // give an item (GIVE in the BAG, TM CASE, BERRY POUCH or the PC's WITHDRAW ITEM) A gives it.
 // Field moves come with the outdoor maps, using items on Pokémon with their effects, and the
-// battle's own actions with plans/battles.md M7. mic-core decides every change; this shows it.
+// battle's own actions with plans/battles M7. mic-core decides every change; this shows it.
 
 import type { ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";

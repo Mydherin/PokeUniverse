@@ -2,7 +2,7 @@
 
 **Goal:** wild encounters, catching and the story's trainer battles, on the Gen 4 battle system.
 
-The battle system itself (`mic-battles` on Showdown, battles saved in Redis every turn, the battle screen, animations and sounds, the NPC AI, experience, leveling, evolution, learning moves) moved to [Phase 4](phase-4-players-room.md): [plans/battles.md](../plans/battles.md).
+The battle system itself (`mic-battles` on Showdown, battles saved in Redis every turn, the battle screen, animations and sounds, the NPC AI, experience, leveling, evolution, learning moves) moved to [Phase 4](phase-4-players-room.md): [plans/battles](../plans/battles/README.md).
 
 ## Scope
 

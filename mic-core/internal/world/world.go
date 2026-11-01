@@ -144,7 +144,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}, nil
 }
 
-// loadParty reads the trainer's Pokémon. Test content (plans/battles.md): until the starter
+// loadParty reads the trainer's Pokémon. Test content (plans/battles): until the starter
 // (Phase 5), a trainer with none gets the test team.
 func (w *World) loadParty(ctx context.Context, accountID int64, row db.GetTrainerRow, gender trainerv1.Gender) (pokemon.Party, error) {
 	party, err := pokemon.Load(ctx, db.New(w.pool), accountID)

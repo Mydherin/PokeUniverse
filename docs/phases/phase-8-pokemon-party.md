@@ -2,7 +2,7 @@
 
 **Goal:** players manage their Pokémon, and their lead Pokémon follows them.
 
-The Pokémon data model, the party, the party screen and the summary moved to [Phase 4](phase-4-players-room.md) with the battles ([plans/battles.md](../plans/battles.md)).
+The Pokémon data model, the party, the party screen and the summary moved to [Phase 4](phase-4-players-room.md) with the battles ([plans/battles](../plans/battles/README.md)).
 
 ## Scope
 
