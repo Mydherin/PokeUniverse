@@ -8,7 +8,7 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M8](m08-animation-engine.md#progress) step 4's playback hookup (exact calls in Progress "Hookup"), then step 5 (two-turn moves), then play-test the unverified list; steps 1-3 and the status/stat/weather behaviors are done, uncommitted.
+- **Next:** [M8](m08-animation-engine.md#progress) step 4's playback hookup (exact calls in Progress "Hookup"), then step 5 (two-turn moves), then play-test the unverified list; steps 1-3 and the status/stat/weather behaviors are done, committed as `51a70b2`.
 - **Last state:** M7 played and fixed (2026-11-02, see [M7's Progress](m07-battle-screen.md#progress)); leaving mid-battle rolls back (D22). M6 still lacks the restart-resume check. M7 committed as `1b57ea1`; M8 work in progress is uncommitted.
 
 ## Cold Start (every new session)
