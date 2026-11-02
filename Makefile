@@ -14,7 +14,7 @@ GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.c
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
 FIRERED_OUT := spa-pokeuniverse/public/firered
-FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex party_menu summary_screen
+FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex party_menu summary_screen battle_interface
 # Single files from shared folders, kept at their paths.
 FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
 	fonts/down_arrow_3.png fonts/keypad_icons.png interface/std_menu.pal interface/status_icons.png \
@@ -31,7 +31,10 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	interface/bag_male.png interface/bag_female.png interface/bag.pal interface/red_arrow_other.png interface/red_arrow.pal \
 	interface/select_button.png interface/bag_swap.png interface/selector_outline.png \
 	interface/menu_info.png interface/pokemon_types.pal interface/dex_caught_pokeball.pal \
-	misc/option_menu.pal
+	misc/option_menu.pal \
+	$(addprefix battle_terrain/building/,terrain.png terrain.bin terrain.pal) interface/text_pp.pal \
+	trainers/front_pics/cool_trainer_m_front_pic.png trainers/palettes/cool_trainer_m.pal \
+	trainers/back_pics/red_back_pic.png trainers/back_pics/leaf_back_pic.png trainers/palettes/red_back_pic.pal trainers/palettes/leaf_back_pic.pal
 # The expansion's Gen 4 art FireRed has no slot for (plans/battles D10), under graphics/expansion/.
 EXPANSION_GFX_FILES := interface/category_icons.png
 # The fonts' glyph widths are data in the game's source, not in the images.

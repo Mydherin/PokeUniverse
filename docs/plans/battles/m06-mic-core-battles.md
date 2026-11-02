@@ -12,7 +12,7 @@ Part of the [battles plan](README.md). **Needs:** M4 (M5 for the real AI). Share
 - [x] Active battle per player in Redis (`player:<id>:battle`: id, trainer, save, start request); `BattleChoice` (step check, RUN refused, item ownership: ITEMS/BERRIES; spent in PostgreSQL once mic-battles played the step, before it's shown); a refused choice answers its request again; `Start`/`Turn` retried until answered (2 min).
 - [x] Outcome transaction keyed by battle ID (`battle_outcomes`, migration 00013): party, money (prize or whiteout loss). Whiteout: healed party, back at `world.Start`, script ended (D20).
 - [x] The snapshot's `battle` for resume (start again + view, 3 s; otherwise a placeholder, then `BattleStarted` once mic-battles answers; a battle already over gets its outcome from the last step's saved reply); `busy()` blocks moves and actions while in battle.
-- [ ] **Done when:** talking to the test trainer starts a battle that plays to the end, and killing `mic-core` or `mic-battles` mid-battle resumes at the last turn. **Not run yet:** it needs M7's screen to play in the game (or a scripted client).
+- [ ] **Done when:** talking to the test trainer starts a battle that plays to the end, and killing `mic-core` or `mic-battles` mid-battle resumes at the last turn. **Played to the end (whiteout) on 2026-11-02**; leaving mid-battle rolls back (D22). Still to run: a restart mid-battle resuming.
 
 ## Progress
 

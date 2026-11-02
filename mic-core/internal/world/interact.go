@@ -32,6 +32,11 @@ func yesNo(no ...*worldv1.ScriptStep) *worldv1.ScriptStep {
 }
 
 // trainerBattle starts a battle with a trainer of internal/battle's table.
+// music plays a song on the BGM player (a trainer's encounter music) until the script ends.
+func music(id string) *worldv1.ScriptStep {
+	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_Music{Music: id}}
+}
+
 func trainerBattle(trainer string) *worldv1.ScriptStep {
 	return &worldv1.ScriptStep{Action: &worldv1.ScriptStep_TrainerBattle{TrainerBattle: &worldv1.TrainerBattle{Trainer: trainer}}}
 }
@@ -39,10 +44,11 @@ func trainerBattle(trainer string) *worldv1.ScriptStep {
 // npcScripts are the scripts of NPC objects, by map and name (lib-maps objects' `script`).
 var npcScripts = map[string]Script{
 	// Test content (plans/battles/README.md): removed in Phase 5. Asks, heals both teams
-	// (the trainer table's Heals) and battles; after a win, the post-battle text.
+	// (the trainer table's Heals) and battles with FireRed's encounter music for COOLTRAINERs
+	// (MUS_ENCOUNTER_BOY) during the intro; after a win, the post-battle text.
 	"pallet_town_players_house_2f.test_trainer": {
 		message("test_trainer.question"), yesNo(),
-		message("test_trainer.intro"), trainerBattle("test_trainer"),
+		music("mus_encounter_boy"), message("test_trainer.intro"), trainerBattle("test_trainer"),
 		message("test_trainer.post_battle"),
 	},
 }

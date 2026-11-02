@@ -9,11 +9,13 @@
 // world and back to it); an item used from the bag may work back on the field. The bedroom PC's
 // script flickers its screen on, shows its menus and opens WITHDRAW ITEM or the BAG's DEPOSIT
 // ITEM from black, coming back to ITEM STORAGE. NPCs stand on the map; talking to one turns it
-// to the player, and a trainer's script asks YES/NO and starts a battle (plans/battles M6; the
-// battle screen comes with M7), going on after a win.
+// to the player, and a trainer's script asks YES/NO, plays their encounter music and starts a
+// battle: the battle screen (plans/battles M7) takes over until it ends, and the script goes on
+// after a win. A battle in progress after a reconnect is drawn again as it stands.
 
 import { create } from "@bufbuild/protobuf";
-import { BattleResult, type BattleEnded, type BattleStarted, type BattleTurn } from "@pokeuniverse/contracts/battle/v1/view";
+import type { BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
+import { BattleResult, type BattleEnded, type BattleStarted, type BattleTurn, type BattleView } from "@pokeuniverse/contracts/battle/v1/view";
 import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
@@ -47,6 +49,7 @@ import { startPartyMenu, type PartyHost } from "./party-menu";
 import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
+import { BattleScreen, prepareBattle, type BattleHost } from "./battle/screen";
 
 /** The player's cell on screen: 7 tiles in, under the BG scrolled 40 pixels down (field_camera.c). */
 const PLAYER_X = 7 * TILE;
@@ -184,6 +187,10 @@ class Overworld {
   private message!: FieldMessage;
   /** The battle the trainer is in (its ID): the player can't move until it ends. */
   private battle: string | null;
+  /** The battle screen, while it shows. */
+  private battleScreen: BattleScreen | null = null;
+  /** A script changed the music: the map's comes back when it ends. */
+  private scriptMusic = false;
   private script: Running | null = null;
   private menu: Menu | null = null;
   /** Off in a screen opened from the START menu: the world waits under it. */
@@ -230,6 +237,7 @@ class Overworld {
     this.battle = snapshot.battle?.battleId ?? null;
     if (map.music) gba.sound.playBgm(map.music);
     this.enter(false);
+    if (snapshot.battle) this.showBattle(snapshot.battle, [], false);
   }
 
   /**
@@ -277,6 +285,9 @@ class Overworld {
     this.bag = new BagState(s.bag);
     this.party = new PartyState(s.party);
     this.battle = s.battle?.battleId ?? null;
+    // The battle as the server has it now, drawn again; none: back to the field.
+    if (s.battle) this.showBattle(s.battle, [], false);
+    else if (this.battleScreen) this.leaveBattle();
     // Answers lost with the connection: nothing happened.
     for (const answer of this.itemAnswers.splice(0)) answer(create(ItemResultSchema));
   }
@@ -297,21 +308,72 @@ class Overworld {
     this.itemAnswers.shift()?.(r);
   }
 
-  /** The battle screen draws it (plans/battles M7); until then the player waits for its end. */
+  /** The battle screen takes over: with the transition and intro from a script, drawn as it stands otherwise. */
   battleStarted(b: BattleStarted): void {
-    this.battle = b.view?.battleId ?? null;
+    if (!b.view) return;
+    this.battle = b.view.battleId;
+    this.showBattle(b.view, b.events, this.script?.battling === true && !this.battleScreen);
   }
 
-  battleTurn(_b: BattleTurn): void {}
+  battleTurn(b: BattleTurn): void {
+    if (this.battleScreen?.id === b.battleId) this.battleScreen.turn(b);
+  }
 
-  /** After a win the script goes on; a loss (whiteout) or a battle that couldn't start ends it. */
+  /** The battle screen shows the ending first; a battle that couldn't start ends at once. */
   battleEnded(b: BattleEnded): void {
     this.battle = null;
+    if (this.battleScreen && b.result !== BattleResult.UNSPECIFIED) this.battleScreen.ended(b);
+    else {
+      if (this.battleScreen) this.leaveBattle();
+      this.afterBattle(b.result);
+    }
+  }
+
+  private showBattle(view: BattleView, events: BattleEvent[], intro: boolean): void {
+    this.message.hide();
+    this.menu = null;
+    this.away = true;
+    this.battleScreen = new BattleScreen(this.flow, this.battleHost(), view, events, intro);
+  }
+
+  /** Back on the field from the battle screen, with the map's music. */
+  private leaveBattle(): void {
+    this.battleScreen = null;
+    this.away = false;
+    this.enter(false);
+    this.scriptMusic = false;
+    if (this.map.music) this.flow.gba.sound.playBgm(this.map.music);
+  }
+
+  /** After a win the script goes on; a loss (whiteout) or a battle that couldn't start ends it. */
+  private afterBattle(result: BattleResult): void {
     const s = this.script;
     if (!s?.battling) return;
     s.battling = false;
-    if (b.result === BattleResult.WON) s.index++;
+    if (result === BattleResult.WON) s.index++;
     else this.endScript(false);
+  }
+
+  /** The battle screen's way to the trainer's Pokémon, bag and mic-core. */
+  private battleHost(): BattleHost {
+    const { link } = this.flow;
+    const self = this;
+    return {
+      get party() {
+        return self.party;
+      },
+      playerName: this.playerName,
+      gender: this.flow.trainer!.gender,
+      nationalDex: this.pokedex.national,
+      get bag() {
+        return self.bagHost();
+      },
+      choose: (battleId, step, action) => link.battleChoice(battleId, step, action),
+      finished: (result) => {
+        this.leaveBattle();
+        this.afterBattle(result);
+      },
+    };
   }
 
   /** Sends an item intent and waits for its ItemResult; offline, nothing happens. */
@@ -450,6 +512,8 @@ class Overworld {
     this.avatar.waiting = false;
     if (!s.steps.length) return;
     this.script = { id: s.id, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false };
+    // A trainer's script: the battle's art and sounds load while they talk.
+    if (s.steps.some((step) => step.action.case === "trainerBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
     if (facing) this.npcs.find((n) => n.npc.id === s.npc)?.face(facing);
   }
@@ -577,6 +641,17 @@ class Overworld {
         s.index++;
         continue;
       }
+      if (step.action.case === "music") {
+        const id = step.action.value;
+        const { sound } = this.flow.gba;
+        void sound.load([id], Assets.soundUrl).then(
+          () => this.script === s && sound.playBgm(id),
+          () => {},
+        );
+        this.scriptMusic = true;
+        s.index++;
+        continue;
+      }
       if (step.action.case === "pcScreen") {
         this.setPcScreen(step.action.value);
         s.index++;
@@ -641,6 +716,10 @@ class Overworld {
   private endScript(done: boolean): void {
     if (this.script && done) this.flow.link.scriptDone(this.script.id);
     this.script = null;
+    if (this.scriptMusic) {
+      this.scriptMusic = false;
+      if (this.map.music) this.flow.gba.sound.playBgm(this.map.music);
+    }
     // Away, the screen shown owns BG0: the field's windows are set up again on returning.
     if (!this.away) {
       this.pc?.menu.close();

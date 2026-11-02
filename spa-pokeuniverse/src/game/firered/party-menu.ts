@@ -4,8 +4,9 @@
 // and HP. Opened from the START menu (PARTY_MENU_TYPE_FIELD) A opens SUMMARY, SWITCH (the two
 // boxes slide out and back in swapped), ITEM (GIVE from the bag, TAKE) and CANCEL; opened to
 // give an item (GIVE in the BAG, TM CASE, BERRY POUCH or the PC's WITHDRAW ITEM) A gives it.
-// Field moves come with the outdoor maps, using items on Pokémon with their effects, and the
-// battle's own actions with plans/battles M7. mic-core decides every change; this shows it.
+// In battle (plans/battles M7) it shows the battle's party: SHIFT, SUMMARY, CANCEL, or A picks
+// the Pokémon a bag item is for; after a faint it can't be cancelled. Field moves come with the
+// outdoor maps, using items on Pokémon with their effects. mic-core decides every change; this shows it.
 
 import type { ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
@@ -50,8 +51,16 @@ export interface PartyHost {
   swapMoves(slot: number, a: number, b: number): void;
 }
 
-/** Why the menu is open: from the START menu, or to give an item (from the bag or the PC). */
-export type PartyMenuMode = { kind: "field" } | { kind: "give"; item: Item; pc: boolean };
+/**
+ * Why the menu is open: from the START menu, to give an item (from the bag or the PC), or in
+ * battle (PARTY_MENU_TYPE_IN_BATTLE: the battle's party, the one in battle first). In battle
+ * SHIFT (or A, with a bag item to use) calls `choose` with the slot; `forced` (a Pokémon fainted)
+ * can't be cancelled.
+ */
+export type PartyMenuMode =
+  | { kind: "field" }
+  | { kind: "give"; item: Item; pc: boolean }
+  | { kind: "battle"; forced: boolean; item?: Item; choose: (slot: number) => void };
 
 /** What the field menu does once it shows again after a screen it opened (summary, bag). */
 type Resume = { slot: number; then: "selection" } | { slot: number; then: "give"; item: Item };
@@ -185,6 +194,7 @@ const BG_PALETTE_COLORS = 11 * 16;
 
 /** The cursor options (sCursorOptions) the field shows. */
 const enum Option {
+  Shift,
   Summary,
   Switch,
   Cancel1,
@@ -194,6 +204,7 @@ const enum Option {
   Cancel2,
 }
 const OPTION_TEXTS: Record<Option, TextId> = {
+  [Option.Shift]: "gText_Shift",
   [Option.Summary]: "gText_Summary5",
   [Option.Switch]: "gText_Switch2",
   [Option.Cancel1]: "gFameCheckerText_Cancel",
@@ -712,6 +723,7 @@ class PartyMenu {
   /** HandleChooseMonSelection. */
   private chooseMonSelection(): void {
     this.flow.play("se_select");
+    if (this.mode.kind === "battle" && this.mode.item) return this.chooseInBattle();
     if (this.action === Action.Give) return this.tryGive();
     if (this.action === Action.Switch) return this.switchSelected();
     this.openSelection();
@@ -719,6 +731,7 @@ class PartyMenu {
 
   /** HandleChooseMonCancel: SWITCH stops; otherwise the menu closes. */
   private chooseMonCancel(): void {
+    if (this.mode.kind === "battle" && this.mode.forced) return;
     this.flow.play("se_select");
     if (this.action === Action.Switch) return this.finishSwitch();
     this.slotId = SLOT_CANCEL;
@@ -729,9 +742,12 @@ class PartyMenu {
 
   /** CreateSelectionWindow (Task_TryCreateSelectionWindow): SUMMARY, SWITCH (with two Pokémon or more), ITEM, CANCEL. */
   private openSelection(): void {
-    this.options = [Option.Summary];
-    if (this.party[1]) this.options.push(Option.Switch);
-    this.options.push(Option.Item, Option.Cancel1);
+    if (this.mode.kind === "battle") this.options = [Option.Shift, Option.Summary, Option.Cancel1];
+    else {
+      this.options = [Option.Summary];
+      if (this.party[1]) this.options.push(Option.Switch);
+      this.options.push(Option.Item, Option.Cancel1);
+    }
     const n = this.options.length;
     this.showSelectionWindow({ left: 19, top: 19 - n * 2, width: 10, height: n * 2, palette: 14, baseBlock: 0x2bf });
     this.showStdMessage(Message.DoWhatWithMon);
@@ -759,6 +775,9 @@ class PartyMenu {
     const option = this.options[input === MENU_B_PRESSED ? this.options.length - 1 : input];
     this.flow.play("se_select");
     switch (option) {
+      case Option.Shift:
+        this.removeSelection();
+        return this.chooseInBattle();
       case Option.Summary:
         return this.openSummary();
       case Option.Switch:
@@ -783,6 +802,26 @@ class PartyMenu {
     if (this.selection) clearStdWindowAndFrameToTransparent(this.selection.win);
     this.selection = null;
     this.removeStdMessage();
+  }
+
+  /**
+   * CursorCB_SendMon (and a bag item's target in battle): a fainted Pokémon or the one in battle
+   * can't be sent out (its message, then back to choosing); otherwise the battle gets the slot.
+   */
+  private chooseInBattle(): void {
+    if (this.mode.kind !== "battle") return;
+    const slot = this.slotId;
+    const mon = this.mon(slot);
+    if (!mon) return;
+    if (!this.mode.item) {
+      const refusal: TextId | null = mon.hp === 0 ? "gText_PkmnHasNoEnergy" : slot === 0 ? "gText_PkmnAlreadyInBattle" : null;
+      if (refusal) {
+        const text = expandPlaceholders(this.flow.assets.text(refusal), { [PLACEHOLDER_STR_VAR_1]: monName(this.flow, mon) });
+        return this.showMessage(text, false, () => this.returnToChooseMon());
+      }
+    }
+    this.mode.choose(slot);
+    this.close();
   }
 
   /** CursorCB_Summary: the menu fades out into the summary, and comes back on the Pokémon last shown. */

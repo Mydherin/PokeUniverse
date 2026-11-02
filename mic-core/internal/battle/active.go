@@ -11,7 +11,8 @@ import (
 )
 
 // Active is the battle a player is in: Redis key player:<id>:battle, set before the battle
-// starts and deleted once its outcome is saved, so a reconnect or a restart finds it (resume).
+// starts and deleted once its outcome is saved, so a restart finds it (resume). A player who
+// leaves mid-battle drops it: nothing it changed was saved (rollback).
 type Active struct {
 	ID string `json:"id"`
 	// The NPC trainer of the table.
@@ -21,6 +22,8 @@ type Active struct {
 	// battlev1.StartBattle: sent again on resume, so the battle exists even if mic-battles never
 	// got the first one (a repeated start changes nothing).
 	Start []byte `json:"start"`
+	// Bag items used so far (itemv1.Item): taken from the bag in memory, saved with the outcome.
+	Spent []int32 `json:"spent,omitempty"`
 }
 
 // activeTTL matches mic-battles' battle:<id> (a player may come back to it within a week).
@@ -52,6 +55,33 @@ func (s *Store) SetActive(ctx context.Context, accountID int64, a Active) error 
 	data, _ := json.Marshal(a)
 	if err := s.rdb.Set(ctx, activeKey(accountID), data, activeTTL).Err(); err != nil {
 		return fmt.Errorf("save battle: %w", err)
+	}
+	return nil
+}
+
+// ClearActiveIf deletes the player's battle only if it is still battle `id` (a newer one stays).
+func (s *Store) ClearActiveIf(ctx context.Context, accountID int64, id string) error {
+	key := activeKey(accountID)
+	err := s.rdb.Watch(ctx, func(tx *redis.Tx) error {
+		data, err := tx.Get(ctx, key).Bytes()
+		if errors.Is(err, redis.Nil) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		a := Active{}
+		if json.Unmarshal(data, &a) != nil || a.ID != id {
+			return nil
+		}
+		_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
+			p.Del(ctx, key)
+			return nil
+		})
+		return err
+	}, key)
+	if err != nil {
+		return fmt.Errorf("clear battle: %w", err)
 	}
 	return nil
 }

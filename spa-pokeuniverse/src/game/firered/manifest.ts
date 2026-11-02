@@ -3,8 +3,9 @@
 // A graphic's palette is its .pal file when it has one, otherwise the PNG's own palette.
 // The boot set (intro, title, menu) loads first; the New Game set loads in the background; the
 // Pokédex set the first time the Pokédex opens, the party set (party menu and summary, with
-// ability and nature names) the first time POKéMON opens, both with every species' text; each
-// species' art and cry when it's first shown.
+// ability and nature names) the first time POKéMON opens, both with every species' text; the
+// battle set (with the party set) when the first battle starts; each species' art and cry when
+// it's first shown, its back picture and faint cry when it first battles.
 
 import { fetchBin, fetchBytes, fetchPal, fetchPng, toTiles, type IndexedImage } from "../gba/assets";
 import type { SoundInfo } from "../gba/sound";
@@ -280,6 +281,33 @@ const PARTY_GRAPHICS = {
   categoryIcons: { png: "expansion/interface/category_icons.png" },
 } satisfies Record<string, GraphicFiles>;
 
+/**
+ * The battle screen (plans/battles M7): the textbox and its menus' tiles, the building terrain
+ * (indoor maps), healthboxes, their bars and the party balls, the PP colors, and the trainer
+ * pictures (the opponent's front, the player's back with its throwing frames).
+ */
+const BATTLE_GRAPHICS = {
+  battleTextbox: { png: "battle_interface/textbox.png", bin: "battle_interface/textbox.bin" },
+  battleTextboxPal1: { pal: "battle_interface/textbox1.pal" },
+  battleTextboxPal2: { pal: "battle_interface/textbox2.pal" },
+  battleTerrainBuilding: { png: "battle_terrain/building/terrain.png", pal: "battle_terrain/building/terrain.pal", bin: "battle_terrain/building/terrain.bin" },
+  healthboxPlayer: { png: "battle_interface/healthbox_singles_player.png" },
+  healthboxOpponent: { png: "battle_interface/healthbox_singles_opponent.png" },
+  healthboxPal: { pal: "battle_interface/healthbox.pal" },
+  healthbarPal: { pal: "battle_interface/healthbar.pal" },
+  healthboxElements: { png: "battle_interface/healthbox_elements.png", bpp4: true },
+  partySummaryBar: { png: "battle_interface/party_summary_bar.png" },
+  ppTextPal: { pal: "interface/text_pp.pal" },
+  trainerCooltrainerM: { png: "trainers/front_pics/cool_trainer_m_front_pic.png", pal: "trainers/palettes/cool_trainer_m.pal" },
+  backPicRed: { png: "trainers/back_pics/red_back_pic.png", pal: "trainers/palettes/red_back_pic.pal" },
+  backPicLeaf: { png: "trainers/back_pics/leaf_back_pic.png", pal: "trainers/palettes/leaf_back_pic.pal" },
+} satisfies Record<string, GraphicFiles>;
+
+/** A trainer's front picture by BattleTrainer.pic. */
+export const TRAINER_PICS: Record<string, keyof typeof BATTLE_GRAPHICS> = {
+  cooltrainer_m: "trainerCooltrainerM",
+};
+
 /** Each ball's icon, by its item ID (ITEM_MASTER_BALL 1 to ITEM_PREMIER_BALL 12). */
 export const BALL_ICONS = [
   "ballMaster",
@@ -296,7 +324,12 @@ export const BALL_ICONS = [
   "ballPremier",
 ] as const satisfies readonly (keyof typeof PARTY_GRAPHICS)[];
 
-export type GraphicId = keyof typeof BOOT_GRAPHICS | keyof typeof NEW_GAME_GRAPHICS | keyof typeof POKEDEX_GRAPHICS | keyof typeof PARTY_GRAPHICS;
+export type GraphicId =
+  | keyof typeof BOOT_GRAPHICS
+  | keyof typeof NEW_GAME_GRAPHICS
+  | keyof typeof POKEDEX_GRAPHICS
+  | keyof typeof PARTY_GRAPHICS
+  | keyof typeof BATTLE_GRAPHICS;
 
 /** The window frames, TYPE1 to TYPE10. */
 export const FRAME_TYPES = 10;
@@ -332,7 +365,22 @@ export const NEW_GAME_SOUNDS = [
   "se_glass_flute",
   "se_ball_tray_enter",
 ] as const;
-export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number];
+/** The battle's music and sounds, loaded with the battle set. */
+export const BATTLE_SOUNDS = [
+  "mus_vs_trainer",
+  "mus_victory_trainer",
+  "se_ball_throw",
+  "se_effective",
+  "se_super_effective",
+  "se_not_effective",
+  "se_faint",
+  "se_low_health",
+  "se_m_stat_increase",
+  "se_m_stat_decrease",
+] as const;
+/** Script music (ScriptStep.music), loaded when a script plays it. */
+export const SCRIPT_MUSIC = ["mus_encounter_boy"] as const;
+export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number] | (typeof BATTLE_SOUNDS)[number] | (typeof SCRIPT_MUSIC)[number];
 
 /** The game's strings `make text` encodes (src/game/firered/texts.json lists them). */
 export type TextId = string;
@@ -435,6 +483,8 @@ export interface SpeciesText {
   description: number[];
   scale: [number, number, number, number];
   noFlip?: boolean;
+  /** Where the battle draws it: front pic y offset, back pic y offset, enemy elevation. */
+  coords?: [number, number, number];
 }
 
 /**
@@ -473,6 +523,8 @@ export class Assets {
   private abilityTexts: Record<string, NamedText> = {};
   private natureNames: Record<string, number[]> = {};
   private readonly pokemonArts = new Map<number, Promise<PokemonArt>>();
+  private readonly backPics = new Map<number, Promise<IndexedImage>>();
+  private battle: Promise<void> | null = null;
   private readonly loadedArts = new Map<number, PokemonArt>();
   fontWidths!: FontWidths;
 
@@ -539,6 +591,26 @@ export class Assets {
     });
     this.party.catch(() => (this.party = null));
     return this.party;
+  }
+
+  /** The battle set, with the party set (the party menu and summary open in battle); loaded once. */
+  loadBattle(): Promise<void> {
+    this.battle ??= Promise.all([loadGraphics(BATTLE_GRAPHICS), this.loadParty()]).then(([entries]) => {
+      for (const [id, g] of entries) this.graphics.set(id, g);
+    });
+    this.battle.catch(() => (this.battle = null));
+    return this.battle;
+  }
+
+  /** A species' back picture (64×64, the front's colors), loaded the first time it battles. */
+  backPic(n: number): Promise<IndexedImage> {
+    let pic = this.backPics.get(n);
+    if (!pic) {
+      pic = fetchPng(`${ROOT}/pokemon/${nnn(n)}/back.png`);
+      pic.catch(() => this.backPics.delete(n));
+      this.backPics.set(n, pic);
+    }
+    return pic;
   }
 
   /** Every species' text, shared by the Pokédex and party sets. */
@@ -648,6 +720,11 @@ export class Assets {
   /** The sound ID of a species' cry (by national number), loaded on demand from cryUrl. */
   static cryId(n: number): string {
     return `cry_${nnn(n)}`;
+  }
+
+  /** The sound ID of a species' faint cry (plans/battles D15), loaded on demand from cryUrl. */
+  static faintCryId(n: number): string {
+    return `cry_${nnn(n)}_faint`;
   }
 
   static cryUrl(id: string, ext: string): string {

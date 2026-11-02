@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
@@ -102,9 +103,15 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if err != nil {
 		return nil, nil, fmt.Errorf("join: %w", err)
 	}
-	inBattle, battleView, err := w.joinBattle(ctx, accountID, saved.Gen)
+	inBattle, battleView, err := w.joinBattle(ctx, accountID, saved.Gen, takeOver)
 	if err != nil {
 		return nil, nil, fmt.Errorf("join: %w", err)
+	}
+	if inBattle != nil {
+		// Items used before a restart stay spent (they're saved with the outcome).
+		for _, id := range inBattle.Spent {
+			items.Bag.Remove(itemv1.Item(id), 1)
+		}
 	}
 	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
@@ -179,9 +186,18 @@ func (w *World) place(pos live.Position) (*Map, Point, mapv1.Direction) {
 }
 
 // Leave takes the player out of the world (its connection closed): its last changes are saved,
-// its session ends and its position is copied to PostgreSQL.
+// its session ends and its position is copied to PostgreSQL. A battle it was in is dropped
+// (rollback), unless the server is shutting down (it resumes after the restart).
 func (w *World) Leave(p *Player) {
-	p.zone.call(func() { p.zone.remove(p) })
+	w.mu.Lock()
+	closing := w.closed
+	w.mu.Unlock()
+	p.zone.call(func() {
+		if !closing {
+			p.zone.abandonBattle(p)
+		}
+		p.zone.remove(p)
+	})
 	w.mu.Lock()
 	if w.players[p.accountID] == p {
 		delete(w.players, p.accountID)

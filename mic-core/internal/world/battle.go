@@ -3,6 +3,7 @@ package world
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -21,7 +22,7 @@ import (
 // Battles from mic-core's side (plans/battles, Battle Flow): the zone checks every choice,
 // asks mic-battles off its goroutine (retrying while mic-battles restarts) and, back in it,
 // saves what changed before showing it. The active battle lives in Redis (package battle), so
-// a reconnect or a restart of either service resumes it.
+// a restart of either service resumes it; a player who leaves mid-battle drops it (rollback).
 
 // battleTimeout bounds how long a start or a step is retried before giving up; the client then
 // sends its choice again (the same step is safe to repeat).
@@ -149,6 +150,33 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 	})
 }
 
+// spentChanges: the pockets the items used in battle came from.
+func spentChanges(spent []int32) item.Changed {
+	var changed item.Changed
+	for _, id := range spent {
+		info, _ := item.Info(itemv1.Item(id))
+		if !slices.Contains(changed.Pockets, info.GetPocket()) {
+			changed.Pockets = append(changed.Pockets, info.GetPocket())
+		}
+	}
+	return changed
+}
+
+// abandonBattle drops the battle of a player who left mid-battle (rollback): its party, money
+// and items were never saved, so the next join finds them as they were before it.
+func (z *zone) abandonBattle(p *Player) {
+	if p.battle == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	// Only this battle: a newer copy of the game may have started another one.
+	if err := z.w.active.ClearActiveIf(ctx, p.accountID, p.battle.ID); err != nil {
+		z.w.log.Error("abandon battle", "account_id", p.accountID, "battle", p.battle.ID, "err", err)
+	}
+	p.battle = nil
+}
+
 // usableInBattle: an item of the bag's ITEMS or BERRIES the trainer has (mic-battles checks
 // what it does). Poké Balls come with wild battles (Phase 9).
 func usableInBattle(p *Player, id itemv1.Item) bool {
@@ -165,18 +193,19 @@ func (z *zone) refuseChoice(p *Player) {
 }
 
 // played shows a step mic-battles played: a bag item is spent first (D12: mic-core owns the
-// bag), then the events and the next request, then the end if it's over.
+// bag; saved with the outcome, so leaving rolls it back), then the events and the next
+// request, then the end if it's over.
 func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, spend itemv1.Item) {
 	side := u.GetSides()[battle.PlayerSide]
-	if spend != itemv1.Item_ITEM_UNSPECIFIED && side.GetRequest().GetStep() > step {
-		info, _ := item.Info(spend)
-		before := p.items.Clone()
-		changed := item.Changed{Pockets: []itemv1.Pocket{info.GetPocket()}}
-		if p.items.Bag.Remove(spend, 1) && z.saveTrainer(p, changed, false) {
-			z.sendChanged(p, changed)
-		} else {
-			p.items = before
+	if spend != itemv1.Item_ITEM_UNSPECIFIED && side.GetRequest().GetStep() > step && p.items.Bag.Remove(spend, 1) {
+		p.battle.Spent = append(p.battle.Spent, int32(spend))
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		// A restart resumes the battle with the item still spent.
+		if err := z.w.active.SetActive(ctx, p.accountID, p.battle.Active); err != nil {
+			z.w.log.Error("save battle", "account_id", p.accountID, "err", err)
 		}
+		cancel()
+		z.sendChanged(p, spentChanges(p.battle.Spent))
 	}
 	p.battle.request = side.GetRequest()
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_BattleTurn{BattleTurn: &battlev1.BattleTurn{
@@ -188,7 +217,7 @@ func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, spend it
 }
 
 // ask runs a request to mic-battles off the zone's goroutine, then `done` back in it, if the
-// player is still in that battle here (otherwise their next join resumes it from Redis).
+// player is still in that battle here (otherwise they left it, or it resumes after a restart).
 func (z *zone) ask(p *Player, call func(context.Context) (*battlev1.BattleUpdate, error), done func(*battlev1.BattleUpdate, error)) {
 	b := p.battle
 	b.asking = true
@@ -274,6 +303,11 @@ func (z *zone) saveOutcome(p *Player, id string, result battlev1.BattleResult, m
 		if applied, err = battle.Record(ctx, q, p.accountID, id, result, money); err != nil || !applied {
 			return err
 		}
+		if spent := spentChanges(p.battle.Spent); spent.Any() {
+			if err := item.Write(ctx, q, p.accountID, save, p.items, spent); err != nil {
+				return err
+			}
+		}
 		if err := pokemon.Write(ctx, q, p.accountID, save, p.party); err != nil {
 			return err
 		}
@@ -288,10 +322,15 @@ func (z *zone) saveOutcome(p *Player, id string, result battlev1.BattleResult, m
 
 // joinBattle finds the battle the trainer was in, if any, for Join: its view for the snapshot
 // when mic-battles answers in time; otherwise a placeholder, and the zone resumes it (resume).
-func (w *World) joinBattle(ctx context.Context, accountID, save int64) (*inBattle, *battlev1.BattleView, error) {
+// Entering the world anew (takeOver: a page load, CONTINUE) means the player left it: it is
+// dropped instead (rollback, D22); only a reconnect resumes it.
+func (w *World) joinBattle(ctx context.Context, accountID, save int64, takeOver bool) (*inBattle, *battlev1.BattleView, error) {
 	a, err := w.active.Active(ctx, accountID)
 	if err != nil || a == nil {
 		return nil, nil, err
+	}
+	if takeOver {
+		return nil, nil, w.active.ClearActiveIf(ctx, accountID, a.ID)
 	}
 	applied, err := battle.Applied(ctx, db.New(w.pool), a.ID)
 	if err != nil {

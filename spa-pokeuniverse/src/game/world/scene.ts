@@ -17,6 +17,9 @@ const DEPTH_CHARACTERS = 1;
 const DEPTH_ABOVE = 2;
 const DEPTH_CHARACTERS_OVER = 3;
 const DEPTH_FADE = 4;
+/** A character's y as a fraction of its layer's depth: any map's pixels stay under 1. */
+const Y_SORT_OFFSET = 1 << 10;
+const Y_SORT_SCALE = 1 << 20;
 
 export class WorldScene extends Phaser.Scene implements WorldView {
   private tilemaps: Phaser.Tilemaps.Tilemap[] = [];
@@ -64,12 +67,22 @@ export class WorldScene extends Phaser.Scene implements WorldView {
   addCharacter(sheet: CharacterSheet): CharacterView {
     if (!this.textures.exists(sheet.key))
       this.textures.addSpriteSheet(sheet.key, sheet.image as unknown as HTMLImageElement, { frameWidth: sheet.frameWidth, frameHeight: sheet.frameHeight });
-    const sprite = this.add.sprite(0, 0, sheet.key, 0).setOrigin(0).setDepth(DEPTH_CHARACTERS);
+    const sprite = this.add.sprite(0, 0, sheet.key, 0).setOrigin(0);
     this.characters.add(sprite);
+    let layer = DEPTH_CHARACTERS;
+    // Within a layer, the lower on the map is in front (FireRed's subpriority by y).
+    const sort = () => sprite.setDepth(layer + (sprite.y + Y_SORT_OFFSET) / Y_SORT_SCALE);
+    sort();
     return {
-      setPosition: (x, y) => sprite.setPosition(x, y),
+      setPosition: (x, y) => {
+        sprite.setPosition(x, y);
+        sort();
+      },
       setFrame: (frame, hFlip) => sprite.setFrame(frame).setFlipX(hFlip),
-      setOverTiles: (over) => sprite.setDepth(over ? DEPTH_CHARACTERS_OVER : DEPTH_CHARACTERS),
+      setOverTiles: (over) => {
+        layer = over ? DEPTH_CHARACTERS_OVER : DEPTH_CHARACTERS;
+        sort();
+      },
       destroy: () => {
         this.characters.delete(sprite);
         sprite.destroy();

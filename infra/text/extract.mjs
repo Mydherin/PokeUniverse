@@ -2,7 +2,8 @@
 // so the game prints the original bytes and no game text is committed (docs/tech-stack.md#firered-as-reference).
 // Run by `make text`: node extract.mjs <pokefirered> <labels.json> <out dir> <pokeemerald-expansion> <lib-contracts proto dir>.
 // Output: strings.json (label -> bytes, ending in 0xFF), items.json (each item's name and
-// description by item ID, from src/data/items.json), moves.json and abilities.json (name and
+// description by item ID, from src/data/items.json), the battle's strings (src/battle_message.c),
+// every trainer class name (TRAINER_CLASS_*) and type name (TYPE_*) as strings, moves.json and abilities.json (name and
 // description by catalog number), natures.json (name by catalog number) and charmap.json
 // (character <-> byte). Moves 1-354 and FireRed's abilities use FireRed's text; Gen 4's
 // (moves 355-467, abilities from Tangled Feet on) use pokeemerald-expansion's, written and
@@ -24,7 +25,7 @@ const literals = (s) => [...s.matchAll(/"((?:\\.|[^"\\])*)"/g)].map((m) => m[1].
 
 const found = new Map();
 // C: const u8 gName[] = _("...");  The macro ends the string.
-for (const file of ["src/strings.c", "src/keyboard_text.c"]) {
+for (const file of ["src/strings.c", "src/keyboard_text.c", "src/battle_message.c"]) {
   for (const m of readFileSync(join(src, file), "utf8").matchAll(/(\w+)\[\]\s*=\s*_\(((?:\s*"(?:\\.|[^"\\])*")+)\s*\)/g))
     found.set(m[1], () => [...encode(literals(m[2]), m[1]), 0xff]);
 }
@@ -61,6 +62,10 @@ for (const label of labels) {
   if (!get) throw new Error(`text ${label} not found`);
   strings[label] = get();
 }
+// Tables of names by constant (`[CONSTANT] = _("NAME"),`): the battle prints trainer classes and move types.
+for (const [file, prefix] of [["src/data/text/trainer_class_names.h", "TRAINER_CLASS_"], ["src/battle_main.c", "TYPE_"]])
+  for (const m of readFileSync(join(src, file), "utf8").matchAll(/\[(\w+)\]\s*=\s*_\("((?:\\.|[^"\\])*)"\)/g))
+    if (m[1].startsWith(prefix)) strings[m[1]] = [...encode(m[2], m[1]), 0xff];
 
 // Items: name and description by item ID; IDs FireRed leaves unused ("????????") are skipped.
 const itemIds = new Map([...readFileSync(join(src, "include/constants/items.h"), "utf8").matchAll(/#define (ITEM_\w+) (\d+)\n/g)].map((m) => [m[1], Number(m[2])]));

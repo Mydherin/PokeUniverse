@@ -1,0 +1,291 @@
+// The battle screen's video (battle_bg.c, battle_gfx_sfx_util.c): BG0 holds the textbox with its
+// three pages (messages at the top, the action menu 160 pixels down, the move menu 320 down),
+// BG3 and BG2 the terrain (its top and bottom halves, which slide in apart in the intro), and the
+// sprites are the Pokémon, the trainers and the healthboxes. Everything can be drawn again from
+// the battle's state, back from the bag or the party menu or after a reconnect.
+
+import type { BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
+import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
+import type { IndexedImage } from "../../gba/assets";
+import type { Sprite, SpriteTemplate } from "../../gba/sprites";
+import { FontId, Window, type Text, type WindowTemplate } from "../../gba/text";
+import { Layer, rgb, RGB_BLACK, type Background } from "../../gba/video";
+import type { BattleState } from "../../battle/state";
+import { initBg } from "../common";
+import type { Flow } from "../flow";
+import { TRAINER_PICS } from "../manifest";
+import { textSpeedDelay } from "../options";
+import { MON_AFFINE_ANIMS } from "../pokeball";
+import { Healthbox, type HealthboxMon } from "./healthbox";
+
+/** The textbox's pages: gBattle_BG0_Y. */
+export const enum Page {
+  Message = 0,
+  Action = 160,
+  Moves = 320,
+}
+
+/** sStandardBattleWindowTemplates (the ones singles use). */
+export const WINDOWS = {
+  msg: { left: 1, top: 15, width: 28, height: 4, palette: 0, baseBlock: 0x090 },
+  actionPrompt: { left: 1, top: 35, width: 14, height: 4, palette: 0, baseBlock: 0x1c0 },
+  actionMenu: { left: 17, top: 35, width: 12, height: 4, palette: 5, baseBlock: 0x190 },
+  moveName1: { left: 2, top: 55, width: 8, height: 2, palette: 5, baseBlock: 0x300 },
+  moveName2: { left: 11, top: 55, width: 8, height: 2, palette: 5, baseBlock: 0x310 },
+  moveName3: { left: 2, top: 57, width: 8, height: 2, palette: 5, baseBlock: 0x320 },
+  moveName4: { left: 11, top: 57, width: 8, height: 2, palette: 5, baseBlock: 0x330 },
+  pp: { left: 21, top: 55, width: 3, height: 2, palette: 5, baseBlock: 0x290 },
+  moveType: { left: 21, top: 57, width: 8, height: 2, palette: 5, baseBlock: 0x296 },
+  ppRemaining: { left: 24, top: 55, width: 5, height: 2, palette: 5, baseBlock: 0x2a6 },
+} satisfies Record<string, WindowTemplate>;
+export type WindowId = keyof typeof WINDOWS;
+
+/** sTextOnWindowsInfo_Normal: fill, font, position and [background, text, shadow] of each window. */
+const STYLES: Record<WindowId, { fill: number; font: FontId; x: number; y: number; lineSpacing: number; colors: [number, number, number] }> = {
+  msg: { fill: 15, font: FontId.Normal, x: 2, y: 2, lineSpacing: 2, colors: [15, 1, 6] },
+  actionPrompt: { fill: 15, font: FontId.Normal, x: 2, y: 2, lineSpacing: 2, colors: [15, 1, 6] },
+  actionMenu: { fill: 14, font: FontId.NormalCopy1, x: 0, y: 2, lineSpacing: 2, colors: [14, 13, 15] },
+  moveName1: { fill: 14, font: FontId.Small, x: 0, y: 1, lineSpacing: 0, colors: [14, 13, 15] },
+  moveName2: { fill: 14, font: FontId.Small, x: 0, y: 1, lineSpacing: 0, colors: [14, 13, 15] },
+  moveName3: { fill: 14, font: FontId.Small, x: 0, y: 1, lineSpacing: 0, colors: [14, 13, 15] },
+  moveName4: { fill: 14, font: FontId.Small, x: 0, y: 1, lineSpacing: 0, colors: [14, 13, 15] },
+  pp: { fill: 14, font: FontId.Small, x: 0, y: 2, lineSpacing: 0, colors: [14, 12, 11] },
+  moveType: { fill: 14, font: FontId.Small, x: 0, y: 2, lineSpacing: 0, colors: [14, 13, 15] },
+  ppRemaining: { fill: 14, font: FontId.NormalCopy1, x: 10, y: 2, lineSpacing: 2, colors: [14, 12, 11] },
+};
+
+/** sBattlerCoords (singles): where each side's Pokémon stands. */
+const MON_COORDS = { player: [72, 80], foe: [176, 40] } as const;
+/** Where the trainers stand: the player's back pic, the foe's front pic. */
+export const TRAINER_COORDS = { player: [80, 80], foe: [176, 40] } as const;
+
+/** sAnimCmd_Red_1 / Leaf_1: the throw, frames of 64 tiles. */
+const BACK_PIC_ANIMS: SpriteTemplate["anims"] = [
+  [{ image: 0, duration: 0 }, "end"],
+  [{ image: 64, duration: 20 }, { image: 128, duration: 6 }, { image: 192, duration: 6 }, { image: 256, duration: 24 }, { image: 0, duration: 1 }, "end"],
+];
+
+const TILES = 0x400;
+
+/** A Pokémon's sprite: its picture copied into its own tiles, so it can sink out of sight as it faints. */
+export class MonSprite {
+  readonly sprite: Sprite;
+  private readonly tiles = new Uint8Array(64 * 64);
+
+  constructor(
+    private readonly flow: Flow,
+    readonly tag: string,
+    private readonly pic: IndexedImage,
+    palette: Uint16Array,
+    x: number,
+    y: number,
+  ) {
+    const { gba } = flow;
+    this.draw(0);
+    gba.sprites.loadSheet(tag, this.tiles);
+    gba.palettes.loadSpritePalette(tag, palette);
+    const template: SpriteTemplate = { sheet: tag, palette: tag, width: 64, height: 64, priority: 2, affine: true, affineAnims: MON_AFFINE_ANIMS };
+    this.sprite = gba.sprites.create(template, x, y, 0)!;
+  }
+
+  /** The picture `dy` pixels lower inside its 64×64 box (the faint slide), rows below the box gone. */
+  draw(dy: number): void {
+    const { pic, tiles } = this;
+    tiles.fill(0);
+    for (let y = dy; y < 64; y++)
+      for (let x = 0; x < 64; x++) tiles[((y >> 3) * 8 + (x >> 3)) * 64 + (y & 7) * 8 + (x & 7)] = pic.pixels[(y - dy) * pic.width + x] & 15;
+  }
+
+  destroy(): void {
+    const { gba } = this.flow;
+    gba.sprites.destroy(this.sprite);
+    gba.sprites.freeSheet(this.tag);
+    gba.palettes.freeSpritePalette(this.tag);
+  }
+}
+
+export class BattleScene {
+  readonly bg0: Background;
+  readonly windows: Record<WindowId, Window>;
+  readonly healthboxes: [Healthbox, Healthbox];
+  /** The Pokémon on the field, by side (player, foe). */
+  readonly mons: [MonSprite | null, MonSprite | null] = [null, null];
+  /** The trainers' pictures while they're on screen. */
+  readonly trainers: [Sprite | null, Sprite | null] = [null, null];
+  private readonly terrain: [Background, Background];
+
+  constructor(
+    private readonly flow: Flow,
+    private readonly gender: Gender,
+  ) {
+    const { gba, assets } = flow;
+    const { video, palettes } = gba;
+    gba.setVBlank(null);
+    gba.reset();
+    flow.text.reset();
+    video.transparentBackdrop = false;
+    const [bg0, , bg2, bg3] = video.bgs;
+    this.bg0 = bg0;
+    this.terrain = [bg3, bg2];
+
+    // LoadBattleTextboxAndBackground: the textbox and its colors, the menu windows' colors.
+    initBg(bg0, 2, 0);
+    const textbox = assets.get("battleTextbox");
+    bg0.tiles = new Uint8Array(TILES * 64);
+    bg0.tiles.set(textbox.tiles.subarray(0, Math.min(textbox.tiles.length, bg0.tiles.length)));
+    bg0.map.set(textbox.map!.subarray(0, bg0.map.length));
+    bg0.visible = true;
+    palettes.load(assets.get("battleTextboxPal1").palette, 0, 16);
+    palettes.load(assets.get("battleTextboxPal2").palette, 16, 16);
+    palettes.load([rgb(9, 9, 9), rgb(9, 9, 9), rgb(31, 31, 31), rgb(26, 26, 25)], 5 * 16 + 12, 4);
+    palettes.load([RGB_BLACK], 0, 1);
+    this.windows = Object.fromEntries(Object.entries(WINDOWS).map(([id, t]) => [id, new Window(bg0, t)])) as Record<WindowId, Window>;
+
+    // The building terrain (indoors), split in halves for the intro's slide.
+    const terrain = assets.get("battleTerrainBuilding");
+    palettes.load(terrain.palette, 2 * 16, 48);
+    this.terrain.forEach((bg, half) => {
+      initBg(bg, 1, 3);
+      bg.tiles = terrain.tiles;
+      bg.map.set(terrain.map!.subarray(0, bg.map.length));
+      for (let ty = 0; ty < 32; ty++) for (let tx = 0; tx < 64; tx++) if ((ty < 10) !== (half === 0)) bg.setEntry(tx, ty, 0);
+      bg.visible = true;
+    });
+
+    this.healthboxes = [new Healthbox(flow, false), new Healthbox(flow, true)];
+    gba.setVBlank(gba.standardVBlank);
+  }
+
+  /** The textbox page shown. */
+  set page(page: Page) {
+    this.bg0.y = page * 256;
+  }
+
+  /** The intro's slide: the foe's half of the terrain `d` pixels left, the player's `d` right. */
+  set terrainSlide(d: number) {
+    this.terrain[0].x = d * 256;
+    this.terrain[1].x = -d * 256;
+  }
+
+  /** The intro's window: only rows `top` to `bottom` show, black around. */
+  setReveal(top: number, bottom: number): void {
+    const { video } = this.flow.gba;
+    if (top <= 0 && bottom >= 160) {
+      video.win0On = false;
+      return;
+    }
+    video.win0On = true;
+    Object.assign(video.win0, { left: 0, right: 240, top, bottom });
+    video.winIn0 = Layer.ALL;
+    video.winOut = 0;
+  }
+
+  // Text
+
+  /** BattlePutTextOnWindow: the window cleared, then the text at once (`speed` 0) or at the text speed. */
+  print(id: WindowId, text: Text, speed = 0, x?: number): void {
+    const { flow } = this;
+    const win = this.windows[id];
+    const style = STYLES[id];
+    win.fill(style.fill);
+    win.putTilemap();
+    const font = flow.fonts[style.font];
+    flow.text.ctx.canABSpeedUpPrint = id === "msg";
+    flow.text.add(win, { font, x: x ?? style.x, y: style.y, letterSpacing: 0, lineSpacing: style.lineSpacing, colors: style.colors }, speed, text);
+    if (speed === 0) win.copyToVram();
+  }
+
+  /** A battle message at the text speed; done once printed (and any prompt in it answered). */
+  *message(text: Text, wait = 64): Generator<void, void, void> {
+    this.page = Page.Message;
+    this.print("msg", text, textSpeedDelay(this.flow.options));
+    while (this.flow.text.isActive(this.windows.msg)) yield;
+    for (let i = 0; i < wait; i++) yield;
+  }
+
+  clearMessage(): void {
+    this.windows.msg.fill(15);
+    this.windows.msg.copyToVram();
+  }
+
+  /** The cursor (tiles 1 and 2) or its blank (tile 32) at a tile of BG0. */
+  setCursor(x: number, y: number, on: boolean): void {
+    // CopyToBgTilemapBufferRect_ChangePalette(…, 0x11): past 16 the entries are copied as they
+    // are, so the cursor and its blank use palette 0.
+    this.bg0.setEntry(x, y, on ? 1 : 32);
+    this.bg0.setEntry(x, y + 1, on ? 2 : 32);
+  }
+
+  // Sprites
+
+  /** The trainer's picture: the foe's front pic, or the player's back pic (Red's or Leaf's, with the throw). */
+  showTrainer(foe: boolean, pic: string): Sprite | null {
+    const { gba, assets } = this.flow;
+    const id = foe ? TRAINER_PICS[pic] : this.gender === Gender.GIRL ? "backPicLeaf" : "backPicRed";
+    if (!id) return null;
+    const g = assets.get(id);
+    const tag = foe ? "trainerFront" : "trainerBack";
+    gba.sprites.loadSheet(tag, g.tiles);
+    gba.palettes.loadSpritePalette(tag, g.palette);
+    const [x, y] = foe ? TRAINER_COORDS.foe : TRAINER_COORDS.player;
+    const sprite = gba.sprites.create({ sheet: tag, palette: tag, width: 64, height: 64, priority: 2, anims: foe ? undefined : BACK_PIC_ANIMS }, x, y, foe ? 1 : 0);
+    this.trainers[foe ? 1 : 0] = sprite;
+    return sprite;
+  }
+
+  hideTrainer(foe: boolean): void {
+    const i = foe ? 1 : 0;
+    this.flow.gba.sprites.destroy(this.trainers[i]);
+    this.trainers[i] = null;
+  }
+
+  /** Where a Pokémon stands: its side's spot, moved by its picture's offset (and a foe's elevation). */
+  monPosition(info: BattlerInfo): [number, number] {
+    const foe = info.battler?.foe ?? false;
+    const [front, back, elevation] = this.flow.assets.species(info.species).coords ?? [0, 0, 0];
+    const [x, y] = foe ? MON_COORDS.foe : MON_COORDS.player;
+    return [x, foe ? y + front - elevation : y + back];
+  }
+
+  /** The Pokémon's sprite (its art must be loaded), replacing the one on its side. */
+  showMon(info: BattlerInfo, back?: IndexedImage): MonSprite | null {
+    const foe = info.battler?.foe ?? false;
+    const art = this.flow.assets.loadedPokemonArt(info.species);
+    const pic = foe ? art?.front : back;
+    if (!art || !pic) return null;
+    this.removeMon(foe);
+    const [x, y] = this.monPosition(info);
+    const mon = new MonSprite(this.flow, `battler${foe ? 1 : 0}`, pic, info.shiny ? art.shinyPalette : art.frontPalette, x, y);
+    this.mons[foe ? 1 : 0] = mon;
+    return mon;
+  }
+
+  removeMon(foe: boolean): void {
+    this.mons[foe ? 1 : 0]?.destroy();
+    this.mons[foe ? 1 : 0] = null;
+  }
+
+  healthbox(foe: boolean): Healthbox {
+    return this.healthboxes[foe ? 1 : 0];
+  }
+
+  /** The healthbox drawn for a Pokémon and shown. */
+  showHealthbox(mon: HealthboxMon, foe: boolean): void {
+    const box = this.healthbox(foe);
+    box.show(mon);
+    box.offset = 0;
+    box.visible = true;
+  }
+
+  /** Everything on the field as the state has it: the Pokémon at their spots, their healthboxes. */
+  drawField(state: BattleState, backPics: Map<number, IndexedImage>, healthboxMon: (info: BattlerInfo) => HealthboxMon): void {
+    this.page = Page.Message;
+    for (const side of state.sides) {
+      const info = side.active[0];
+      if (!info) continue;
+      const mon = this.showMon(info, backPics.get(info.species));
+      if (mon) mon.sprite.startAffineAnim(0);
+      this.showHealthbox(healthboxMon(info), side.foe);
+    }
+  }
+}

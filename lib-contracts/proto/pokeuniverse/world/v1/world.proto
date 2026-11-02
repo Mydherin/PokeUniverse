@@ -114,6 +114,9 @@ message ScriptStep {
     // A trainer battle: the client sends ScriptBattle and waits for BattleStarted. After a
     // win the script goes on once BattleEnded is shown; a loss (whiteout) ends it there.
     TrainerBattle trainer_battle = 6;
+    // A song on the BGM player, by ID (a trainer's encounter music); the map's comes back once
+    // the script ends.
+    string music = 7;
   }
 }
 

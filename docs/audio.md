@@ -12,6 +12,7 @@ pokefirered (MIDI + instruments) ──► [mid2agb] ──► game song data �
 - **One command:** `make audio` runs the whole pipeline in a Docker image (`infra/audio/`: `Dockerfile` + `render.sh`, run as the host user; no tools to install on the host). `make up` runs it first.
 - **Input:** the sound list, `spa-pokeuniverse/src/game/firered/sounds.json` (sound ID → song or cry). Adding a sound is one line there.
 - **Species cries:** every species' cry (1-493) from `make pokemon`'s `cries.json` (which `make audio` runs first): FireRed's cry number for 1-386, rendered as above; `pokeemerald-expansion`'s sample for 387-493 (`sound/direct_sound_samples/cries/<name>.wav`), resampled to 48 kHz; both trimmed and encoded the same way to `audio/cries/<nnn>.webm|.m4a`, rendered once.
+- **Faint cries** (plans/battles D15): each species' cry in FireRed's faint mode (`CRY_MODE_FAINT`: release 200, pitch 14440) to `audio/cries/<nnn>_faint.webm|.m4a`; the expansion's samples lowered by the same pitch (×0.8125). Rendered once.
 - **Output:** a **gitignored** folder in `spa-pokeuniverse` (`public/firered/audio/`), served like any static file.
 - **Incremental:** a sound is rendered again only when the list is newer than its files; species cries only once.
 - **Reproducible:** the submodule commit, the poryaaaa commit (validated at `a047cde`) and the encoder settings are pinned, so every build gives the same files.
@@ -77,7 +78,8 @@ Measured on `mus_title` (45 s: intro + one pass):
 
 - The game uses **sound IDs** (`mus_title`, `se_select`), never file names; the FireRed manifest maps them to files ([tech-stack.md](tech-stack.md#decoupled-presentation)).
 - Phaser's Web Audio context, each sound decoded once and kept in memory (`src/game/gba/sound.ts`). The browser gets `.webm` if it can play Opus (`canPlayType`), otherwise `.m4a`.
-- **Species cries load on demand** (`cry_<nnn>`, not in `manifest.json`: cries don't loop), the first time a screen plays them (`Flow.playCry`), on the cry player.
+- **Species cries load on demand** (`cry_<nnn>`, `cry_<nnn>_faint`; not in `manifest.json`: cries don't loop), the first time a screen plays them (`Flow.playCry`, the battle's send-outs and faints), on the cry player.
+- **Battle sounds** (`BATTLE_SOUNDS` in the manifest: the battle and victory music, the effectiveness, faint, low HP and stat sounds) load with the battle set when a trainer's script starts. **Script music** (`ScriptStep.music`, e.g. `mus_encounter_boy` during a trainer's intro) loads when played; the map's music comes back when the script ends.
 - **Players** like the game's: one **BGM** at a time (starting a song stops the one playing, as FireRed's music player does); sound effects and cries on their own players, over the music.
 - **Mono or stereo** by the trainer's SOUND option: every player goes through one output, downmixed to mono by default (FireRed's MONO), stereo as rendered with STEREO.
 - **Fade out** as in the game: the BGM volume drops 1/16 every *n* frames, then it stops; the title screen waits for it.

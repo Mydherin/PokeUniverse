@@ -78,6 +78,8 @@ export const enum BagLocation {
   ItemPc,
   /** The party menu's GIVE: an item to give is chosen. */
   Party,
+  /** BAG in battle: an item of the ITEMS pocket is chosen to use (plans/battles M7; their effects come with M12). */
+  Battle,
 }
 
 /** How the bag closed: back (null), to the field where an item works, or with the item to give (from the party menu). */
@@ -345,6 +347,7 @@ class Bag {
     this.setMessageBoxPalette(1);
     if (this.location === BagLocation.ItemPc) this.depositAction();
     else if (this.location === BagLocation.Party) this.chooseToGive();
+    else if (this.location === BagLocation.Battle) this.chooseToUseInBattle();
     else this.openContextMenu();
   }
 
@@ -607,6 +610,13 @@ class Bag {
     }
     if (state.pocket !== Pocket.KeyItems && !itemInfo(item)?.important) return this.close(true, { chosen: item });
     this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.CANT_BE_HELD, item }));
+  }
+
+  /** In battle: an ITEMS pocket item goes back to the battle to be used; others aren't for now (OAK's words). */
+  private chooseToUseInBattle(): void {
+    const { item } = this.selected!;
+    if (state.pocket === Pocket.Items) return this.close(true, { chosen: item });
+    this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NOT_NOW, item }));
   }
 
   /** Task_ItemMenuAction_ToggleSelect: the list shows the SELECT mark at once. */
