@@ -12,7 +12,7 @@ export type AnimCmd = { image: number; duration: number; hFlip?: boolean; vFlip?
  * A scale and rotation step: absolute when duration is 0, otherwise added once per frame for
  * `duration` frames. Rotation is in 1/256 of a turn (the command's s8, shifted by 8 in the game).
  */
-export type AffineCmd = { xScale: number; yScale: number; rotation?: number; duration: number } | "end";
+export type AffineCmd = { xScale: number; yScale: number; rotation?: number; duration: number } | { jump: number } | "end";
 
 export const enum ObjMode {
   Normal = 0,
@@ -85,6 +85,8 @@ export class Sprite {
   affineDelay = 0;
   affineBeginning = true;
   affineEnded = false;
+  /** The affine animation stops; the matrix stays as set (setRotScale). */
+  affineAnimPaused = false;
   xScale = 0x100;
   yScale = 0x100;
   /** 0x10000 per turn. */
@@ -134,6 +136,20 @@ export class Sprite {
     this.rotation = 0;
     this.affineBeginning = true;
     this.affineEnded = false;
+  }
+
+  /**
+   * SetSpriteRotScale (ObjAffineSet): the matrix from scales in its own terms (0x100 = full size,
+   * larger is smaller) and a rotation (0x10000 per turn); pause the affine animation first.
+   */
+  setRotScale(xScale: number, yScale: number, rotation: number): void {
+    const turn = (rotation >> 8) & 0xff;
+    const sin = AFFINE_SIN[turn];
+    const cos = AFFINE_SIN[(turn + 64) & 0xff];
+    this.matrixA = (xScale * cos) >> 14;
+    this.matrixB = -(xScale * sin) >> 14;
+    this.matrixC = (yScale * sin) >> 14;
+    this.matrixD = (yScale * cos) >> 14;
   }
 
   /** Keeps a point of the sprite (in its pixels) fixed while it scales. */
@@ -229,7 +245,7 @@ export class Sprites {
   animateSprite(s: Sprite): void {
     if (s.animBeginning) beginAnim(s);
     else if (!s.animPaused) continueAnim(s);
-    if (s.affine) {
+    if (s.affine && !s.affineAnimPaused) {
       if (s.affineBeginning) beginAffineAnim(s);
       else continueAffineAnim(s);
     }
@@ -353,7 +369,7 @@ function applyAffineFrame(s: Sprite, cmd: { xScale: number; yScale: number; rota
 
 function beginAffineAnim(s: Sprite): void {
   const cmd = s.affineAnims[s.affineAnimNum][0];
-  if (cmd === "end") return;
+  if (cmd === "end" || "jump" in cmd) return;
   s.affineCmdIndex = 0;
   s.affineBeginning = s.affineEnded = false;
   s.affineDelay = applyAffineFrame(s, cmd);
@@ -361,13 +377,16 @@ function beginAffineAnim(s: Sprite): void {
 }
 
 function continueAffineAnim(s: Sprite): void {
-  const current = s.affineAnims[s.affineAnimNum][s.affineCmdIndex];
+  const anim = s.affineAnims[s.affineAnimNum];
+  const current = anim[s.affineCmdIndex];
   if (s.affineDelay) {
     s.affineDelay--;
-    if (current !== "end") updateMatrix(s, current.xScale, current.yScale, current.rotation);
+    if (current !== "end" && !("jump" in current)) updateMatrix(s, current.xScale, current.yScale, current.rotation);
   } else {
-    const cmd = s.affineAnims[s.affineAnimNum][++s.affineCmdIndex];
-    if (cmd === "end" || cmd === undefined) {
+    let cmd = anim[++s.affineCmdIndex];
+    // AFFINEANIMCMD_JUMP: on to that command, applied at once.
+    if (typeof cmd === "object" && "jump" in cmd) cmd = anim[(s.affineCmdIndex = cmd.jump)];
+    if (cmd === "end" || cmd === undefined || "jump" in cmd) {
       s.affineEnded = true;
       s.affineCmdIndex--;
       updateMatrix(s, 0, 0);

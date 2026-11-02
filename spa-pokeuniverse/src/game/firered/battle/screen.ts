@@ -34,6 +34,7 @@ import { PartyState } from "../../world/party";
 import { BagLocation, startBag, type BagExit, type BagHost } from "../bag";
 import type { Flow } from "../flow";
 import { Assets, BATTLE_SOUNDS } from "../manifest";
+import { loadAnimations } from "./anims";
 import { startPartyMenu, type PartyHost, type PartyMenuMode } from "../party-menu";
 import type { HealthboxMon } from "./healthbox";
 import { PartySummary } from "./healthbox";
@@ -60,7 +61,7 @@ export interface BattleHost {
 
 /** The battle set and its sounds, started early (when a trainer's script starts) so the transition needn't wait. */
 export function prepareBattle(flow: Flow): Promise<void> {
-  return Promise.all([flow.assets.loadBattle(), flow.gba.sound.load([...BATTLE_SOUNDS], Assets.soundUrl)]).then(() => {});
+  return Promise.all([flow.assets.loadBattle(), flow.gba.sound.load([...BATTLE_SOUNDS], Assets.soundUrl), loadAnimations()]).then(() => {});
 }
 
 type Job = () => Generator<void, void, void>;

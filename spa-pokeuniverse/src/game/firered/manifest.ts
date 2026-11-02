@@ -377,6 +377,25 @@ export const BATTLE_SOUNDS = [
   "se_low_health",
   "se_m_stat_increase",
   "se_m_stat_decrease",
+  // Move animations' sounds (battle/anims)
+  "se_m_comet_punch",
+  "se_m_swift",
+  "se_m_mega_kick",
+  "se_m_gust",
+  "se_m_toxic",
+  "se_m_sand_attack",
+  "se_m_rock_throw",
+  "se_m_absorb",
+  "se_m_lick",
+  "se_m_harden",
+  "se_m_flame_wheel",
+  "se_m_bubble",
+  "se_m_razor_wind2",
+  "se_m_thunderbolt",
+  "se_m_psybeam",
+  "se_m_icy_wind",
+  "se_m_dragon_rage",
+  "se_m_bite",
 ] as const;
 /** Script music (ScriptStep.music), loaded when a script plays it. */
 export const SCRIPT_MUSIC = ["mus_encounter_boy"] as const;
@@ -457,6 +476,16 @@ async function loadGraphics(files: Record<string, GraphicFiles>): Promise<[Graph
   );
 }
 
+/**
+ * A battle animation's art (battle/anims/art.json): a sheet (or the pictures it joins, their tiles
+ * one after another), its palette (a .pal or a picture's) and, for a background, its tilemap.
+ */
+export interface AnimArtFiles {
+  png: string | readonly string[];
+  pal: string;
+  bin?: string;
+}
+
 /** An item's name and description (`make text`, by item ID). */
 interface ItemText {
   name: number[];
@@ -526,6 +555,7 @@ export class Assets {
   private readonly backPics = new Map<number, Promise<IndexedImage>>();
   private battle: Promise<void> | null = null;
   private readonly loadedArts = new Map<number, PokemonArt>();
+  private readonly animArts = new Map<string, Promise<Graphic>>();
   fontWidths!: FontWidths;
 
   private constructor(
@@ -711,6 +741,32 @@ export class Assets {
       this.itemIcons.set(item, icon);
     }
     return icon;
+  }
+
+  /** A battle animation's sprite or background art, loaded the first time a script needs it. */
+  animArt(files: AnimArtFiles): Promise<Graphic> {
+    const pngs = typeof files.png === "string" ? [files.png] : files.png;
+    const key = [...pngs, files.pal, files.bin].join("|");
+    const cached = this.animArts.get(key);
+    if (cached) return cached;
+    const url = (f: string) => `${ROOT}/graphics/${f}`;
+    const art = Promise.all([
+      Promise.all(pngs.map((f) => fetchPng(url(f)))),
+      files.pal.endsWith(".pal") ? fetchPal(url(files.pal)) : fetchPng(url(files.pal)).then((i) => i.palette ?? new Uint16Array(16)),
+      files.bin ? fetchBin(url(files.bin)) : null,
+    ]).then(([images, palette, map]): Graphic => {
+      // Tiles as gbagfx builds them (pixel % 16), the joined pictures' one after another.
+      const parts = images.map((image) => {
+        for (let i = 0; i < image.pixels.length; i++) image.pixels[i] &= 15;
+        return toTiles(image);
+      });
+      const tiles = new Uint8Array(parts.reduce((n, t) => n + t.length, 0));
+      parts.reduce((at, t) => (tiles.set(t, at), at + t.length), 0);
+      return { image: images.length === 1 ? images[0] : null, tiles, palette, map, bytes: null };
+    });
+    art.catch(() => this.animArts.delete(key));
+    this.animArts.set(key, art);
+    return art;
   }
 
   static soundUrl(id: string, ext: string): string {

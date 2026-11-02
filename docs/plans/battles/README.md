@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M8 the animation engine](m08-animation-engine.md) (confirm D9 with the user first).
-- **Last state:** M7 played and fixed (2026-11-02, see [M7's Progress](m07-battle-screen.md#progress)); leaving mid-battle rolls back (D22). M6 still lacks the restart-resume check. Nothing committed since M6 (`a56c0af`).
+- **Next:** [M8](m08-animation-engine.md#progress) step 4's playback hookup (exact calls in Progress "Hookup"), then step 5 (two-turn moves), then play-test the unverified list; steps 1-3 and the status/stat/weather behaviors are done, uncommitted.
+- **Last state:** M7 played and fixed (2026-11-02, see [M7's Progress](m07-battle-screen.md#progress)); leaving mid-battle rolls back (D22). M6 still lacks the restart-resume check. M7 committed as `1b57ea1`; M8 work in progress is uncommitted.
 
 ## Cold Start (every new session)
 
@@ -32,7 +32,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M5 | [NPC battle AI](m05-npc-ai.md) | ✅ | FireRed's AI flags with Gen 4 knowledge, switching, trainer items |
 | M6 | [Battles in `mic-core` and the room trainer](m06-mic-core-battles.md) | 🚧 | NPCs in maps, the test trainer, battle script steps, active battle, outcome transaction, whiteout, resume |
 | M7 | [The battle screen](m07-battle-screen.md) | ✅ | Transition, intro, healthboxes, menus, event playback, party/bag in battle, ending, music |
-| M8 | [Animation engine](m08-animation-engine.md) | ⬜ | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather (D9 first) |
+| M8 | [Animation engine](m08-animation-engine.md) | 🚧 | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather (D9 first) |
 | M9 | [FireRed move animations](m09-firered-move-animations.md) | ⬜ | Moves 1-354, family by family |
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ⬜ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ⬜ | Exp bar, level up window, learning moves, evolution, Pokédex seen |
@@ -54,3 +54,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-01 | M6 | NPCs in maps (compiled, drawn, blocking, facing); test trainer ROLANDO (heals, YES/NO, battle); `internal/battle` (trainers, teams, outcome rules, whiteout, `player:<id>:battle`, `battle_outcomes`); zone start/choices/outcome/resume; D19, D20 | M7 | Builds pass; not run (needs M7's screen); the user chose heal + whiteout for the test trainer |
 | 2026-11-01 | M7 | Battle screen: state model, transition, intro, healthboxes, menus, event playback with FireRed's strings, party/bag in battle, ending, music; `ScriptStep.music`; battle strings, trainer classes and type names in `make text`; faint cries in `make audio` | Play it (with M6's check), then M8 | Category icon replaces "TYPE/" (D21); placeholder hits; not run in the game |
 | 2026-11-02 | M7 play test | Played the test battle in the game; fixed the player's healthbox offset, the cursor palette, Pokémon showing before their ball opened, the foe's party balls, overworld character order; leaving mid-battle rolls back (D22) | M8 (D9 first) | Win ending and restart-resume not run; not committed |
+| 2026-11-02 | M8 start | D9 confirmed (AGENTS.md); M7 committed (`1b57ea1`); animation runner, first behaviors, generic animations by type and category, played after "used <MOVE>!" | M8: watch them in the game, then the script conversion | Uncommitted; not seen in the game yet |
+| 2026-11-02 | M8 conversion | `infra/battle/anims.mjs` → `anims/firered.json` + `expansion.json` (all 467 moves, general/status/special); engine: labels, calls, jumps, sound tasks, blending, lazy chunks and sounds; 110 sounds in `sounds.json` | M8: background commands, per-tag art, top behaviors, general anims | 5 moves play their own script; tsc and vite pass |
+| 2026-11-02 | M8 play test | Generic physical/special/status and a converted script (Tackle) seen working; hit splat blended (setalpha) | M8: background commands, per-tag art, top behaviors, general anims | Uncommitted |
+| 2026-11-02 | M8 session 3 | Move backgrounds, art per tag (`art.json`, `anim-art.mjs`, expansion art in `make graphics`), stereo pan, behaviors split by family (`behaviors/`), base behaviors, status/stat-change/weather behaviors; 42/511 programs play their own script | M8 step 4 hookup in `playback.ts`, step 5 | tsc + vite ✅; not run in the game; `make graphics`/`make audio` needed; uncommitted |

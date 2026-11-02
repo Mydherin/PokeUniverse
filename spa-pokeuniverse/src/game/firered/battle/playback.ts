@@ -1,16 +1,18 @@
-// Plays the battle's events as FireRed shows them, with placeholder hits until the move
-// animations come (plans/battles M8): the target blinks with the effectiveness sound and its HP
-// bar moves; a faint plays the faint cry and the Pokémon sinks; stats play their sound; a
-// send-out throws the ball and the Pokémon comes out with its cry, its healthbox sliding in.
+// Plays the battle's events as FireRed shows them: "<MON> used <MOVE>!", then the move's
+// animation (anims/, with BATTLE SCENE on); a hit blinks the target with the effectiveness sound
+// and its HP bar moves; a faint plays the faint cry and the Pokémon sinks; stats play their sound;
+// a send-out throws the ball and the Pokémon comes out with its cry, its healthbox sliding in.
 // Each event changes the battle's state as it is shown.
 
 import { Condition, HitResult, type BattleEvent, type Battler, type BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
+import { BattleScene as BattleSceneOption } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
 import type { BattleState } from "../../battle/state";
 import type { Flow } from "../flow";
 import { HpBarLevel, hpBarLevel } from "../hp-bar";
 import { Assets } from "../manifest";
 import { PokeBalls } from "../pokeball";
+import { moveAnimation, playAnimation, type AnimMon } from "./anims";
 import type { HealthboxMon } from "./healthbox";
 import { eventMessages, type Recent } from "./messages";
 import type { BattleScene } from "./scene";
@@ -157,6 +159,12 @@ export class Playback {
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         return;
       }
+      case "moveUsed": {
+        state.apply(e);
+        for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+        if (!k.value.still) yield* this.animateMove(k.value.battler, k.value.target, k.value.move);
+        return;
+      }
       case "statChange":
         if (k.value.stages > 0) this.host.flow.play(k.value.lower ? "se_m_stat_decrease" : "se_m_stat_increase");
         break;
@@ -189,7 +197,17 @@ export class Playback {
     if (!b.foe && hp > 0 && max && hpBarLevel(hp, max) === HpBarLevel.Red) this.host.flow.play("se_low_health");
   }
 
-  /** Placeholder hit (until M8): the target blinks for 32 frames (DoHitAnimation) with the effectiveness sound. */
+  /** The move's animation (DoMoveAnim), unless the trainer turned BATTLE SCENE off. */
+  private *animateMove(attacker: Battler | undefined, target: Battler | undefined, move: number): Generator<void, void, void> {
+    const { flow, scene } = this.host;
+    if (!attacker || flow.options.battleScene === BattleSceneOption.OFF) return;
+    const mon = (b: Battler): AnimMon => ({ foe: b.foe, sprite: scene.mons[b.foe ? 1 : 0]?.sprite ?? null });
+    const anim = moveAnimation(move, !!target);
+    if (!anim) return;
+    yield* playAnimation({ flow, attacker: mon(attacker), target: mon(target ?? attacker), backdrop: scene, color: anim.color }, anim.program);
+  }
+
+  /** The hit (DoHitAnimation): the target blinks for 32 frames with the effectiveness sound. */
   private *hit(b: Battler | undefined, result: HitResult): Generator<void, void, void> {
     if (!b) return;
     const { flow, scene } = this.host;

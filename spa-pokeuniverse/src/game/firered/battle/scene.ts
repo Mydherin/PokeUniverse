@@ -13,7 +13,7 @@ import { Layer, rgb, RGB_BLACK, type Background } from "../../gba/video";
 import type { BattleState } from "../../battle/state";
 import { initBg } from "../common";
 import type { Flow } from "../flow";
-import { TRAINER_PICS } from "../manifest";
+import { TRAINER_PICS, type Graphic } from "../manifest";
 import { textSpeedDelay } from "../options";
 import { MON_AFFINE_ANIMS } from "../pokeball";
 import { Healthbox, type HealthboxMon } from "./healthbox";
@@ -79,13 +79,14 @@ export class MonSprite {
     palette: Uint16Array,
     x: number,
     y: number,
+    subpriority: number,
   ) {
     const { gba } = flow;
     this.draw(0);
     gba.sprites.loadSheet(tag, this.tiles);
     gba.palettes.loadSpritePalette(tag, palette);
     const template: SpriteTemplate = { sheet: tag, palette: tag, width: 64, height: 64, priority: 2, affine: true, affineAnims: MON_AFFINE_ANIMS };
-    this.sprite = gba.sprites.create(template, x, y, 0)!;
+    this.sprite = gba.sprites.create(template, x, y, subpriority)!;
   }
 
   /** The picture `dy` pixels lower inside its 64×64 box (the faint slide), rows below the box gone. */
@@ -141,19 +142,52 @@ export class BattleScene {
     palettes.load([RGB_BLACK], 0, 1);
     this.windows = Object.fromEntries(Object.entries(WINDOWS).map(([id, t]) => [id, new Window(bg0, t)])) as Record<WindowId, Window>;
 
-    // The building terrain (indoors), split in halves for the intro's slide.
-    const terrain = assets.get("battleTerrainBuilding");
-    palettes.load(terrain.palette, 2 * 16, 48);
-    this.terrain.forEach((bg, half) => {
-      initBg(bg, 1, 3);
-      bg.tiles = terrain.tiles;
-      bg.map.set(terrain.map!.subarray(0, bg.map.length));
-      for (let ty = 0; ty < 32; ty++) for (let tx = 0; tx < 64; tx++) if ((ty < 10) !== (half === 0)) bg.setEntry(tx, ty, 0);
-      bg.visible = true;
-    });
+    this.terrain.forEach((bg) => initBg(bg, 1, 3));
+    this.drawTerrain();
 
     this.healthboxes = [new Healthbox(flow, false), new Healthbox(flow, true)];
     gba.setVBlank(gba.standardVBlank);
+  }
+
+  /** The building terrain (indoors) on BG3 and BG2, split in halves for the intro's slide (DrawMainBattleBackground). */
+  drawTerrain(): void {
+    const terrain = this.flow.assets.get("battleTerrainBuilding");
+    this.flow.gba.palettes.load(terrain.palette, 2 * 16, 48);
+    this.terrain.forEach((bg, half) => {
+      bg.tiles = terrain.tiles;
+      bg.map.set(terrain.map!.subarray(0, bg.map.length));
+      for (let ty = 0; ty < 32; ty++) for (let tx = 0; tx < 64; tx++) if ((ty < 10) !== (half === 0)) bg.setEntry(tx, ty, 0);
+      bg.x = bg.y = 0;
+      bg.visible = true;
+    });
+  }
+
+  /** gBattle_BG3_X / Y: the terrain's (or a move background's) scroll, in pixels. */
+  get scrollX(): number {
+    return this.terrain[0].x >> 8;
+  }
+
+  set scrollX(x: number) {
+    for (const bg of this.terrain) bg.x = x * 256;
+  }
+
+  get scrollY(): number {
+    return this.terrain[0].y >> 8;
+  }
+
+  set scrollY(y: number) {
+    for (const bg of this.terrain) bg.y = y * 256;
+  }
+
+  /** A move's background in place of the terrain (LoadMoveBg): on BG3, its colors in palette 2. */
+  showMoveBackground(art: Graphic): void {
+    const [bg3, bg2] = this.terrain;
+    bg2.visible = false;
+    bg3.tiles = art.tiles;
+    bg3.map.fill(0);
+    if (art.map) bg3.map.set(art.map.subarray(0, bg3.map.length));
+    bg3.x = bg3.y = 0;
+    this.flow.gba.palettes.load(art.palette, 2 * 16, 16);
   }
 
   /** The textbox page shown. */
@@ -255,7 +289,8 @@ export class BattleScene {
     if (!art || !pic) return null;
     this.removeMon(foe);
     const [x, y] = this.monPosition(info);
-    const mon = new MonSprite(this.flow, `battler${foe ? 1 : 0}`, pic, info.shiny ? art.shinyPalette : art.frontPalette, x, y);
+    // GetBattlerSpriteSubpriority: move animations' sprites go in front of or behind it.
+    const mon = new MonSprite(this.flow, `battler${foe ? 1 : 0}`, pic, info.shiny ? art.shinyPalette : art.frontPalette, x, y, foe ? 40 : 30);
     this.mons[foe ? 1 : 0] = mon;
     return mon;
   }

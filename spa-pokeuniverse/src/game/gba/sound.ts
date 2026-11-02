@@ -13,6 +13,7 @@ const RATE = 48000;
 interface Player {
   source: AudioBufferSourceNode;
   gain: GainNode;
+  panner: StereoPannerNode;
 }
 
 export class Sound {
@@ -62,13 +63,23 @@ export class Sound {
     if (player) player.source.onended = () => this.bgm === player && (this.bgm = null);
   }
 
-  /** Plays on a separate player (one sound at a time per player), over the BGM. */
-  play(id: string, player = "se"): void {
+  /**
+   * Plays on a separate player (one sound at a time per player), over the BGM; `pan` from -1 (left)
+   * to 1 (right), heard in stereo only.
+   */
+  play(id: string, player = "se", pan = 0): void {
     this.others.get(player)?.source.stop();
     const p = this.start(id);
     if (!p) return;
+    p.panner.pan.value = pan;
     this.others.set(player, p);
     p.source.onended = () => this.others.get(player) === p && this.others.delete(player);
+  }
+
+  /** Moves what a player plays to another pan (SE12PanpotControl). */
+  setPan(player: string, pan: number): void {
+    const p = this.others.get(player);
+    if (p) p.panner.pan.value = pan;
   }
 
   /** Stops what a player plays (StopCryAndClearCrySongs is stop("cry")). */
@@ -126,8 +137,9 @@ export class Sound {
       source.loopEnd = loop[1] / RATE;
     }
     const gain = this.ctx.createGain();
-    source.connect(gain).connect(this.output);
+    const panner = this.ctx.createStereoPanner();
+    source.connect(gain).connect(panner).connect(this.output);
     source.start();
-    return { source, gain };
+    return { source, gain, panner };
   }
 }
