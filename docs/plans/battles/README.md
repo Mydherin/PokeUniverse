@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M8](m08-animation-engine.md#progress) step 4's playback hookup (exact calls in Progress "Hookup"), then step 5 (two-turn moves), then play-test the unverified list; steps 1-3 and the status/stat/weather behaviors are done, committed as `51a70b2`.
-- **Last state:** M7 played and fixed (2026-11-02, see [M7's Progress](m07-battle-screen.md#progress)); leaving mid-battle rolls back (D22). M6 still lacks the restart-resume check. M7 committed as `1b57ea1`; M8 work in progress is uncommitted.
+- **Next:** [M9](m09-firered-move-animations.md#progress): run the coverage check, then the most shared behaviors, family by family. M8 ✅ (2026-11-02, lightly play-tested).
+- **Last state:** M8 committed and marked done; its open visual checks are in M9's Progress. M6 still lacks the restart-resume check.
 
 ## Cold Start (every new session)
 
@@ -32,8 +32,8 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M5 | [NPC battle AI](m05-npc-ai.md) | ✅ | FireRed's AI flags with Gen 4 knowledge, switching, trainer items |
 | M6 | [Battles in `mic-core` and the room trainer](m06-mic-core-battles.md) | 🚧 | NPCs in maps, the test trainer, battle script steps, active battle, outcome transaction, whiteout, resume |
 | M7 | [The battle screen](m07-battle-screen.md) | ✅ | Transition, intro, healthboxes, menus, event playback, party/bag in battle, ending, music |
-| M8 | [Animation engine](m08-animation-engine.md) | 🚧 | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather (D9 first) |
-| M9 | [FireRed move animations](m09-firered-move-animations.md) | ⬜ | Moves 1-354, family by family |
+| M8 | [Animation engine](m08-animation-engine.md) | ✅ | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather, two-turn moves |
+| M9 | [FireRed move animations](m09-firered-move-animations.md) | 🚧 | Moves 1-354, family by family |
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ⬜ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ⬜ | Exp bar, level up window, learning moves, evolution, Pokédex seen |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ⬜ | Gen 4 battle items, bag items in battle, item messages |
@@ -58,3 +58,5 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-02 | M8 conversion | `infra/battle/anims.mjs` → `anims/firered.json` + `expansion.json` (all 467 moves, general/status/special); engine: labels, calls, jumps, sound tasks, blending, lazy chunks and sounds; 110 sounds in `sounds.json` | M8: background commands, per-tag art, top behaviors, general anims | 5 moves play their own script; tsc and vite pass |
 | 2026-11-02 | M8 play test | Generic physical/special/status and a converted script (Tackle) seen working; hit splat blended (setalpha) | M8: background commands, per-tag art, top behaviors, general anims | Uncommitted |
 | 2026-11-02 | M8 session 3 | Move backgrounds, art per tag (`art.json`, `anim-art.mjs`, expansion art in `make graphics`), stereo pan, behaviors split by family (`behaviors/`), base behaviors, status/stat-change/weather behaviors; 42/511 programs play their own script | M8 step 4 hookup in `playback.ts`, step 5 | tsc + vite ✅; not run in the game; `make graphics`/`make audio` needed; uncommitted |
+| 2026-11-02 | M8 session 4 | General animations hooked into `playback.ts` (status, confusion, love, Curse/Nightmare, stat changes with MULTIPLE runs, weather upkeep); two-turn moves (turn 0/1, no "used" on the charge turn, Fly/Dig… hidden between turns, Solar Beam in sun) | Play-test M8, commit, M9 | tsc + vite ✅; not run in the game; uncommitted |
+| 2026-11-02 | M8 close | User played it lightly; M8 marked ✅ and committed; its recipe, coverage check and open checks moved to M9 | M9 | |

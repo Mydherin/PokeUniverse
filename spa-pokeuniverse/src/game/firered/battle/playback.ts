@@ -1,18 +1,23 @@
 // Plays the battle's events as FireRed shows them: "<MON> used <MOVE>!", then the move's
-// animation (anims/, with BATTLE SCENE on); a hit blinks the target with the effectiveness sound
-// and its HP bar moves; a faint plays the faint cry and the Pokémon sinks; stats play their sound;
+// animation (anims/, with BATTLE SCENE on; two-turn moves play their charging turn, then their
+// strike); a hit blinks the target with the effectiveness sound and its HP bar moves; a faint
+// plays the faint cry and the Pokémon sinks; status conditions, stat changes and weather play
+// FireRed's general animations;
 // a send-out throws the ball and the Pokémon comes out with its cry, its healthbox sliding in.
 // Each event changes the battle's state as it is shown.
 
-import { Condition, HitResult, type BattleEvent, type Battler, type BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
+import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect } from "@pokeuniverse/contracts/battle/v1/event";
+import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
+import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { BattleScene as BattleSceneOption } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
+import type { Sprite } from "../../gba/sprites";
 import type { BattleState } from "../../battle/state";
 import type { Flow } from "../flow";
 import { HpBarLevel, hpBarLevel } from "../hp-bar";
 import { Assets } from "../manifest";
 import { PokeBalls } from "../pokeball";
-import { moveAnimation, playAnimation, type AnimMon } from "./anims";
+import { generalAnimation, moveAnimation, playAnimation, type AnimMon } from "./anims";
 import type { HealthboxMon } from "./healthbox";
 import { eventMessages, type Recent } from "./messages";
 import type { BattleScene } from "./scene";
@@ -71,6 +76,76 @@ export function arrange(events: readonly BattleEvent[]): { events: BattleEvent[]
   return { events: out, hits };
 }
 
+/** A status condition's animation (B_ANIM_STATUS_*): badly poisoned shows as poisoned. */
+const STATUS_ANIM: Partial<Record<Status, string>> = {
+  [Status.POISON]: "B_ANIM_STATUS_PSN",
+  [Status.TOXIC]: "B_ANIM_STATUS_PSN",
+  [Status.BURN]: "B_ANIM_STATUS_BRN",
+  [Status.PARALYSIS]: "B_ANIM_STATUS_PRZ",
+  [Status.SLEEP]: "B_ANIM_STATUS_SLP",
+  [Status.FREEZE]: "B_ANIM_STATUS_FRZ",
+};
+
+const WEATHER_ANIM: Partial<Record<Weather, string>> = {
+  [Weather.RAIN]: "B_ANIM_RAIN_CONTINUES",
+  [Weather.SUN]: "B_ANIM_SUN_CONTINUES",
+  [Weather.SANDSTORM]: "B_ANIM_SANDSTORM_CONTINUES",
+  [Weather.HAIL]: "B_ANIM_HAIL_CONTINUES",
+};
+
+/** The animation an effect plays on its battler (Cmd_statusanimation, Cmd_status2animation). */
+function statusAnim(effect: Effect | undefined): string | undefined {
+  const k = effect?.kind;
+  if (k?.case === "status") return STATUS_ANIM[k.value];
+  if (k?.case === "condition" && k.value === Condition.CONFUSION) return "B_ANIM_STATUS_CONFUSION";
+  if (k?.case !== "move") return undefined;
+  if (k.value === Move.ATTRACT) return "B_ANIM_STATUS_INFATUATION";
+  if (k.value === Move.CURSE) return "B_ANIM_STATUS_CURSED";
+  if (k.value === Move.NIGHTMARE) return "B_ANIM_STATUS_NIGHTMARE";
+  return undefined;
+}
+
+/** Moves whose user stays out of sight between their two turns (the semi-invulnerable bit). */
+const SEMI_INVULNERABLE = new Set<number>([Move.FLY, Move.DIG, Move.DIVE, Move.BOUNCE, Move.SHADOW_FORCE]);
+
+/** FireRed's STAT_ANIM_PLUS1/MINUS1/PLUS2/MINUS2 and their MULTIPLE_* kinds. */
+const STAT_ANIM = { plus1: 15, minus1: 22, plus2: 39, minus2: 46, multiple: 55 };
+
+/**
+ * What the general animations need from a batch: a stat change's animation argument (one
+ * animation for a run of changes to one battler in one direction, as Cmd_playstatchangeanimation
+ * plays them; the rest of the run plays none), and the charge turns of two-turn moves, whose
+ * "used <MOVE>!" FireRed doesn't print (BattleScriptFirstChargingTurn).
+ */
+function plan(events: readonly BattleEvent[]): { statArgs: Map<BattleEvent, number>; chargeTurns: Set<BattleEvent> } {
+  const statArgs = new Map<BattleEvent, number>();
+  const chargeTurns = new Set<BattleEvent>();
+  for (let i = 0; i < events.length; i++) {
+    const k = events[i].kind;
+    const next = events[i + 1]?.kind;
+    if (k.case === "moveUsed" && k.value.still && next?.case === "prepare" && key(next.value.battler) === key(k.value.battler) && next.value.move === k.value.move) {
+      chargeTurns.add(events[i]);
+    }
+    if (k.case !== "statChange" || !k.value.stages) continue;
+    const { battler, lower } = k.value;
+    let end = i + 1;
+    for (; end < events.length; end++) {
+      const n = events[end].kind;
+      if (n.case !== "statChange" || !n.value.stages || n.value.lower !== lower || key(n.value.battler) !== key(battler)) break;
+    }
+    const two = events.slice(i, end).some((e) => e.kind.case === "statChange" && e.kind.value.stages > 1);
+    statArgs.set(
+      events[i],
+      end - i > 1
+        ? STAT_ANIM.multiple + (two ? 1 : 0) + (lower ? 2 : 0)
+        : (lower ? (two ? STAT_ANIM.minus2 : STAT_ANIM.minus1) : two ? STAT_ANIM.plus2 : STAT_ANIM.plus1) + k.value.stat - 1,
+    );
+    for (let j = i + 1; j < end; j++) statArgs.set(events[j], -1);
+    i = end - 1;
+  }
+  return { statArgs, chargeTurns };
+}
+
 /** Frames a generator over several at once, until all are done. */
 export function* all(...gens: Generator<void, void, void>[]): Generator<void, void, void> {
   let running = gens;
@@ -89,6 +164,12 @@ export class Playback {
   private readonly recent: Recent = { itemUsed: false };
   private readonly balls: PokeBalls;
   private hits = new Map<BattleEvent, HitResult>();
+  private statArgs = new Map<BattleEvent, number>();
+  private chargeTurns = new Set<BattleEvent>();
+  /** Two-turn moves charged (by battler key): the next use is their second turn. */
+  private readonly charging = new Map<string, number>();
+  /** Battlers out of sight (Fly, Dig…) until they strike. */
+  private readonly hidden = new Set<string>();
 
   constructor(private readonly host: PlaybackHost) {
     this.balls = new PokeBalls(host.flow);
@@ -98,6 +179,7 @@ export class Playback {
   *play(events: readonly BattleEvent[]): Generator<void, void, void> {
     const arranged = arrange(events);
     this.hits = arranged.hits;
+    ({ statArgs: this.statArgs, chargeTurns: this.chargeTurns } = plan(arranged.events));
     for (const e of arranged.events) yield* this.event(e);
   }
 
@@ -114,6 +196,8 @@ export class Playback {
     }
     switch (k.case) {
       case "switchIn":
+        this.charging.delete(key(k.value.pokemon?.battler));
+        this.hidden.delete(key(k.value.pokemon?.battler));
         return yield* this.switchIn(e, k.value.pokemon!);
       case "damage": {
         const { battler, from } = k.value;
@@ -128,6 +212,9 @@ export class Playback {
         state.apply(e);
         const recoil = from.kind.case === "condition" && from.kind.value === Condition.RECOIL;
         if (!recoil) for (const m of messages) yield* scene.message(m);
+        // Hurting itself in confusion is a hit (BattleScript_DoSelfConfusionDmg); poison, burn, Curse and Nightmare play their animation.
+        if (from.kind.case === "condition" && from.kind.value === Condition.CONFUSION) yield* this.hit(battler, HitResult.UNSPECIFIED);
+        else yield* this.animateStatus(statusAnim(from), battler);
         yield* this.moveHp(battler, hp);
         if (recoil) for (const m of messages) yield* scene.message(m);
         return;
@@ -141,6 +228,8 @@ export class Playback {
         return;
       }
       case "faint":
+        this.charging.delete(key(k.value.battler));
+        this.hidden.delete(key(k.value.battler));
         return yield* this.faint(e, k.value.battler);
       case "statusSet":
       case "statusCured": {
@@ -148,6 +237,7 @@ export class Playback {
         const b = k.value.battler;
         const mon = state.battler(b);
         if (b && state.side(b.foe).active[0] === mon && mon) scene.healthbox(b.foe).setStatus(mon.status);
+        if (k.case === "statusSet") yield* this.animateStatus(STATUS_ANIM[k.value.status], b);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         return;
       }
@@ -160,14 +250,63 @@ export class Playback {
         return;
       }
       case "moveUsed": {
+        const { battler, target, move } = k.value;
         state.apply(e);
+        if (this.chargeTurns.has(e) && !this.sunBeam(move)) return;
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
-        if (!k.value.still) yield* this.animateMove(k.value.battler, k.value.target, k.value.move);
+        const turn = this.charging.get(key(battler)) === move ? 1 : 0;
+        this.charging.delete(key(battler));
+        this.show(battler);
+        if (!k.value.still) yield* this.animateMove(battler, target, move, turn);
         return;
       }
-      case "statChange":
-        if (k.value.stages > 0) this.host.flow.play(k.value.lower ? "se_m_stat_decrease" : "se_m_stat_increase");
+      case "prepare": {
+        const { battler, target, move } = k.value;
+        // In sun, Solar Beam strikes at once, with no charging text (BattleScript_SolarbeamOnFirstTurn).
+        if (this.sunBeam(move)) {
+          state.apply(e);
+          return yield* this.animateMove(battler, target, move, 1);
+        }
+        this.charging.set(key(battler), move);
+        yield* this.animateMove(battler, target, move, 0);
+        if (battler && SEMI_INVULNERABLE.has(move)) {
+          const sprite = this.sprite(battler);
+          if (sprite) sprite.invisible = true;
+          this.hidden.add(key(battler));
+        }
         break;
+      }
+      case "cant":
+        this.charging.delete(key(k.value.battler));
+        this.show(k.value.battler);
+        state.apply(e);
+        for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+        // Being in love played its animation with "is in love" (activate).
+        if (k.value.reason?.kind.case === "status") yield* this.animateStatus(statusAnim(k.value.reason), k.value.battler);
+        return;
+      case "volatileStart": {
+        // Becoming confused plays its animation first (BattleScript_MoveEffectConfusion).
+        const effect = k.value.effect?.kind;
+        if (effect?.case === "condition" && effect.value === Condition.CONFUSION) yield* this.animateStatus(statusAnim(k.value.effect), k.value.battler);
+        break;
+      }
+      case "activate":
+        state.apply(e);
+        for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+        yield* this.animateStatus(statusAnim(k.value.effect), k.value.battler);
+        return;
+      case "statChange": {
+        const arg = this.statArgs.get(e);
+        if (arg !== undefined && arg >= 0) yield* this.animateGeneral("B_ANIM_STATS_CHANGE", !!k.value.battler?.foe, { animArg: arg });
+        break;
+      }
+      case "weatherChange": {
+        const name = k.value.phase === ConditionPhase.UPKEEP ? WEATHER_ANIM[k.value.weather] : undefined;
+        state.apply(e);
+        for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+        if (name) yield* this.animateGeneral(name, false);
+        return;
+      }
       case "itemUsed":
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
@@ -197,23 +336,55 @@ export class Playback {
     if (!b.foe && hp > 0 && max && hpBarLevel(hp, max) === HpBarLevel.Red) this.host.flow.play("se_low_health");
   }
 
-  /** The move's animation (DoMoveAnim), unless the trainer turned BATTLE SCENE off. */
-  private *animateMove(attacker: Battler | undefined, target: Battler | undefined, move: number): Generator<void, void, void> {
-    const { flow, scene } = this.host;
-    if (!attacker || flow.options.battleScene === BattleSceneOption.OFF) return;
-    const mon = (b: Battler): AnimMon => ({ foe: b.foe, sprite: scene.mons[b.foe ? 1 : 0]?.sprite ?? null });
-    const anim = moveAnimation(move, !!target);
-    if (!anim) return;
-    yield* playAnimation({ flow, attacker: mon(attacker), target: mon(target ?? attacker), backdrop: scene, color: anim.color }, anim.program);
+  private sunBeam(move: number): boolean {
+    return move === Move.SOLAR_BEAM && this.host.state.weather === Weather.SUN;
   }
 
-  /** The hit (DoHitAnimation): the target blinks for 32 frames with the effectiveness sound. */
+  private sprite(b: Battler): Sprite | null {
+    return this.host.scene.mons[b.foe ? 1 : 0]?.sprite ?? null;
+  }
+
+  private animMon(foe: boolean): AnimMon {
+    return { foe, sprite: this.host.scene.mons[foe ? 1 : 0]?.sprite ?? null };
+  }
+
+  /** A battler hidden by Fly, Dig… comes back into sight. */
+  private show(b: Battler | undefined): void {
+    if (!b || !this.hidden.delete(key(b))) return;
+    const sprite = this.sprite(b);
+    if (sprite) sprite.invisible = false;
+  }
+
+  /** The move's animation (DoMoveAnim), unless the trainer turned BATTLE SCENE off. */
+  private *animateMove(attacker: Battler | undefined, target: Battler | undefined, move: number, turn: number): Generator<void, void, void> {
+    const { flow, scene } = this.host;
+    if (!attacker || flow.options.battleScene === BattleSceneOption.OFF) return;
+    const anim = moveAnimation(move, !!target);
+    if (!anim) return;
+    const ctx = { flow, attacker: this.animMon(attacker.foe), target: this.animMon((target ?? attacker).foe), backdrop: scene, color: anim.color, turn };
+    yield* playAnimation(ctx, anim.program);
+  }
+
+  /** A general animation on one battler (Cmd_playanimation): stat changes and weather play even with BATTLE SCENE off. */
+  private *animateGeneral(name: string, foe: boolean, opts: { animArg?: number; statusAnim?: boolean } = {}): Generator<void, void, void> {
+    const program = generalAnimation(name);
+    if (!program) return;
+    const mon = this.animMon(foe);
+    yield* playAnimation({ flow: this.host.flow, attacker: mon, target: mon, backdrop: this.host.scene, color: 0, ...opts }, program);
+  }
+
+  /** A status condition's animation (Cmd_statusanimation): not with BATTLE SCENE off, nor while out of sight. */
+  private *animateStatus(name: string | undefined, b: Battler | undefined): Generator<void, void, void> {
+    if (!name || !b || this.hidden.has(key(b)) || this.host.flow.options.battleScene === BattleSceneOption.OFF) return;
+    yield* this.animateGeneral(name, b.foe, { statusAnim: true });
+  }
+
+  /** The hit (DoHitAnimation): the target blinks for 32 frames with the effectiveness sound; one out of sight doesn't. */
   private *hit(b: Battler | undefined, result: HitResult): Generator<void, void, void> {
     if (!b) return;
-    const { flow, scene } = this.host;
-    flow.play(result === HitResult.SUPER_EFFECTIVE ? "se_super_effective" : result === HitResult.NOT_VERY_EFFECTIVE ? "se_not_effective" : "se_effective");
-    const sprite = scene.mons[b.foe ? 1 : 0]?.sprite;
-    if (!sprite) return;
+    this.host.flow.play(result === HitResult.SUPER_EFFECTIVE ? "se_super_effective" : result === HitResult.NOT_VERY_EFFECTIVE ? "se_not_effective" : "se_effective");
+    const sprite = this.sprite(b);
+    if (!sprite || sprite.invisible) return;
     for (let i = 0; i < 32; i++) {
       if (i % 4 === 0) sprite.invisible = !sprite.invisible;
       yield;
