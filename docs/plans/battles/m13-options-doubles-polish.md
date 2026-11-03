@@ -1,4 +1,4 @@
-# M13 Options, Doubles and Polish ✅
+# M13 Options, Doubles and Polish 🚧
 
 Part of the [battles plan](README.md). **Needs:** M12. This file is enough to resume; [context.md](context.md) only for a section a step needs.
 
@@ -17,11 +17,28 @@ Part of the [battles plan](README.md). **Needs:** M12. This file is enough to re
 - [x] **Field condition texts:** Trick Room, Gravity (expansion's strings, `GEN4_BATTLE_STRINGS` in `infra/text/extract.mjs`), Mud Sport, Water Sport (FireRed's).
 - [x] **Multi-hit and two-turn review:** found and fixed: a multi-hit move now replays its animation per strike with the next `animTurn` (`plan`'s `restrikes`), and Shadow Force has its charge text. Strikes on a substitute don't replay (no `damage` event).
 - [x] **Performance, by reading:** battle art, sounds and animations are prefetched when a trainer's script starts (`prepareBattle`), art loads per battle and per move, `/firered/` is runtime-cached network first. **Frame rate on a phone isn't measured:** moved to M14.
-- [x] **Close:** `make text`, `make maps`, committed. Play check moved to [M14](m14-phase-4-battle-check.md).
+- [x] **Code closed:** `make text`, `make maps`, committed (`b91810e`).
+- [ ] **Play test** (below). **Next, in a fresh session.** Then mark M13 ✅.
 
 ## Progress
 
-**State (2026-11-04):** all code done and committed. SPA tsc ✅, vite ✅, `make text` ✅, `make maps` ✅ (`test_double_trainer` compiled); `mic-core` and `mic-battles` builds passed earlier in this milestone and weren't touched since. The game has not been run.
+**State (2026-11-04):** all code done and committed; **never played.** SPA tsc ✅, vite ✅, `make text` ✅, `make maps` ✅ (`test_double_trainer` compiled); `mic-core` and `mic-battles` builds passed earlier in this milestone and weren't touched since. The game has not been run.
+
+### Exact next step: play test (no phone)
+
+The user asked for this. Fix what breaks and tick here. Don't start M14.
+
+1. **Setup:** `docker compose up --build -d spa-pokeuniverse` (and `mic-core`, `mic-battles`, which changed too; `make up` for the whole stack). Game at `localhost:8080/play` in the browser pane, clear its service worker. Keys: Z = A, X = B, Enter = START (keydown/keyup on window and document, held ~80 ms). Hidden pane gets no frames: wrap `requestAnimationFrame` with `setTimeout(16)` while `document.hidden`. Watch by recording the canvas (centered 3:2 area, 240×160). Wait for the menu by a white pixel in frames, not by time.
+2. **Account:** the test team and bag only reach a trainer with **no Pokémon**, so an old account keeps its old team. Trainers in the room: `test_trainer` at 9,4 (singles), `test_double_trainer` at 9,6.
+3. **Moves the teams lack** (Trick Room, Gravity, Dark Void, Double Slap…): override the party's moves in `team()` (`mic-core/internal/pokemon/testteam.go`) and the trainer's in `mic-core/internal/battle/testdata.go`, temporarily, never committed. Reload to drop that battle (D22): never finish it, a win saves its outcome. Batch all of them into one override to rebuild once.
+4. **Finish a battle only with the normal teams,** last.
+
+- [ ] **Singles (regression):** moves, a switch, a faint, a multi-hit move (replays per strike; Double Slap alternates sides).
+- [ ] **SHIFT:** the option's switch prompt in singles.
+- [ ] **Doubles choices:** both positions, picking targets, going back with B.
+- [ ] **Doubles spread moves:** Earthquake, Heat Wave, Rock Slide, Surf, Discharge.
+- [ ] **Doubles effects:** Dark Void's partner slide, Trick Room and Gravity texts, Shadow Force's charge text.
+- [ ] **Doubles faints and end:** replacing a fainted Pokémon, the end of the battle, the double prize.
 
 **Left as is:** `AnimTask_SporeDoubleBattle` (BG priority only); `AnimTask_PositionFissureBgOnBattler` ignores partner values (Fissure is single target); `splitbgprio` and `teamattack_*` do nothing. `make text` encodes `B_*_MON2_NAME` as 0x07/0x08 via the charmap, matching `text.ts`.
 
