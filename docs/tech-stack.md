@@ -178,7 +178,7 @@ Runs battles only. Never talks to players; only `mic-core` talks to it.
 | **redis** (node-redis) | Redis client, to save battles after every turn |
 | **esbuild** | Bundles the service into one file, so the image needs no `node_modules` |
 
-- Battles use Showdown's **Gen 4 format** (`gen4customgame`): 493 Pokémon, Gen 4 moves, abilities, items and the physical/special split.
+- Battles use Showdown's **Gen 4 format** (`gen4customgame`, `gen4doublescustomgame` for double battles): 493 Pokémon, Gen 4 moves, abilities, items and the physical/special split.
 
 ### Behavior
 

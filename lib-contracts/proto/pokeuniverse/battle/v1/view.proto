@@ -50,6 +50,8 @@ message BattleView {
   BattleRequest request = 5;
   // The opponent in a trainer battle; filled in by mic-core, which owns the trainer table.
   BattleTrainer trainer = 6;
+  // Two Pokémon a side (plans/battles D27).
+  bool doubles = 7;
 }
 
 // An NPC trainer as the battle screen shows them.
@@ -74,6 +76,8 @@ enum RequestKind {
   REQUEST_KIND_SWITCH = 3;
   // A level up brought a move and four are known: which one it replaces, if any.
   REQUEST_KIND_LEARN_MOVE = 4;
+  // Battle style SHIFT: a foe fainted and next_foe comes next. Will the player change Pokémon?
+  REQUEST_KIND_SHIFT = 5;
 }
 
 // One of the active Pokémon's moves, for FIGHT.
@@ -113,6 +117,15 @@ message LearnMoveRequest {
   pokeuniverse.move.v1.Move move = 2;
 }
 
+// Doubles: one Pokémon's share of an ACTION or SWITCH request.
+message PositionRequest {
+  // Battler.position.
+  uint32 position = 1;
+  // ACTION: as BattleRequest.moves.
+  repeated RequestMove moves = 2;
+  bool trapped = 3;
+}
+
 // A choice the reader must make. Locked moves (Outrage, recharging, a charged move) are chosen by
 // mic-battles itself: the battle plays on without a request.
 message BattleRequest {
@@ -126,6 +139,11 @@ message BattleRequest {
   bool trapped = 4;
   repeated PartyMember party = 5;
   LearnMoveRequest learn = 6;
+  // SHIFT: the foe's next Pokémon.
+  BattlerInfo next_foe = 7;
+  // Doubles: who must choose, in order (a locked or fainted Pokémon isn't asked). In doubles
+  // `moves` and `trapped` are the first one's.
+  repeated PositionRequest positions = 8;
 }
 
 // FIGHT: one of the active Pokémon's moves.
@@ -160,6 +178,12 @@ message LearnMoveAction {
   optional uint32 forget_slot = 1;
 }
 
+// The answer to a SHIFT request.
+message ShiftAction {
+  // Battler.party_slot of the Pokémon sent out before the foe's next one. Unset: no change.
+  optional uint32 party_slot = 1;
+}
+
 message BattleAction {
   oneof kind {
     MoveAction move = 1;
@@ -167,6 +191,7 @@ message BattleAction {
     ItemAction item = 3;
     RunAction run = 4;
     LearnMoveAction learn = 5;
+    ShiftAction shift = 6;
   }
 }
 
@@ -175,6 +200,8 @@ message BattleChoice {
   string battle_id = 1;
   uint32 step = 2;
   BattleAction action = 3;
+  // Doubles: the second position's choice, when two must choose.
+  BattleAction partner = 4;
 }
 
 // Server -> client: a battle started. Draw `view`, then play `events` (the send-outs).

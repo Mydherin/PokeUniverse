@@ -70,7 +70,7 @@ func (z *zone) startBattle(p *Player, script uint32) {
 		}
 		z.sendParty(p)
 	}
-	if !p.party.CanBattle() {
+	if !p.party.CanBattle() || (t.Doubles && p.party.Able() < 2) {
 		z.battleFailed(p, "")
 		return
 	}
@@ -79,6 +79,12 @@ func (z *zone) startBattle(p *Player, script uint32) {
 	a := battle.Active{ID: start.BattleId, Trainer: key, Save: p.gen, Start: data}
 	p.battle = &inBattle{Active: a}
 	z.ask(p, func(ctx context.Context) (*battlev1.BattleUpdate, error) {
+		// The style as the battle starts (the option is saved apart from the zone).
+		row, err := db.New(z.w.pool).GetTrainer(ctx, p.accountID)
+		if err != nil {
+			return nil, err
+		}
+		start.Sides[battle.PlayerSide].ShiftStyle = row.BattleStyle == "shift"
 		// Saved first: a crash from here on resumes the battle.
 		if err := z.w.active.SetActive(ctx, p.accountID, a); err != nil {
 			return nil, err
@@ -120,22 +126,13 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 	if _, ok := z.players[p]; !ok || b == nil || b.asking || b.request == nil || c.GetBattleId() != b.ID {
 		return
 	}
-	var spend itemv1.Item
-	switch k := c.GetAction().GetKind().(type) {
-	case *battlev1.BattleAction_Move, *battlev1.BattleAction_Switch:
-	case *battlev1.BattleAction_Learn:
-		if !canForget(b.request, k.Learn) {
-			z.refuseChoice(p)
-			return
-		}
-	case *battlev1.BattleAction_Item:
-		if !usableInBattle(p, k.Item.GetItem()) {
-			z.refuseChoice(p)
-			return
-		}
-		spend = k.Item.GetItem()
-	default:
-		// RUN: there's no running from a trainer battle (the client says so first).
+	spend, ok := z.checkAction(p, c.GetAction())
+	if ok && c.GetPartner() != nil {
+		// Doubles: a second item of the same kind needs a second one in the bag.
+		partner, partnerOK := z.checkAction(p, c.GetPartner())
+		spend, ok = append(spend, partner...), partnerOK && enoughInBag(p, append(spend, partner...))
+	}
+	if !ok {
 		z.refuseChoice(p)
 		return
 	}
@@ -143,7 +140,7 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 		z.refuseChoice(p)
 		return
 	}
-	req := &battlev1.TurnRequest{BattleId: b.ID, Step: c.GetStep(), Choices: []*battlev1.SideChoice{{Side: battle.PlayerSide, Action: c.GetAction()}}}
+	req := &battlev1.TurnRequest{BattleId: b.ID, Step: c.GetStep(), Choices: []*battlev1.SideChoice{{Side: battle.PlayerSide, Action: c.GetAction(), Partner: c.GetPartner()}}}
 	z.ask(p, func(ctx context.Context) (*battlev1.BattleUpdate, error) {
 		return z.w.battles.Turn(ctx, req)
 	}, func(u *battlev1.BattleUpdate, err error) {
@@ -154,6 +151,41 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 		}
 		z.played(p, u, req.Step, spend)
 	})
+}
+
+// checkAction checks what mic-core can of one action: the items it would spend, and whether it
+// may go on.
+func (z *zone) checkAction(p *Player, a *battlev1.BattleAction) ([]itemv1.Item, bool) {
+	switch k := a.GetKind().(type) {
+	case *battlev1.BattleAction_Move, *battlev1.BattleAction_Switch, *battlev1.BattleAction_Shift:
+		return nil, true
+	case *battlev1.BattleAction_Learn:
+		return nil, canForget(p.battle.request, k.Learn)
+	case *battlev1.BattleAction_Item:
+		return []itemv1.Item{k.Item.GetItem()}, usableInBattle(p, k.Item.GetItem())
+	}
+	// RUN: there's no running from a trainer battle (the client says so first).
+	return nil, false
+}
+
+// enoughInBag: the bag holds every item of this choice, counting repeats.
+func enoughInBag(p *Player, items []itemv1.Item) bool {
+	for _, id := range items {
+		if p.items.Bag.Quantity(id) < countOf(items, id) {
+			return false
+		}
+	}
+	return true
+}
+
+func countOf(items []itemv1.Item, id itemv1.Item) int {
+	n := 0
+	for _, x := range items {
+		if x == id {
+			n++
+		}
+	}
+	return n
 }
 
 // canForget: the answer to a LEARN_MOVE request doesn't forget an HM.
@@ -216,10 +248,18 @@ func (z *zone) refuseChoice(p *Player) {
 // played shows a step mic-battles played: a bag item is spent first (D12: mic-core owns the
 // bag; saved with the outcome, so leaving rolls it back), then the events and the next
 // request, then the end if it's over.
-func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, spend itemv1.Item) {
+func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, spend []itemv1.Item) {
 	side := u.GetSides()[battle.PlayerSide]
-	if info, _ := item.Info(spend); !info.GetImportant() && spend != itemv1.Item_ITEM_UNSPECIFIED && side.GetRequest().GetStep() > step && p.items.Bag.Remove(spend, 1) {
-		p.battle.Spent = append(p.battle.Spent, int32(spend))
+	removed := false
+	if side.GetRequest().GetStep() > step {
+		for _, id := range spend {
+			if info, _ := item.Info(id); !info.GetImportant() && p.items.Bag.Remove(id, 1) {
+				p.battle.Spent = append(p.battle.Spent, int32(id))
+				removed = true
+			}
+		}
+	}
+	if removed {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		// A restart resumes the battle with the item still spent.
 		if err := z.w.active.SetActive(ctx, p.accountID, p.battle.Active); err != nil {

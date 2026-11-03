@@ -16,7 +16,7 @@ import type { BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
 import { BattleViewSchema, type BattleView } from "@pokeuniverse/contracts/battle/v1/view";
 import { newAiMemory, type AiMemory } from "./ai/index.ts";
 import { createBattle, restoreBattle, serializeBattle, sideId } from "./engine/battle.ts";
-import { advance, answerLearn, applyChoice, InvalidChoice } from "./engine/choices.ts";
+import { advance, answerLearn, answerShift, applyChoice, InvalidChoice, type ShiftOffer } from "./engine/choices.ts";
 import { ExpTracker, newExpState, type ExpState } from "./exp.ts";
 import { log } from "./log.ts";
 import { translate } from "./protocol/translate.ts";
@@ -24,7 +24,7 @@ import { outcome, request, view } from "./protocol/views.ts";
 import { ACTIVE_TTL, ENDED_TTL, type Saved, type Store } from "./store.ts";
 
 /** Our state beside Showdown's, saved as JSON. */
-type Meta = { exp: ExpState; ai?: AiMemory; forfeit?: number };
+type Meta = { exp: ExpState; ai?: AiMemory; forfeit?: number; shift?: ShiftOffer };
 
 type Loaded = { saved: Saved; start: StartBattle; battle: Battle; meta: Meta; exp: ExpTracker };
 
@@ -51,7 +51,8 @@ export class Battles {
     const answered: BattleEvent[] = [];
     try {
       if (learning) answered.push(...answerLearn(battle, meta.exp, req.choices[0]?.action));
-      else for (const choice of req.choices) applyChoice(battle, choice.side, choice.action);
+      else if (meta.shift) answerShift(battle, meta.shift, req.choices[0]?.action);
+      else for (const choice of req.choices) applyChoice(battle, choice.side, choice.action, choice.partner);
     } catch (err) {
       if (!(err instanceof InvalidChoice)) throw err;
       log.warn("invalid battle choice", { battle: req.battleId, step: req.step, err: err.message });
@@ -59,7 +60,7 @@ export class Battles {
       return buildUpdate(restoreBattle(saved.state), start, meta, exp, saved.step, false, []);
     }
     // The battle goes on once every move a level up brought is answered.
-    if (!meta.exp.pending.length) advance(battle, start, (meta.ai ??= newAiMemory(start)));
+    if (!meta.exp.pending.length) meta.shift = advance(battle, start, (meta.ai ??= newAiMemory(start)));
     const update = buildUpdate(battle, start, meta, exp, saved.step + 1, false, battle.log, answered);
     return this.save(start, battle, meta, exp, saved.step + 1, update, saved.step);
   }
@@ -76,7 +77,7 @@ export class Battles {
 
   async view(req: ViewRequest): Promise<BattleView> {
     const { saved, start, battle, meta } = await this.load(req.battleId);
-    return create(BattleViewSchema, view(battle, start, meta.exp, req.side, saved.step));
+    return create(BattleViewSchema, view(battle, start, meta.exp, req.side, saved.step, meta.shift));
   }
 
   private async load(id: string): Promise<Loaded> {
@@ -119,8 +120,8 @@ function buildUpdate(battle: Battle, start: StartBattle, meta: Meta, exp: ExpTra
     battleId: start.battleId,
     sides: start.sides.map((_, side) => ({
       events: events[side],
-      request: request(battle, start, meta.exp, side, step),
-      view: withViews ? view(battle, start, meta.exp, side, step) : undefined,
+      request: request(battle, start, meta.exp, side, step, meta.shift),
+      view: withViews ? view(battle, start, meta.exp, side, step, meta.shift) : undefined,
     })),
     outcome: over(battle, meta) ? outcome(battle, start, meta.exp, meta.forfeit) : undefined,
   });

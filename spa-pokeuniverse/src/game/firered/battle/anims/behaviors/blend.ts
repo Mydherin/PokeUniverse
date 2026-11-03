@@ -174,8 +174,8 @@ export const BLEND_TASKS: Record<string, AnimTask> = {
     const which = args[0];
     let mask = which === 2 || which === 3 || which >= 6 ? 0 : selectedPalettes(run, 1);
     const excluded = which === 0 || which === 2 ? [run.attacker] : which === 1 || which === 3 ? [run.target] : which === 4 ? [run.attacker, run.target] : [];
-    for (const mon of [run.attacker, run.target])
-      if (mon.sprite && !mon.sprite.invisible && !excluded.some((e) => e.foe === mon.foe)) mask |= 1 << (16 + battlerId(mon));
+    for (const mon of run.field)
+      if (mon.sprite && !mon.sprite.invisible && !excluded.some((e) => e.foe === mon.foe && (e.position ?? 0) === (mon.position ?? 0))) mask |= 1 << (16 + battlerId(mon));
     yield* blendSteps(run, mask >>> 0, args);
   },
 

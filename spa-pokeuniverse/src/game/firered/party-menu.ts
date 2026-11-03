@@ -60,7 +60,16 @@ export interface PartyHost {
 export type PartyMenuMode =
   | { kind: "field" }
   | { kind: "give"; item: Item; pc: boolean }
-  | { kind: "battle"; forced: boolean; item?: Item; choose: (slot: number, moveSlot?: number) => void };
+  | {
+      kind: "battle";
+      forced: boolean;
+      item?: Item;
+      /** The menu's slot holds a Pokémon on the field. */
+      inBattle: (slot: number) => boolean;
+      /** The menu's slot the partner is already switching to (doubles). */
+      selected?: number;
+      choose: (slot: number, moveSlot?: number) => void;
+    };
 
 /** What the field menu does once it shows again after a screen it opened (summary, bag). */
 type Resume = { slot: number; then: "selection" } | { slot: number; then: "give"; item: Item };
@@ -817,13 +826,13 @@ class PartyMenu {
     const mon = this.mon(slot);
     if (!mon) return;
     if (!this.mode.item) {
-      const refusal: TextId | null = mon.hp === 0 ? "gText_PkmnHasNoEnergy" : slot === 0 ? "gText_PkmnAlreadyInBattle" : null;
+      const refusal: TextId | null = mon.hp === 0 ? "gText_PkmnHasNoEnergy" : this.mode.inBattle(slot) ? "gText_PkmnAlreadyInBattle" : slot === this.mode.selected ? "gText_PkmnAlreadySelected" : null;
       if (refusal) {
         const text = expandPlaceholders(this.flow.assets.text(refusal), { [PLACEHOLDER_STR_VAR_1]: monName(this.flow, mon) });
         return this.showMessage(text, false, () => this.returnToChooseMon());
       }
     } else if (itemInfo(this.mode.item)?.battleUse === BattleUse.MOVE && mon.hp > 0) return this.chooseMoveForItem(mon);
-    else if (!itemWorksOn(this.mode.item, mon, slot === 0)) return this.wontHaveEffect(() => this.returnToChooseMon());
+    else if (!itemWorksOn(this.mode.item, mon, this.mode.inBattle(slot))) return this.wontHaveEffect(() => this.returnToChooseMon());
     this.mode.choose(slot);
     this.close();
   }
@@ -852,7 +861,7 @@ class PartyMenu {
       this.removeSelection();
       if (this.mode.kind !== "battle") return;
       if (input === MENU_B_PRESSED) return this.returnToChooseMon();
-      if (!itemWorksOn(this.mode.item!, mon, this.slotId === 0, input)) return this.wontHaveEffect(() => this.returnToChooseMon());
+      if (!itemWorksOn(this.mode.item!, mon, this.mode.inBattle(this.slotId), input)) return this.wontHaveEffect(() => this.returnToChooseMon());
       this.mode.choose(this.slotId, input);
       this.close();
     };

@@ -80,10 +80,8 @@ What exists that battles build on. Trust it; open these only when a step needs t
 | D23 | **Animations aren't compared move by move with the original ROM.** A sweep in our game is enough to close a milestone; what looks off gets fixed when it shows up in play. | The user's call (2026-11-03): a manual comparison of every move isn't worth the time. |
 | D24 | **`mic-battles` plays level-ups and learned moves; `mic-core` checks and saves them, and decides evolution.** Exp is awarded inside Showdown's `Faint` event, so the Pokémon's level, stats, HP and moves change there and then. A move with no free slot is a `REQUEST_KIND_LEARN_MOVE` step: the battle neither goes on nor ends until it's answered. The outcome carries the final moves. After a win `mic-core` picks the evolutions (`BattleEnded.evolutions`); the client plays the scene and sends `EvolvePokemon` unless B stops it, and only shows the result once saved. | The user's call (2026-11-03), replacing M11's "decided by `mic-core`": FireRed levels up mid-battle, so Showdown's Pokémon must change at once. A single owner keeps retries, resume and rollback (D2, D22) working as they are. |
 | D25 | **What a bag item does in battle is catalog data:** `ItemInfo.battle_use` (PARTY, MOVE, SELF, BALL) and `effect` (HP, cures, revive, PP). `mic-battles` plays it and refuses an item that would do nothing, `mic-core` only checks there's a use and spends it (important items aren't spent), the client builds the flow and "It won't have any effect." from it. X items, Dire Hit, Guard Spec. and POKé FLUTE stay in `engine/bag.ts`. A ball in a trainer battle costs the ball and the turn, as in FireRed. | One table for three programs; a new item is one catalog line. |
-
-### Open Questions (ask the user when the milestone comes)
-
-- Battle style SHIFT: Showdown has no "Will you switch?" prompt after a foe faints. Proposed: emulate it in `mic-battles` (M13); until then the game behaves like SET.
+| D26 | **Battle style SHIFT is emulated in `mic-battles`:** when a foe faints in singles and the player can switch, `advance` stops with the AI's replacement already chosen (`Meta.shift`) and asks `REQUEST_KIND_SHIFT` (`next_foe`). `ShiftAction` answers; the player's change plays first, then the foe's. `mic-core` reads the option at the start (`BattleTeam.shift_style`). | The user's call (2026-11-03): Showdown has no such prompt; FireRed's order and text. |
+| D27 | **Doubles are one step per side's whole choice:** the client collects both positions and sends one `BattleChoice` (`action`, `partner`). `BattleRequest.positions` says who must choose; locked and fainted Pokémon are filled in by the engine. The AI scores each foe in turn and takes the best (FireRed's doubles). Reached through a second test trainer, `test_double_trainer`, marked as test content (D13); needs two able Pokémon. | Keeps D2's steps and retries as they are; singles requests and choices don't change. The test trainer is the user's call (2026-11-03). |
 
 ## Architecture
 
@@ -113,7 +111,7 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 
 | Path | Owns |
 |---|---|
-| `mic-battles/src/engine/` | Create a battle from `StartBattle`, serialize/deserialize, apply choices, play on (`advance`), bag items (D12) |
+| `mic-battles/src/engine/` | Create a battle from `StartBattle`, serialize/deserialize, apply choices per position, play on (`advance`), SHIFT (D26), bag items (D12) |
 | `mic-battles/src/protocol/` | Showdown log lines → `BattleEvent` per side (D4, D5); requests, views, outcome |
 | `mic-battles/src/battles.ts` | The subjects: load → play → translate → save → reply |
 | `mic-battles/src/ai/` | `index.ts` (decide), `view.ts` (what the AI reads), `effects.ts`, `score.ts`, `flags/` (one file per flag), `switch.ts`, `items.ts`, `random.ts` (wild) (D6, D17, D18) |

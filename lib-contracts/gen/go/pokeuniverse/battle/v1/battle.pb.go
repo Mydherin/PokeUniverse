@@ -397,7 +397,9 @@ type BattleTeam struct {
 	// Otherwise mic-battles' AI does, with these flags.
 	AiFlags []AiFlag `protobuf:"varint,2,rep,packed,name=ai_flags,json=aiFlags,proto3,enum=pokeuniverse.battle.v1.AiFlag" json:"ai_flags,omitempty"`
 	// An AI trainer's items (up to 4, FireRed's rules: plans/battles M5). Each is used once.
-	Items         []v13.Item `protobuf:"varint,3,rep,packed,name=items,proto3,enum=pokeuniverse.item.v1.Item" json:"items,omitempty"`
+	Items []v13.Item `protobuf:"varint,3,rep,packed,name=items,proto3,enum=pokeuniverse.item.v1.Item" json:"items,omitempty"`
+	// This player's battle style is SHIFT: offered a change when a foe faints (plans/battles D26).
+	ShiftStyle    bool `protobuf:"varint,4,opt,name=shift_style,json=shiftStyle,proto3" json:"shift_style,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -453,6 +455,13 @@ func (x *BattleTeam) GetItems() []v13.Item {
 	return nil
 }
 
+func (x *BattleTeam) GetShiftStyle() bool {
+	if x != nil {
+		return x.ShiftStyle
+	}
+	return false
+}
+
 // Request on `battles.start`: create and begin a battle. Replied with BattleUpdate (views set).
 type StartBattle struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -462,7 +471,9 @@ type StartBattle struct {
 	// Side 0 is the player who started it; side 1 the opponent.
 	Sides []*BattleTeam `protobuf:"bytes,3,rep,name=sides,proto3" json:"sides,omitempty"`
 	// Showdown's PRNG seed: the whole battle follows from it and the choices.
-	Seed          uint64 `protobuf:"varint,4,opt,name=seed,proto3" json:"seed,omitempty"`
+	Seed uint64 `protobuf:"varint,4,opt,name=seed,proto3" json:"seed,omitempty"`
+	// Two Pokémon a side (plans/battles D27).
+	Doubles       bool `protobuf:"varint,5,opt,name=doubles,proto3" json:"doubles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -525,11 +536,20 @@ func (x *StartBattle) GetSeed() uint64 {
 	return 0
 }
 
+func (x *StartBattle) GetDoubles() bool {
+	if x != nil {
+		return x.Doubles
+	}
+	return false
+}
+
 // One side's choice.
 type SideChoice struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Side          uint32                 `protobuf:"varint,1,opt,name=side,proto3" json:"side,omitempty"`
-	Action        *BattleAction          `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Side   uint32                 `protobuf:"varint,1,opt,name=side,proto3" json:"side,omitempty"`
+	Action *BattleAction          `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	// Doubles: the second position's choice, when two must choose.
+	Partner       *BattleAction `protobuf:"bytes,3,opt,name=partner,proto3" json:"partner,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -574,6 +594,13 @@ func (x *SideChoice) GetSide() uint32 {
 func (x *SideChoice) GetAction() *BattleAction {
 	if x != nil {
 		return x.Action
+	}
+	return nil
+}
+
+func (x *SideChoice) GetPartner() *BattleAction {
+	if x != nil {
+		return x.Partner
 	}
 	return nil
 }
@@ -1106,21 +1133,25 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"friendship\x18\x0f \x01(\rR\n" +
 	"friendship\x12\x16\n" +
 	"\x06traded\x18\x10 \x01(\bR\x06traded\x12\x10\n" +
-	"\x03exp\x18\x11 \x01(\rR\x03exp\"\xb6\x01\n" +
+	"\x03exp\x18\x11 \x01(\rR\x03exp\"\xd7\x01\n" +
 	"\n" +
 	"BattleTeam\x12;\n" +
 	"\apokemon\x18\x01 \x03(\v2!.pokeuniverse.battle.v1.BattleMonR\apokemon\x129\n" +
 	"\bai_flags\x18\x02 \x03(\x0e2\x1e.pokeuniverse.battle.v1.AiFlagR\aaiFlags\x120\n" +
-	"\x05items\x18\x03 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x05items\"\xb0\x01\n" +
+	"\x05items\x18\x03 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x05items\x12\x1f\n" +
+	"\vshift_style\x18\x04 \x01(\bR\n" +
+	"shiftStyle\"\xca\x01\n" +
 	"\vStartBattle\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x126\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\".pokeuniverse.battle.v1.BattleKindR\x04kind\x128\n" +
 	"\x05sides\x18\x03 \x03(\v2\".pokeuniverse.battle.v1.BattleTeamR\x05sides\x12\x12\n" +
-	"\x04seed\x18\x04 \x01(\x04R\x04seed\"^\n" +
+	"\x04seed\x18\x04 \x01(\x04R\x04seed\x12\x18\n" +
+	"\adoubles\x18\x05 \x01(\bR\adoubles\"\x9e\x01\n" +
 	"\n" +
 	"SideChoice\x12\x12\n" +
 	"\x04side\x18\x01 \x01(\rR\x04side\x12<\n" +
-	"\x06action\x18\x02 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\x06action\"|\n" +
+	"\x06action\x18\x02 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\x06action\x12>\n" +
+	"\apartner\x18\x03 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\apartner\"|\n" +
 	"\vTurnRequest\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12\x12\n" +
 	"\x04step\x18\x02 \x01(\rR\x04step\x12<\n" +
@@ -1228,25 +1259,26 @@ var file_pokeuniverse_battle_v1_battle_proto_depIdxs = []int32{
 	23, // 12: pokeuniverse.battle.v1.StartBattle.kind:type_name -> pokeuniverse.battle.v1.BattleKind
 	4,  // 13: pokeuniverse.battle.v1.StartBattle.sides:type_name -> pokeuniverse.battle.v1.BattleTeam
 	24, // 14: pokeuniverse.battle.v1.SideChoice.action:type_name -> pokeuniverse.battle.v1.BattleAction
-	6,  // 15: pokeuniverse.battle.v1.TurnRequest.choices:type_name -> pokeuniverse.battle.v1.SideChoice
-	25, // 16: pokeuniverse.battle.v1.SideUpdate.events:type_name -> pokeuniverse.battle.v1.BattleEvent
-	26, // 17: pokeuniverse.battle.v1.SideUpdate.request:type_name -> pokeuniverse.battle.v1.BattleRequest
-	27, // 18: pokeuniverse.battle.v1.SideUpdate.view:type_name -> pokeuniverse.battle.v1.BattleView
-	21, // 19: pokeuniverse.battle.v1.MonOutcome.status:type_name -> pokeuniverse.pokemon.v1.Status
-	18, // 20: pokeuniverse.battle.v1.MonOutcome.held_item:type_name -> pokeuniverse.item.v1.Item
-	19, // 21: pokeuniverse.battle.v1.MonOutcome.evs:type_name -> pokeuniverse.pokemon.v1.Stats
-	28, // 22: pokeuniverse.battle.v1.MonOutcome.moves:type_name -> pokeuniverse.move.v1.Move
-	29, // 23: pokeuniverse.battle.v1.SideOutcome.result:type_name -> pokeuniverse.battle.v1.BattleResult
-	11, // 24: pokeuniverse.battle.v1.SideOutcome.pokemon:type_name -> pokeuniverse.battle.v1.MonOutcome
-	15, // 25: pokeuniverse.battle.v1.SideOutcome.seen:type_name -> pokeuniverse.species.v1.Species
-	12, // 26: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
-	10, // 27: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
-	13, // 28: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	24, // 15: pokeuniverse.battle.v1.SideChoice.partner:type_name -> pokeuniverse.battle.v1.BattleAction
+	6,  // 16: pokeuniverse.battle.v1.TurnRequest.choices:type_name -> pokeuniverse.battle.v1.SideChoice
+	25, // 17: pokeuniverse.battle.v1.SideUpdate.events:type_name -> pokeuniverse.battle.v1.BattleEvent
+	26, // 18: pokeuniverse.battle.v1.SideUpdate.request:type_name -> pokeuniverse.battle.v1.BattleRequest
+	27, // 19: pokeuniverse.battle.v1.SideUpdate.view:type_name -> pokeuniverse.battle.v1.BattleView
+	21, // 20: pokeuniverse.battle.v1.MonOutcome.status:type_name -> pokeuniverse.pokemon.v1.Status
+	18, // 21: pokeuniverse.battle.v1.MonOutcome.held_item:type_name -> pokeuniverse.item.v1.Item
+	19, // 22: pokeuniverse.battle.v1.MonOutcome.evs:type_name -> pokeuniverse.pokemon.v1.Stats
+	28, // 23: pokeuniverse.battle.v1.MonOutcome.moves:type_name -> pokeuniverse.move.v1.Move
+	29, // 24: pokeuniverse.battle.v1.SideOutcome.result:type_name -> pokeuniverse.battle.v1.BattleResult
+	11, // 25: pokeuniverse.battle.v1.SideOutcome.pokemon:type_name -> pokeuniverse.battle.v1.MonOutcome
+	15, // 26: pokeuniverse.battle.v1.SideOutcome.seen:type_name -> pokeuniverse.species.v1.Species
+	12, // 27: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
+	10, // 28: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
+	13, // 29: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_battle_proto_init() }

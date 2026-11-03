@@ -29,6 +29,8 @@ type Trainer struct {
 	Team  []pokemon.Set
 	// Both teams are healed before each battle (the room's test trainer).
 	Heals bool
+	// Two Pokémon a side; the player needs two that can battle (plans/battles D27).
+	Doubles bool
 }
 
 // Trainers is the trainer table, by the ID scripts name.
@@ -47,13 +49,17 @@ func (t *Trainer) Party(id string) pokemon.Party {
 	return party
 }
 
-// Prize is the money for beating them (GetTrainerMoneyToGive, singles): 4 × the last Pokémon's
-// level × the class' rate.
+// Prize is the money for beating them (GetTrainerMoneyToGive): 4 × the last Pokémon's level × the
+// class' rate, twice that in doubles.
 func (t *Trainer) Prize() int {
 	if len(t.Team) == 0 {
 		return 0
 	}
-	return 4 * t.Level * t.MoneyRate
+	prize := 4 * t.Level * t.MoneyRate
+	if t.Doubles {
+		prize *= 2
+	}
+	return prize
 }
 
 // View is the trainer as the battle screen shows them.

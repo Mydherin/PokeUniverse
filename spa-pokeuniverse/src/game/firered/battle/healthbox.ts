@@ -1,4 +1,4 @@
-// The healthboxes (battle_interface.c, singles): two 64-pixel-wide sprites per box sharing one
+// The healthboxes (battle_interface.c): two 64-pixel-wide sprites per box sharing one
 // sheet, and an HP bar sprite. Text is printed in FONT_SMALL into an 8×2-tile window and copied
 // into the sheet's tiles at the game's offsets (TextIntoHealthboxObject); the bars and the status
 // icon are tiles of healthbox_elements. The HP bar moves one HP (or a fraction of a pixel) per
@@ -26,14 +26,14 @@ const GFX = {
   partyBall: 66,
 } as const;
 
-/** The status icons' first tile, for battler 0 (player) and 1 (opponent). */
-const STATUS_GFX: Partial<Record<Status, [number, number]>> = {
-  [Status.POISON]: [21, 71],
-  [Status.TOXIC]: [21, 71],
-  [Status.PARALYSIS]: [24, 74],
-  [Status.SLEEP]: [27, 77],
-  [Status.FREEZE]: [30, 80],
-  [Status.BURN]: [33, 83],
+/** The status icons' first tile, by battler ID. */
+const STATUS_GFX: Partial<Record<Status, readonly number[]>> = {
+  [Status.POISON]: [21, 71, 86, 101],
+  [Status.TOXIC]: [21, 71, 86, 101],
+  [Status.PARALYSIS]: [24, 74, 89, 104],
+  [Status.SLEEP]: [27, 77, 92, 107],
+  [Status.FREEZE]: [30, 80, 95, 110],
+  [Status.BURN]: [33, 83, 98, 113],
 };
 
 /** sStatusIconColors: the icon's color, written at healthbox palette color 12 + battler. */
@@ -60,7 +60,7 @@ const HIGHLIGHT_2: Text = [0xfc, 0x02, 0x02];
 
 /** Where each side draws its parts: tile numbers in the box's sheet (the game's byte offsets / 32). */
 interface Layout {
-  image: "healthboxPlayer" | "healthboxOpponent";
+  image: "healthboxPlayer" | "healthboxOpponent" | "healthboxDoublesPlayer" | "healthboxDoublesOpponent";
   height: number;
   /** The second sprite's first tile. */
   other: number;
@@ -72,11 +72,22 @@ interface Layout {
   nameExtra: number | null;
   level: number;
   status: number;
-  battler: 0 | 1;
 }
 
-const PLAYER: Layout = { image: "healthboxPlayer", height: 64, other: 64, x: 158, y: 88, barDx: 0, name: [2, 6], nameExtra: 64, level: 65, status: 26, battler: 0 };
-const OPPONENT: Layout = { image: "healthboxOpponent", height: 32, other: 32, x: 44, y: 30, barDx: -8, name: [1, 7], nameExtra: null, level: 32, status: 17, battler: 1 };
+const PLAYER: Layout = { image: "healthboxPlayer", height: 64, other: 64, x: 158, y: 88, barDx: 0, name: [2, 6], nameExtra: 64, level: 65, status: 26 };
+const OPPONENT: Layout = { image: "healthboxOpponent", height: 32, other: 32, x: 44, y: 30, barDx: -8, name: [1, 7], nameExtra: null, level: 32, status: 17 };
+const DOUBLES_PLAYER: Layout = { image: "healthboxDoublesPlayer", height: 32, other: 32, x: 159, y: 75, barDx: 0, name: [2, 6], nameExtra: 32, level: 33, status: 18 };
+const DOUBLES_OPPONENT: Layout = { ...OPPONENT, image: "healthboxDoublesOpponent", x: 44, y: 19 };
+/** Where the right position's box goes in doubles. */
+const DOUBLES_RIGHT = { player: [171, 100], foe: [32, 44] } as const;
+
+function layoutOf(foe: boolean, doubles: boolean, position: number): Layout {
+  if (!doubles) return foe ? OPPONENT : PLAYER;
+  const layout = foe ? DOUBLES_OPPONENT : DOUBLES_PLAYER;
+  if (position === 0) return layout;
+  const [x, y] = foe ? DOUBLES_RIGHT.foe : DOUBLES_RIGHT.player;
+  return { ...layout, x, y };
+}
 
 /** What a healthbox shows. */
 export interface HealthboxMon {
@@ -175,15 +186,23 @@ export class Healthbox {
   private readonly window = new Window(new Background(), { left: 0, top: 0, width: 8, height: 2, palette: 0, baseBlock: 0 });
   private mon: HealthboxMon | null = null;
   private readonly tags: string[];
+  /** The game's battler ID: player left, foe left, player right, foe right. */
+  private readonly battler: number;
+  /** HP numbers and the exp bar: the player's, in singles only. */
+  private readonly detailed: boolean;
 
   constructor(
     private readonly flow: Flow,
     readonly foe: boolean,
+    doubles = false,
+    position = 0,
   ) {
     const { gba, assets } = flow;
-    const layout = (this.layout = foe ? OPPONENT : PLAYER);
-    const sheetTag = `healthbox${layout.battler}`;
-    const barTag = `healthbar${layout.battler}`;
+    const layout = (this.layout = layoutOf(foe, doubles, position));
+    this.battler = position * 2 + (foe ? 1 : 0);
+    this.detailed = !foe && !doubles;
+    const sheetTag = `healthbox${this.battler}`;
+    const barTag = `healthbar${this.battler}`;
     this.tags = [sheetTag, barTag];
     this.sheet = new Uint8Array(assets.get(layout.image).tiles);
     this.barSheet = new Uint8Array(8 * 64);
@@ -231,7 +250,7 @@ export class Healthbox {
     this.drawLevel();
     this.drawStatus();
     this.drawHpBar(new BattleBar(mon.maxHp, mon.hp, 0, HP_TILES * 8));
-    if (!this.foe) {
+    if (this.detailed) {
       this.drawHpText(mon.hp, true);
       this.drawHpText(mon.maxHp, false);
       this.drawExp();
@@ -256,12 +275,12 @@ export class Healthbox {
       const v = bar.step();
       if (v < 0) break;
       this.drawHpBar(bar);
-      if (!this.foe) this.drawHpText(v, true);
+      if (this.detailed) this.drawHpText(v, true);
       yield;
     }
     mon.hp = hp;
     this.drawHpBar(new BattleBar(mon.maxHp, hp, 0, HP_TILES * 8));
-    if (!this.foe) this.drawHpText(hp, true);
+    if (this.detailed) this.drawHpText(hp, true);
   }
 
   /**
@@ -271,7 +290,7 @@ export class Healthbox {
   *moveExp(exp: number, levelExp: number, nextLevelExp: number): Generator<void, void, void> {
     const mon = this.mon;
     const span = nextLevelExp - levelExp;
-    if (!mon || this.foe || span <= 0) return;
+    if (!mon || !this.detailed || span <= 0) return;
     const [into, was] = mon.exp ?? [0, 0];
     const old = into >= was ? 0 : into;
     const now = exp - levelExp;
@@ -299,6 +318,7 @@ export class Healthbox {
     Object.assign(mon, { level, hp, maxHp });
     this.drawLevel();
     this.drawHpBar(new BattleBar(maxHp, hp, 0, HP_TILES * 8));
+    if (!this.detailed) return;
     this.drawHpText(hp, true);
     this.drawHpText(maxHp, false);
     const [, span] = mon.exp ?? [0, 0];
@@ -363,10 +383,11 @@ export class Healthbox {
     }
   }
 
-  /** UpdateStatusIconInHealthbox: the icon in its color, the opponent's HP label replaced by the bar's border. */
+  /** UpdateStatusIconInHealthbox: the icon in its color, the HP label replaced by the bar's border (except in the singles player's box). */
   private drawStatus(): void {
     const { status } = this.mon!;
-    const { battler, status: at } = this.layout;
+    const { battler } = this;
+    const at = this.layout.status;
     const gfx = STATUS_GFX[status];
     if (!gfx) {
       for (let i = 0; i < 3; i++) this.copyElement(GFX.statusNone, this.sheet, at + i, 1);
@@ -376,7 +397,7 @@ export class Healthbox {
     const { palettes } = this.flow.gba;
     palettes.load([STATUS_COLORS[status]!], 256 + palettes.spritePaletteSlot("healthbox") * 16 + 12 + battler, 1);
     this.copyElement(gfx[battler], this.sheet, at, 3);
-    if (this.foe) {
+    if (!this.detailed) {
       this.copyElement(GFX.transparent, this.barSheet, 0, 1);
       this.copyElement(GFX.hpLeftBorder, this.barSheet, 1, 1);
     }

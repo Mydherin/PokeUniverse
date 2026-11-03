@@ -8,7 +8,7 @@
 // a reconnect.
 
 import { clone, create } from "@bufbuild/protobuf";
-import { BattlerSchema, type BattleEvent, type BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
+import { BattlerSchema, type BattleEvent, type Battler, type BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
 import {
   BattleActionSchema,
   BattleKind,
@@ -17,11 +17,17 @@ import {
   RequestKind,
   type BattleAction,
   type BattleEnded,
+  type BattleRequest,
   type BattleTurn,
   type BattleView,
+  type PositionRequest,
 } from "@pokeuniverse/contracts/battle/v1/view";
 import { BattleUse, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { itemInfo } from "../../world/items";
+import { moveInfo } from "../../world/moves";
+import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
+import { Type } from "@pokeuniverse/contracts/species/v1/catalog";
+import { speciesInfo } from "../../world/pokedex";
 import { MoveSchema, PartySchema, PokemonSchema, type Pokemon, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import { ItemResultSchema } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
@@ -42,7 +48,7 @@ import type { HealthboxMon } from "./healthbox";
 import { PartySummary } from "./healthbox";
 import { evolutionScene, type EvolutionHost } from "./evolution";
 import { askToLearnMove } from "./learn";
-import { Action, chooseAction, chooseMove, type Cursors } from "./menus";
+import { Action, chooseAction, chooseMove, choosesTarget, chooseTarget, type Cursors } from "./menus";
 import { all, Playback, wait, type PlaybackHost } from "./playback";
 import { BattleScene, Page } from "./scene";
 import { BattleTexts } from "./text";
@@ -57,8 +63,8 @@ export interface BattleHost {
   readonly nationalDex: boolean;
   /** The bag BAG opens (items are only chosen there; the battle uses them). */
   readonly bag: BagHost;
-  /** The choice for the request with this step (BattleChoice). */
-  choose(battleId: string, step: number, action: BattleAction): void;
+  /** The choice for the request with this step (BattleChoice); `partner`: the second position's, in doubles. */
+  choose(battleId: string, step: number, action: BattleAction, partner?: BattleAction): void;
   /** A scene that wasn't stopped: mic-core saves it, then answers. */
   evolve(slot: number): Promise<PokemonEvolved>;
   /** After an evolution: a move replaces another (mic-core saves it). */
@@ -82,8 +88,12 @@ export class BattleScreen implements PlaybackHost {
   private readonly playback: Playback;
   private readonly jobs: Job[] = [];
   private job: Generator<void, void, void> | null = null;
-  private readonly cursors: Cursors = { action: 0, move: 0 };
-  /** The battle party's order on the party menu: party slots, the one in battle first. */
+  /** By position. */
+  private readonly cursors: Cursors[] = [
+    { action: 0, move: 0 },
+    { action: 0, move: 0 },
+  ];
+  /** The battle party's order on the party menu: party slots, each one in battle at its position. */
   private order: number[];
   starting = false;
   /** Away in the bag or the party menu: the battle waits. */
@@ -103,8 +113,10 @@ export class BattleScreen implements PlaybackHost {
     });
     for (const side of this.state.sides) for (const info of side.active) if (info) this.texts.remember(info);
     this.playback = new Playback(this);
-    const active = this.state.side(false).active[0]?.battler?.partySlot ?? 0;
-    this.order = [active, ...host.party.pokemon.map((_, i) => i).filter((i) => i !== active)];
+    this.order = host.party.pokemon.map((_, i) => i);
+    this.state.side(false).active.forEach((info, position) => {
+      if (info?.battler) this.sentOut(info.battler.partySlot, position);
+    });
     flow.gba.setMain(() => this.frame());
     this.jobs.push(() => this.load());
     if (intro) this.jobs.push(() => this.introJob(events));
@@ -254,41 +266,87 @@ export class BattleScreen implements PlaybackHost {
       this.send({ case: "learn", value: { $typeName: "pokeuniverse.battle.v1.LearnMoveAction", forgetSlot: forget ?? undefined } });
       return;
     }
-    if (r.kind === RequestKind.SWITCH) {
-      const slot = yield* this.chooseFromParty({ forced: true });
-      if (slot !== null) this.send({ case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } });
+    if (r.kind === RequestKind.SHIFT) {
+      const slot = yield* this.askToShift(r.nextFoe!);
+      this.send({ case: "shift", value: { $typeName: "pokeuniverse.battle.v1.ShiftAction", partySlot: slot ?? undefined } });
       return;
     }
-    const active = state.side(false).active[0]?.battler;
-    if (!active) return;
+    // D27: one choice per position asked, sent together. B on the second goes back to the first.
+    const asked = this.positionsAsked(r);
+    const chosen: BattleAction["kind"][] = [];
+    for (let i = 0; i < asked.length; ) {
+      const kind = r.kind === RequestKind.SWITCH ? yield* this.chooseReplacement(chosen) : yield* this.chooseFor(asked[i], i > 0, chosen);
+      if (kind === null) {
+        if (i === 0) return;
+        chosen.pop();
+        i--;
+        continue;
+      }
+      chosen[i++] = kind;
+    }
+    if (chosen.length) this.send(...(chosen as [BattleAction["kind"], BattleAction["kind"]?]));
+  }
+
+  /** Who must choose, in order: singles' one position, or the request's. */
+  private positionsAsked(r: BattleRequest): Pick<PositionRequest, "position" | "moves">[] {
+    return this.state.doubles ? r.positions : [{ position: 0, moves: r.moves }];
+  }
+
+  /** A forced switch: the party slot, not the one the partner just took. */
+  private *chooseReplacement(chosen: readonly BattleAction["kind"][]): Generator<void, BattleAction["kind"] | null, void> {
+    const slot = yield* this.chooseFromParty({ forced: true, partner: chosen[0] });
+    return slot === null ? null : { case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } };
+  }
+
+  /** One position's FIGHT, BAG, POKéMON or RUN; null when B went back to the partner's. */
+  private *chooseFor(asked: Pick<PositionRequest, "position" | "moves">, canGoBack: boolean, chosen: readonly BattleAction["kind"][]): Generator<void, BattleAction["kind"] | null, void> {
+    const { state } = this;
+    const active = state.side(false).active[asked.position]?.battler;
+    if (!active) return null;
+    const cursors = this.cursors[asked.position];
     for (;;) {
-      const action = yield* chooseAction(this.flow, this.scene, this.texts, active, this.cursors);
+      const action = yield* chooseAction(this.flow, this.scene, this.texts, active, cursors, canGoBack);
+      if (action === null) return null;
       if (action === Action.Fight) {
         // Every move disabled or out of PP: FIGHT is Struggle.
-        if (r.moves.every((m) => m.disabled || m.pp === 0)) return this.sendMove(0);
-        const slot = yield* chooseMove(this.flow, this.scene, this.texts, active, r.moves, this.cursors);
-        if (slot !== null) return this.sendMove(slot);
+        if (asked.moves.every((m) => m.disabled || m.pp === 0)) return moveAction(0);
+        let target: Battler | undefined;
+        const slot = yield* chooseMove(this.flow, this.scene, this.texts, active, asked.moves, cursors, (m) => this.askTarget(active, m.move, (t) => (target = t)));
+        if (slot !== null) return moveAction(slot, target);
       } else if (action === Action.Pokemon) {
-        const slot = yield* this.chooseFromParty({ forced: false });
-        if (slot !== null) return this.send({ case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } });
+        const slot = yield* this.chooseFromParty({ forced: false, partner: chosen[0] });
+        if (slot !== null) return { case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } };
       } else if (action === Action.Bag) {
-        const used = yield* this.chooseFromBag();
-        if (used) return this.send({ case: "item", value: { $typeName: "pokeuniverse.battle.v1.ItemAction", item: used.item, partySlot: used.slot, moveSlot: used.move } });
+        const used = yield* this.chooseFromBag(active);
+        if (used) return { case: "item", value: { $typeName: "pokeuniverse.battle.v1.ItemAction", item: used.item, partySlot: used.slot, moveSlot: used.move } };
       } else if (state.kind === BattleKind.TRAINER) {
         yield* this.scene.message(this.texts.format("sText_NoRunningFromTrainers"), 0);
-      } else return this.send({ case: "run", value: { $typeName: "pokeuniverse.battle.v1.RunAction" } });
+      } else return { case: "run", value: { $typeName: "pokeuniverse.battle.v1.RunAction" } };
     }
   }
 
-  private sendMove(slot: number): void {
-    this.send({ case: "move", value: { $typeName: "pokeuniverse.battle.v1.MoveAction", slot } });
+  /** Doubles: the move's target, if it asks for one; false when B goes back to the moves. */
+  private *askTarget(user: Battler, move: Move, pick: (target: Battler) => void): Generator<void, boolean, void> {
+    const { state } = this;
+    const { target } = moveInfo(move);
+    if (!state.doubles || !choosesTarget(target)) return true;
+    // Curse picks a target only for a Ghost; anyone else raises its own stats.
+    if (move === Move.CURSE && !this.isGhost(user)) return true;
+    const spot = yield* chooseTarget(this.flow, this.scene, user, target, (s) => state.side(s.foe).active[s.position] != null);
+    if (spot) pick(create(BattlerSchema, spot));
+    return spot !== null;
+  }
+
+  private isGhost(b: Battler): boolean {
+    const info = speciesInfo(this.state.battler(b)?.species ?? 0);
+    return info.type1 === Type.GHOST || info.type2 === Type.GHOST;
   }
 
   /** The choice goes to mic-core; the textbox waits empty for the turn. */
-  private send(kind: BattleAction["kind"]): void {
+  private send(kind: BattleAction["kind"], partner?: BattleAction["kind"]): void {
     const r = this.state.request;
     if (!r) return;
-    this.host.choose(this.state.id, r.step, create(BattleActionSchema, { kind }));
+    this.host.choose(this.state.id, r.step, create(BattleActionSchema, { kind }), partner && create(BattleActionSchema, { kind: partner }));
     this.state.request = null;
     this.scene.page = Page.Message;
     this.scene.clearMessage();
@@ -361,6 +419,13 @@ export class BattleScreen implements PlaybackHost {
     return askToLearnMove(() => this.scene, this.texts, this.texts.name(create(BattlerSchema, { partySlot: slot })), move, (pick) => this.forgetScreen(this.partyHost(), this.order.indexOf(slot), move, pick, () => this.drawBattle()));
   }
 
+  /** Battle style SHIFT: "<CLASS> <NAME> is about to use <MON>", YES/NO, the party menu. Null: no change. */
+  private *askToShift(next: BattlerInfo): Generator<void, number | null, void> {
+    this.texts.remember(next);
+    yield* this.scene.message(this.texts.format("sText_EnemyAboutToSwitchPkmn", { buff2: this.texts.name(next.battler) }), 0);
+    return (yield* this.scene.yesNo()) ? yield* this.chooseFromParty({ forced: false }) : null;
+  }
+
   /** The summary in its forget mode; `pick` hears the row chosen (4: none). */
   private *forgetScreen(host: PartyHost, index: number, move: number, pick: (row: number) => void, redraw: () => void): Generator<void, void, void> {
     const mon = host.party.pokemon[index];
@@ -372,14 +437,20 @@ export class BattleScreen implements PlaybackHost {
   // Screens: the party menu and the bag
 
   /** The party menu in battle mode: the party slot chosen, or null when cancelled. */
-  private *chooseFromParty(how: { forced: boolean; item?: Item }): Generator<void, number | null, void> {
+  private *chooseFromParty(how: { forced: boolean; partner?: BattleAction["kind"] }): Generator<void, number | null, void> {
     let chosen: number | null = null;
-    yield* this.openScreen((back) => this.openParty({ kind: "battle", forced: how.forced, item: how.item, choose: (i) => (chosen = this.order[i]) }, back));
+    const taken = how.partner?.case === "switch" ? this.order.indexOf(how.partner.value.partySlot) : undefined;
+    yield* this.openScreen((back) => this.openParty({ kind: "battle", forced: how.forced, selected: taken, inBattle: (i) => this.inBattle(i), choose: (i) => (chosen = this.order[i]) }, back));
     return chosen;
   }
 
+  /** The party menu's slot holds a Pokémon on the field. */
+  private inBattle(i: number): boolean {
+    return this.state.side(false).active.some((a) => a?.battler?.partySlot === this.order[i]);
+  }
+
   /** BAG: an item chosen in the bag, then the Pokémon and move it's for (X items and balls ask nothing); null when cancelled. */
-  private *chooseFromBag(): Generator<void, { item: Item; slot: number; move: number } | null, void> {
+  private *chooseFromBag(active: Battler): Generator<void, { item: Item; slot: number; move: number } | null, void> {
     let used: { item: Item; slot: number; move: number } | null = null;
     yield* this.openScreen((back) =>
       startBag(
@@ -391,10 +462,10 @@ export class BattleScreen implements PlaybackHost {
           const item = exit.chosen;
           const use = itemInfo(item)?.battleUse;
           if (use === BattleUse.SELF || use === BattleUse.BALL) {
-            used = { item, slot: this.order[0], move: 0 };
+            used = { item, slot: active.partySlot, move: 0 };
             return back();
           }
-          this.openParty({ kind: "battle", forced: false, item, choose: (i, move = 0) => (used = { item, slot: this.order[i], move }) }, back);
+          this.openParty({ kind: "battle", forced: false, item, inBattle: (i) => this.inBattle(i), choose: (i, move = 0) => (used = { item, slot: this.order[i], move }) }, back);
         },
         BagLocation.Battle,
       ),
@@ -430,7 +501,7 @@ export class BattleScreen implements PlaybackHost {
   }
 
   private newScene(): BattleScene {
-    this.sceneNow = new BattleScene(this.flow, this.host.gender);
+    this.sceneNow = new BattleScene(this.flow, this.host.gender, this.state.doubles);
     return this.sceneNow;
   }
 
@@ -486,10 +557,10 @@ export class BattleScreen implements PlaybackHost {
 
   // PlaybackHost
 
-  /** The player sent a Pokémon out: it and the one it replaced trade places on the party menu (gBattlePartyCurrentOrder). */
-  sentOut(slot: number): void {
+  /** The player sent a Pokémon out at a position: it and the one it replaced trade places on the party menu (gBattlePartyCurrentOrder). */
+  sentOut(slot: number, position: number): void {
     const i = this.order.indexOf(slot);
-    if (i > 0) [this.order[0], this.order[i]] = [this.order[i], this.order[0]];
+    if (i >= 0 && i !== position && position < this.order.length) [this.order[position], this.order[i]] = [this.order[i], this.order[position]];
   }
 
   healthboxMon(info: BattlerInfo): HealthboxMon {
@@ -520,6 +591,10 @@ export class BattleScreen implements PlaybackHost {
       return hp === 0 ? PartyBall.FAINTED : status ? PartyBall.STATUS : PartyBall.HEALTHY;
     });
   }
+}
+
+function moveAction(slot: number, target?: Battler): BattleAction["kind"] {
+  return { case: "move", value: { $typeName: "pokeuniverse.battle.v1.MoveAction", slot, target } };
 }
 
 function isFoeSwitchIn(e: BattleEvent): boolean {

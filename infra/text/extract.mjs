@@ -29,6 +29,20 @@ for (const file of ["src/strings.c", "src/keyboard_text.c", "src/battle_message.
   for (const m of readFileSync(join(src, file), "utf8").matchAll(/(\w+)\[\]\s*=\s*_\(((?:\s*"(?:\\.|[^"\\])*")+)\s*\)/g))
     found.set(m[1], () => [...encode(literals(m[2]), m[1]), 0xff]);
 }
+// Gen 4's battle strings FireRed lacks (messages.ts): the expansion's, with a line break before `breakAt` as FireRed writes them.
+const GEN4_BATTLE_STRINGS = {
+  sText_PkmnVanishedInstantly: ["STRINGID_VANISHEDINSTANTLY"],
+  sText_PkmnTwistedDimensions: ["STRINGID_PKMNTWISTEDDIMENSIONS", "the dimensions"],
+  sText_TrickRoomEnds: ["STRINGID_TRICKROOMENDS", "returned"],
+  sText_GravityIntensified: ["STRINGID_GRAVITYINTENSIFIED"],
+  sText_GravityEnds: ["STRINGID_GRAVITYENDS"],
+};
+const expansionMessages = readFileSync(join(expansion, "src/battle_message.c"), "utf8");
+for (const [label, [id, breakAt]] of Object.entries(GEN4_BATTLE_STRINGS)) {
+  const m = new RegExp(`\\[${id}\\]\\s*=\\s*COMPOUND_STRING\\("((?:\\\\.|[^"\\\\])*)"\\)`).exec(expansionMessages);
+  if (!m) throw new Error(`${id}: not in the expansion`);
+  found.set(label, () => [...encode(breakAt ? m[1].replace(` ${breakAt}`, `\\n${breakAt}`) : m[1], label), 0xff]);
+}
 // Assembly: gName:: then .string lines; "$" ends the string. Shared texts, each map's texts and
 // the few defined with the event scripts.
 const asmFiles = [

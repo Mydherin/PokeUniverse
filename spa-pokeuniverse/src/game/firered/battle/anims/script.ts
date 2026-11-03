@@ -74,6 +74,10 @@ export interface AnimBackdrop {
 /** A battler on the field: its side and its Pokémon's sprite (none once it fainted). */
 export interface AnimMon {
   foe: boolean;
+  /** Its position on its side (0 in singles). */
+  position?: number;
+  /** sBattlerCoords: where it stands. */
+  spot?: readonly [number, number];
   sprite: Sprite | null;
   /** Its national number, for its cry. */
   species?: number;
@@ -91,6 +95,8 @@ export interface AnimContext {
   readonly target: AnimMon;
   /** The battler across from the attacker (the target may be the attacker itself). */
   readonly opponent?: AnimMon;
+  /** Every battler spot on the field, for what touches them all (palettes, partners). */
+  readonly field?: readonly AnimMon[];
   /** gWeatherMoveAnim as ANIM_WEATHER_* (none 0, sun 1, rain 2, sandstorm 3, hail 4). */
   readonly weather?: number;
   readonly backdrop: AnimBackdrop;
@@ -134,6 +140,7 @@ export type AnimTask = (run: AnimRun, args: readonly number[], se?: SoundId) => 
 /** A script being played: the context plus the battlers' positions. */
 export interface AnimRun extends AnimContext {
   readonly opponent: AnimMon;
+  readonly field: readonly AnimMon[];
   /** gAnimCustomPanning: where Confuse Ray's and Will-O-Wisp's orbs sound (SoundTask_AdjustPanningVar). */
   customPan: number;
   /** The battler a command means (ANIM_ATTACKER / ANIM_TARGET). */

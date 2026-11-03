@@ -31,6 +31,17 @@ func (pt Party) Heal() {
 	}
 }
 
+// Able counts the party's Pokémon that can fight (not fainted).
+func (pt Party) Able() int {
+	n := 0
+	for _, p := range pt {
+		if p.HP > 0 {
+			n++
+		}
+	}
+	return n
+}
+
 // CanBattle is whether one of the party can fight (not fainted).
 func (pt Party) CanBattle() bool {
 	for _, p := range pt {

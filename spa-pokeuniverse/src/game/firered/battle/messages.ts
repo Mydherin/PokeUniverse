@@ -1,6 +1,7 @@
 // Which of FireRed's battle strings each BattleEvent prints (battle_message.c's table, as the
 // battle scripts pick them). Gen 4 effects FireRed has no string for print a FireRed string
-// with the effect's name ("<MON> is hurt by STEALTH ROCK!") or nothing.
+// with the effect's name ("<MON> is hurt by STEALTH ROCK!"), the expansion's (Trick Room, Gravity,
+// Shadow Force: `GEN4_BATTLE_STRINGS` in `make text`) or nothing.
 
 import {
   BattleStat,
@@ -72,6 +73,7 @@ const PREPARE: Partial<Record<Move, TextId>> = {
   [Move.SKULL_BASH]: "sText_PkmnLoweredHead",
   [Move.SKY_ATTACK]: "sText_PkmnIsGlowing",
   [Move.RAZOR_WIND]: "sText_PkmnWhippedWhirlwind",
+  [Move.SHADOW_FORCE]: "sText_PkmnVanishedInstantly",
 };
 
 /** Lasting effects starting, by move: the string and whether it names the user (atk) or the target (def). */
@@ -298,6 +300,18 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       if (k.value.phase !== ConditionPhase.END) return [];
       if (effect.value === Move.SAFEGUARD) return msg("sText_PkmnSafeguardExpired", { atk: side });
       return msg("sText_PkmnsXWoreOff", { atk: side, buff1: texts.moveName(effect.value) });
+    }
+    case "fieldCondition": {
+      const effect = k.value.effect?.kind;
+      if (effect?.case !== "move") return [];
+      const start = k.value.phase === ConditionPhase.START;
+      if (effect.value === Move.TRICK_ROOM) return start ? msg("sText_PkmnTwistedDimensions", { atk: k.value.source }) : msg("sText_TrickRoomEnds");
+      if (effect.value === Move.GRAVITY) return msg(start ? "sText_GravityIntensified" : "sText_GravityEnds");
+      // The sports end silently, as in FireRed.
+      if (!start) return [];
+      if (effect.value === Move.MUD_SPORT) return msg("sText_ElectricityWeakened");
+      if (effect.value === Move.WATER_SPORT) return msg("sText_FireWeakened");
+      return [];
     }
     case "itemShown": {
       // Thief's -enditem is silent: the thief gaining the item carries the message.

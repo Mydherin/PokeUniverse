@@ -6,7 +6,7 @@ import { Effect, Layer } from "../../../../gba/video";
 import { initBg } from "../../../common";
 import type { AnimArtFiles } from "../../../manifest";
 import type { AnimRun, AnimSpriteTemplate, AnimTask } from "../script";
-import { runSprite, travel } from "./util";
+import { battlerId, runSprite, travel } from "./util";
 
 /** BG_ANIM_PAL_1: an animation background's palette. */
 const ANIM_PALETTE = 8;
@@ -57,24 +57,24 @@ const HAIL_HIT: AnimSpriteTemplate = {
   },
 };
 
-/** sHailCoordData: where each hailstone lands: x, y, the battler (0 player, 1 foe, -1 none in singles) and how (0/1 off its picture, 2 the spot). */
+/** sHailCoordData: where each hailstone lands: x, y, the battler (by battlerId: 0, 2 the player's, 1, 3 the foe's) and how (0/1 off its picture, 2 the spot). */
 const HAIL_COORDS = [
   [100, 120, 0, 2],
   [85, 120, 0, 0],
   [242, 120, 1, 1],
-  [66, 120, -1, 1],
-  [182, 120, -1, 0],
+  [66, 120, 2, 1],
+  [182, 120, 3, 0],
   [60, 120, 0, 2],
   [214, 120, 1, 0],
   [113, 120, 0, 1],
-  [210, 120, -1, 1],
-  [38, 120, -1, 0],
+  [210, 120, 3, 1],
+  [38, 120, 2, 0],
 ] as const;
 
 /** GenerateHailParticle: a hailstone (size `size`) falling to its landing spot; `landed` once it is gone. */
 function hailstone(run: AnimRun, n: number, size: number, landed: () => void): boolean {
-  const [fx, fy, side, how] = HAIL_COORDS[n];
-  const mon = side < 0 ? null : [run.attacker, run.target].find((m) => (m.foe ? 1 : 0) === side)?.sprite;
+  const [fx, fy, id, how] = HAIL_COORDS[n];
+  const mon = run.field.find((m) => battlerId(m) === id)?.sprite;
   const visible = how !== 2 && !!mon && !mon.invisible;
   let [x, y]: number[] = [fx, fy];
   if (visible && mon) {

@@ -41,4 +41,9 @@ func init() {
 				Moves: []movev1.Move{movev1.Move_MOVE_CLOSE_COMBAT, movev1.Move_MOVE_FIRE_PUNCH, movev1.Move_MOVE_MACH_PUNCH, movev1.Move_MOVE_U_TURN}},
 		},
 	}
+	// The same team in a double battle, to try doubles apart from singles.
+	double := *Trainers["test_trainer"]
+	double.Name = "GERMAN"
+	double.Doubles = true
+	Trainers["test_double_trainer"] = &double
 }

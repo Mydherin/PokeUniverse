@@ -3,7 +3,7 @@
 import type { SoundId } from "../../../manifest";
 import { AnimBattler, type AnimSpriteTemplate, type AnimTask } from "../script";
 import { BASIC_FIRE, weatherBallDown } from "./rock";
-import { A, cos, END, F, growingCircle, J, monSprite, pixelLine, placeAtAttacker, resetMonScale, runSprite, sideX, sin, slideAt, speedSteps, squash, toTargetLocation, travel } from "./util";
+import { A, cos, END, F, growingCircle, J, monSprite, partnerOf, pixelLine, placeAtAttacker, resetMonScale, runSprite, sideX, sin, slideAt, speedSteps, squash, toTargetLocation, travel } from "./util";
 
 const ANIM_PALETTE = 8;
 const SPIRAL_SPREAD = [[F(16, 4), F(32, 4), F(48, 4), J(0)], [F(16, 4, "hv"), F(32, 4, "hv"), F(48, 4, "hv"), J(0)]];
@@ -294,10 +294,10 @@ export const FIRE_TASKS: Record<string, AnimTask> = {
     mon.x2 = mon.y2 = 0;
   },
 
-  /** AnimTask_MoveHeatWaveTargets: the target is pushed back shaking, held, and returns. */
+  /** AnimTask_MoveHeatWaveTargets: the target and its partner are pushed back shaking, held, and return. */
   *AnimTask_MoveHeatWaveTargets(run) {
-    const mon = run.target.sprite;
-    if (!mon) return;
+    const mons = [run.target.sprite, partnerOf(run, run.target)?.sprite].filter((s) => !!s);
+    if (!mons.length) return;
     const side = run.attacker.foe ? -1 : 1;
     let [push, shake, wait, flips] = [0, 0, 0, 0];
     const leg = function* (frames: number, every: number, by: number) {
@@ -307,7 +307,7 @@ export const FIRE_TASKS: Record<string, AnimTask> = {
           wait = 0;
           shake = ++flips & 1 ? 2 : -2;
         }
-        mon.x2 = push + shake;
+        for (const mon of mons) mon.x2 = push + shake;
         yield;
       }
     };
@@ -315,7 +315,7 @@ export const FIRE_TASKS: Record<string, AnimTask> = {
     yield* leg(16, 2, side * 2);
     yield* leg(96, 5, 0);
     yield* leg(16, 2, -side * 2);
-    mon.x2 = 0;
+    for (const mon of mons) mon.x2 = 0;
   },
 
   /** AnimTask_BlendBackground: the animations' BG palette toward args[1], args[0] of 16. */

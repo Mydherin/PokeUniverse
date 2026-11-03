@@ -18,6 +18,7 @@ export class BattleState {
   readonly id: string;
   readonly kind: BattleKind;
   readonly trainer: BattleTrainer | undefined;
+  readonly doubles: boolean;
   /** The player's side, then the foe's. */
   readonly sides: readonly [SideState, SideState];
   weather: Weather;
@@ -28,9 +29,13 @@ export class BattleState {
     this.id = view.battleId;
     this.kind = view.kind;
     this.trainer = view.trainer;
+    this.doubles = view.doubles;
     const side = (foe: boolean): SideState => {
       const s = view.sides.find((x) => x.foe === foe);
-      return { foe, active: s?.active.map((b) => clone(BattlerInfoSchema, b)) ?? [], balls: [...(s?.balls ?? [])] };
+      // By position: with one gone, the view lists only the other.
+      const active: (BattlerInfo | null)[] = [];
+      for (const b of s?.active ?? []) active[b.battler?.position ?? 0] = clone(BattlerInfoSchema, b);
+      return { foe, active: Array.from(active, (b) => b ?? null), balls: [...(s?.balls ?? [])] };
     };
     this.sides = [side(false), side(true)];
     this.weather = view.weather;
@@ -66,7 +71,7 @@ export class BattleState {
   /** The player must choose something (not WAIT). */
   get choosing(): boolean {
     const kind = this.request?.kind;
-    return kind === RequestKind.ACTION || kind === RequestKind.SWITCH || kind === RequestKind.LEARN_MOVE;
+    return kind === RequestKind.ACTION || kind === RequestKind.SWITCH || kind === RequestKind.LEARN_MOVE || kind === RequestKind.SHIFT;
   }
 
   apply(e: BattleEvent): void {

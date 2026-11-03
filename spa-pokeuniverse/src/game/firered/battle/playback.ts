@@ -6,7 +6,7 @@
 // a send-out throws the ball and the Pokémon comes out with its cry, its healthbox sliding in.
 // Each event changes the battle's state as it is shown.
 
-import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned } from "@pokeuniverse/contracts/battle/v1/event";
+import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned, type MoveUsed } from "@pokeuniverse/contracts/battle/v1/event";
 import { BattleUse, Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { itemInfo } from "../../world/items";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
@@ -25,7 +25,7 @@ import { generalAnimation, moveAnimation, playAnimation, type AnimContext, type 
 import type { HealthboxMon } from "./healthbox";
 import { levelUpBox, levelUpStripes } from "./level-up";
 import { eventMessages, type Recent } from "./messages";
-import type { BattleScene } from "./scene";
+import type { BattleScene, MonSprite, Spot } from "./scene";
 import type { BattleTexts } from "./text";
 
 /** What the playback needs from the screen. */
@@ -37,8 +37,8 @@ export interface PlaybackHost {
   /** Back pictures loaded for the player's Pokémon, by species. */
   readonly backPics: Map<number, IndexedImage>;
   healthboxMon(info: BattlerInfo): HealthboxMon;
-  /** The player sent out the Pokémon in this party slot (the battle party's order follows). */
-  sentOut(slot: number): void;
+  /** The player sent out the Pokémon in this party slot at this position (the battle party's order follows). */
+  sentOut(slot: number, position: number): void;
   /** The battle's first send-outs: the trainers still stand there. */
   readonly starting: boolean;
 }
@@ -46,7 +46,8 @@ export interface PlaybackHost {
 /** Effectiveness shown after the HP moved, as FireRed prints them. */
 const AFTER_HIT = new Set([HitResult.CRITICAL, HitResult.SUPER_EFFECTIVE, HitResult.NOT_VERY_EFFECTIVE]);
 
-const key = (b: Battler | undefined) => (b ? `${b.foe ? 1 : 0}:${b.position}` : "");
+const key = (b: Spot | undefined) => (b ? `${b.foe ? 1 : 0}:${b.position}` : "");
+const PLAYER_LEFT: Spot = { foe: false, position: 0 };
 
 /**
  * Showdown says how a move landed before the damage; FireRed shows the hit, then "A critical
@@ -122,24 +123,44 @@ const SEMI_INVULNERABLE = new Set<number>([Move.FLY, Move.DIG, Move.DIVE, Move.B
 /** FireRed's STAT_ANIM_PLUS1/MINUS1/PLUS2/MINUS2 and their MULTIPLE_* kinds. */
 const STAT_ANIM = { plus1: 15, minus1: 22, plus2: 39, minus2: 46, multiple: 55 };
 
+/** A multi-hit move's later strike: its animation plays again. */
+interface Restrike {
+  attacker: Battler | undefined;
+  target: Battler | undefined;
+  move: number;
+  turn: number;
+}
+
 /**
  * What the general animations need from a batch: a stat change's animation argument (one
  * animation for a run of changes to one battler in one direction, as Cmd_playstatchangeanimation
  * plays them; the rest of the run plays none), and the charge turns of two-turn moves, whose
  * "used <MOVE>!" FireRed doesn't print (BattleScriptFirstChargingTurn).
  */
-function plan(events: readonly BattleEvent[]): { statArgs: Map<BattleEvent, number>; chargeTurns: Set<BattleEvent>; failedMoves: Set<BattleEvent> } {
+function plan(events: readonly BattleEvent[]): { statArgs: Map<BattleEvent, number>; chargeTurns: Set<BattleEvent>; failedMoves: Set<BattleEvent>; restrikes: Map<BattleEvent, Restrike> } {
   const statArgs = new Map<BattleEvent, number>();
   const chargeTurns = new Set<BattleEvent>();
   const failedMoves = new Set<BattleEvent>();
+  const restrikes = new Map<BattleEvent, Restrike>();
+  let using: MoveUsed | null = null;
+  const struck = new Map<string, number>();
   for (let i = 0; i < events.length; i++) {
     const k = events[i].kind;
     const next = events[i + 1]?.kind;
+    // A multi-hit move strikes the same battler again: BattleScript_MultiHitLoop replays attackanimation, with the next animTurn.
+    if (k.case === "moveUsed" || k.case === "turnStart") {
+      using = k.case === "moveUsed" ? k.value : null;
+      struck.clear();
+    } else if (k.case === "damage" && !k.value.from && using) {
+      const strikes = struck.get(key(k.value.battler)) ?? 0;
+      struck.set(key(k.value.battler), strikes + 1);
+      if (strikes) restrikes.set(events[i], { attacker: using.battler, target: k.value.battler, move: using.move, turn: strikes });
+    }
     if (k.case === "moveUsed" && k.value.still && next?.case === "prepare" && key(next.value.battler) === key(k.value.battler) && next.value.move === k.value.move) {
       chargeTurns.add(events[i]);
     }
     // A move that fails or can't affect its target has no animation (it never reaches attackanimation).
-    if (k.case === "moveUsed" && (next?.case === "fail" || (next?.case === "moveResult" && next.value.result === HitResult.IMMUNE))) failedMoves.add(events[i]);
+    if (k.case === "moveUsed" && (next?.case === "fail" || (next?.case === "moveResult" && next.value.result === HitResult.IMMUNE && !hitsAnother(events, i + 2)))) failedMoves.add(events[i]);
     if (k.case !== "statChange" || !k.value.stages) continue;
     const { battler, lower } = k.value;
     let end = i + 1;
@@ -157,7 +178,24 @@ function plan(events: readonly BattleEvent[]): { statArgs: Map<BattleEvent, numb
     for (let j = i + 1; j < end; j++) statArgs.set(events[j], -1);
     i = end - 1;
   }
-  return { statArgs, chargeTurns, failedMoves };
+  return { statArgs, chargeTurns, failedMoves, restrikes };
+}
+
+/** A spread move immune on one target still lands on another (the rest of its events, from `from`). */
+function hitsAnother(events: readonly BattleEvent[], from: number): boolean {
+  for (let i = from; i < events.length; i++) {
+    const k = events[i].kind;
+    if (k.case === "moveUsed" || k.case === "turnStart") return false;
+    if (k.case === "damage" && !k.value.from) return true;
+  }
+  return false;
+}
+
+/** The battle's first send-out in doubles: both of a side's, together. */
+function sentTogether(a: BattleEvent, b: BattleEvent | undefined): boolean {
+  const first = a.kind.case === "switchIn" ? a.kind.value.pokemon?.battler : undefined;
+  const second = b?.kind.case === "switchIn" ? b.kind.value.pokemon?.battler : undefined;
+  return !!first && !!second && first.foe === second.foe;
 }
 
 /** Frames a generator over several at once, until all are done. */
@@ -180,6 +218,7 @@ export class Playback {
   private previous: BattleEvent["kind"]["case"] = undefined;
   private readonly balls: PokeBalls;
   private hits = new Map<BattleEvent, HitResult>();
+  private restrikes = new Map<BattleEvent, Restrike>();
   private statArgs = new Map<BattleEvent, number>();
   private chargeTurns = new Set<BattleEvent>();
   private failedMoves = new Set<BattleEvent>();
@@ -198,8 +237,16 @@ export class Playback {
   *play(events: readonly BattleEvent[]): Generator<void, void, void> {
     const arranged = arrange(events);
     this.hits = arranged.hits;
-    ({ statArgs: this.statArgs, chargeTurns: this.chargeTurns, failedMoves: this.failedMoves } = plan(arranged.events));
-    for (const e of arranged.events) yield* this.event(e);
+    ({ statArgs: this.statArgs, chargeTurns: this.chargeTurns, failedMoves: this.failedMoves, restrikes: this.restrikes } = plan(arranged.events));
+    const { state } = this.host;
+    for (let i = 0; i < arranged.events.length; i++) {
+      const e = arranged.events[i];
+      const next = arranged.events[i + 1];
+      if (this.host.starting && state.doubles && sentTogether(e, next)) {
+        yield* this.switchIn(e, next);
+        i++;
+      } else yield* this.event(e);
+    }
   }
 
   private *event(e: BattleEvent): Generator<void, void, void> {
@@ -220,11 +267,13 @@ export class Playback {
         this.charging.delete(key(k.value.pokemon?.battler));
         this.hidden.delete(key(k.value.pokemon?.battler));
         this.behindSubstitute.delete(key(k.value.pokemon?.battler));
-        return yield* this.switchIn(e, k.value.pokemon!);
+        return yield* this.switchIn(e);
       case "damage": {
         const { battler, from } = k.value;
         const hp = k.value.health?.hp ?? 0;
         if (!from) {
+          const again = this.restrikes.get(e);
+          if (again) yield* this.animateMove(again.attacker, again.target, again.move, again.turn);
           state.apply(e);
           yield* this.hit(battler, this.hits.get(e) ?? HitResult.UNSPECIFIED);
           yield* this.moveHp(battler, hp);
@@ -235,7 +284,7 @@ export class Playback {
         const fromMove = from.kind.case === "move" ? from.kind.value : 0;
         if (battler && TRAP_MOVES.has(fromMove)) yield* this.animateEffect("B_ANIM_TURN_TRAP", battler, { animArg: fromMove });
         // BattleScript_LeechSeedTurnDrain: the seeder drains the seeded, the bars move, then the message.
-        if (battler && fromMove === Move.LEECH_SEED) yield* this.animateEffect("B_ANIM_LEECH_SEED_DRAIN", battler, { attackerFoe: !battler.foe, targetFoe: battler.foe });
+        if (battler && fromMove === Move.LEECH_SEED) yield* this.animateEffect("B_ANIM_LEECH_SEED_DRAIN", battler, { attacker: this.across(battler), target: battler });
         const late = fromMove === Move.LEECH_SEED || (from.kind.case === "condition" && from.kind.value === Condition.RECOIL);
         if (!late) for (const m of messages) yield* scene.message(m);
         // Hurting itself in confusion is a hit (BattleScript_DoSelfConfusionDmg); poison, burn, Curse and Nightmare play their animation.
@@ -257,14 +306,14 @@ export class Playback {
       case "faint":
         this.charging.delete(key(k.value.battler));
         this.hidden.delete(key(k.value.battler));
-        if (this.behindSubstitute.delete(key(k.value.battler))) this.host.scene.mons[k.value.battler?.foe ? 1 : 0]?.dress(null);
+        if (this.behindSubstitute.delete(key(k.value.battler)) && k.value.battler) this.host.scene.mon(k.value.battler)?.dress(null);
         return yield* this.faint(e, k.value.battler);
       case "statusSet":
       case "statusCured": {
         state.apply(e);
         const b = k.value.battler;
         const mon = state.battler(b);
-        if (b && state.side(b.foe).active[0] === mon && mon) scene.healthbox(b.foe).setStatus(mon.status);
+        if (b && mon) scene.healthbox(b).setStatus(mon.status);
         if (k.case === "statusSet") yield* this.animateStatus(STATUS_ANIM[k.value.status], b);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         return;
@@ -272,8 +321,7 @@ export class Playback {
       case "teamCured": {
         state.apply(e);
         const b = k.value.battler;
-        const mon = b ? state.side(b.foe).active[0] : null;
-        if (b && mon) scene.healthbox(b.foe).setStatus(mon.status);
+        if (b) state.side(b.foe).active.forEach((mon, position) => mon && scene.healthbox({ foe: b.foe, position }).setStatus(mon.status));
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         return;
       }
@@ -336,7 +384,7 @@ export class Playback {
         // BattleScript_MonTookFutureAttack: the message first.
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
-        return yield* this.animateEffect(hit, b, { attackerFoe: !b.foe, targetFoe: b.foe });
+        return yield* this.animateEffect(hit, b, { attacker: this.across(b), target: b });
       }
       case "itemEnded": {
         const b = k.value.battler;
@@ -345,17 +393,17 @@ export class Playback {
         if (k.value.eaten) this.recent.eaten = k.value.item;
         // Eaten or used up (a sash, a herb): BattleScript_*_RemoveItem plays B_ANIM_HELD_ITEM_EFFECT.
         if (k.value.eaten || !from) yield* this.animateEffect("B_ANIM_HELD_ITEM_EFFECT", b);
-        else if (from?.case === "move" && from.value === Move.KNOCK_OFF) yield* this.animateEffect("B_ANIM_ITEM_KNOCKOFF", b, { attackerFoe: !b.foe, targetFoe: b.foe });
+        else if (from?.case === "move" && from.value === Move.KNOCK_OFF) yield* this.animateEffect("B_ANIM_ITEM_KNOCKOFF", b, { attacker: this.recent.mover ?? this.across(b), target: b });
         break;
       }
       case "itemShown": {
         const from = k.value.from?.kind;
-        if (k.value.battler && from?.case === "move" && (from.value === Move.THIEF || from.value === Move.COVET)) yield* this.animateEffect("B_ANIM_ITEM_STEAL", k.value.battler, { targetFoe: !k.value.battler.foe });
+        if (k.value.battler && from?.case === "move" && (from.value === Move.THIEF || from.value === Move.COVET)) yield* this.animateEffect("B_ANIM_ITEM_STEAL", k.value.battler, { target: this.across(k.value.battler) });
         break;
       }
       case "formeChange": {
         const b = k.value.battler;
-        if (b && state.side(b.foe).active[0]?.species === SPECIES_CASTFORM) yield* this.animateEffect("B_ANIM_CASTFORM_CHANGE", b);
+        if (b && state.side(b.foe).active[b.position]?.species === SPECIES_CASTFORM) yield* this.animateEffect("B_ANIM_CASTFORM_CHANGE", b);
         break;
       }
       case "activate":
@@ -366,14 +414,14 @@ export class Playback {
         return;
       case "statChange": {
         const arg = this.statArgs.get(e);
-        if (arg !== undefined && arg >= 0) yield* this.animateGeneral("B_ANIM_STATS_CHANGE", !!k.value.battler?.foe, { animArg: arg });
+        if (arg !== undefined && arg >= 0) yield* this.animateGeneral("B_ANIM_STATS_CHANGE", k.value.battler ?? PLAYER_LEFT, { animArg: arg });
         break;
       }
       case "weatherChange": {
         const name = k.value.phase === ConditionPhase.UPKEEP ? WEATHER_ANIM[k.value.weather] : undefined;
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
-        if (name) yield* this.animateGeneral(name, false);
+        if (name) yield* this.animateGeneral(name, PLAYER_LEFT);
         return;
       }
       case "itemUsed":
@@ -387,7 +435,7 @@ export class Playback {
         const { battler, exp, levelExp, nextLevelExp } = k.value;
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         state.apply(e);
-        if (battler && state.battler(battler)) yield* scene.healthbox(false).moveExp(exp, levelExp, nextLevelExp);
+        if (battler && state.battler(battler)) yield* scene.healthbox(battler).moveExp(exp, levelExp, nextLevelExp);
         return;
       }
       case "levelUp":
@@ -406,15 +454,15 @@ export class Playback {
    */
   private *levelUp(e: BattleEvent, up: LevelUp): Generator<void, void, void> {
     const { flow, scene, state, texts } = this.host;
-    const on = state.battler(up.battler) !== null;
+    const on = up.battler && state.battler(up.battler) ? up.battler : null;
     state.apply(e);
     if (on) {
-      const box = scene.healthbox(false);
+      const box = scene.healthbox(on);
       flow.play("se_exp_max");
       yield* box.flashLevelUp();
       box.levelUp(up.level, up.health?.hp ?? 0, up.health?.maxHp ?? 0);
       flow.play("se_rs_shop");
-      yield* levelUpStripes(flow, scene.mons[0]?.sprite ?? null);
+      yield* levelUpStripes(flow, scene.mon(on)?.sprite ?? null);
     }
     flow.gba.sound.playFanfare("mus_level_up");
     yield* scene.message(texts.format("sText_PkmnGrewToLv", { buff1: texts.name(up.battler), buff2: decimalText(up.level, NumberMode.LeftAlign, 3) }), 0);
@@ -439,7 +487,7 @@ export class Playback {
     const k = e.kind;
     if (k.case === "damage" || k.case === "heal" || k.case === "setHealth") {
       const b = k.value.battler;
-      if (b && this.host.state.battler(b)) for (const _ of this.host.scene.healthbox(b.foe).moveHp(k.value.health?.hp ?? 0));
+      if (b && this.host.state.battler(b)) for (const _ of this.host.scene.healthbox(b).moveHp(k.value.health?.hp ?? 0));
     }
   }
 
@@ -447,8 +495,8 @@ export class Playback {
   private *moveHp(b: Battler | undefined, hp: number): Generator<void, void, void> {
     // A potion on the bench moves no bar.
     if (!b || !this.host.state.battler(b)) return;
-    const box = this.host.scene.healthbox(b.foe);
-    const mon = this.host.state.side(b.foe).active[0];
+    const box = this.host.scene.healthbox(b);
+    const mon = this.host.state.side(b.foe).active[b.position];
     yield* box.moveHp(hp);
     const max = mon?.health?.maxHp ?? 0;
     if (!b.foe && hp > 0 && max && hpBarLevel(hp, max) === HpBarLevel.Red) this.host.flow.play("se_low_health");
@@ -459,17 +507,27 @@ export class Playback {
   }
 
   private sprite(b: Battler): Sprite | null {
-    return this.host.scene.mons[b.foe ? 1 : 0]?.sprite ?? null;
+    return this.host.scene.mon(b)?.sprite ?? null;
   }
 
-  private animMon(foe: boolean): AnimMon {
+  /** The Pokémon across from a battler (BATTLE_OPPOSITE), or the other foe if that spot is empty. */
+  private across(b: Spot): Spot {
+    const { state } = this.host;
+    if (!state.doubles) return { foe: !b.foe, position: 0 };
+    return { foe: !b.foe, position: state.side(!b.foe).active[b.position] ? b.position : 1 - b.position };
+  }
+
+  private animMon(b: Spot): AnimMon {
     const { scene, state } = this.host;
-    const mon = scene.mons[foe ? 1 : 0];
-    const k = `${foe ? 1 : 0}:0`;
+    const { foe, position } = b;
+    const mon = scene.mon(b);
+    const k = key(b);
     return {
       foe,
+      position,
+      spot: scene.spot(b),
       sprite: mon?.sprite ?? null,
-      species: state.side(foe).active[0]?.species,
+      species: state.side(foe).active[position]?.species,
       hidden: this.hidden.has(k),
       behindSubstitute: this.behindSubstitute.has(k),
       dress: (art) => mon?.dress(art),
@@ -477,12 +535,14 @@ export class Playback {
   }
 
   /** What every animation plays with: these battlers on this battle's field. */
-  private animContext(attackerFoe: boolean, targetFoe: boolean): Omit<AnimContext, "color"> {
+  private animContext(attacker: Spot, target: Spot): Omit<AnimContext, "color"> {
+    const positions = this.host.state.doubles ? [0, 1] : [0];
     return {
       flow: this.host.flow,
-      attacker: this.animMon(attackerFoe),
-      target: this.animMon(targetFoe),
-      opponent: this.animMon(!attackerFoe),
+      attacker: this.animMon(attacker),
+      target: this.animMon(target),
+      opponent: this.animMon(this.across(attacker)),
+      field: [false, true].flatMap((foe) => positions.map((position) => this.animMon({ foe, position }))),
       weather: ANIM_WEATHER[this.host.state.weather] ?? 0,
       backdrop: this.host.scene,
     };
@@ -495,7 +555,7 @@ export class Playback {
     if (effect?.case === "item" && (effect.value === Item.LEPPA_BERRY || effect.value === Item.CUSTAP_BERRY)) yield* this.animateEffect("B_ANIM_HELD_ITEM_EFFECT", b);
     if (effect?.case !== "move") return;
     if (effect.value === Move.SUBSTITUTE) yield* this.hit(b, HitResult.UNSPECIFIED);
-    if (effect.value === Move.SNATCH) yield* this.animateEffect("B_ANIM_SNATCH_MOVE", b, { targetFoe: source?.foe ?? !b.foe, always: true });
+    if (effect.value === Move.SNATCH) yield* this.animateEffect("B_ANIM_SNATCH_MOVE", b, { target: source ?? this.across(b), always: true });
   }
 
   /** What a heal plays first: Wish coming true, Ingrain's roots, a held item (not the berry just eaten, nor a bag item). */
@@ -521,21 +581,20 @@ export class Playback {
     const anim = moveAnimation(move, !!target);
     if (!anim) return;
     const power = moveInfo(move)?.power ?? 0;
-    const targetFoe = (target ?? attacker).foe;
-    const ctx = { ...this.animContext(attacker.foe, targetFoe), color: anim.color, turn, movePower: power, moveDamage: power };
+    const ctx = { ...this.animContext(attacker, target ?? attacker), color: anim.color, turn, movePower: power, moveDamage: power };
     // PlayerHandleMoveAnimation: one behind a Substitute steps out of the doll to move, and back.
     const behind = this.behindSubstitute.has(key(attacker));
-    if (behind) yield* this.animateGeneral("B_ANIM_SUBSTITUTE_TO_MON", attacker.foe);
+    if (behind) yield* this.animateGeneral("B_ANIM_SUBSTITUTE_TO_MON", attacker);
     yield* playAnimation(ctx, anim.program);
-    if (behind) yield* this.animateGeneral("B_ANIM_MON_TO_SUBSTITUTE", attacker.foe);
+    if (behind) yield* this.animateGeneral("B_ANIM_MON_TO_SUBSTITUTE", attacker);
   }
 
   /** A general animation on one battler (Cmd_playanimation): stat changes and weather play even with BATTLE SCENE off. */
-  private *animateGeneral(name: string, foe: boolean, opts: { animArg?: number; statusAnim?: boolean; targetFoe?: boolean } = {}): Generator<void, void, void> {
+  private *animateGeneral(name: string, attacker: Spot, opts: { animArg?: number; statusAnim?: boolean; target?: Spot } = {}): Generator<void, void, void> {
     const program = generalAnimation(name);
     if (!program) return;
-    const { targetFoe = foe, ...rest } = opts;
-    yield* playAnimation({ ...this.animContext(foe, targetFoe), color: 0, ...rest }, program);
+    const { target = attacker, ...rest } = opts;
+    yield* playAnimation({ ...this.animContext(attacker, target), color: 0, ...rest }, program);
   }
 
   /**
@@ -543,16 +602,16 @@ export class Playback {
    * nor on one out of sight, unless `always` (Snatch, a fading Substitute). The attacker is `b`
    * unless named; the target, the attacker unless named.
    */
-  private *animateEffect(name: string, b: Battler, opts: { attackerFoe?: boolean; targetFoe?: boolean; animArg?: number; always?: boolean } = {}): Generator<void, void, void> {
-    const { attackerFoe = b.foe, targetFoe = attackerFoe, animArg, always } = opts;
+  private *animateEffect(name: string, b: Battler, opts: { attacker?: Spot; target?: Spot; animArg?: number; always?: boolean } = {}): Generator<void, void, void> {
+    const { attacker = b, target = attacker, animArg, always } = opts;
     if (!always && (this.hidden.has(key(b)) || this.host.flow.options.battleScene === BattleSceneOption.OFF)) return;
-    yield* this.animateGeneral(name, attackerFoe, { targetFoe, animArg });
+    yield* this.animateGeneral(name, attacker, { target, animArg });
   }
 
   /** A status condition's animation (Cmd_statusanimation): not with BATTLE SCENE off, nor while out of sight. */
   private *animateStatus(name: string | undefined, b: Battler | undefined): Generator<void, void, void> {
     if (!name || !b || this.hidden.has(key(b)) || this.host.flow.options.battleScene === BattleSceneOption.OFF) return;
-    yield* this.animateGeneral(name, b.foe, { statusAnim: true });
+    yield* this.animateGeneral(name, b, { statusAnim: true });
   }
 
   /** The hit (DoHitAnimation): the target blinks for 32 frames with the effectiveness sound; one out of sight doesn't. */
@@ -578,51 +637,66 @@ export class Playback {
     if (info) flow.gba.sound.play(Assets.faintCryId(info.species), "cry");
     yield* wait(2);
     while (flow.gba.sound.isPlaying("cry")) yield;
-    const mon = scene.mons[b.foe ? 1 : 0];
+    const mon = scene.mon(b);
     flow.play("se_faint");
     if (mon) {
       for (let dy = 4; dy <= 64; dy += 4) {
         mon.draw(dy);
         yield;
       }
-      scene.removeMon(b.foe);
+      scene.removeMon(b);
     }
-    scene.healthbox(b.foe).visible = false;
+    scene.healthbox(b).visible = false;
     for (const m of messages) yield* scene.message(m);
   }
 
   /**
    * A Pokémon sent out: the one there comes back first (its trainer calls it), then the trainer's
    * line, the ball, the Pokémon with its cry, and its healthbox sliding in. At the battle's start
-   * the trainers leave as they send theirs out.
+   * the trainers leave as they send theirs out; in doubles, both of a side's come out together.
    */
-  private *switchIn(e: BattleEvent, info: BattlerInfo): Generator<void, void, void> {
+  private *switchIn(...events: BattleEvent[]): Generator<void, void, void> {
     const { flow, scene, state, texts } = this.host;
-    const b = info.battler!;
+    const infos = events.flatMap((e) => (e.kind.case === "switchIn" && e.kind.value.pokemon ? [e.kind.value.pokemon] : []));
+    const b = infos[0].battler!;
     const foe = b.foe;
     const side = foe ? 1 : 0;
-    texts.remember(info);
-    void flow.gba.sound.load([Assets.cryId(info.species), Assets.faintCryId(info.species)], Assets.cryUrl).catch(() => {});
-    yield* this.loadArt(info);
+    for (const info of infos) {
+      texts.remember(info);
+      void flow.gba.sound.load([Assets.cryId(info.species), Assets.faintCryId(info.species)], Assets.cryUrl).catch(() => {});
+    }
+    yield* all(...infos.map((info) => this.loadArt(info)));
 
     const previous = state.side(foe).active[b.position];
-    if (previous && scene.mons[side]) yield* this.recall(previous);
+    if (previous && scene.mon(b)) yield* this.recall(previous);
 
     const first = this.host.starting && scene.trainers[side] !== null;
     let line: number[];
-    if (foe) line = texts.format(first ? "sText_Trainer1SentOutPkmn" : "sText_Trainer1SentOutPkmn2", { atk: b, buff1: texts.name(b) });
+    if (infos.length > 1) line = texts.format(foe ? "sText_Trainer1SentOutTwoPkmn" : "sText_GoTwoPkmn", { atk: b, partner: infos[1].battler });
+    else if (foe) line = texts.format(first ? "sText_Trainer1SentOutPkmn" : "sText_Trainer1SentOutPkmn2", { atk: b, buff1: texts.name(b) });
     else line = texts.format(first ? "sText_GoPkmn" : this.goLine(), { atk: b, buff1: texts.name(b) });
-    state.apply(e);
-    if (!foe) this.host.sentOut(b.partySlot);
-
-    const mon = scene.showMon(info, this.host.backPics.get(info.species));
-    // Hidden until its ball opens.
-    if (mon) mon.sprite.invisible = true;
-    const [x, y] = scene.monPosition(info);
+    for (const e of events) state.apply(e);
+    const mons = infos.map((info) => {
+      const at = info.battler!;
+      if (!foe) this.host.sentOut(at.partySlot, at.position);
+      const mon = scene.showMon(info, this.host.backPics.get(info.species));
+      // Hidden until its ball opens.
+      if (mon) mon.sprite.invisible = true;
+      return mon;
+    });
     const trainer = scene.trainers[side];
     const leave = trainer ? this.trainerLeaves(foe) : wait(0);
     // The message prints while the trainer leaves; the ball comes once it's read.
     yield* all(scene.message(line, 0), leave);
+    yield* all(...infos.map((info, i) => this.comeOut(info, mons[i])));
+    yield* wait(32);
+  }
+
+  /** The ball opens, the Pokémon comes out with its cry, and its healthbox slides in. */
+  private *comeOut(info: BattlerInfo, mon: MonSprite | null): Generator<void, void, void> {
+    const { flow, scene } = this.host;
+    const foe = info.battler!.foe;
+    const [x, y] = scene.monPosition(info);
     if (mon) {
       const ball = this.balls.release(mon.sprite, x, y + (foe ? 16 : 8), 2, 0, foe ? 0 : 24, 0);
       if (!foe) yield* this.throwBall(ball);
@@ -637,12 +711,12 @@ export class Playback {
       }
       if (!cried) flow.playCry(info.species);
     } else flow.playCry(info.species);
-    yield* this.slideHealthbox(foe, info);
-    yield* wait(32);
+    yield* this.slideHealthbox(info);
   }
 
   /** FireRed's "Go!" lines by how hurt the foe is (gBattleStruct->hpScale). */
   private goLine(): string {
+    if (this.host.state.doubles) return "sText_GoPkmn2";
     const foe = this.host.state.side(true).active[0]?.health;
     const pct = foe && foe.maxHp ? (foe.hp * 100) / foe.maxHp : 100;
     if (pct >= 70) return "sText_GoPkmn2";
@@ -655,23 +729,22 @@ export class Playback {
   private *recall(previous: BattlerInfo): Generator<void, void, void> {
     const { scene, texts } = this.host;
     const b = previous.battler!;
-    const side = b.foe ? 1 : 0;
     const line = b.foe ? texts.format("sText_Trainer1WithdrewPkmn", { buff1: texts.name(b) }) : texts.format("sText_PkmnComeBack", { buff1: texts.name(b) });
     yield* scene.message(line, 0);
-    const mon = scene.mons[side];
+    const mon = scene.mon(b);
     if (mon) {
       const ball = this.balls.takeBack(mon.sprite, mon.sprite.x, mon.sprite.y + 16, 2, 0, 0, 0);
       yield* wait(40);
       this.host.flow.gba.sprites.destroy(ball);
-      scene.removeMon(b.foe);
+      scene.removeMon(b);
     }
-    scene.healthbox(b.foe).visible = false;
+    scene.healthbox(b).visible = false;
   }
 
   /** BALL_TRAINER_BLOCK: the ball flies at the foe and is knocked away; a trainer's Pokémon can't be caught. */
   private *ballBlocked(): Generator<void, void, void> {
     const { flow, scene, texts } = this.host;
-    const foe = scene.mons[1];
+    const foe = scene.mon({ foe: true, position: 0 }) ?? scene.mon({ foe: true, position: 1 });
     if (foe) {
       const ball = this.balls.flying(foe.sprite.x, foe.sprite.y, 2, 0);
       yield* this.throwBall(ball);
@@ -716,8 +789,9 @@ export class Playback {
   }
 
   /** The healthbox drawn and sliding in from its side. */
-  private *slideHealthbox(foe: boolean, info: BattlerInfo): Generator<void, void, void> {
-    const box = this.host.scene.healthbox(foe);
+  private *slideHealthbox(info: BattlerInfo): Generator<void, void, void> {
+    const foe = info.battler!.foe;
+    const box = this.host.scene.healthbox(info.battler!);
     box.show(this.host.healthboxMon(info));
     box.offset = foe ? -96 : 96;
     box.visible = true;

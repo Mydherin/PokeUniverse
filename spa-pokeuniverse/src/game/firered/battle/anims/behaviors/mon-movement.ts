@@ -2,8 +2,55 @@
 // sways and scaling. Templates with no art are invisible sprites that move a battler.
 
 import type { Sprite } from "../../../../gba/sprites";
-import { AnimBattler, type AnimSpriteTemplate, type AnimTask } from "../script";
-import { cos, INVISIBLE, linear, monSprite, runSprite, sideX, sin } from "./util";
+import { AnimBattler, type AnimMon, type AnimRun, type AnimSpriteTemplate, type AnimTask } from "../script";
+import { cos, INVISIBLE, linear, monSprite, partnerOf, runSprite, sideX, sin } from "./util";
+
+/** The battler args[0] names in the slides: attacker 0, target otherwise. */
+const slider = (run: AnimRun, args: readonly number[]): AnimMon => run.mon(args[0] === 0 ? AnimBattler.Attacker : AnimBattler.Target);
+
+/**
+ * SlideMonToOffset: `mon` slides by (args[1], args[2]) over args[4] frames, mirrored on the foe's
+ * side (args[3] 1: Y too), and stays there.
+ */
+function slideToOffset(sprite: Sprite, mon: AnimMon | undefined, args: readonly number[], done: () => void): void {
+  sprite.invisible = true;
+  const target = mon?.sprite;
+  if (!mon || !target) return done();
+  const dx = mon.foe ? -args[1] : args[1];
+  const dy = mon.foe && args[3] === 1 ? -args[2] : args[2];
+  runSprite(
+    sprite,
+    (function* () {
+      yield;
+      yield* linear(args[4], dx, dy, (x, y) => ((target.x2 = x), (target.y2 = y)));
+    })(),
+    done,
+  );
+}
+
+/** SlideMonToOriginalPos: `mon` slides back to its spot over args[2] frames; args[1] 1 only along X, 2 only along Y. */
+function slideToOriginal(sprite: Sprite, mon: Sprite | null | undefined, args: readonly number[], done: () => void): void {
+  sprite.invisible = true;
+  if (!mon) return done();
+  const axis = args[1];
+  const [x2, y2] = [mon.x2, mon.y2];
+  const frames = args[2];
+  const stepX = axis === 2 ? 0 : Math.trunc(((-x2 << 8) << 16 >> 16) / frames);
+  const stepY = axis === 1 ? 0 : Math.trunc(((-y2 << 8) << 16 >> 16) / frames);
+  let [x, y, left] = [0, 0, frames];
+  sprite.callback = () => {
+    if (left === 0) {
+      if (axis !== 2) mon.x2 = 0;
+      if (axis !== 1) mon.y2 = 0;
+      return done();
+    }
+    left--;
+    x += stepX;
+    y += stepY;
+    mon.x2 = (x >> 8) + x2;
+    mon.y2 = (y >> 8) + y2;
+  };
+}
 
 
 /** TranslateSpriteLinearById twice: a sprite dips by (dx, dy) a frame for `steps` frames and back. */
@@ -136,60 +183,10 @@ export const MON_MOVEMENT_TEMPLATES: Record<string, AnimSpriteTemplate> = {
     },
   },
 
-  /**
-   * SlideMonToOffset: the battler (args[0]: attacker 0, target 1) slides by (args[1], args[2])
-   * over args[4] frames, mirrored on the foe's side (args[3] 1: Y too), and stays there.
-   */
-  gSlideMonToOffsetSpriteTemplate: {
-    ...INVISIBLE,
-    init(sprite, run, args, done) {
-      sprite.invisible = true;
-      const mon = run.mon(args[0] === 0 ? AnimBattler.Attacker : AnimBattler.Target);
-      if (!mon.sprite) return done();
-      const target = mon.sprite;
-      const dx = mon.foe ? -args[1] : args[1];
-      const dy = mon.foe && args[3] === 1 ? -args[2] : args[2];
-      runSprite(
-        sprite,
-        (function* () {
-          yield;
-          yield* linear(args[4], dx, dy, (x, y) => ((target.x2 = x), (target.y2 = y)));
-        })(),
-        done,
-      );
-    },
-  },
-
-  /**
-   * SlideMonToOriginalPos: the battler (args[0]) slides back to its spot over args[2] frames;
-   * args[1] 1 only along X, 2 only along Y.
-   */
-  gSlideMonToOriginalPosSpriteTemplate: {
-    ...INVISIBLE,
-    init(sprite, run, args, done) {
-      sprite.invisible = true;
-      const mon = run.mon(args[0] === 0 ? AnimBattler.Attacker : AnimBattler.Target).sprite;
-      if (!mon) return done();
-      const axis = args[1];
-      const [x2, y2] = [mon.x2, mon.y2];
-      const frames = args[2];
-      const stepX = axis === 2 ? 0 : Math.trunc(((-x2 << 8) << 16 >> 16) / frames);
-      const stepY = axis === 1 ? 0 : Math.trunc(((-y2 << 8) << 16 >> 16) / frames);
-      let [x, y, left] = [0, 0, frames];
-      sprite.callback = () => {
-        if (left === 0) {
-          if (axis !== 2) mon.x2 = 0;
-          if (axis !== 1) mon.y2 = 0;
-          return done();
-        }
-        left--;
-        x += stepX;
-        y += stepY;
-        mon.x2 = (x >> 8) + x2;
-        mon.y2 = (y >> 8) + y2;
-      };
-    },
-  },
+  gSlideMonToOffsetSpriteTemplate: { ...INVISIBLE, init: (sprite, run, args, done) => slideToOffset(sprite, slider(run, args), args, done) },
+  gSlideMonToOffsetPartnerSpriteTemplate: { ...INVISIBLE, init: (sprite, run, args, done) => slideToOffset(sprite, partnerOf(run, slider(run, args)), args, done) },
+  gSlideMonToOriginalPosSpriteTemplate: { ...INVISIBLE, init: (sprite, run, args, done) => slideToOriginal(sprite, slider(run, args).sprite, args, done) },
+  gSlideMonToOriginalPosPartnerSpriteTemplate: { ...INVISIBLE, init: (sprite, run, args, done) => slideToOriginal(sprite, partnerOf(run, slider(run, args))?.sprite, args, done) },
 };
 
 export const MON_MOVEMENT_TASKS: Record<string, AnimTask> = {
@@ -353,7 +350,7 @@ export const MON_MOVEMENT_TASKS: Record<string, AnimTask> = {
    */
   *AnimTask_ShakeMon2(run, args) {
     const which = args[0];
-    const byPosition = which >= 4 && which <= 7 ? [run.attacker, run.target].find((m) => m.foe === (which >= 6) && which % 2 === 0) : undefined;
+    const byPosition = which >= 4 && which <= 7 ? run.field.find((m) => m.foe === (which >= 6) && (m.position ?? 0) === which % 2) : undefined;
     const mon = which < 4 ? monSprite(run, which) : which === 8 ? run.attacker.sprite : (byPosition?.sprite ?? null);
     if (!mon || (which >= 4 && which !== 8 && mon.invisible)) return;
     const [dx, dy] = [args[1], args[2]];
@@ -486,7 +483,7 @@ export const MON_MOVEMENT_TASKS: Record<string, AnimTask> = {
     let offset = (args[1] || 0) + 3;
     const first = offset;
     const which = args[0];
-    const mons = which === 4 ? [run.attacker.sprite, run.target.sprite].filter((s) => s && !s.invisible) : [monSprite(run, which)];
+    const mons = which === 4 ? run.field.map((m) => m.sprite).filter((s) => s && !s.invisible) : [monSprite(run, which)];
     if (which !== 5 && !mons[0]) return;
     const { backdrop } = run;
     const startX = backdrop.scrollX;

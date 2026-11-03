@@ -293,6 +293,7 @@ function* rain(run: AnimRun, left: number, top: number, startY: number, firstX: 
     }
     if (splashed && !shaken) {
       run.spawn(MON_MOVEMENT_TASKS.AnimTask_HorizontalShake(run, [AnimBattler.Target, 0, 12]));
+      run.spawn(MON_MOVEMENT_TASKS.AnimTask_HorizontalShake(run, [3, 0, 12]));
       shaken = true;
     }
     if (made >= total) break;

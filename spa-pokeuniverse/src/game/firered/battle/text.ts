@@ -17,6 +17,8 @@ const enum B {
   Buff2 = 0x01,
   PlayerMon1Name = 0x05,
   OpponentMon1Name = 0x06,
+  PlayerMon2Name = 0x07,
+  OpponentMon2Name = 0x08,
   AtkNameWithPrefix = 0x0f,
   DefNameWithPrefix = 0x10,
   EffNameWithPrefix = 0x11,
@@ -52,6 +54,8 @@ export interface MessageArgs {
   def?: Battler;
   eff?: Battler;
   scr?: Battler;
+  /** The second of two sent out together. */
+  partner?: Battler;
   buff1?: Text;
   buff2?: Text;
   buff3?: Text;
@@ -170,6 +174,9 @@ export class BattleTexts {
       case B.PlayerMon1Name:
       case B.OpponentMon1Name:
         return this.name(a.atk ?? a.scr);
+      case B.PlayerMon2Name:
+      case B.OpponentMon2Name:
+        return this.name(a.partner);
       case B.AtkNameWithPrefix:
         return this.nameWithPrefix(a.atk);
       case B.DefNameWithPrefix:

@@ -69,7 +69,7 @@ export interface WorldLink {
   /** The running script reached its TrainerBattle step: answered with BattleStarted (or BattleEnded). */
   scriptBattle(script: number): void;
   /** The choice for the battle's request with this step: answered with a BattleTurn. */
-  battleChoice(battleId: string, step: number, action: BattleAction): void;
+  battleChoice(battleId: string, step: number, action: BattleAction, partner?: BattleAction): void;
   /** USE from the bag, or the registered item with SELECT (`field`); answered with an ItemResult. */
   useItem(item: Item, field: boolean): void;
   /** GIVE from the bag, or from the PC (`pc`). */
@@ -194,8 +194,8 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "scriptBattle", value: { script } });
   }
 
-  battleChoice(battleId: string, step: number, action: BattleAction): void {
-    if (this.inWorld) this.send({ case: "battleChoice", value: { battleId, step, action } });
+  battleChoice(battleId: string, step: number, action: BattleAction, partner?: BattleAction): void {
+    if (this.inWorld) this.send({ case: "battleChoice", value: { battleId, step, action, partner } });
   }
 
   useItem(item: Item, field: boolean): void {

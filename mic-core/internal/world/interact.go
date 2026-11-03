@@ -51,6 +51,12 @@ var npcScripts = map[string]Script{
 		music("mus_encounter_boy"), message("test_trainer.intro"), trainerBattle("test_trainer"),
 		message("test_trainer.post_battle"),
 	},
+	// Test content, as above: the same script in a double battle.
+	"pallet_town_players_house_2f.test_double_trainer": {
+		message("test_trainer.question"), yesNo(),
+		music("mus_encounter_boy"), message("test_trainer.intro"), trainerBattle("test_double_trainer"),
+		message("test_trainer.post_battle"),
+	},
 }
 
 // signScripts are the scripts of sign objects, by map and name (lib-maps objects' `script`).

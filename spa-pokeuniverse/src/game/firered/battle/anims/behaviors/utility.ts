@@ -216,17 +216,19 @@ export const UTILITY_TASKS: Record<string, AnimTask> = {
 
   /** AnimTask_SetAllNonAttackersInvisiblity: everyone else hidden (args[0] 1) or shown. */
   *AnimTask_SetAllNonAttackersInvisiblity(run, args) {
-    const other = run.opponent.sprite;
-    if (other && !run.opponent.hidden) other.invisible = !!args[0];
+    for (const mon of run.field) {
+      const isAttacker = mon.foe === run.attacker.foe && (mon.position ?? 0) === (run.attacker.position ?? 0);
+      if (!isAttacker && mon.sprite && !mon.hidden) mon.sprite.invisible = !!args[0];
+    }
   },
 
   *AnimTask_GetTargetSide(run) {
     run.args[7] = run.target.foe ? 1 : 0;
   },
 
-  /** AnimTask_GetTargetIsAttackerPartner: singles have no partner. */
+  /** AnimTask_GetTargetIsAttackerPartner. */
   *AnimTask_GetTargetIsAttackerPartner(run) {
-    run.args[7] = 0;
+    run.args[7] = run.target.foe === run.attacker.foe && (run.target.position ?? 0) !== (run.attacker.position ?? 0) ? 1 : 0;
   },
 
   *AnimTask_GetBattleTerrain(run) {

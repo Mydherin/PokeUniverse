@@ -73,8 +73,8 @@
   "gText_Somewhere", "gText_PokeSum_ATrade", "gText_PokeSum_DexNoUnknown",
   "Route13_Text_SheilaIntro", "VictoryRoad_1F_Text_RolandoIntro", "VictoryRoad_1F_Text_RolandoDefeat",
   "VictoryRoad_1F_Text_RolandoPostBattle",
-  "sText_Trainer1WantsToBattle", "sText_Trainer1SentOutPkmn", "sText_Trainer1SentOutPkmn2", "sText_GoPkmn", "sText_GoPkmn2", "sText_DoItPkmn", "sText_GoForItPkmn", "sText_YourFoesWeakGetEmPkmn",
-  "sText_PkmnThatsEnough", "sText_PkmnComeBack", "sText_PkmnOkComeBack", "sText_PkmnGoodComeBack", "sText_Trainer1WithdrewPkmn",
+  "sText_Trainer1WantsToBattle", "sText_Trainer1SentOutPkmn", "sText_Trainer1SentOutPkmn2", "sText_Trainer1SentOutTwoPkmn", "sText_GoPkmn", "sText_GoPkmn2", "sText_GoTwoPkmn", "sText_DoItPkmn", "sText_GoForItPkmn", "sText_YourFoesWeakGetEmPkmn",
+  "sText_PkmnThatsEnough", "sText_PkmnComeBack", "sText_PkmnOkComeBack", "sText_PkmnGoodComeBack", "sText_Trainer1WithdrewPkmn", "sText_EnemyAboutToSwitchPkmn",
   "gText_WhatWillPkmnDo", "gText_BattleMenu", "gText_MoveInterfacePP", "gText_MoveInterfaceType", "sText_NoRunningFromTrainers", "sText_NoPPLeft",
   "sText_PkmnMoveIsDisabled", "sText_PkmnCantUseMoveTaunt", "sText_PkmnCantUseMoveTorment", "sText_PkmnCantUseMoveSealed", "sText_ItemsCantBeUsedNow",
   "sText_WildPkmnPrefix", "sText_FoePkmnPrefix",
@@ -100,8 +100,9 @@
   "gText_LevelUp_MaxHP", "gText_LevelUp_Attack", "gText_LevelUp_Defense", "gText_LevelUp_SpAtk", "gText_LevelUp_SpDef", "gText_LevelUp_Speed", "gText_LevelUp_Plus", "gText_LevelUp_Minus",
   "sText_PkmnGainedEXP", "sText_PlayerDefeatedLinkTrainerTrainer1", "sText_Trainer1LoseText", "sText_PlayerGotMoney", "sText_PlayerWhiteout", "sText_PlayerLostAgainstTrainer1", "sText_PlayerPaidAsPrizeMoney",
   "gText_Sleep", "gText_Poison", "gText_Burn", "gText_Paralysis", "gText_Ice", "gText_Confusion", "gText_Love",
-  "gText_Shift", "gText_PkmnAlreadyInBattle", "gText_PkmnHasNoEnergy",
+  "gText_Shift", "gText_PkmnAlreadyInBattle", "gText_PkmnAlreadySelected", "gText_PkmnHasNoEnergy",
   "sText_AllyPkmnPrefix", "sText_FoePkmnPrefix2",
   "sText_PkmnRestoredHPUsing", "sText_PkmnSleptHealthy", "sText_BellChimed", "sText_SoothingAroma", "sText_PkmnCutHPMaxedAttack",
-  "sText_PkmnCopiedStatChanges", "sText_PkmnReducedPP", "sText_ExclamationMark", "sText_PlayerWhiteoutAgainstTrainer"
+  "sText_PkmnCopiedStatChanges", "sText_PkmnReducedPP", "sText_ExclamationMark", "sText_PlayerWhiteoutAgainstTrainer",
+  "sText_PkmnVanishedInstantly", "sText_PkmnTwistedDimensions", "sText_TrickRoomEnds", "sText_GravityIntensified", "sText_GravityEnds", "sText_ElectricityWeakened", "sText_FireWeakened"
 ]

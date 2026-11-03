@@ -8,15 +8,15 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** the user picks [M13](m13-options-doubles-polish.md) (deferred) or [M14](m14-phase-4-battle-check.md) (the manual check, only when they ask).
-- **Last state:** M12 is committed and pushed: engine checked by a one-off, all builds pass, not played. M11 and M12 are still to play ([M11](m11-exp-level-up-evolution.md#progress), [M12](m12-held-and-bag-items.md), for M14). M6 still lacks the restart-resume check.
+- **Next:** [M14](m14-phase-4-battle-check.md#progress), in a fresh session: play the listed points in the game (no phone).
+- **Last state:** M13 is done and committed (SPA tsc, vite, `make text`, `make maps` pass; engine one-offs passed). The client's doubles have never run in the game. M11, M12, SHIFT, doubles and phone frame rate are still to play (M14). M6 still lacks the restart-resume check.
 
 ## Cold Start (every new session)
 
-1. Read [AGENTS.md](../../../AGENTS.md), this file, [context.md](context.md) and the current milestone's file (**Resume Here**). Nothing else up front.
-2. **Trust them.** Don't re-check ✅ items, the status or the context in the code. Open another file only when the milestone file doesn't give enough to do the step at hand, and then only that file (the milestone's **Read** line first; [references.md](references.md) for the decompilations; a finished milestone's file for what it built).
-3. Follow the [Decisions](context.md#decisions); don't reopen one without the user. A new decision goes into that table with a short "Why".
-4. **At the end of a session, and before the user compacts the context:** in the milestone file, tick the tasks and fill **Progress** (exact next step, files touched, build state, gotchas); then update **Resume Here**, the milestone's status below and the [Log](#log); then the docs the work changed (tech-stack.md, the phase-4 doc, audio.md…). Keep every file **concise**: replace stale text, don't pile it up. When a milestone is ✅, cut its file down to what later milestones use.
+1. Read this file down to here and the current milestone's file (**Resume Here**), then start the next step. Nothing else up front: not [context.md](context.md), not code.
+2. **Trust them.** Don't re-check ✅ items, the status or the context in the code. Read a file only when the step at hand edits or needs it, and grep before reading a big one (the milestone's **Read** line first; [references.md](references.md) for the decompilations; a finished milestone's file for what it built). Open [context.md](context.md) only for the section a step needs: Commands, Client Engine Cheat Sheet, Decisions, Architecture, Reference Map.
+3. Don't reopen a [decision](context.md#decisions) without the user. The milestone names the ones its steps use; a new one goes into that table with a short "Why".
+4. **At the end of a session, and before the user compacts the context:** in the milestone file, tick the tasks and fill **Progress** (exact next step, files touched, build state, gotchas, plus the commands and decisions its steps use and whatever you looked up in a reference, so that file is enough to resume); then update **Resume Here**, the milestone's status below and the [Log](#log); then the docs the work changed (tech-stack.md, the phase-4 doc, audio.md…). Keep every file **concise**: replace stale text, don't pile it up. When a milestone is ✅, cut its file down to what later milestones use.
 5. **Testing:** no automated tests ([AGENTS.md](../../../AGENTS.md#testing)); run the game only when the user asks.
 
 ## Milestones
@@ -37,8 +37,8 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ✅ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ✅ | Exp bar, level up window, learning moves, evolution, Pokédex seen (not played yet: M14) |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ✅ | Gen 4 battle items, bag items in battle, item messages (not played yet: M14) |
-| M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ⏸ | SHIFT, doubles, performance (after M12) |
-| M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | ⬜ | Manual full check, only when the user asks |
+| M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ✅ | SHIFT, doubles, prize, partner animations, field texts, multi-hit replay (coded, not played: M14) |
+| M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | 🚧 | Manual full check, only when the user asks |
 
 ## Log
 
@@ -73,3 +73,6 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-03 | M11 close | User closed M11 without playing it; committed and pushed | M12 | Its play check goes with M14 |
 | 2026-11-03 | M12 code | D25; 96 Gen 4 items (375-470) with icons and text; their evolutions; bag use from the catalog, BERRY POUCH in battle, Ether's move window, blocked balls; held-item messages and animations; test team items and test bag | M12: engine check, vite, commit | Builds pass except vite (not run); the one-off engine check failed to start, so bag effects are unproven; uncommitted |
 | 2026-11-03 | M12 check | One-off engine check of bag and held items passes; fixed resist berries' double animation and Bug Bite/Pluck's unknown effect; vite ✅ | User picks M13 or M14 | User closed M12 without playing it; committed and pushed; its play check goes with M14 |
+| 2026-11-04 | M13 session 1 | D26, D27; SHIFT (engine, `mic-core`, client code); doubles in contracts, engine, AI, `mic-core`; second test trainer | M13: doubles on the client | One-offs pass (SHIFT, 12 doubles battles); all builds pass except vite (not run); the game not run; uncommitted |
+| 2026-11-04 | M13 session 2 | Doubles on the client: per-position scene and healthboxes, both choices, target selection, two-Pokémon send-outs, party order, playback, animation battlers; double prize | M13: partner animations, field condition texts | SPA tsc, vite, `mic-core` build pass; the game not run; `make text` needed; uncommitted |
+| 2026-11-04 | M13 session 3 | Partner animations (slides, `monbg`, palettes, shakes, hail); field condition texts; multi-hit replays per strike; Shadow Force text; `make text`, `make maps` | M14: play check in a fresh session, no phone | SPA tsc, vite pass; spread moves and performance only read, not played; committed |

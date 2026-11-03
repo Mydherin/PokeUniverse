@@ -382,7 +382,7 @@ class Overworld {
       get bag() {
         return self.bagHost();
       },
-      choose: (battleId, step, action) => link.battleChoice(battleId, step, action),
+      choose: (battleId, step, action, partner) => link.battleChoice(battleId, step, action, partner),
       evolve: (slot) => {
         if (!link.inWorld) return Promise.resolve(create(PokemonEvolvedSchema, { slot, failed: true }));
         return new Promise((resolve) => {

@@ -83,6 +83,8 @@ message BattleTeam {
   repeated AiFlag ai_flags = 2;
   // An AI trainer's items (up to 4, FireRed's rules: plans/battles M5). Each is used once.
   repeated pokeuniverse.item.v1.Item items = 3;
+  // This player's battle style is SHIFT: offered a change when a foe faints (plans/battles D26).
+  bool shift_style = 4;
 }
 
 // Request on `battles.start`: create and begin a battle. Replied with BattleUpdate (views set).
@@ -94,12 +96,16 @@ message StartBattle {
   repeated BattleTeam sides = 3;
   // Showdown's PRNG seed: the whole battle follows from it and the choices.
   uint64 seed = 4;
+  // Two Pokémon a side (plans/battles D27).
+  bool doubles = 5;
 }
 
 // One side's choice.
 message SideChoice {
   uint32 side = 1;
   BattleAction action = 2;
+  // Doubles: the second position's choice, when two must choose.
+  BattleAction partner = 3;
 }
 
 // Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step

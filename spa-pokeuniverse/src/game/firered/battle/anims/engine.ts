@@ -9,7 +9,7 @@ import { ObjMode } from "../../../gba/sprites";
 import { Effect, Layer } from "../../../gba/video";
 import { Assets, type AnimArtFiles, type Graphic } from "../../manifest";
 import { ART, SOUND_TASKS, TASK_ART, TASK_SOUNDS, TASK_TAG_ARG, TASK_TAGS, TASKS, TEMPLATES } from "./behaviors";
-import { tagName } from "./behaviors/util";
+import { monSprite, partnerOf, tagName } from "./behaviors/util";
 import { AnimBattler, type AnimCommand, type AnimContext, type AnimMon, type AnimProgram, type AnimRun, type AnimSpriteTemplate } from "./script";
 
 const DUMMY = "animDummy";
@@ -131,12 +131,13 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
   const run: AnimRun = {
     ...ctx,
     opponent: ctx.opponent ?? ctx.target,
+    field: ctx.field ?? [ctx.attacker, ctx.target, ctx.opponent ?? ctx.target],
     customPan: 0,
     args,
     mon: (which) => (which === AnimBattler.Attacker ? ctx.attacker : run.target),
     center: (which) => {
       const mon = which === AnimBattler.Attacker ? ctx.attacker : run.target;
-      return mon.sprite ? [mon.sprite.x, mon.sprite.y] : mon.foe ? [176, 40] : [72, 80];
+      return mon.sprite ? [mon.sprite.x, mon.sprite.y] : mon.spot ? [mon.spot[0], mon.spot[1]] : mon.foe ? [176, 40] : [72, 80];
     },
     pan: (pan) => adjustPan(ctx, pan),
     pan2: (pan) => adjustPan2(ctx, pan),
@@ -204,7 +205,7 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
   const blend = { effect: video.effect, target1: video.target1, target2: video.target2, eva: video.eva, evb: video.evb };
   // Battlers end as they started (one out of sight stays so).
   const startHidden = new Map<Sprite, boolean>();
-  for (const mon of [ctx.attacker, ctx.target, run.opponent]) if (mon.sprite) startHidden.set(mon.sprite, mon.sprite.invisible);
+  for (const mon of run.field) if (mon.sprite) startHidden.set(mon.sprite, mon.sprite.invisible);
   gba.sprites.loadSheet(DUMMY, new Uint8Array(64));
   gba.palettes.loadSpritePalette(DUMMY, new Uint16Array(16));
 
@@ -276,7 +277,7 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     const [x, y] = run.center(AnimBattler.Target);
     const mon = battler === AnimBattler.Target ? run.target : ctx.attacker;
     // GetBattlerSpriteSubpriority (player 30, foe 40); an offset of 64 + n is +n, others in front.
-    const subpriority = Math.max(3, (mon.foe ? 40 : 30) + (offset >= 64 ? offset - 64 : -offset));
+    const subpriority = Math.max(3, [30, 40, 20, 50][(mon.position ?? 0) * 2 + (mon.foe ? 1 : 0)] + (offset >= 64 ? offset - 64 : -offset));
     startSprite(TEMPLATES[template], x, y, subpriority, spriteArgs, true);
   };
 
@@ -444,11 +445,15 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
         case "monbg_static":
         case "clearmonbg":
         case "clearmonbg_static": {
-          const sprite = run.mon(c.battler & 1 ? AnimBattler.Target : AnimBattler.Attacker).sprite;
-          if (!sprite) break;
-          sprite.onBg = c.op.startsWith("monbg");
-          if (sprite.onBg) monOnBg.add(sprite);
-          else monOnBg.delete(sprite);
+          // Cmd_monbg: the battler and its partner.
+          const mon = run.mon(c.battler & 1 ? AnimBattler.Target : AnimBattler.Attacker);
+          const onBg = c.op.startsWith("monbg");
+          for (const sprite of [mon.sprite, partnerOf(run, mon)?.sprite]) {
+            if (!sprite) continue;
+            sprite.onBg = onBg;
+            if (onBg) monOnBg.add(sprite);
+            else monOnBg.delete(sprite);
+          }
           break;
         }
         case "splitbgprio":
@@ -459,7 +464,7 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
           break;
         case "invisible":
         case "visible": {
-          const sprite = run.mon(c.battler === AnimBattler.Attacker ? AnimBattler.Attacker : AnimBattler.Target).sprite;
+          const sprite = monSprite(run, c.battler);
           if (sprite) sprite.invisible = c.op === "invisible";
           break;
         }

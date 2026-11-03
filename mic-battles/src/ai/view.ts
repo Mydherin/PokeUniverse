@@ -30,10 +30,11 @@ export class AiView {
   readonly target: Pokemon;
   readonly moves: Considered[];
 
-  constructor(readonly battle: Battle, side: number) {
+  /** The user at `position` against the foe at `target` (FireRed's doubles try each foe in turn). */
+  constructor(readonly battle: Battle, side: number, position = 0, target = 0) {
     this.sim = cloneBattle(battle);
-    this.user = this.sim.sides[side].active[0];
-    this.target = this.sim.sides[side].foe.active[0];
+    this.user = this.sim.sides[side].active[position];
+    this.target = this.sim.sides[side].foe.active[target];
     this.moves = this.user.moveSlots.map((s, slot) => {
       const move = this.sim.dex.moves.get(s.id);
       // FireRed draws one roll per move per decision (simulatedRNG).

@@ -6,7 +6,7 @@ import { Battle, State, type PokemonSet } from "@pkmn/sim";
 import type { BattleMon, StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
 import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import type { Stats } from "@pokeuniverse/contracts/pokemon/v1/stats";
-import { FORMAT } from "../rules.ts";
+import { DOUBLES_FORMAT, FORMAT } from "../rules.ts";
 import { registerBagItems } from "./bag.ts";
 import { abilityId, genderId, itemId, moveId, natureName, speciesId, statusId } from "./lookup.ts";
 
@@ -20,12 +20,12 @@ export const sideId = (side: number) => `p${side + 1}` as "p1" | "p2";
 
 /** Creates the battle and plays its start (send-outs) into battle.log. */
 export function createBattle(start: StartBattle): Battle {
-  const battle = new Battle({ formatid: FORMAT as never, seed: `gen5,${start.seed.toString(16).padStart(16, "0")}` });
+  const battle = new Battle({ formatid: (start.doubles ? DOUBLES_FORMAT : FORMAT) as never, seed: `gen5,${start.seed.toString(16).padStart(16, "0")}` });
   registerBagItems(battle);
   // Hold the start until both teams carry their HP, PP and status.
   start.sides.forEach((team, side) => {
     battle.started = side > 0;
-    battle.setPlayer(sideId(side), { name: `side${side}`, team: leadFirst(team.pokemon.map(toSet), team.pokemon) });
+    battle.setPlayer(sideId(side), { name: `side${side}`, team: leadsFirst(team.pokemon.map(toSet), team.pokemon, start.doubles ? 2 : 1) });
   });
   battle.started = false;
   start.sides.forEach((team, side) => team.pokemon.forEach((mon, slot) => carryOver(battle, pokemonAt(battle, side, slot), mon)));
@@ -149,10 +149,10 @@ function stats(s: Stats | undefined) {
   return { hp: s?.hp ?? 0, atk: s?.attack ?? 0, def: s?.defense ?? 0, spa: s?.spAttack ?? 0, spd: s?.spDefense ?? 0, spe: s?.speed ?? 0 };
 }
 
-/** FireRed sends out the first Pokémon that can battle. */
-function leadFirst(sets: PokemonSet[], team: BattleMon[]): PokemonSet[] {
-  const lead = team.findIndex((mon) => mon.hp > 0);
-  return lead <= 0 ? sets : [sets[lead], ...sets.filter((_, i) => i !== lead)];
+/** FireRed sends out the first Pokémon that can battle (two in doubles). */
+function leadsFirst(sets: PokemonSet[], team: BattleMon[], count: number): PokemonSet[] {
+  const leads = sets.filter((_, i) => team[i].hp > 0).slice(0, count);
+  return [...leads, ...sets.filter((set) => !leads.includes(set))];
 }
 
 /** HP, PP and status carry over between battles (D14). */
@@ -179,8 +179,16 @@ function carryOver(battle: Battle, pokemon: Pokemon, mon: BattleMon): void {
   if (mon.status === Status.TOXIC) pokemon.statusState.stage = 0;
 }
 
-/** The first active Pokémon's options (moves, trapped) in a side's move request. */
-export function moveOptions(side: Side) {
+/** An active Pokémon's options (moves, trapped) in a side's move request. */
+export function moveOptions(side: Side, position = 0) {
   const req = side.activeRequest;
-  return req && "active" in req ? req.active[0] : undefined;
+  return req && "active" in req ? req.active[position] : undefined;
+}
+
+/** The positions that must be asked, in order: a fainted or locked Pokémon isn't (Outrage,
+ *  recharging…), and only as many switch as the bench can fill. */
+export function positionsToChoose(battle: Battle, side: Side): number[] {
+  if (side.requestState === "switch") return side.active.flatMap((p, i) => (p.switchFlag ? [i] : [])).slice(0, battle.canSwitch(side));
+  if (side.requestState !== "move") return [];
+  return side.active.flatMap((p, i) => (p.fainted || p.getLockedMove() ? [] : [i]));
 }

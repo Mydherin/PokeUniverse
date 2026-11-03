@@ -4,7 +4,7 @@
 // sprites are the Pokémon, the trainers and the healthboxes. Everything can be drawn again from
 // the battle's state, back from the bag or the party menu or after a reconnect.
 
-import type { BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
+import type { Battler, BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
 import { Button } from "../../gba/input";
@@ -60,8 +60,19 @@ const STYLES: Record<WindowId, { fill: number; font: FontId; x: number; y: numbe
   levelUp: { fill: 14, font: FontId.Normal, x: 0, y: 0, lineSpacing: 0, colors: [14, 13, 15] },
 };
 
-/** sBattlerCoords (singles): where each side's Pokémon stands. */
-const MON_COORDS = { player: [72, 80], foe: [176, 40] } as const;
+/** sBattlerCoords: where each battler's Pokémon stands, and its subpriority (GetBattlerSpriteSubpriority), by battler ID. */
+const MON_COORDS: readonly (readonly [number, number])[] = [[72, 80], [176, 40]];
+const MON_COORDS_DOUBLES: readonly (readonly [number, number])[] = [[32, 80], [200, 40], [90, 88], [152, 32]];
+const MON_SUBPRIORITY = [30, 40, 20, 50];
+
+/** A place on the field: a side and a position. */
+export type Spot = Pick<Battler, "foe" | "position">;
+
+/** The game's battler ID: player left, foe left, player right, foe right. */
+export function battlerId(b: Spot): number {
+  return b.position * 2 + (b.foe ? 1 : 0);
+}
+
 /** Where the trainers stand: the player's back pic, the foe's front pic. */
 export const TRAINER_COORDS = { player: [80, 80], foe: [176, 40] } as const;
 
@@ -124,9 +135,10 @@ export class MonSprite {
 export class BattleScene {
   readonly bg0: Background;
   readonly windows: Record<WindowId, Window>;
-  readonly healthboxes: [Healthbox, Healthbox];
-  /** The Pokémon on the field, by side (player, foe). */
-  readonly mons: [MonSprite | null, MonSprite | null] = [null, null];
+  /** By battler ID. */
+  private readonly healthboxes: Healthbox[];
+  /** The Pokémon on the field, by battler ID. */
+  private readonly mons: (MonSprite | null)[];
   /** The trainers' pictures while they're on screen. */
   readonly trainers: [Sprite | null, Sprite | null] = [null, null];
   private readonly terrain: [Background, Background];
@@ -134,6 +146,7 @@ export class BattleScene {
   constructor(
     private readonly flow: Flow,
     private readonly gender: Gender,
+    readonly doubles: boolean,
   ) {
     const { gba, assets } = flow;
     const { video, palettes } = gba;
@@ -161,7 +174,9 @@ export class BattleScene {
     this.terrain.forEach((bg) => initBg(bg, 1, 3));
     this.drawTerrain();
 
-    this.healthboxes = [new Healthbox(flow, false), new Healthbox(flow, true)];
+    const battlers = doubles ? 4 : 2;
+    this.mons = new Array<MonSprite | null>(battlers).fill(null);
+    this.healthboxes = Array.from({ length: battlers }, (_, id) => new Healthbox(flow, id % 2 === 1, doubles, id >> 1));
     gba.setVBlank(gba.standardVBlank);
   }
 
@@ -343,40 +358,52 @@ export class BattleScene {
     this.trainers[i] = null;
   }
 
+  /** sBattlerCoords: where a battler stands, whoever it is. */
+  spot(b: Spot): readonly [number, number] {
+    return (this.doubles ? MON_COORDS_DOUBLES : MON_COORDS)[battlerId(b)];
+  }
+
   /** Where a Pokémon stands: its side's spot, moved by its picture's offset (and a foe's elevation). */
   monPosition(info: BattlerInfo): [number, number] {
     const foe = info.battler?.foe ?? false;
     const [front, back, elevation] = this.flow.assets.species(info.species).coords ?? [0, 0, 0];
-    const [x, y] = foe ? MON_COORDS.foe : MON_COORDS.player;
+    const [x, y] = this.spot({ foe, position: info.battler?.position ?? 0 });
     return [x, foe ? y + front - elevation : y + back];
   }
 
-  /** The Pokémon's sprite (its art must be loaded), replacing the one on its side. */
+  /** The Pokémon's sprite (its art must be loaded), replacing the one at its spot. */
   showMon(info: BattlerInfo, back?: IndexedImage): MonSprite | null {
     const foe = info.battler?.foe ?? false;
+    const id = battlerId({ foe, position: info.battler?.position ?? 0 });
     const art = this.flow.assets.loadedPokemonArt(info.species);
     const pic = foe ? art?.front : back;
     if (!art || !pic) return null;
-    this.removeMon(foe);
+    this.mons[id]?.destroy();
     const [x, y] = this.monPosition(info);
     // GetBattlerSpriteSubpriority: move animations' sprites go in front of or behind it.
-    const mon = new MonSprite(this.flow, `battler${foe ? 1 : 0}`, pic, info.shiny ? art.shinyPalette : art.frontPalette, x, y, foe ? 40 : 30);
-    this.mons[foe ? 1 : 0] = mon;
+    const mon = new MonSprite(this.flow, `battler${id}`, pic, info.shiny ? art.shinyPalette : art.frontPalette, x, y, MON_SUBPRIORITY[id]);
+    this.mons[id] = mon;
     return mon;
   }
 
-  removeMon(foe: boolean): void {
-    this.mons[foe ? 1 : 0]?.destroy();
-    this.mons[foe ? 1 : 0] = null;
+  /** The Pokémon's sprite at a spot, if one stands there. */
+  mon(b: Spot): MonSprite | null {
+    return this.mons[battlerId(b)] ?? null;
   }
 
-  healthbox(foe: boolean): Healthbox {
-    return this.healthboxes[foe ? 1 : 0];
+  removeMon(b: Spot): void {
+    const id = battlerId(b);
+    this.mons[id]?.destroy();
+    this.mons[id] = null;
+  }
+
+  healthbox(b: Spot): Healthbox {
+    return this.healthboxes[battlerId(b)];
   }
 
   /** The healthbox drawn for a Pokémon and shown. */
-  showHealthbox(mon: HealthboxMon, foe: boolean): void {
-    const box = this.healthbox(foe);
+  showHealthbox(mon: HealthboxMon, b: Spot): void {
+    const box = this.healthbox(b);
     box.show(mon);
     box.offset = 0;
     box.visible = true;
@@ -386,11 +413,12 @@ export class BattleScene {
   drawField(state: BattleState, backPics: Map<number, IndexedImage>, healthboxMon: (info: BattlerInfo) => HealthboxMon): void {
     this.page = Page.Message;
     for (const side of state.sides) {
-      const info = side.active[0];
-      if (!info) continue;
-      const mon = this.showMon(info, backPics.get(info.species));
-      if (mon) mon.sprite.startAffineAnim(0);
-      this.showHealthbox(healthboxMon(info), side.foe);
+      side.active.forEach((info, position) => {
+        if (!info) return;
+        const mon = this.showMon(info, backPics.get(info.species));
+        if (mon) mon.sprite.startAffineAnim(0);
+        this.showHealthbox(healthboxMon(info), { foe: side.foe, position });
+      });
     }
   }
 }

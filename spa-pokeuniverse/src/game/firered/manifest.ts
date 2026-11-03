@@ -298,6 +298,8 @@ const BATTLE_GRAPHICS = {
   battleTerrainBuilding: { png: "battle_terrain/building/terrain.png", pal: "battle_terrain/building/terrain.pal", bin: "battle_terrain/building/terrain.bin" },
   healthboxPlayer: { png: "battle_interface/healthbox_singles_player.png" },
   healthboxOpponent: { png: "battle_interface/healthbox_singles_opponent.png" },
+  healthboxDoublesPlayer: { png: "battle_interface/healthbox_doubles_player.png" },
+  healthboxDoublesOpponent: { png: "battle_interface/healthbox_doubles_opponent.png" },
   healthboxPal: { pal: "battle_interface/healthbox.pal" },
   healthbarPal: { pal: "battle_interface/healthbar.pal" },
   healthboxElements: { png: "battle_interface/healthbox_elements.png", bpp4: true },

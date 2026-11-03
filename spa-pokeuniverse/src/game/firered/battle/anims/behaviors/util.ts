@@ -15,17 +15,25 @@ export const cos = (index: number, amplitude: number) => (SIN[(index & 0xff) + 6
 /** GetBattlerSpriteCoordAttr's opaque box isn't known here: half of a typical picture. */
 export const PIC_HALF = 24;
 
-/** gBattleAnimAttacker / gBattleAnimTarget's battler ID in singles (player 0, foe 1). */
-export const battlerId = (mon: AnimMon) => (mon.foe ? 1 : 0);
+/** gBattleAnimAttacker / gBattleAnimTarget's battler ID. */
+export const battlerId = (mon: AnimMon) => (mon.position ?? 0) * 2 + (mon.foe ? 1 : 0);
+
+/** BATTLE_PARTNER: the other one on its side, if the battle has one. */
+export function partnerOf(run: AnimRun, mon: AnimMon): AnimMon | undefined {
+  return run.field.find((m) => m.foe === mon.foe && (m.position ?? 0) !== (mon.position ?? 0));
+}
 
 /** GetBattlerSpriteCoord(…, BATTLER_COORD_X / Y): the battler's spot. */
 export function battlerCoords(run: AnimRun, which: AnimBattler): [number, number] {
-  const [x, y] = run.mon(which).foe ? BATTLER_COORDS.foe : BATTLER_COORDS.player;
+  const mon = run.mon(which);
+  const [x, y] = mon.spot ?? (mon.foe ? BATTLER_COORDS.foe : BATTLER_COORDS.player);
   return [x, y];
 }
 
-/** GetAnimBattlerSpriteId(ANIM_ATTACKER / ANIM_TARGET): its sprite, none for a partner (singles). */
+/** GetAnimBattlerSpriteId: its sprite, or a partner's (2: the attacker's, 3: the target's), if on the field. */
 export function monSprite(run: AnimRun, which: number): Sprite | null {
+  if (which === 2) return partnerOf(run, run.attacker)?.sprite ?? null;
+  if (which === 3) return partnerOf(run, run.target)?.sprite ?? null;
   return which === AnimBattler.Attacker || which === AnimBattler.Target ? run.mon(which).sprite : null;
 }
 
@@ -99,20 +107,24 @@ export function* travel(sprite: Sprite, frames: number, toX: number, toY: number
 
 /**
  * GetBattlePalettesMask by UnpackSelectedBattlePalettes' selector bits: 1 the battle background
- * (palettes 1-3), 2 the attacker, 4 the target (partners and the anim backgrounds: doubles and
+ * (palettes 1-3), 2 the attacker, 4 the target, 8 and 16 their partners (the anim backgrounds:
  * monbg only). As a game mask: BG palettes in bits 0-15, battler N's sprite palette in bit 16 + N.
  */
 export function selectedPalettes(run: AnimRun, selector: number): number {
   let mask = selector & 1 ? 0xe : 0;
   if (selector & 2) mask |= 1 << (16 + battlerId(run.attacker));
   if (selector & 4) mask |= 1 << (16 + battlerId(run.target));
+  for (const [bit, mon] of [[8, run.attacker], [16, run.target]] as const) {
+    const partner = selector & bit ? partnerOf(run, mon) : undefined;
+    if (partner?.sprite && !partner.sprite.invisible) mask |= 1 << (16 + battlerId(partner));
+  }
   return mask >>> 0;
 }
 
-/** GetBattleMonSpritePalettesMask(playerLeft, playerRight, foeLeft, foeRight) in singles. */
+/** GetBattleMonSpritePalettesMask by side: the left one's flag stands for the side's partner too. */
 export function monPalettes(run: AnimRun, playerLeft: boolean, foeLeft: boolean): number {
   let mask = 0;
-  for (const mon of [run.attacker, run.target, run.opponent]) {
+  for (const mon of run.field) {
     if (!mon.sprite || mon.sprite.invisible) continue;
     if ((mon.foe && foeLeft) || (!mon.foe && playerLeft)) mask |= 1 << (16 + battlerId(mon));
   }
@@ -122,7 +134,7 @@ export function monPalettes(run: AnimRun, playerLeft: boolean, foeLeft: boolean)
 /** A game palette mask as ours: battler N's bit becomes its sprite's own palette slot. */
 export function paletteMask(run: AnimRun, mask: number): number {
   let out = mask & 0xffff;
-  for (const mon of [run.attacker, run.target, run.opponent]) if (mon.sprite && (mask >>> (16 + battlerId(mon))) & 1) out |= 1 << (16 + mon.sprite.paletteNum);
+  for (const mon of run.field) if (mon.sprite && (mask >>> (16 + battlerId(mon))) & 1) out |= 1 << (16 + mon.sprite.paletteNum);
   return out >>> 0;
 }
 

@@ -9,7 +9,7 @@ import { monAffine } from "./effects";
 import { basicHit, HANDS_AND_FEET } from "./particles";
 import { BASIC_FIRE } from "./rock";
 import { MUSIC_NOTES_ANIMS } from "./effects-1";
-import { A, affineEnd, arc, arcTan2Neg, battlerCoords, cos, ellipse, END, F, flip, flipTarget, flyTo, frames, goneAtAffineEnd, goneAtAnimEnd, INVISIBLE, J, placeAtAttacker, placeAtTarget, random, rotScale, runSprite, sin, slide, travel } from "./util";
+import { A, affineEnd, arc, arcTan2Neg, battlerCoords, cos, ellipse, END, F, flip, flipTarget, flyTo, frames, goneAtAffineEnd, goneAtAnimEnd, J, placeAtAttacker, placeAtTarget, random, rotScale, runSprite, sin, slide, travel } from "./util";
 
 type Init = AnimSpriteTemplate["init"];
 type Look = Omit<AnimSpriteTemplate, "init">;
@@ -406,9 +406,6 @@ const zenHeadbutt: Init = (sprite, run, args, done) => {
 
 // ---------- Templates ----------
 
-/** A sprite that does nothing in singles: its partner isn't there (SlideMonToOffsetPartner…). */
-const partnerOnly: AnimSpriteTemplate = { ...INVISIBLE, init: (_sprite, _run, _args, done) => done() };
-
 /** The templates that wear a FireRed behavior, named by its template in `base`, or are new. */
 export function gen4Templates(base: Record<string, AnimSpriteTemplate>): Record<string, AnimSpriteTemplate> {
   /**
@@ -530,8 +527,6 @@ export function gen4Templates(base: Record<string, AnimSpriteTemplate>): Record<
       affineAnims: STREAK_AFFINE,
       init: streak,
     },
-    gSlideMonToOffsetPartnerSpriteTemplate: partnerOnly,
-    gSlideMonToOriginalPosPartnerSpriteTemplate: partnerOnly,
     gSmallCloudTemplate: {
       tag: "ANIM_TAG_SMALL_CLOUD",
       ...ORB16,

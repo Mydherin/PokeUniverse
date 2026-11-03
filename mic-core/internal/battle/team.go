@@ -26,6 +26,7 @@ func NewStart(party pokemon.Party, trainerID uint32, key string, t *Trainer) *ba
 	return &battlev1.StartBattle{
 		BattleId: NewID(),
 		Kind:     battlev1.BattleKind_BATTLE_KIND_TRAINER,
+		Doubles:  t.Doubles,
 		Sides: []*battlev1.BattleTeam{
 			team(party, trainerID),
 			{Pokemon: team(t.Party(key), 0).Pokemon, AiFlags: t.AI, Items: t.Items},
