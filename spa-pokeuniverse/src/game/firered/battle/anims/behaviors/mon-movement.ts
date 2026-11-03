@@ -1,13 +1,119 @@
 // Battlers moving (battle_anim_mon_movement.c, battle_anim_ground.c): lunges, slides, shakes,
 // sways and scaling. Templates with no art are invisible sprites that move a battler.
 
+import type { Sprite } from "../../../../gba/sprites";
 import { AnimBattler, type AnimSpriteTemplate, type AnimTask } from "../script";
-import { cos, linear, monSprite, runSprite, sideX, sin } from "./util";
+import { cos, INVISIBLE, linear, monSprite, runSprite, sideX, sin } from "./util";
 
-/** An invisible sprite that only drives a behavior. */
-const INVISIBLE = { width: 8, height: 8 } as const;
+
+/** TranslateSpriteLinearById twice: a sprite dips by (dx, dy) a frame for `steps` frames and back. */
+function dipAndBack(sprite: Sprite, mon: Sprite | null, steps: number, dx: number, dy: number, done: () => void): void {
+  sprite.invisible = true;
+  let [left, back] = [steps, false];
+  sprite.callback = () => {
+    if (mon) {
+      mon.x2 += back ? -dx : dx;
+      mon.y2 += back ? -dy : dy;
+    }
+    if (--left > 0) return;
+    if (back) return done();
+    back = true;
+    left = steps;
+  };
+}
+
+/** AnimTask_RotateMonSpriteToSide_Step: turns by `by` a frame for `steps`; mode 0 stays turned, 1 straightens, 2 turns back too. */
+function* rotateMon(mon: Sprite, steps: number, start: number, by: number, mode: number, lift: boolean): Generator<void, void, void> {
+  mon.affineAnimPaused = true;
+  let [angle, n] = [start, 0];
+  yield;
+  for (;;) {
+    angle = (angle + by) << 16 >> 16;
+    mon.setRotScale(0x100, 0x100, angle & 0xffff);
+    // SetBattlerSpriteYOffsetFromRotation: c is the rotation's sine.
+    if (lift) mon.y2 = Math.abs(mon.matrixC) >> 3;
+    if (++n >= steps) {
+      if (mode === 2) {
+        n = 0;
+        by = -by;
+        mode = 1;
+      } else {
+        if (mode === 1) {
+          mon.setRotScale(0x100, 0x100, 0);
+          mon.affineAnimPaused = false;
+        }
+        return;
+      }
+    }
+    yield;
+  }
+}
 
 export const MON_MOVEMENT_TEMPLATES: Record<string, AnimSpriteTemplate> = {
+  /** DoVerticalDip: the battler (args[2]) moves by args[1] a frame for args[0] frames, and back. */
+  gVerticalDipSpriteTemplate: {
+    ...INVISIBLE,
+    init(sprite, run, args, done) {
+      dipAndBack(sprite, monSprite(run, args[2]), args[0], 0, args[1], done);
+    },
+  },
+
+  /** SlideMonToOffsetAndBack: the battler slides by (args[1], args[2]) in args[4]; args[5] set: then back at its spot at once. */
+  gSlideMonToOffsetAndBackSpriteTemplate: {
+    ...INVISIBLE,
+    init(sprite, run, args, done) {
+      sprite.invisible = true;
+      const mon = run.mon(args[0] === 0 ? AnimBattler.Attacker : AnimBattler.Target);
+      if (!mon.sprite) return done();
+      const target = mon.sprite;
+      const dx = mon.foe ? -args[1] : args[1];
+      const dy = mon.foe && args[3] === 1 ? -args[2] : args[2];
+      runSprite(
+        sprite,
+        (function* () {
+          yield;
+          yield* linear(args[4], dx, dy, (x, y) => ((target.x2 = x), (target.y2 = y)), target.x2 << 8, target.y2 << 8);
+          if (args[5]) target.x2 = target.y2 = 0;
+        })(),
+        done,
+      );
+    },
+  },
+
+  /**
+   * AnimShakeMonOrBattleTerrain: the terrain (args[3] 0 X, 1 Y) or the battlers (2 X, 3 Y; args[4]:
+   * 0 attacker, 1 target, 2 both) jump by args[0] back and forth every args[1] + 1 frames, for args[2] frames.
+   */
+  gShakeMonOrTerrainSpriteTemplate: {
+    ...INVISIBLE,
+    init(sprite, run, args, done) {
+      sprite.invisible = true;
+      const { backdrop } = run;
+      const mons = args[3] < 2 ? [] : [args[4] !== 1 ? run.attacker.sprite : null, args[4] !== 0 ? run.target.sprite : null];
+      const axisX = args[3] === 0 || args[3] === 2;
+      let offset = 0;
+      const start = args[3] === 0 ? backdrop.scrollX : args[3] === 1 ? backdrop.scrollY : 0;
+      const apply = (by: number) => {
+        offset += by;
+        if (args[3] === 0) backdrop.scrollX = start + offset;
+        else if (args[3] === 1) backdrop.scrollY = start + offset;
+        else for (const m of mons) if (m) axisX ? (m.x2 += by) : (m.y2 += by);
+      };
+      let [by, wait, left] = [-args[0], args[1], args[2]];
+      sprite.callback = () => {
+        if (left <= 0) {
+          apply(-offset);
+          return done();
+        }
+        left--;
+        if (wait > 0) return void wait--;
+        wait = args[1];
+        apply(by);
+        by = -by;
+      };
+    },
+  },
+
   /**
    * DoHorizontalLunge: the attacker slides args[1] pixels a frame toward the foe for args[0]
    * frames, then back (TranslateSpriteLinearById both ways).
@@ -87,6 +193,134 @@ export const MON_MOVEMENT_TEMPLATES: Record<string, AnimSpriteTemplate> = {
 };
 
 export const MON_MOVEMENT_TASKS: Record<string, AnimTask> = {
+  /** AnimTask_ShakeAndSinkMon: the battler shakes by args[1] every args[2] + 1 frames, sinking args[3] 1/256 a frame, args[4] frames. */
+  *AnimTask_ShakeAndSinkMon(run, args) {
+    const mon = monSprite(run, args[0]);
+    if (!mon) return;
+    mon.x2 = args[1];
+    let [x, wait, sink, left] = [args[1], 0, 0, args[4]];
+    for (;;) {
+      if (args[2] === wait++) {
+        wait = 0;
+        if (mon.x2 === x) x = -x;
+        mon.x2 += x;
+      }
+      sink += args[3];
+      mon.y2 = sink >> 8;
+      if (--left === 0) return;
+      yield;
+    }
+  },
+
+  /**
+   * AnimTask_WindUpLunge: the battler backs up along a half sine (args[1] over args[3] frames,
+   * height args[2]), waits args[4], lunges args[5] over args[6]; it stays there.
+   */
+  *AnimTask_WindUpLunge(run, args) {
+    const mon = monSprite(run, args[0]);
+    if (!mon) return;
+    const wave = Math.trunc(0x8000 / args[3]);
+    const stepX = Math.trunc((sideX(run, args[1]) * 256) / args[3]);
+    const lunge = Math.trunc((sideX(run, args[5]) * 256) / args[6]);
+    let [x, phase] = [0, 0];
+    yield;
+    for (let left = args[3]; left > 0; left--) {
+      x += stepX;
+      mon.x2 = x >> 8;
+      mon.y2 = sin((phase >> 8) & 0xff, args[2]);
+      phase += wave;
+      yield;
+    }
+    for (let left = args[4]; left > 0; left--) yield;
+    let forward = 0;
+    for (let left = args[6]; left > 0; left--) {
+      forward += lunge;
+      mon.x2 = (forward >> 8) + (x >> 8);
+      yield;
+    }
+  },
+
+  /** AnimTask_SlideOffScreen: the battler slides off at args[1] a frame, away from the attacker's side. */
+  *AnimTask_SlideOffScreen(run, args) {
+    const mon = monSprite(run, args[0]);
+    if (!mon) return;
+    const by = run.target.foe ? args[1] : -args[1];
+    for (;;) {
+      yield;
+      mon.x2 += by;
+      if (mon.x2 + mon.x < -32 || mon.x2 + mon.x > 240 + 32) return;
+    }
+  },
+
+  /** AnimTask_RotateMonSpriteToSide: the battler (args[2]) turns args[1] a frame for args[0] frames; args[3] see rotateMon. */
+  *AnimTask_RotateMonSpriteToSide(run, args) {
+    const mon = monSprite(run, args[2]);
+    if (!mon) return;
+    const own = run.mon(args[2] === 0 ? AnimBattler.Attacker : AnimBattler.Target);
+    const mirror = !own.foe;
+    const start = args[3] !== 1 ? 0 : args[0] * args[1];
+    yield* rotateMon(mon, args[0], mirror ? -start : start, mirror ? -args[1] : args[1], args[3], mirror);
+  },
+
+  /** AnimTask_RotateMonToSideAndRestore: as AnimTask_RotateMonSpriteToSide, mirrored on the foe's side. */
+  *AnimTask_RotateMonToSideAndRestore(run, args) {
+    const mon = monSprite(run, args[2]);
+    if (!mon) return;
+    const own = run.mon(args[2] === 0 ? AnimBattler.Attacker : AnimBattler.Target);
+    const by = own.foe ? -args[1] : args[1];
+    const start = args[3] !== 1 ? 0 : args[0] * by;
+    yield* rotateMon(mon, args[0], -start, -by, args[3], true);
+  },
+
+  /**
+   * AnimTask_ShakeTargetBasedOnMovePowerOrDmg: the target shakes by a size from the move's power
+   * (args[0] 0) or damage, every args[1] + 1 frames, args[2] times, sideways (args[3]) or down (args[4]).
+   */
+  *AnimTask_ShakeTargetBasedOnMovePowerOrDmg(run, args) {
+    const mon = monSprite(run, AnimBattler.Target);
+    if (!mon) return;
+    const size = Math.max(1, Math.min(16, Math.trunc((args[0] === 0 ? (run.movePower ?? 0) : (run.moveDamage ?? 0)) / 12)));
+    const half = size >> 1;
+    const other = half + (size & 1);
+    const startX = mon.x2;
+    let [wait, on, left] = [0, 0, args[2]];
+    for (;;) {
+      yield;
+      if (++wait <= args[1]) continue;
+      wait = 0;
+      on ^= 1;
+      if (args[3]) mon.x2 = on ? startX + other : startX - half;
+      if (args[4]) mon.y2 = on ? size : 0;
+      if (--left === 0) {
+        mon.x2 = mon.y2 = 0;
+        return;
+      }
+    }
+  },
+
+  /**
+   * AnimTask_ShakeBattleTerrain: the terrain jumps between (args[0], -args[1]) and (-args[0], 0),
+   * args[2] times, every args[3] + 1 frames.
+   */
+  *AnimTask_ShakeBattleTerrain(run, args) {
+    const { backdrop } = run;
+    backdrop.scrollX = args[0];
+    backdrop.scrollY = args[1];
+    let [left, wait] = [args[2], args[3]];
+    for (;;) {
+      if (wait === 0) {
+        backdrop.scrollX = backdrop.scrollX === args[0] ? -args[0] : args[0];
+        backdrop.scrollY = backdrop.scrollY === -args[1] ? 0 : -args[1];
+        wait = args[3];
+        if (--left === 0) {
+          backdrop.scrollX = backdrop.scrollY = 0;
+          return;
+        }
+      } else wait--;
+      yield;
+    }
+  },
+
   /**
    * AnimTask_ShakeMon: the battler (args[0]) jumps between (args[1], args[2]) and its place,
    * args[3] times, every args[4] frames.

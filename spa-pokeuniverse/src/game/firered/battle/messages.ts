@@ -239,6 +239,8 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       }
       if (effect?.case !== "move") return [];
       if (effect.value === Move.LOCK_ON || effect.value === Move.MIND_READER) return msg("sText_PkmnTookAim", { atk: source, def: battler });
+      if (effect.value === Move.FUTURE_SIGHT) return msg("sText_PkmnForesawAttack", { atk: battler });
+      if (effect.value === Move.DOOM_DESIRE) return msg("sText_PkmnChoseXAsDestiny", { atk: battler, move: effect.value });
       const entry = VOLATILE_START[effect.value];
       if (!entry) return [];
       const [label, who] = entry;
@@ -248,6 +250,7 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       const effect = k.value.effect?.kind;
       if (effect?.case === "condition" && effect.value === Condition.CONFUSION) return msg("sText_PkmnHealedConfusion", { atk: k.value.battler });
       if (effect?.case !== "move") return [];
+      if (effect.value === Move.FUTURE_SIGHT || effect.value === Move.DOOM_DESIRE) return msg("sText_PkmnTookAttack", { def: k.value.battler, buff1: texts.moveName(effect.value) });
       const entry = VOLATILE_END[effect.value];
       return entry ? msg(entry[0], { [entry[1]]: k.value.battler }) : [];
     }
@@ -283,11 +286,16 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       if (effect.value === Move.SAFEGUARD) return msg("sText_PkmnSafeguardExpired", { atk: side });
       return msg("sText_PkmnsXWoreOff", { atk: side, buff1: texts.moveName(effect.value) });
     }
+    case "itemShown": {
+      // Thief's -enditem is silent: the thief gaining the item carries the message.
+      const from = k.value.from?.kind;
+      if (from?.case === "move" && (from.value === Move.THIEF || from.value === Move.COVET)) return msg("sText_PkmnStoleItem", { atk: k.value.battler, def: k.value.source, item: k.value.item });
+      return [];
+    }
     case "itemEnded": {
       const from = k.value.from?.kind;
       if (from?.case !== "move") return [];
       if (from.value === Move.KNOCK_OFF) return msg("sText_PkmnKnockedOff", { atk: recent.mover, def: k.value.battler, item: k.value.item });
-      if (from.value === Move.THIEF || from.value === Move.COVET) return msg("sText_PkmnStoleItem", { atk: recent.mover, def: k.value.battler, item: k.value.item });
       return [];
     }
     case "itemUsed":

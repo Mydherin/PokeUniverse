@@ -7,12 +7,12 @@ import { HEIGHT, type ObjEntry } from "./video";
 export const MAX_SPRITES = 64;
 
 /** A frame: tile offset in the sheet and how many frames it shows (0 = forever). */
-export type AnimCmd = { image: number; duration: number; hFlip?: boolean; vFlip?: boolean } | { jump: number } | "end";
+export type AnimCmd = { image: number; duration: number; hFlip?: boolean; vFlip?: boolean } | { jump: number } | { loop: number } | "end";
 /**
  * A scale and rotation step: absolute when duration is 0, otherwise added once per frame for
  * `duration` frames. Rotation is in 1/256 of a turn (the command's s8, shifted by 8 in the game).
  */
-export type AffineCmd = { xScale: number; yScale: number; rotation?: number; duration: number } | { jump: number } | "end";
+export type AffineCmd = { xScale: number; yScale: number; rotation?: number; duration: number } | { jump: number } | { loop: number } | "end";
 
 export const enum ObjMode {
   Normal = 0,
@@ -57,6 +57,8 @@ export class Sprite {
   width = 8;
   height = 8;
   mode = ObjMode.Normal;
+  /** Drawn as if on a BG: semi-transparent sprites blend with it (ObjEntry.onBg). */
+  onBg = false;
   affine = false;
   /** With `affine`: drawn in a double-size box. */
   affineDouble = true;
@@ -78,6 +80,7 @@ export class Sprite {
   animDelay = 0;
   animBeginning = true;
   animEnded = false;
+  animLoop = 0;
 
   affineAnims: AffineCmd[][] = DUMMY_AFFINE;
   affineAnimNum = 0;
@@ -85,6 +88,7 @@ export class Sprite {
   affineDelay = 0;
   affineBeginning = true;
   affineEnded = false;
+  affineLoop = 0;
   /** The affine animation stops; the matrix stays as set (setRotScale). */
   affineAnimPaused = false;
   xScale = 0x100;
@@ -127,6 +131,7 @@ export class Sprite {
     this.animNum = num;
     this.animBeginning = true;
     this.animEnded = false;
+    this.animLoop = 0;
   }
 
   startAffineAnim(num: number): void {
@@ -136,6 +141,7 @@ export class Sprite {
     this.rotation = 0;
     this.affineBeginning = true;
     this.affineEnded = false;
+    this.affineLoop = 0;
   }
 
   /**
@@ -194,6 +200,7 @@ export class Sprites {
     s.subpriority = subpriority;
     s.priority = template.priority;
     s.mode = template.mode ?? ObjMode.Normal;
+    s.onBg = false;
     s.affine = (template.affine ?? false) || (template.affineNormal ?? false);
     s.affineDouble = !template.affineNormal;
     s.anims = template.anims ?? DUMMY_ANIMS;
@@ -292,6 +299,7 @@ export class Sprites {
         palette: s.paletteNum,
         priority: s.priority,
         mode: s.mode,
+        onBg: s.onBg,
         hFlip: s.hFlip,
         vFlip: s.vFlip,
         matrix: s.affine ? { a: s.matrixA, b: s.matrixB, c: s.matrixC, d: s.matrixD } : null,
@@ -319,12 +327,30 @@ function beginAnim(s: Sprite): void {
   }
 }
 
+/**
+ * ANIMCMD_LOOP / AFFINEANIMCMD_LOOP at `index`: the first time it counts `times`; while the count
+ * lasts it goes back to the command after the previous loop (or the first). Returns where to go on.
+ */
+function runLoop(anim: readonly (object | string)[], index: number, times: number, counter: number): { index: number; counter: number } {
+  counter = counter ? counter - 1 : times;
+  if (!counter) return { index: index + 1, counter };
+  let back = index - 1;
+  while (back >= 0 && !(typeof anim[back] === "object" && "loop" in (anim[back] as object))) back--;
+  return { index: back + 1, counter };
+}
+
 function continueAnim(s: Sprite): void {
   if (s.animDelay) {
     s.animDelay--;
     return;
   }
-  const cmd = s.anims[s.animNum][++s.animCmdIndex];
+  const anim = s.anims[s.animNum];
+  let cmd = anim[++s.animCmdIndex];
+  while (typeof cmd === "object" && "loop" in cmd) {
+    const next = runLoop(anim, s.animCmdIndex, cmd.loop, s.animLoop);
+    s.animLoop = next.counter;
+    cmd = anim[(s.animCmdIndex = next.index)];
+  }
   if (cmd === "end" || cmd === undefined) {
     s.animCmdIndex--;
     s.animEnded = true;
@@ -369,7 +395,7 @@ function applyAffineFrame(s: Sprite, cmd: { xScale: number; yScale: number; rota
 
 function beginAffineAnim(s: Sprite): void {
   const cmd = s.affineAnims[s.affineAnimNum][0];
-  if (cmd === "end" || "jump" in cmd) return;
+  if (cmd === "end" || "jump" in cmd || "loop" in cmd) return;
   s.affineCmdIndex = 0;
   s.affineBeginning = s.affineEnded = false;
   s.affineDelay = applyAffineFrame(s, cmd);
@@ -381,12 +407,19 @@ function continueAffineAnim(s: Sprite): void {
   const current = anim[s.affineCmdIndex];
   if (s.affineDelay) {
     s.affineDelay--;
-    if (current !== "end" && !("jump" in current)) updateMatrix(s, current.xScale, current.yScale, current.rotation);
+    if (current !== "end" && !("jump" in current) && !("loop" in current)) updateMatrix(s, current.xScale, current.yScale, current.rotation);
   } else {
     let cmd = anim[++s.affineCmdIndex];
     // AFFINEANIMCMD_JUMP: on to that command, applied at once.
-    if (typeof cmd === "object" && "jump" in cmd) cmd = anim[(s.affineCmdIndex = cmd.jump)];
-    if (cmd === "end" || cmd === undefined || "jump" in cmd) {
+    while (typeof cmd === "object" && ("jump" in cmd || "loop" in cmd)) {
+      if ("jump" in cmd) cmd = anim[(s.affineCmdIndex = cmd.jump)];
+      else {
+        const next = runLoop(anim, s.affineCmdIndex, cmd.loop, s.affineLoop);
+        s.affineLoop = next.counter;
+        cmd = anim[(s.affineCmdIndex = next.index)];
+      }
+    }
+    if (cmd === "end" || cmd === undefined) {
       s.affineEnded = true;
       s.affineCmdIndex--;
       updateMatrix(s, 0, 0);

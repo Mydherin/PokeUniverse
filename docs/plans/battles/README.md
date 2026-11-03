@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M9](m09-firered-move-animations.md#progress): run the coverage check, then the most shared behaviors, family by family. M8 ✅ (2026-11-02, lightly play-tested).
-- **Last state:** M8 committed and marked done; its open visual checks are in M9's Progress. M6 still lacks the restart-resume check.
+- **Next:** [M10](m10-gen4-move-animations.md): Gen 4 move animations (355-467), test teams' moves first.
+- **Last state:** M9 ✅ and committed: all FireRed moves animate, sweep in the game done, closed without emulator checks (D23). M6 still lacks the restart-resume check.
 
 ## Cold Start (every new session)
 
@@ -33,7 +33,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M6 | [Battles in `mic-core` and the room trainer](m06-mic-core-battles.md) | 🚧 | NPCs in maps, the test trainer, battle script steps, active battle, outcome transaction, whiteout, resume |
 | M7 | [The battle screen](m07-battle-screen.md) | ✅ | Transition, intro, healthboxes, menus, event playback, party/bag in battle, ending, music |
 | M8 | [Animation engine](m08-animation-engine.md) | ✅ | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather, two-turn moves |
-| M9 | [FireRed move animations](m09-firered-move-animations.md) | 🚧 | Moves 1-354, family by family |
+| M9 | [FireRed move animations](m09-firered-move-animations.md) | ✅ | Moves 1-354, general animations, full sweep in the game |
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ⬜ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ⬜ | Exp bar, level up window, learning moves, evolution, Pokédex seen |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ⬜ | Gen 4 battle items, bag items in battle, item messages |
@@ -60,3 +60,9 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-02 | M8 session 3 | Move backgrounds, art per tag (`art.json`, `anim-art.mjs`, expansion art in `make graphics`), stereo pan, behaviors split by family (`behaviors/`), base behaviors, status/stat-change/weather behaviors; 42/511 programs play their own script | M8 step 4 hookup in `playback.ts`, step 5 | tsc + vite ✅; not run in the game; `make graphics`/`make audio` needed; uncommitted |
 | 2026-11-02 | M8 session 4 | General animations hooked into `playback.ts` (status, confusion, love, Curse/Nightmare, stat changes with MULTIPLE runs, weather upkeep); two-turn moves (turn 0/1, no "used" on the charge turn, Fly/Dig… hidden between turns, Solar Beam in sun) | Play-test M8, commit, M9 | tsc + vite ✅; not run in the game; uncommitted |
 | 2026-11-02 | M8 close | User played it lightly; M8 marked ✅ and committed; its recipe, coverage check and open checks moved to M9 | M9 | |
+| 2026-11-03 | M9 session 1 | Behaviors for Normal, movement, Poison, Bug, Dragon, Ground, Rock, Fighting, Flying, the most shared effects; sprite loop commands; all gBattleAnimArgs passed; move power in the context; 136/354 moves on their own script (23 before) | M9: Ghost onward | tsc ✅, vite not run (Docker down), not run in the game; uncommitted |
+| 2026-11-03 | M9 session 2 | Behaviors for Ghost, Dark, Fire, Ice, Electric, Water, Psychic, `effects_1`, `effects_2`, most of `effects_3`; sprite templates can name their sounds in `TASK_SOUNDS`; fog in `make graphics`, `se_m_lock_on` in `make audio`; about 322/354 moves have all their names (rough count) | M9: `effects_3`'s last two names | tsc ✅, vite not run (Docker down), not run in the game; uncommitted; approximations listed in M9 |
+| 2026-11-03 | M9 session 3 | Last behaviors (`utility.ts`, `general.ts`, cries, custom pan, weather, palette backups), general animations and substitute doll in `playback.ts`, `run.opponent`; fixed fast translation 16× too slow (Powder Snow, Blizzard, Icy Wind, one `effects-1` particle); 354/354 moves | M9: Docker builds, commit, play-test | tsc ✅, headless run 1744/1744 clean, vite not run (Docker down), not run in the game; uncommitted |
+| 2026-11-03 | M9 play test | `make graphics`, `make audio`, vite ✅; 45 sampled moves seen in the game on both sides, look right; fixed sliding backgrounds' garbage past 256 px (Thunder, Blizzard, Aeroblast, Sky Uppercut…) | Commit; user decides on emulator spot checks; M10 | No side-by-side with the emulator; general-animation hooks mostly unseen; uncommitted |
+| 2026-11-03 | M9 full sweep | Every move, general and status animation seen in the game through a temporary hook and team (both reverted); real turns for doll, Fly/Dig, items, status, weather, Future Sight; fixed `monbg` blending (compositor `onBg`), terrain on BG3 after the intro, spotlight window, hidden battlers, missing texts (foresaw, destiny, took, stole), animations of failed moves | Commit; user decides on emulator and sound; M10 | Still frames, no sound; a few effects not triggered in real turns (listed in M9); `make text` needed for the new strings; uncommitted |
+| 2026-11-03 | M9 close | User closed M9 without emulator spot checks (D23); M9 file cut down; committed | M10 | Fixes come from playing |

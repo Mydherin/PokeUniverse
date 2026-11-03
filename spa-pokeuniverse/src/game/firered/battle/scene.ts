@@ -71,12 +71,14 @@ const TILES = 0x400;
 export class MonSprite {
   readonly sprite: Sprite;
   private readonly tiles = new Uint8Array(64 * 64);
+  /** The art it shows in place of its picture (the substitute doll). */
+  private doll: Graphic | null = null;
 
   constructor(
     private readonly flow: Flow,
     readonly tag: string,
     private readonly pic: IndexedImage,
-    palette: Uint16Array,
+    private readonly palette: Uint16Array,
     x: number,
     y: number,
     subpriority: number,
@@ -91,10 +93,18 @@ export class MonSprite {
 
   /** The picture `dy` pixels lower inside its 64×64 box (the faint slide), rows below the box gone. */
   draw(dy: number): void {
-    const { pic, tiles } = this;
+    const { pic, tiles, doll } = this;
     tiles.fill(0);
+    if (doll) return tiles.set(doll.tiles.subarray(0, tiles.length));
     for (let y = dy; y < 64; y++)
       for (let x = 0; x < 64; x++) tiles[((y >> 3) * 8 + (x >> 3)) * 64 + (y & 7) * 8 + (x & 7)] = pic.pixels[(y - dy) * pic.width + x] & 15;
+  }
+
+  /** LoadBattleMonGfxAndAnimate: shows `doll`, or its own picture again with null. */
+  dress(doll: Graphic | null): void {
+    this.doll = doll;
+    this.draw(0);
+    this.flow.gba.palettes.load(doll?.palette ?? this.palette, 256 + this.sprite.paletteNum * 16, 16);
   }
 
   destroy(): void {
@@ -149,16 +159,16 @@ export class BattleScene {
     gba.setVBlank(gba.standardVBlank);
   }
 
-  /** The building terrain (indoors) on BG3 and BG2, split in halves for the intro's slide (DrawMainBattleBackground). */
-  drawTerrain(): void {
+  /** The building terrain (indoors) on BG3 (DrawMainBattleBackground); `split`: in halves on BG3 and BG2, for the intro's slide. */
+  drawTerrain(split = false): void {
     const terrain = this.flow.assets.get("battleTerrainBuilding");
     this.flow.gba.palettes.load(terrain.palette, 2 * 16, 48);
     this.terrain.forEach((bg, half) => {
       bg.tiles = terrain.tiles;
       bg.map.set(terrain.map!.subarray(0, bg.map.length));
-      for (let ty = 0; ty < 32; ty++) for (let tx = 0; tx < 64; tx++) if ((ty < 10) !== (half === 0)) bg.setEntry(tx, ty, 0);
+      if (split) for (let ty = 0; ty < 32; ty++) for (let tx = 0; tx < 64; tx++) if ((ty < 10) !== (half === 0)) bg.setEntry(tx, ty, 0);
       bg.x = bg.y = 0;
-      bg.visible = true;
+      bg.visible = split || half === 0;
     });
   }
 
@@ -184,8 +194,8 @@ export class BattleScene {
     const [bg3, bg2] = this.terrain;
     bg2.visible = false;
     bg3.tiles = art.tiles;
-    bg3.map.fill(0);
-    if (art.map) bg3.map.set(art.map.subarray(0, bg3.map.length));
+    // The map is 512 wide for the terrain; FireRed's sliding backgrounds wrap at 256 (ToggleBg3Mode), so both screens hold the art.
+    if (art.map) for (const screen of [0, 1024]) bg3.map.set(art.map.subarray(0, 1024), screen);
     bg3.x = bg3.y = 0;
     this.flow.gba.palettes.load(art.palette, 2 * 16, 16);
   }

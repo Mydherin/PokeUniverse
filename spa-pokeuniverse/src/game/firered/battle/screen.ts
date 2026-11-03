@@ -164,6 +164,7 @@ export class BattleScreen implements PlaybackHost {
     yield* battleTransition(flow);
 
     const scene = this.newScene();
+    scene.drawTerrain(true);
     const foeTrainer = state.trainer ? scene.showTrainer(true, state.trainer.pic) : null;
     const player = scene.showTrainer(false, "");
     let top = 80;
@@ -190,6 +191,7 @@ export class BattleScreen implements PlaybackHost {
       place();
     }
     scene.setReveal(0, 160);
+    scene.drawTerrain();
 
     const summaries = [new PartySummary(flow, false, this.playerBalls()), ...(state.trainer ? [new PartySummary(flow, true, state.side(true).balls)] : [])];
     const tray = function* (): Generator<void, void, void> {

@@ -16,7 +16,7 @@ FIRERED     := references/pokefirered
 FIRERED_OUT := spa-pokeuniverse/public/firered
 FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex party_menu summary_screen battle_interface battle_anims
 # Single files from shared folders, kept at their paths.
-FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
+FIRERED_GFX_FILES := weather/fog_horizontal.png fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
 	fonts/down_arrow_3.png fonts/keypad_icons.png interface/std_menu.pal interface/status_icons.png \
 	$(addprefix interface/ball/,$(addsuffix .png,poke great ultra master safari net dive nest repeat timer luxury premier)) \
 	pokemon/nidoran_f/front.png pokemon/nidoran_f/normal.pal \

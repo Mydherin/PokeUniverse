@@ -65,7 +65,7 @@ export interface AnimProgram {
 /** The battle's backgrounds as the scripts change them (fadetobg, changebg, restorebg, gBattle_BG3_X/Y). */
 export interface AnimBackdrop {
   showMoveBackground(art: Graphic): void;
-  drawTerrain(): void;
+  drawTerrain(split?: boolean): void;
   /** The background's scroll in pixels. */
   scrollX: number;
   scrollY: number;
@@ -75,6 +75,13 @@ export interface AnimBackdrop {
 export interface AnimMon {
   foe: boolean;
   sprite: Sprite | null;
+  /** Its national number, for its cry. */
+  species?: number;
+  /** Out of sight (Fly, Dig…): scripts that hide and show the others leave it alone. */
+  hidden?: boolean;
+  behindSubstitute?: boolean;
+  /** The sprite shows this art (the substitute doll), or its own picture again with null. */
+  dress?(art: Graphic | null): void;
 }
 
 /** What a script plays with: the battlers, and the move's color for the generic animations. */
@@ -82,9 +89,18 @@ export interface AnimContext {
   readonly flow: Flow;
   readonly attacker: AnimMon;
   readonly target: AnimMon;
+  /** The battler across from the attacker (the target may be the attacker itself). */
+  readonly opponent?: AnimMon;
+  /** gWeatherMoveAnim as ANIM_WEATHER_* (none 0, sun 1, rain 2, sandstorm 3, hail 4). */
+  readonly weather?: number;
   readonly backdrop: AnimBackdrop;
   /** BGR555; the generic animations tint their sprites and blends with it. */
   readonly color: number;
+  /** gAnimMovePower, gAnimMoveDmg: how strong the move is and what it did, for the tasks that shake by them. */
+  readonly movePower?: number;
+  readonly moveDamage?: number;
+  /** GetRolloutCounter: the hit of a Rollout run (1-5). */
+  readonly rolloutHit?: number;
   /** gAnimMoveTurn: the turn of a two-turn move (0 charging, 1 striking). */
   readonly turn?: number;
   /** A general animation's argument (animationData->animArg: a stat change's kind…). */
@@ -115,6 +131,9 @@ export type AnimTask = (run: AnimRun, args: readonly number[], se?: SoundId) => 
 
 /** A script being played: the context plus the battlers' positions. */
 export interface AnimRun extends AnimContext {
+  readonly opponent: AnimMon;
+  /** gAnimCustomPanning: where Confuse Ray's and Will-O-Wisp's orbs sound (SoundTask_AdjustPanningVar). */
+  customPan: number;
   /** The battler a command means (ANIM_ATTACKER / ANIM_TARGET). */
   mon(which: AnimBattler): AnimMon;
   /** Its picture's center (GetBattlerSpriteCoord X_2, Y_PIC_OFFSET). */

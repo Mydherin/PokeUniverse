@@ -8,7 +8,7 @@ import type { Sprite } from "../../../gba/sprites";
 import { ObjMode } from "../../../gba/sprites";
 import { Effect, Layer } from "../../../gba/video";
 import { Assets, type AnimArtFiles, type Graphic } from "../../manifest";
-import { ART, SOUND_TASKS, TASK_ART, TASKS, TEMPLATES } from "./behaviors";
+import { ART, SOUND_TASKS, TASK_ART, TASK_SOUNDS, TASKS, TEMPLATES } from "./behaviors";
 import { AnimBattler, type AnimCommand, type AnimContext, type AnimProgram, type AnimRun, type AnimSpriteTemplate } from "./script";
 
 const DUMMY = "animDummy";
@@ -79,8 +79,12 @@ function needs(program: AnimProgram): { sounds: string[]; tags: string[]; backgr
       if ("tag" in c) tags.add(c.tag);
       const t = "template" in c && TEMPLATES[c.template];
       if (t && t.tag) tags.add(t.tag);
+      if ("template" in c) for (const se of TASK_SOUNDS[c.template] ?? []) sounds.add(se);
       for (const bg of backgroundsOf(c)) backgrounds.add(bg);
-      if ("task" in c) for (const name of TASK_ART[c.task] ?? []) art.add(name);
+      if ("task" in c) {
+        for (const name of TASK_ART[c.task] ?? []) art.add(name);
+        for (const se of TASK_SOUNDS[c.task] ?? []) sounds.add(se);
+      }
     }
   return { sounds: [...sounds], tags: [...tags], backgrounds: [...backgrounds], art: [...art] };
 }
@@ -113,11 +117,13 @@ const webPan = (pan: number) => Math.max(-1, Math.min(1, pan / 64));
 export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generator<void, void, void> {
   const { gba, assets } = ctx.flow;
   const video = gba.video;
-  const args = new Int16Array(8);
+  const args = new Int16Array(16);
   // Tasks a behavior starts on its own (CreateTask): not waited for, stopped with the script.
   let spawned: Generator<void, void, void>[] = [];
   const run: AnimRun = {
     ...ctx,
+    opponent: ctx.opponent ?? ctx.target,
+    customPan: 0,
     args,
     mon: (which) => (which === AnimBattler.Attacker ? ctx.attacker : ctx.target),
     center: (which) => {
@@ -186,8 +192,15 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
   // Sound tasks (loopsewithpan, waitplaysewithpan, createsoundtask): waitsound waits for them.
   let soundTasks: Generator<void, void, void>[] = [];
   const blend = { effect: video.effect, target1: video.target1, target2: video.target2, eva: video.eva, evb: video.evb };
+  // Battlers end as they started (one out of sight stays so).
+  const startHidden = new Map<Sprite, boolean>();
+  for (const mon of [ctx.attacker, ctx.target, run.opponent]) if (mon.sprite) startHidden.set(mon.sprite, mon.sprite.invisible);
   gba.sprites.loadSheet(DUMMY, new Uint8Array(64));
   gba.palettes.loadSpritePalette(DUMMY, new Uint16Array(16));
+
+  // monbg moves the battler to a BG: other sprites blend with it, and its own blended sprite shows over its opaque copy
+  // (ours has no copy, so it stays opaque).
+  const monOnBg = new Set<Sprite>();
 
   // One frame of the visual, sound and background tasks (sprites run on their own).
   const step = () => {
@@ -195,6 +208,7 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     soundTasks = soundTasks.filter((t) => !t.next().done);
     spawned = spawned.filter((t) => !t.next().done);
     if (bgTask?.next().done) bgTask = null;
+    for (const mon of monOnBg) if (mon.mode === ObjMode.Blend) mon.mode = ObjMode.Normal;
   };
   const busy = () => tasks.length > 0 || sprites.size > 0;
   const wait = function* (until: () => boolean) {
@@ -210,6 +224,7 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     gba.palettes.loadSpritePalette(tag, g.palette);
     loaded.add(tag);
   };
+  // gBattleAnimArgs keeps a command's values until another one sets them: behaviors get all eight.
   const setArgs = (from: readonly number[]) => from.forEach((a, i) => (args[i] = a));
   // Sprites a task creates (CreateSprite): not waited for, destroyed with the script.
   const loose = new Set<Sprite>();
@@ -276,14 +291,14 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
         case "createsprite":
         case "createspriteontargets_onpos":
           setArgs(c.args);
-          createSprite(c.template, c.battler, c.subpriority, c.args);
+          createSprite(c.template, c.battler, c.subpriority, [...args]);
           break;
         case "createspriteontargets": {
           // Singles: the one target is the battler arg.
           const a = [...c.args];
           a[c.battlerargindex] = AnimBattler.Target;
           setArgs(a);
-          createSprite(c.template, c.battler, c.subpriority, a);
+          createSprite(c.template, c.battler, c.subpriority, [...args]);
           break;
         }
         case "createvisualtask":
@@ -292,13 +307,13 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
           if (c.op === "createvisualtaskontargets") a[c.battlerargindex] = AnimBattler.Target;
           setArgs(a);
           // A task starts at once (up to its first yield), as CreateTask's first call does.
-          const task = TASKS[c.task](run, a, c.op === "createvisualtask" ? c.se : undefined);
+          const task = TASKS[c.task](run, [...args], c.op === "createvisualtask" ? c.se : undefined);
           if (!task.next().done) tasks.push(task);
           break;
         }
         case "createsoundtask":
           setArgs(c.args);
-          soundTasks.push(SOUND_TASKS[c.task](run, c.args, c.se));
+          soundTasks.push(SOUND_TASKS[c.task](run, [...args], c.se));
           break;
         case "delay": {
           let frames = c.frames;
@@ -414,9 +429,16 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
 
         // Battlers on backgrounds: ours stay sprites. Team attacks are doubles only.
         case "monbg":
-        case "clearmonbg":
         case "monbg_static":
-        case "clearmonbg_static":
+        case "clearmonbg":
+        case "clearmonbg_static": {
+          const sprite = run.mon(c.battler & 1 ? AnimBattler.Target : AnimBattler.Attacker).sprite;
+          if (!sprite) break;
+          sprite.onBg = c.op.startsWith("monbg");
+          if (sprite.onBg) monOnBg.add(sprite);
+          else monOnBg.delete(sprite);
+          break;
+        }
         case "splitbgprio":
         case "splitbgprio_all":
         case "splitbgprio_foes":
@@ -482,17 +504,16 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     }
     gba.sprites.freeSheet(DUMMY);
     gba.palettes.freeSpritePalette(DUMMY);
+    for (const mon of monOnBg) mon.onBg = false;
     Object.assign(video, blend, { evy: 0 });
     // The terrain back, in its own colors (palettes 1-3 are the ones scripts blend).
     if (moveBackground) ctx.backdrop.drawTerrain();
     ctx.backdrop.scrollX = ctx.backdrop.scrollY = 0;
     gba.palettes.blendPalette(16, 48, 0, 0);
     // The battlers back in place, shown, unscaled and in their own colors.
-    for (const mon of [ctx.attacker, ctx.target]) {
-      const s = mon.sprite;
-      if (!s) continue;
+    for (const [s, hidden] of startHidden) {
       s.x2 = s.y2 = 0;
-      s.invisible = false;
+      s.invisible = hidden;
       s.mode = ObjMode.Normal;
       if (s.affineAnimPaused) {
         s.setRotScale(0x100, 0x100, 0);

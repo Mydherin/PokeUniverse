@@ -90,7 +90,7 @@
   "sText_Attack2", "sText_Defense2", "sText_Speed", "sText_SpAtk2", "sText_SpDef2", "sText_Accuracy", "sText_Evasiveness",
   "sText_StartedToRain", "sText_RainContinues", "sText_RainStopped", "sText_SandstormBrewed", "sText_SandstormRages", "sText_SandstormSubsided", "sText_SunlightGotBright", "sText_SunlightStrong", "sText_SunlightFaded", "sText_StartedHail", "sText_HailContinues", "sText_HailStopped",
   "sText_PkmnMadeItRain", "sText_PkmnsXWhippedUpSandstorm", "sText_PkmnsXIntensifiedSun",
-  "sText_PkmnMadeSubstitute", "sText_PkmnSubstituteFaded", "sText_SubstituteDamaged", "sText_PkmnSeeded", "sText_PkmnGotEncore", "sText_PkmnEncoreEnded", "sText_PkmnMoveWasDisabled", "sText_PkmnMoveDisabledNoMore",
+  "sText_PkmnForesawAttack", "sText_PkmnTookAttack", "sText_PkmnChoseXAsDestiny", "sText_PkmnMadeSubstitute", "sText_PkmnSubstituteFaded", "sText_SubstituteDamaged", "sText_PkmnSeeded", "sText_PkmnGotEncore", "sText_PkmnEncoreEnded", "sText_PkmnMoveWasDisabled", "sText_PkmnMoveDisabledNoMore",
   "sText_PkmnFellInLove", "sText_PkmnBracedItself", "sText_PkmnEnduredHit", "sText_PkmnProtectedItself2", "sText_PkmnTookAim", "sText_PkmnTryingToTakeFoe", "sText_PkmnPerishCountFell", "sText_PkmnStockpiled",
   "sText_PkmnCenterAttention", "sText_PkmnChargingPower", "sText_PkmnSubjectedToTorment", "sText_PkmnTighteningFocus", "sText_PkmnPlantedRoots", "sText_PkmnTransformedInto", "sText_PkmnChangedType", "sText_PkmnFellForTaunt", "sText_PkmnFellIntoNightmare",
   "sText_PkmnRaisedDef", "sText_PkmnRaisedSpDef", "sText_PkmnsXWoreOff", "sText_SpikesScattered", "sText_PkmnCoveredByVeil", "sText_PkmnSafeguardExpired", "sText_PkmnProtectedByMist",
