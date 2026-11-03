@@ -120,7 +120,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	m, at, facing := w.place(pos)
 
 	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
-		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party,
+		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party, pokedex: pokedex.Load(row),
 		trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
@@ -160,7 +160,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		// The client counts on from here; each Join sends the server's count again.
 		PlayTimeSeconds: uint32(pos.Played / time.Second),
 		Bag:             items.Bag.Proto(),
-		Pokedex:         pokedex.Load(row).Proto(),
+		Pokedex:         p.pokedex.Proto(),
 		Party:           party.Proto(),
 		Battle:          battleView,
 	}, nil

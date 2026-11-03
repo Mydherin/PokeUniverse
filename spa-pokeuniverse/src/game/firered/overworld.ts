@@ -22,7 +22,8 @@ import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
-import type { PartyChanged } from "@pokeuniverse/contracts/party/v1/party";
+import { PokemonEvolvedSchema, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
@@ -101,6 +102,8 @@ export function startOverworld(flow: Flow): void {
     bagChanged: (b) => overworld?.bagChanged(b),
     pcChanged: (p) => overworld?.pcChanged(p),
     partyChanged: (p) => overworld?.partyChanged(p),
+    pokemonEvolved: (p) => overworld?.pokemonEvolved(p),
+    pokedexChanged: (p) => overworld?.pokedexChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
     battleTurn: (b) => overworld?.battleTurn(b),
@@ -199,7 +202,9 @@ class Overworld {
   /** What the trainer carries, as mic-core last said. */
   private bag: BagState;
   /** The trainer's Pokédex, as mic-core last said. */
-  private readonly pokedex: PokedexState;
+  private pokedex: PokedexState;
+  /** Who waits for mic-core's PokemonEvolved. */
+  private evolveAnswer: ((p: PokemonEvolved) => void) | null = null;
   /** The trainer's Pokémon, as mic-core last said. */
   private party: PartyState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
@@ -304,6 +309,15 @@ class Overworld {
     this.party.apply(p);
   }
 
+  pokemonEvolved(p: PokemonEvolved): void {
+    this.evolveAnswer?.(p);
+    this.evolveAnswer = null;
+  }
+
+  pokedexChanged(p: PokedexChanged): void {
+    this.pokedex = new PokedexState(p.pokedex);
+  }
+
   itemResult(r: ItemResult): void {
     this.itemAnswers.shift()?.(r);
   }
@@ -369,6 +383,14 @@ class Overworld {
         return self.bagHost();
       },
       choose: (battleId, step, action) => link.battleChoice(battleId, step, action),
+      evolve: (slot) => {
+        if (!link.inWorld) return Promise.resolve(create(PokemonEvolvedSchema, { slot, failed: true }));
+        return new Promise((resolve) => {
+          this.evolveAnswer = resolve;
+          link.evolvePokemon(slot);
+        });
+      },
+      learnMove: (slot, move, forget) => link.learnMove(slot, move, forget),
       finished: (result) => {
         this.leaveBattle();
         this.afterBattle(result);

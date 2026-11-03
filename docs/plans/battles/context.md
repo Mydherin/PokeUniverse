@@ -78,6 +78,7 @@ What exists that battles build on. Trust it; open these only when a step needs t
 | D21 | **Battle screen adaptations:** the move menu shows the category icon (D10) where FireRed prints "TYPE/", then the type's name (no room for both). Trainer encounter music is a script step (`ScriptStep.music`), the map's music returns when the script ends. Gen 4-only effects print a FireRed string with the effect's name ("<MON> is hurt by STEALTH ROCK!") or nothing. Indoors uses FireRed's building terrain and the angled wipes transition. | Gen 3 look with Gen 4 info; no invented strings. |
 | D22 | **Leaving mid-battle rolls back:** the battle is dropped and nothing it changed is saved (party, money, bag items used in it); only a server crash or restart resumes it. Items used are taken from the bag in memory and kept in `player:<id>:battle` (`spent`), then saved in the outcome's transaction. | The user's call (2026-11-02): leaving must not keep a half-played battle. |
 | D23 | **Animations aren't compared move by move with the original ROM.** A sweep in our game is enough to close a milestone; what looks off gets fixed when it shows up in play. | The user's call (2026-11-03): a manual comparison of every move isn't worth the time. |
+| D24 | **`mic-battles` plays level-ups and learned moves; `mic-core` checks and saves them, and decides evolution.** Exp is awarded inside Showdown's `Faint` event, so the Pokémon's level, stats, HP and moves change there and then. A move with no free slot is a `REQUEST_KIND_LEARN_MOVE` step: the battle neither goes on nor ends until it's answered. The outcome carries the final moves. After a win `mic-core` picks the evolutions (`BattleEnded.evolutions`); the client plays the scene and sends `EvolvePokemon` unless B stops it, and only shows the result once saved. | The user's call (2026-11-03), replacing M11's "decided by `mic-core`": FireRed levels up mid-battle, so Showdown's Pokémon must change at once. A single owner keeps retries, resume and rollback (D2, D22) working as they are. |
 
 ### Open Questions (ask the user when the milestone comes)
 
@@ -116,11 +117,11 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 | `mic-battles/src/battles.ts` | The subjects: load → play → translate → save → reply |
 | `mic-battles/src/ai/` | `index.ts` (decide), `view.ts` (what the AI reads), `effects.ts`, `score.ts`, `flags/` (one file per flag), `switch.ts`, `items.ts`, `random.ts` (wild) (D6, D17, D18) |
 | `mic-battles/src/store.ts` | Redis `battle:<id>` with the turn check (Lua) |
-| `mic-battles/src/exp.ts` | Gen 4 experience (not in Showdown) |
-| `mic-core/internal/pokemon/` | Stats (Gen 4 formula), natures, IVs/EVs, gender, shiny, growth rates, default moves, the party and its store (sqlc), the test team; party intents run in `internal/world/party.go` |
+| `mic-battles/src/exp.ts`, `growth.ts` | Gen 4 experience, levels, EVs and new moves (not in Showdown), applied live (D24) |
+| `mic-core/internal/pokemon/` | Stats (Gen 4 formula), natures, IVs/EVs, gender, shiny, growth rates, default moves, evolution rules, the party and its store (sqlc), the test team; party intents run in `internal/world/party.go` |
 | `mic-core/internal/battle/` | Starting battles, a player's active battle (Redis `player:<id>:battle`), choices, outcome transaction, NPC trainer table, whiteout |
 | `spa-pokeuniverse/src/game/battle/` | Battle state for any art style: applies events, holds the request (like `world/`) |
-| `spa-pokeuniverse/src/game/firered/battle/` | The FireRed battle screen: transition, terrain, intro, healthboxes, menus, messages, sprites, `anims/` (engine, `behaviors/` by family and `gen4.ts` for the expansion's moves, converted scripts, `art.json`) |
+| `spa-pokeuniverse/src/game/firered/battle/` | The FireRed battle screen: transition, terrain, intro, healthboxes, menus, messages, sprites, level up, learning moves, the evolution scene, `anims/` (engine, `behaviors/` by family and `gen4.ts` for the expansion's moves, converted scripts, `art.json`) |
 | `spa-pokeuniverse/src/game/firered/party-menu.ts`, `summary.ts` | POKéMON from the START menu and in battle |
 | `infra/battle/` | `catalog.mjs` (moves, abilities, species battle facts, learnsets; once), `anims.mjs` (animation scripts → JSON; once), `anim-art.mjs` (tag/background art table → `art.json`; once) |
 

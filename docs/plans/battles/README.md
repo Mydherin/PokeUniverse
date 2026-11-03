@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** commit M10 when the user asks, then [M11](m11-exp-level-up-evolution.md).
-- **Last state:** M10 ✅, swept in the game (still frames, no sound or real turns), uncommitted. M6 still lacks the restart-resume check.
+- **Next:** [M12](m12-held-and-bag-items.md), from the start.
+- **Last state:** M11 is committed and closed without playing it: its code builds, nothing was seen in the game ([what to watch](m11-exp-level-up-evolution.md#progress), for M14). M6 still lacks the restart-resume check.
 
 ## Cold Start (every new session)
 
@@ -35,7 +35,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M8 | [Animation engine](m08-animation-engine.md) | ✅ | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather, two-turn moves |
 | M9 | [FireRed move animations](m09-firered-move-animations.md) | ✅ | Moves 1-354, general animations, full sweep in the game |
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ✅ | Moves 355-467 from the expansion |
-| M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ⬜ | Exp bar, level up window, learning moves, evolution, Pokédex seen |
+| M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ✅ | Exp bar, level up window, learning moves, evolution, Pokédex seen (not played yet: M14) |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ⬜ | Gen 4 battle items, bag items in battle, item messages |
 | M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ⏸ | SHIFT, doubles, performance (after M12) |
 | M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | ⬜ | Manual full check, only when the user asks |
@@ -68,3 +68,6 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-03 | M9 close | User closed M9 without emulator spot checks (D23); M9 file cut down; committed | M10 | Fixes come from playing |
 | 2026-11-03 | M10 code | `behaviors/gen4.ts` (FireRed behaviors in new art, new callbacks, tasks), `paletteTag`, tags tasks draw (`TASK_TAGS`, `TASK_TAG_ARG`), `loadTag`, `retarget`; `expansion.json` edits where the C checks the move or a partner; 113/113 moves by a one-off scan | M10: `make graphics`, rebuild, sweep, commit | tsc ✅, vite ✅; the game not run (user asked to stop before testing); uncommitted |
 | 2026-11-03 | M10 sweep | `make graphics`; all 113 moves seen in the game, 36 of them on the foe's side, with hook checks for fallback, errors, hangs, leftovers; fixed Mud Bomb and Rock Wrecker crashes | Commit; M11 | Still frames, no sound or real turns; uncommitted |
+| 2026-11-03 | M11 session 1 | D24; contracts; evolutions in the species catalog (`infra/pokemon/evolutions.mjs`); `mic-battles`: exp and level-ups inside Showdown's Faint event, learn step, outcome held until answered | M11 step 1: `mic-core` | One-off battle checked; all builds pass except vite (not run); the game not run; uncommitted; until step 1, `Apply` counts level-up HP twice |
+| 2026-11-03 | M11 session 2 | `mic-core` (outcome, learn choice, evolution rules, intents, Pokédex); client: exp bar, level up, stats box, learn flow, forget screen, evolution scene; assets | Play it, commit | All builds pass, rules checked by a one-off; nothing seen in the game; uncommitted |
+| 2026-11-03 | M11 close | User closed M11 without playing it; committed and pushed | M12 | Its play check goes with M14 |

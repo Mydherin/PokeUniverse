@@ -303,6 +303,8 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     case "transform":
       return msg("sText_PkmnTransformedInto", { atk: k.value.battler, buff1: texts.name(k.value.target) });
     case "exp":
+      // Amount 0: the bar goes on after a level up, with no message.
+      if (!k.value.amount) return [];
       return msg("sText_PkmnGainedEXP", { buff1: texts.name(k.value.battler), buff2: [EOS], buff3: num(k.value.amount) });
     default:
       return [];

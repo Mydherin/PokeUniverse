@@ -21,8 +21,8 @@ export class BattleState {
   /** The player's side, then the foe's. */
   readonly sides: readonly [SideState, SideState];
   weather: Weather;
-  /** What the player must choose now; null while the server plays the last choice. */
-  request: BattleRequest | null;
+  private requestNow: BattleRequest | null = null;
+  private partyNow: PartyMember[] = [];
 
   constructor(view: BattleView) {
     this.id = view.battleId;
@@ -37,6 +37,16 @@ export class BattleState {
     this.request = view.request ?? null;
   }
 
+  /** What the player must choose now; null while the server plays the last choice. */
+  get request(): BattleRequest | null {
+    return this.requestNow;
+  }
+
+  set request(r: BattleRequest | null) {
+    this.requestNow = r;
+    if (r?.party.length) this.partyNow = r.party;
+  }
+
   side(foe: boolean): SideState {
     return this.sides[foe ? 1 : 0];
   }
@@ -48,15 +58,15 @@ export class BattleState {
     return mon && mon.battler?.partySlot === b.partySlot ? mon : null;
   }
 
-  /** The player's party as the battle has it now (HP, status, PP), from the last request. */
+  /** The player's party as the battle has it now, from the last request and the experience since. */
   get party(): readonly PartyMember[] {
-    return this.request?.party ?? [];
+    return this.partyNow;
   }
 
   /** The player must choose something (not WAIT). */
   get choosing(): boolean {
     const kind = this.request?.kind;
-    return kind === RequestKind.ACTION || kind === RequestKind.SWITCH;
+    return kind === RequestKind.ACTION || kind === RequestKind.SWITCH || kind === RequestKind.LEARN_MOVE;
   }
 
   apply(e: BattleEvent): void {
@@ -108,10 +118,27 @@ export class BattleState {
         for (const mon of side.active) if (mon) mon.status = Status.UNSPECIFIED;
         return;
       }
+      case "exp": {
+        const m = this.member(k.value.battler);
+        if (m) Object.assign(m, { exp: k.value.exp, levelExp: k.value.levelExp, nextLevelExp: k.value.nextLevelExp });
+        return;
+      }
+      case "levelUp": {
+        const { battler, level, health, stats } = k.value;
+        const mon = this.battler(battler);
+        if (mon) Object.assign(mon, { level, health });
+        const m = this.member(battler);
+        if (m) Object.assign(m, { level, health, stats });
+        return;
+      }
       case "weatherChange":
         this.weather = k.value.phase === ConditionPhase.END ? Weather.UNSPECIFIED : k.value.weather;
         return;
     }
+  }
+
+  private member(b: Battler | undefined): PartyMember | undefined {
+    return b && !b.foe ? this.partyNow.find((m) => m.partySlot === b.partySlot) : undefined;
   }
 
   private cureBall(side: SideState, slot: number): void {

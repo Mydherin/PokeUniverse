@@ -6,13 +6,14 @@
 // a send-out throws the ball and the Pokémon comes out with its cry, its healthbox sliding in.
 // Each event changes the battle's state as it is shown.
 
-import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect } from "@pokeuniverse/contracts/battle/v1/event";
+import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned } from "@pokeuniverse/contracts/battle/v1/event";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
 import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { BattleScene as BattleSceneOption } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
 import type { Sprite } from "../../gba/sprites";
+import { decimalText, NumberMode } from "../../gba/text";
 import type { BattleState } from "../../battle/state";
 import type { Flow } from "../flow";
 import { HpBarLevel, hpBarLevel } from "../hp-bar";
@@ -21,6 +22,7 @@ import { moveInfo } from "../../world/moves";
 import { PokeBalls } from "../pokeball";
 import { generalAnimation, moveAnimation, playAnimation, type AnimContext, type AnimMon } from "./anims";
 import type { HealthboxMon } from "./healthbox";
+import { levelUpBox, levelUpStripes } from "./level-up";
 import { eventMessages, type Recent } from "./messages";
 import type { BattleScene } from "./scene";
 import type { BattleTexts } from "./text";
@@ -376,9 +378,55 @@ export class Playback {
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         this.recent.itemUsed = true;
         return;
+      case "exp": {
+        const { battler, exp, levelExp, nextLevelExp } = k.value;
+        for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+        state.apply(e);
+        if (battler && state.battler(battler)) yield* scene.healthbox(false).moveExp(exp, levelExp, nextLevelExp);
+        return;
+      }
+      case "levelUp":
+        return yield* this.levelUp(e, k.value);
+      case "moveLearned":
+        return yield* this.moveLearned(k.value);
     }
     state.apply(e);
     for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+  }
+
+  /**
+   * On the field: SE_EXP_MAX and the healthbox's flash (B_ANIM_LVL_UP), the new numbers, SE_RS_SHOP
+   * and the stripes rising over it (Task_CreateLevelUpVerticalStripes). Then the fanfare, "<MON> grew
+   * to LV. n!" and the stats box (BattleScript_LevelUp). A Pokémon on the bench has no bar to show.
+   */
+  private *levelUp(e: BattleEvent, up: LevelUp): Generator<void, void, void> {
+    const { flow, scene, state, texts } = this.host;
+    const on = state.battler(up.battler) !== null;
+    state.apply(e);
+    if (on) {
+      const box = scene.healthbox(false);
+      flow.play("se_exp_max");
+      yield* box.flashLevelUp();
+      box.levelUp(up.level, up.health?.hp ?? 0, up.health?.maxHp ?? 0);
+      flow.play("se_rs_shop");
+      yield* levelUpStripes(flow, scene.mons[0]?.sprite ?? null);
+    }
+    flow.gba.sound.playFanfare("mus_level_up");
+    yield* scene.message(texts.format("sText_PkmnGrewToLv", { buff1: texts.name(up.battler), buff2: decimalText(up.level, NumberMode.LeftAlign, 3) }), 0);
+    yield* levelUpBox(flow, scene, up.before, up.stats);
+  }
+
+  /** BattleScript_ForgotAndLearnedNewMove, or BattleScript_LearnedNewMove with a slot free. */
+  private *moveLearned(learned: MoveLearned): Generator<void, void, void> {
+    const { flow, scene, texts } = this.host;
+    const name = texts.name(learned.battler);
+    if (learned.forgot) {
+      yield* scene.message(texts.format("sText_123Poof"), 0);
+      yield* scene.message(texts.format("sText_PkmnForgotMove", { buff1: name, buff2: texts.moveName(learned.forgot) }), 0);
+      yield* scene.message(texts.format("sText_AndEllipsis"), 0);
+    }
+    flow.gba.sound.playFanfare("mus_level_up");
+    yield* scene.message(texts.format("sText_PkmnLearnedMove", { buff1: name, buff2: texts.moveName(learned.move) }), 0);
   }
 
   /** A silent HP or status change: the healthbox shows it at once. */

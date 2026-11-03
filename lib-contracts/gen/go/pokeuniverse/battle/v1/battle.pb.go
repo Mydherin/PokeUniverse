@@ -14,6 +14,7 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/ability/v1"
 	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	v15 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
 	v14 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
@@ -231,7 +232,9 @@ type BattleMon struct {
 	// Return and Frustration.
 	Friendship uint32 `protobuf:"varint,15,opt,name=friendship,proto3" json:"friendship,omitempty"`
 	// Its trainer isn't its original trainer: 1.5× experience.
-	Traded        bool `protobuf:"varint,16,opt,name=traded,proto3" json:"traded,omitempty"`
+	Traded bool `protobuf:"varint,16,opt,name=traded,proto3" json:"traded,omitempty"`
+	// Its total experience now: it levels up during the battle (mic-battles).
+	Exp           uint32 `protobuf:"varint,17,opt,name=exp,proto3" json:"exp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -376,6 +379,13 @@ func (x *BattleMon) GetTraded() bool {
 		return x.Traded
 	}
 	return false
+}
+
+func (x *BattleMon) GetExp() uint32 {
+	if x != nil {
+		return x.Exp
+	}
+	return 0
 }
 
 // One side's trainer and team.
@@ -807,9 +817,11 @@ type MonOutcome struct {
 	Pp []uint32 `protobuf:"varint,3,rep,packed,name=pp,proto3" json:"pp,omitempty"`
 	// Unspecified: none (used up, knocked off…).
 	HeldItem v13.Item `protobuf:"varint,4,opt,name=held_item,json=heldItem,proto3,enum=pokeuniverse.item.v1.Item" json:"held_item,omitempty"`
-	// Experience and EVs gained in this battle (mic-core applies levels and the EV caps).
-	Exp           uint32     `protobuf:"varint,5,opt,name=exp,proto3" json:"exp,omitempty"`
-	Evs           *v11.Stats `protobuf:"bytes,6,opt,name=evs,proto3" json:"evs,omitempty"`
+	// Experience and EVs gained in this battle, within the caps (the level follows from them).
+	Exp uint32     `protobuf:"varint,5,opt,name=exp,proto3" json:"exp,omitempty"`
+	Evs *v11.Stats `protobuf:"bytes,6,opt,name=evs,proto3" json:"evs,omitempty"`
+	// Its moves at the end, in the same order as pp: level ups can bring new ones.
+	Moves         []v15.Move `protobuf:"varint,7,rep,packed,name=moves,proto3,enum=pokeuniverse.move.v1.Move" json:"moves,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -886,11 +898,20 @@ func (x *MonOutcome) GetEvs() *v11.Stats {
 	return nil
 }
 
+func (x *MonOutcome) GetMoves() []v15.Move {
+	if x != nil {
+		return x.Moves
+	}
+	return nil
+}
+
 type SideOutcome struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Result BattleResult           `protobuf:"varint,1,opt,name=result,proto3,enum=pokeuniverse.battle.v1.BattleResult" json:"result,omitempty"`
 	// In party order, as the battle started.
-	Pokemon       []*MonOutcome `protobuf:"bytes,2,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
+	Pokemon []*MonOutcome `protobuf:"bytes,2,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
+	// The other side's species that came out, for the Pokédex.
+	Seen          []v1.Species `protobuf:"varint,3,rep,packed,name=seen,proto3,enum=pokeuniverse.species.v1.Species" json:"seen,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -935,6 +956,13 @@ func (x *SideOutcome) GetResult() BattleResult {
 func (x *SideOutcome) GetPokemon() []*MonOutcome {
 	if x != nil {
 		return x.Pokemon
+	}
+	return nil
+}
+
+func (x *SideOutcome) GetSeen() []v1.Species {
+	if x != nil {
+		return x.Seen
 	}
 	return nil
 }
@@ -1051,13 +1079,13 @@ var File_pokeuniverse_battle_v1_battle_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"\n" +
-	"#pokeuniverse/battle/v1/battle.proto\x12\x16pokeuniverse.battle.v1\x1a%pokeuniverse/ability/v1/catalog.proto\x1a\"pokeuniverse/battle/v1/event.proto\x1a!pokeuniverse/battle/v1/view.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a!pokeuniverse/party/v1/party.proto\x1a$pokeuniverse/pokemon/v1/nature.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\x1a%pokeuniverse/species/v1/catalog.proto\"#\n" +
+	"#pokeuniverse/battle/v1/battle.proto\x12\x16pokeuniverse.battle.v1\x1a%pokeuniverse/ability/v1/catalog.proto\x1a\"pokeuniverse/battle/v1/event.proto\x1a!pokeuniverse/battle/v1/view.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a!pokeuniverse/party/v1/party.proto\x1a$pokeuniverse/pokemon/v1/nature.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\x1a%pokeuniverse/species/v1/catalog.proto\"#\n" +
 	"\x04Ping\x12\x1b\n" +
 	"\tcore_time\x18\x01 \x01(\x04R\bcoreTime\"^\n" +
 	"\x04Pong\x12\x1b\n" +
 	"\tcore_time\x18\x01 \x01(\x04R\bcoreTime\x12!\n" +
 	"\fbattles_time\x18\x02 \x01(\x04R\vbattlesTime\x12\x16\n" +
-	"\x06format\x18\x03 \x01(\tR\x06format\"\xb0\x05\n" +
+	"\x06format\x18\x03 \x01(\tR\x06format\"\xc2\x05\n" +
 	"\tBattleMon\x12:\n" +
 	"\aspecies\x18\x01 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\aspecies\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x14\n" +
@@ -1077,7 +1105,8 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"\n" +
 	"friendship\x18\x0f \x01(\rR\n" +
 	"friendship\x12\x16\n" +
-	"\x06traded\x18\x10 \x01(\bR\x06traded\"\xb6\x01\n" +
+	"\x06traded\x18\x10 \x01(\bR\x06traded\x12\x10\n" +
+	"\x03exp\x18\x11 \x01(\rR\x03exp\"\xb6\x01\n" +
 	"\n" +
 	"BattleTeam\x12;\n" +
 	"\apokemon\x18\x01 \x03(\v2!.pokeuniverse.battle.v1.BattleMonR\apokemon\x129\n" +
@@ -1106,7 +1135,7 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"SideUpdate\x12;\n" +
 	"\x06events\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\x12?\n" +
 	"\arequest\x18\x02 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\x126\n" +
-	"\x04view\x18\x03 \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x04view\"\xe2\x01\n" +
+	"\x04view\x18\x03 \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x04view\"\x94\x02\n" +
 	"\n" +
 	"MonOutcome\x12\x0e\n" +
 	"\x02hp\x18\x01 \x01(\rR\x02hp\x127\n" +
@@ -1114,10 +1143,12 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"\x02pp\x18\x03 \x03(\rR\x02pp\x127\n" +
 	"\theld_item\x18\x04 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\bheldItem\x12\x10\n" +
 	"\x03exp\x18\x05 \x01(\rR\x03exp\x120\n" +
-	"\x03evs\x18\x06 \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03evs\"\x89\x01\n" +
+	"\x03evs\x18\x06 \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03evs\x120\n" +
+	"\x05moves\x18\a \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x05moves\"\xbf\x01\n" +
 	"\vSideOutcome\x12<\n" +
 	"\x06result\x18\x01 \x01(\x0e2$.pokeuniverse.battle.v1.BattleResultR\x06result\x12<\n" +
-	"\apokemon\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.MonOutcomeR\apokemon\"J\n" +
+	"\apokemon\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.MonOutcomeR\apokemon\x124\n" +
+	"\x04seen\x18\x03 \x03(\x0e2 .pokeuniverse.species.v1.SpeciesR\x04seen\"J\n" +
 	"\rBattleOutcome\x129\n" +
 	"\x05sides\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.SideOutcomeR\x05sides\"\xa6\x01\n" +
 	"\fBattleUpdate\x12\x1b\n" +
@@ -1178,7 +1209,8 @@ var file_pokeuniverse_battle_v1_battle_proto_goTypes = []any{
 	(*BattleEvent)(nil),   // 25: pokeuniverse.battle.v1.BattleEvent
 	(*BattleRequest)(nil), // 26: pokeuniverse.battle.v1.BattleRequest
 	(*BattleView)(nil),    // 27: pokeuniverse.battle.v1.BattleView
-	(BattleResult)(0),     // 28: pokeuniverse.battle.v1.BattleResult
+	(v15.Move)(0),         // 28: pokeuniverse.move.v1.Move
+	(BattleResult)(0),     // 29: pokeuniverse.battle.v1.BattleResult
 }
 var file_pokeuniverse_battle_v1_battle_proto_depIdxs = []int32{
 	15, // 0: pokeuniverse.battle.v1.BattleMon.species:type_name -> pokeuniverse.species.v1.Species
@@ -1203,16 +1235,18 @@ var file_pokeuniverse_battle_v1_battle_proto_depIdxs = []int32{
 	21, // 19: pokeuniverse.battle.v1.MonOutcome.status:type_name -> pokeuniverse.pokemon.v1.Status
 	18, // 20: pokeuniverse.battle.v1.MonOutcome.held_item:type_name -> pokeuniverse.item.v1.Item
 	19, // 21: pokeuniverse.battle.v1.MonOutcome.evs:type_name -> pokeuniverse.pokemon.v1.Stats
-	28, // 22: pokeuniverse.battle.v1.SideOutcome.result:type_name -> pokeuniverse.battle.v1.BattleResult
-	11, // 23: pokeuniverse.battle.v1.SideOutcome.pokemon:type_name -> pokeuniverse.battle.v1.MonOutcome
-	12, // 24: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
-	10, // 25: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
-	13, // 26: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	28, // 22: pokeuniverse.battle.v1.MonOutcome.moves:type_name -> pokeuniverse.move.v1.Move
+	29, // 23: pokeuniverse.battle.v1.SideOutcome.result:type_name -> pokeuniverse.battle.v1.BattleResult
+	11, // 24: pokeuniverse.battle.v1.SideOutcome.pokemon:type_name -> pokeuniverse.battle.v1.MonOutcome
+	15, // 25: pokeuniverse.battle.v1.SideOutcome.seen:type_name -> pokeuniverse.species.v1.Species
+	12, // 26: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
+	10, // 27: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
+	13, // 28: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_battle_proto_init() }

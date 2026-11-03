@@ -280,6 +280,12 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
 		return true
+	case *realtimev1.ClientMessage_EvolvePokemon:
+		c.player.EvolvePokemon(p.EvolvePokemon)
+		return true
+	case *realtimev1.ClientMessage_LearnMove:
+		c.player.LearnMove(p.LearnMove)
+		return true
 	case *realtimev1.ClientMessage_ScriptBattle:
 		c.player.ScriptBattle(p.ScriptBattle)
 		return true

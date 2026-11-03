@@ -59,6 +59,7 @@ func (z *zone) startBattle(p *Player, script uint32) {
 		return
 	}
 	p.scriptTrainer = ""
+	p.evolving = evolving{}
 	if t.Heals {
 		before := p.party.Clone()
 		p.party.Heal()
@@ -122,6 +123,11 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 	var spend itemv1.Item
 	switch k := c.GetAction().GetKind().(type) {
 	case *battlev1.BattleAction_Move, *battlev1.BattleAction_Switch:
+	case *battlev1.BattleAction_Learn:
+		if !canForget(b.request, k.Learn) {
+			z.refuseChoice(p)
+			return
+		}
 	case *battlev1.BattleAction_Item:
 		if !usableInBattle(p, k.Item.GetItem()) {
 			z.refuseChoice(p)
@@ -148,6 +154,22 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 		}
 		z.played(p, u, req.Step, spend)
 	})
+}
+
+// canForget: the answer to a LEARN_MOVE request doesn't forget an HM.
+func canForget(r *battlev1.BattleRequest, a *battlev1.LearnMoveAction) bool {
+	if r.GetKind() != battlev1.RequestKind_REQUEST_KIND_LEARN_MOVE {
+		return false
+	}
+	if a.ForgetSlot == nil {
+		return true
+	}
+	party := r.GetParty()
+	if slot := int(r.GetLearn().GetPartySlot()); slot < len(party) {
+		moves := party[slot].GetMoves()
+		return int(a.GetForgetSlot()) < len(moves) && !pokemon.IsHM(moves[a.GetForgetSlot()])
+	}
+	return false
 }
 
 // spentChanges: the pockets the items used in battle came from.
@@ -239,12 +261,12 @@ func (z *zone) ask(p *Player, call func(context.Context) (*battlev1.BattleUpdate
 }
 
 // finish saves the outcome in one transaction keyed by the battle (applied once): the party,
-// money won or lost. Losing whites out (DoWhiteOut): money lost, party healed, back at the
+// money won or lost, the Pokédex. Winning can leave evolutions. Losing whites out (DoWhiteOut): money lost, party healed, back at the
 // respawn point, the script ended. Retried while PostgreSQL is unreachable.
 func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	b := p.battle
 	result := o.GetSides()[battle.PlayerSide].GetResult()
-	party, money := p.party.Clone(), p.money
+	party, money, dex := p.party.Clone(), p.money, p.pokedex
 	battle.Apply(p.party, o.GetSides()[battle.PlayerSide])
 	won := result == battlev1.BattleResult_BATTLE_RESULT_WON || result == battlev1.BattleResult_BATTLE_RESULT_FORFEIT_WON
 	delta := 0
@@ -257,10 +279,11 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 		p.party.Heal()
 	}
 	p.money += delta
+	p.pokedex = p.pokedex.See(o.GetSides()[battle.PlayerSide].GetSeen()...)
 
 	applied, err := z.saveOutcome(p, b.ID, result, delta)
 	if err != nil || !applied {
-		p.party, p.money = party, money
+		p.party, p.money, p.pokedex = party, money, dex
 	}
 	if err != nil {
 		z.w.log.Error("save battle outcome", "account_id", p.accountID, "battle", b.ID, "err", err)
@@ -280,10 +303,16 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 		z.w.log.Error("clear battle", "account_id", p.accountID, "err", err)
 	}
 	p.battle = nil
+	if won && applied {
+		p.evolving.pending = pokemon.Evolutions(p.party, party, night(time.Now()))
+	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_BattleEnded{BattleEnded: &battlev1.BattleEnded{
-		BattleId: b.ID, Result: result, Money: uint32(max(delta, -delta)),
+		BattleId: b.ID, Result: result, Money: uint32(max(delta, -delta)), Evolutions: p.evolving.proto(),
 	}}})
 	z.sendParty(p)
+	if !p.pokedex.Same(dex) {
+		z.sendPokedex(p)
+	}
 	if !won {
 		p.script, p.pcScript = 0, 0
 		p.pos, p.facing = Point{Start.X, Start.Y}, Start.Facing
@@ -309,6 +338,9 @@ func (z *zone) saveOutcome(p *Player, id string, result battlev1.BattleResult, m
 			}
 		}
 		if err := pokemon.Write(ctx, q, p.accountID, save, p.party); err != nil {
+			return err
+		}
+		if err := savePokedex(ctx, q, p, save); err != nil {
 			return err
 		}
 		n, err := q.UpdateTrainerMoney(ctx, db.UpdateTrainerMoneyParams{AccountID: p.accountID, Money: int32(p.money), CreatedAt: save})

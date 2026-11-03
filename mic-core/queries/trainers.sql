@@ -70,3 +70,9 @@ FOR UPDATE;
 UPDATE trainers
 SET money = $2
 WHERE account_id = $1 AND created_at = $3;
+
+-- name: UpdateTrainerPokedex :execrows
+-- Species seen and caught, after a battle or an evolution; only into the save they belong to.
+UPDATE trainers
+SET pokedex_seen = $2, pokedex_caught = $3
+WHERE account_id = $1 AND created_at = $4;

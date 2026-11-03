@@ -3,10 +3,13 @@
 import type { Battle } from "@pkmn/sim";
 import type { StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
 import { create } from "@bufbuild/protobuf";
+import { BattleEventSchema, type BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
 import { ItemActionSchema, type BattleAction } from "@pokeuniverse/contracts/battle/v1/view";
 import { decide, isAiSide, type AiMemory } from "../ai/index.ts";
 import { chooseBagItem } from "./bag.ts";
-import { moveOptions, partySlot, pokemonAt, sideId } from "./battle.ts";
+import type { ExpState } from "../exp.ts";
+import { learnMove, moveOptions, partySlot, pokemonAt, sideId } from "./battle.ts";
+import { moveNumber } from "./lookup.ts";
 
 /** A choice the request doesn't allow. The step isn't played: the side gets its request again. */
 export class InvalidChoice extends Error {}
@@ -36,6 +39,22 @@ export function applyChoice(battle: Battle, side: number, action: BattleAction |
       throw new InvalidChoice(`unsupported action ${action?.kind.case}`);
   }
   if (!battle.choose(sideId(side), input)) throw new InvalidChoice(s.choice.error || input);
+}
+
+/** The answer to a LEARN_MOVE request: the waiting move replaces the slot named, or is let go. */
+export function answerLearn(battle: Battle, exp: ExpState, action: BattleAction | undefined): BattleEvent[] {
+  const pending = exp.pending[0];
+  if (action?.kind.case !== "learn") throw new InvalidChoice(`a move is waiting for its answer, got ${action?.kind.case}`);
+  const forget = action.kind.value.forgetSlot;
+  const pokemon = pokemonAt(battle, 0, pending.slot);
+  const old = forget === undefined ? undefined : pokemon.baseMoveSlots[forget];
+  if (forget !== undefined && !old) throw new InvalidChoice(`no move in slot ${forget}`);
+  exp.pending.shift();
+  if (forget === undefined || !old) return [];
+  const forgot = moveNumber(old.id);
+  learnMove(pokemon, pending.move, forget);
+  const battler = { partySlot: pending.slot, position: Math.max(0, exp.active[0].indexOf(pending.slot)) };
+  return [create(BattleEventSchema, { kind: { case: "moveLearned", value: { battler, move: pending.move, forgot } } })];
 }
 
 /** Chooses for the AI's sides and for locked moves (Outrage, recharging…) until a player must

@@ -7,6 +7,7 @@
 import type { BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
+import { Button } from "../../gba/input";
 import type { Sprite, SpriteTemplate } from "../../gba/sprites";
 import { FontId, Window, type Text, type WindowTemplate } from "../../gba/text";
 import { Layer, rgb, RGB_BLACK, type Background } from "../../gba/video";
@@ -37,11 +38,14 @@ export const WINDOWS = {
   pp: { left: 21, top: 55, width: 3, height: 2, palette: 5, baseBlock: 0x290 },
   moveType: { left: 21, top: 57, width: 8, height: 2, palette: 5, baseBlock: 0x296 },
   ppRemaining: { left: 24, top: 55, width: 5, height: 2, palette: 5, baseBlock: 0x2a6 },
+  // One at a time: they share their tiles, past the message's.
+  yesNo: { left: 25, top: 9, width: 4, height: 4, palette: 5, baseBlock: 0x100 },
+  levelUp: { left: 19, top: 8, width: 10, height: 11, palette: 5, baseBlock: 0x100 },
 } satisfies Record<string, WindowTemplate>;
 export type WindowId = keyof typeof WINDOWS;
 
 /** sTextOnWindowsInfo_Normal: fill, font, position and [background, text, shadow] of each window. */
-const STYLES: Record<WindowId, { fill: number; font: FontId; x: number; y: number; lineSpacing: number; colors: [number, number, number] }> = {
+const STYLES: Record<WindowId, { fill: number; font: FontId; x: number; y: number; letterSpacing?: number; lineSpacing: number; colors: [number, number, number] }> = {
   msg: { fill: 15, font: FontId.Normal, x: 2, y: 2, lineSpacing: 2, colors: [15, 1, 6] },
   actionPrompt: { fill: 15, font: FontId.Normal, x: 2, y: 2, lineSpacing: 2, colors: [15, 1, 6] },
   actionMenu: { fill: 14, font: FontId.NormalCopy1, x: 0, y: 2, lineSpacing: 2, colors: [14, 13, 15] },
@@ -52,6 +56,8 @@ const STYLES: Record<WindowId, { fill: number; font: FontId; x: number; y: numbe
   pp: { fill: 14, font: FontId.Small, x: 0, y: 2, lineSpacing: 0, colors: [14, 12, 11] },
   moveType: { fill: 14, font: FontId.Small, x: 0, y: 2, lineSpacing: 0, colors: [14, 13, 15] },
   ppRemaining: { fill: 14, font: FontId.NormalCopy1, x: 10, y: 2, lineSpacing: 2, colors: [14, 12, 11] },
+  yesNo: { fill: 14, font: FontId.Normal, x: 0, y: 2, letterSpacing: 1, lineSpacing: 2, colors: [14, 13, 15] },
+  levelUp: { fill: 14, font: FontId.Normal, x: 0, y: 0, lineSpacing: 0, colors: [14, 13, 15] },
 };
 
 /** sBattlerCoords (singles): where each side's Pokémon stands. */
@@ -235,7 +241,7 @@ export class BattleScene {
     win.putTilemap();
     const font = flow.fonts[style.font];
     flow.text.ctx.canABSpeedUpPrint = id === "msg";
-    flow.text.add(win, { font, x: x ?? style.x, y: style.y, letterSpacing: 0, lineSpacing: style.lineSpacing, colors: style.colors }, speed, text);
+    flow.text.add(win, { font, x: x ?? style.x, y: style.y, letterSpacing: style.letterSpacing ?? 0, lineSpacing: style.lineSpacing, colors: style.colors }, speed, text);
     if (speed === 0) win.copyToVram();
   }
 
@@ -250,6 +256,60 @@ export class BattleScene {
   clearMessage(): void {
     this.windows.msg.fill(15);
     this.windows.msg.copyToVram();
+  }
+
+  /**
+   * HandleBattleWindow: a frame of the textbox's tiles over BG0 (the level up box is on BG1 in the
+   * game, over the textbox). Returns what takes it away again.
+   */
+  openWindow(left: number, top: number, right: number, bottom: number): () => void {
+    const { bg0 } = this;
+    const saved: [number, number, number][] = [];
+    for (let y = top; y <= bottom; y++) {
+      for (let x = left; x <= right; x++) {
+        saved.push([x, y, bg0.entry(x, y)]);
+        const row = y === top ? 0x1022 : y === bottom ? 0x1028 : 0x1025;
+        bg0.setEntry(x, y, row + (x === left ? 0 : x === right ? 2 : 1));
+      }
+    }
+    return () => {
+      for (const [x, y, entry] of saved) bg0.setEntry(x, y, entry);
+    };
+  }
+
+  /** The window's pixels, cleared and on the map, to draw on (then `copyToVram`). */
+  blankWindow(id: WindowId): Window {
+    const win = this.windows[id];
+    win.fill(STYLES[id].fill);
+    win.putTilemap();
+    return win;
+  }
+
+  /**
+   * Cmd_yesnoboxlearnmove: YES (true) or NO (false, B too), up and down, with its own frame. Fades
+   * and what comes after are the caller's.
+   */
+  *yesNo(): Generator<void, boolean, void> {
+    const { input } = this.flow.gba;
+    const close = this.openWindow(23, 8, 29, 13);
+    this.print("yesNo", this.flow.assets.text("gText_BattleYesNoChoice"));
+    let cursor = 0;
+    this.setCursor(24, 9, true);
+    for (;;) {
+      yield;
+      const next = input.isPressed(Button.Up) ? 0 : input.isPressed(Button.Down) ? 1 : cursor;
+      if (next !== cursor) {
+        this.flow.play("se_select");
+        this.setCursor(24, 9 + 2 * cursor, false);
+        cursor = next;
+        this.setCursor(24, 9 + 2 * cursor, true);
+      } else if (input.isPressed(Button.A | Button.B)) {
+        const yes = cursor === 0 && input.isPressed(Button.A);
+        this.flow.play("se_select");
+        close();
+        return yes;
+      }
+    }
   }
 
   /** The cursor (tiles 1 and 2) or its blank (tile 32) at a tile of BG0. */

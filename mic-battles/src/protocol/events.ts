@@ -212,7 +212,7 @@ function battlerInfo(ctx: Context, ident: string, condition: string): Init<typeo
     battler: battler(ctx, ident),
     species: mon.species,
     nickname: mon.nickname,
-    level: mon.level,
+    level: pokemonAt(ctx.battle, id.side, id.slot).level,
     gender: mon.gender,
     shiny: mon.shiny,
     personality: mon.personality,

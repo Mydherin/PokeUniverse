@@ -21,7 +21,7 @@ import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import type { Task } from "../gba/tasks";
 import { decimalText, expandDynamic, FontId, joinText, NumberMode, Window, type Text, type WindowTemplate } from "../gba/text";
 import { Layer, RGB_BLACK, type Background } from "../gba/video";
-import { moveInfo } from "../world/moves";
+import { isHM, moveInfo } from "../world/moves";
 import { speciesInfo } from "../world/pokedex";
 import { fillBgRect, initBg } from "./common";
 import type { Flow } from "./flow";
@@ -32,9 +32,21 @@ import { MonIcon } from "./mon-icon";
 import { ailmentOf, Ailment, monName, shownGender, type PartyHost } from "./party-menu";
 
 /** Shows the summary of the party Pokémon in `slot`; `done` with the one shown last, once it faded out. */
-export function startSummary(flow: Flow, host: PartyHost, slot: number, done: (last: number) => void): void {
-  new Summary(flow, host, slot, done);
+export function startSummary(flow: Flow, host: PartyHost, slot: number, done: (last: number) => void, forget?: ForgetMode): void {
+  new Summary(flow, host, slot, done, forget);
 }
+
+/**
+ * PSS_MODE_SELECT_MOVE: only the move details, the new move in the fifth row; A picks a row (the
+ * new move's, or B: FORGET_NONE) and it closes. HMs can't be picked.
+ */
+export interface ForgetMode {
+  move: number;
+  pick(row: number): void;
+}
+
+/** The new move's row: nothing is forgotten. */
+export const FORGET_NONE = 4;
 
 const enum Page {
   Info,
@@ -248,10 +260,12 @@ class Summary {
     private readonly host: PartyHost,
     slot: number,
     private readonly done: (last: number) => void,
+    private readonly forget?: ForgetMode,
   ) {
     const { gba, assets } = flow;
     this.slot = slot;
     this.mon = host.party.pokemon[slot];
+    if (forget) this.page = Page.MovesInfo;
     gba.setVBlank(null);
     gba.reset();
     const { video, palettes, sprites } = gba;
@@ -327,22 +341,29 @@ class Summary {
     this.printBottomPane();
     this.printAbilityOrMoveTypes();
     this.printMonTypes();
-    this.setBg3(assets.get("summaryMovesInfoPage").map!);
+    this.setBg3(assets.get(forget ? "summaryMovesPage" : "summaryMovesInfoPage").map!);
     this.drawProgress();
-    this.setMap(this.bg2, "summaryPageInfo");
-    this.setMap(this.bg1, "summaryPageSkills");
+    this.setMap(this.bg2, forget ? "summaryPageMoves" : "summaryPageInfo");
+    this.setMap(this.bg1, forget ? "summaryPageMovesInfo" : "summaryPageSkills");
     palettes.blendPalettes(PALETTES_ALL, 16, RGB_BLACK);
     this.printHeader();
     for (const w of this.header) w.putTilemap();
     for (const w of [...this.header, ...this.pageWins]) w?.copyToVram();
     // Step 15: the first page's sprites.
-    this.pic!.invisible = false;
-    this.ball!.invisible = false;
-    this.showBars(false);
+    if (forget) {
+      this.bg1.priority = 1;
+      this.bg2.priority = 2;
+      this.icon!.sprite.invisible = false;
+      this.showCursors(true);
+    } else {
+      this.pic!.invisible = false;
+      this.ball!.invisible = false;
+      this.showBars(false);
+    }
     this.showStatus(false);
     this.showStar(false);
 
-    this.inputHandler = () => this.infoInput();
+    this.inputHandler = forget ? () => this.forgetInput(forget) : () => this.infoInput();
     gba.tasks.create(() => this.inputHandler(), 0);
     gba.setVBlank(() => {
       gba.standardVBlank();
@@ -420,7 +441,9 @@ class Summary {
           ? "gText_PokeSum_Controls_Page"
           : this.page === Page.Moves
             ? "gText_PokeSum_Controls_PageDetail"
-            : "gText_PokeSum_Controls_PickSwitch";
+            : this.forget
+              ? "gText_PokeSum_Controls_PickDelete"
+              : "gText_PokeSum_Controls_PickSwitch";
     this.printPageName(page);
     this.printControls(controls);
     this.printLevelNick();
@@ -500,14 +523,22 @@ class Summary {
   /** PrintMovesPage: the four moves (and CANCEL on the details). */
   private printMoves(): void {
     for (let i = 0; i < 4; i++) this.printMove(i);
-    if (this.page === Page.MovesInfo) this.print(this.win(3), FontId.Normal, 3, MOVE_NAME_Y(CANCEL_ROW), MOVE_COLORS[0], this.flow.assets.text("gFameCheckerText_Cancel"));
+    if (this.forget) this.printMove(CANCEL_ROW);
+    else if (this.page === Page.MovesInfo) this.print(this.win(3), FontId.Normal, 3, MOVE_NAME_Y(CANCEL_ROW), MOVE_COLORS[0], this.flow.assets.text("gFameCheckerText_Cancel"));
+  }
+
+  /** A row's move: a known one, or the new one in the forget mode's last row (BufferMonMoveI). */
+  private moveAt(row: number): { move: number; pp: number; maxPp: number } | undefined {
+    if (row !== CANCEL_ROW || !this.forget) return this.mon.moves[row];
+    const pp = moveInfo(this.forget.move).pp;
+    return { move: this.forget.move, pp, maxPp: pp };
   }
 
   /** PokeSum_PrintMoveName: the name, then PP colored by how much is left. */
   private printMove(i: number): void {
     const { assets } = this.flow;
     const win = this.win(3);
-    const move = this.mon.moves[i];
+    const move = this.moveAt(i);
     if (!move?.move) {
       this.print(win, FontId.Normal, 3, MOVE_NAME_Y(i), MOVE_COLORS[0], assets.text("gText_PokeSum_OneHyphen"));
       this.print(win, FontId.Normal, 36, MOVE_PP_Y(i), MOVE_COLORS[0], assets.text("gText_PokeSum_PP"));
@@ -567,8 +598,8 @@ class Summary {
 
   /** PokeSum_PrintSelectedMoveStats: power, accuracy and description (none on CANCEL). */
   private printMoveStats(): void {
-    const move = this.mon.moves[this.cursor]?.move;
-    if (this.cursor >= CANCEL_ROW || !move) return;
+    const move = this.moveAt(this.cursor)?.move;
+    if (!move) return;
     const { assets } = this.flow;
     const info = moveInfo(move);
     const hyphens = assets.text("gText_ThreeHyphens");
@@ -591,6 +622,7 @@ class Summary {
       this.mon.moves.forEach((m, i) => {
         if (m.move) blitMenuInfoIcon(flow, win, typeIcon(moveInfo(m.move).type), 3, MOVE_NAME_Y(i));
       });
+      if (this.forget) blitMenuInfoIcon(flow, win, typeIcon(moveInfo(this.forget.move).type), 3, MOVE_NAME_Y(CANCEL_ROW));
     }
     win?.putTilemap();
   }
@@ -615,6 +647,11 @@ class Summary {
 
   /** PokeSum_DrawPageProgressTiles. */
   private drawProgress(): void {
+    if (this.forget) {
+      fillBgRect(this.bg3, PROGRESS_TILE + 1, 13, 0, 4, 1, 0);
+      fillBgRect(this.bg3, PROGRESS_TILE + 19, 13, 1, 4, 1, 0);
+      return;
+    }
     for (const [x, top] of PROGRESS[this.page]) {
       fillBgRect(this.bg3, PROGRESS_TILE + top, x, 0, 1, 1, 0);
       fillBgRect(this.bg3, PROGRESS_TILE + progressBottom(top), x, 1, 1, 1, 0);
@@ -773,9 +810,9 @@ class Summary {
 
   /** The selected move's category (D10), with the move details' cursor. */
   private updateCategory(): void {
-    const move = this.mon.moves[this.cursor]?.move;
+    const move = this.moveAt(this.cursor)?.move;
     const category = move ? moveInfo(move).category : Category.UNSPECIFIED;
-    const shown = this.detailsShown && this.page === Page.MovesInfo && category !== Category.UNSPECIFIED && this.cursor < CANCEL_ROW;
+    const shown = this.detailsShown && this.page === Page.MovesInfo && category !== Category.UNSPECIFIED;
     this.category.invisible = !shown;
     if (shown) this.category.startAnim(category - 1);
   }
@@ -999,6 +1036,70 @@ class Summary {
         return;
       }
       this.leaveMoveDetails();
+    }
+  }
+
+  /** Task_InputHandler_SelectOrForgetMove. */
+  private forgetInput(forget: ForgetMode): void {
+    const { flow } = this;
+    const { gba } = flow;
+    const { input, palettes } = gba;
+    const known = (i: number) => !!this.mon.moves[i]?.move;
+    switch (this.state) {
+      case 0:
+        palettes.beginFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
+        this.state = 1;
+        return;
+      case 1:
+        if (palettes.fadeActive) return;
+        this.playCry();
+        this.state = 2;
+        return;
+      case 2: {
+        if (input.isPressed(Button.Up | Button.Down)) {
+          flow.play("se_select");
+          this.state = 3;
+          const up = input.isPressed(Button.Up);
+          let row = this.cursor;
+          do row = (row + (up ? CANCEL_ROW : 1)) % (CANCEL_ROW + 1);
+          while (row !== CANCEL_ROW && !known(row));
+          this.cursor = row;
+        } else if (input.isPressed(Button.A)) {
+          // PokeSum_CanForgetSelectedMove.
+          if (this.cursor < CANCEL_ROW && isHM(this.mon.moves[this.cursor].move)) {
+            flow.play("se_failure");
+            const win = this.win(4);
+            win?.fill(0);
+            win?.print(flow.fonts[FontId.Normal], 7, 42, COLORS_TEXT, flow.assets.text("gText_PokeSum_HmMovesCantBeForgotten"), 0, 0);
+            this.copyWindows();
+            return;
+          }
+          flow.play("se_select");
+          forget.pick(this.cursor);
+          this.state = 5;
+        } else if (input.isPressed(Button.B)) {
+          forget.pick(FORGET_NONE);
+          this.state = 5;
+        }
+        return;
+      }
+      case 3:
+        this.printRightPane();
+        this.printBottomPane();
+        this.printAbilityOrMoveTypes();
+        this.state = 4;
+        return;
+      case 4:
+        this.copyWindows();
+        this.updateCategory();
+        this.state = 2;
+        return;
+      case 5:
+        palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+        this.state = 6;
+        return;
+      default:
+        if (!palettes.fadeActive) this.exit();
     }
   }
 

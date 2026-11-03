@@ -347,6 +347,8 @@ export interface TextContext {
   input: Input;
   /** PlaySE(SE_SELECT) when a prompt is answered. */
   playSelect(): void;
+  /** {PLAY_SE}: the game's song number. */
+  playSong(song: number): void;
   /** gTextFlags.canABSpeedUpPrint. */
   canABSpeedUpPrint: boolean;
   /** Pixels a prompt scroll moves per frame (by text speed: 1, 2, 4). */
@@ -567,6 +569,11 @@ export class TextPrinter {
       case 0x0a:
         this.state = RenderState.WaitSe;
         return Render.Update;
+      case 0x10: {
+        const low = this.next();
+        this.ctx?.playSong(low | (this.next() << 8));
+        return Render.Repeat;
+      }
       case 0x0d:
         this.currentX = this.template.x + this.next();
         return Render.Repeat;

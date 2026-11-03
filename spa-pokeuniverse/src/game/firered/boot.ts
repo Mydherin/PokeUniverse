@@ -14,6 +14,9 @@ import type { Flow, NewTrainer } from "./flow";
 import { startIntro } from "./intro";
 import { startMainMenu } from "./main-menu";
 import { Assets, NEW_GAME_SOUNDS, type SoundId } from "./manifest";
+
+/** {PLAY_SE} in the game's strings, by song number (songs.h). */
+const TEXT_SONGS: Record<number, SoundId> = { 49: "se_ball_bounce_1" };
 import { startNewGame } from "./new-game";
 import { textScrollSpeed, validOptions, type Options } from "./options";
 import { startOverworld } from "./overworld";
@@ -117,6 +120,7 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
       downArrow: assets.get("downArrows").image!,
       input: gba.input,
       playSelect: () => gba.sound.play("se_select"),
+      playSong: (song) => TEXT_SONGS[song] && gba.sound.play(TEXT_SONGS[song]),
       canABSpeedUpPrint: false,
       get scrollSpeed() {
         return textScrollSpeed(options);

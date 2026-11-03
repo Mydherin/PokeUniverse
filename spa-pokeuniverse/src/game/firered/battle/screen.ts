@@ -8,7 +8,7 @@
 // a reconnect.
 
 import { clone, create } from "@bufbuild/protobuf";
-import type { BattleEvent, BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
+import { BattlerSchema, type BattleEvent, type BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
 import {
   BattleActionSchema,
   BattleKind,
@@ -21,7 +21,7 @@ import {
   type BattleView,
 } from "@pokeuniverse/contracts/battle/v1/view";
 import type { Item } from "@pokeuniverse/contracts/item/v1/catalog";
-import { PartySchema, PokemonSchema, type Pokemon } from "@pokeuniverse/contracts/party/v1/party";
+import { MoveSchema, PartySchema, PokemonSchema, type Pokemon, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import { ItemResultSchema } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
@@ -36,8 +36,11 @@ import type { Flow } from "../flow";
 import { Assets, BATTLE_SOUNDS } from "../manifest";
 import { loadAnimations } from "./anims";
 import { startPartyMenu, type PartyHost, type PartyMenuMode } from "../party-menu";
+import { startSummary } from "../summary";
 import type { HealthboxMon } from "./healthbox";
 import { PartySummary } from "./healthbox";
+import { evolutionScene, type EvolutionHost } from "./evolution";
+import { askToLearnMove } from "./learn";
 import { Action, chooseAction, chooseMove, type Cursors } from "./menus";
 import { all, Playback, wait, type PlaybackHost } from "./playback";
 import { BattleScene, Page } from "./scene";
@@ -55,6 +58,10 @@ export interface BattleHost {
   readonly bag: BagHost;
   /** The choice for the request with this step (BattleChoice). */
   choose(battleId: string, step: number, action: BattleAction): void;
+  /** A scene that wasn't stopped: mic-core saves it, then answers. */
+  evolve(slot: number): Promise<PokemonEvolved>;
+  /** After an evolution: a move replaces another (mic-core saves it). */
+  learnMove(slot: number, move: number, forget: number): void;
   /** The battle is over and the screen black: back to the field (after a loss, the whiteout). */
   finished(result: BattleResult): void;
 }
@@ -89,7 +96,10 @@ export class BattleScreen implements PlaybackHost {
     intro: boolean,
   ) {
     this.state = new BattleState(view);
-    this.texts = new BattleTexts(flow, host.playerName, view.trainer, (b) => this.state.battler(b) !== null);
+    this.texts = new BattleTexts(flow, host.playerName, view.trainer, (b) => this.state.battler(b) !== null, (slot) => {
+      const mon = host.party.pokemon[slot];
+      return mon && (mon.nickname ? flow.encode(mon.nickname) : flow.assets.species(mon.species).name);
+    });
     for (const side of this.state.sides) for (const info of side.active) if (info) this.texts.remember(info);
     this.playback = new Playback(this);
     const active = this.state.side(false).active[0]?.battler?.partySlot ?? 0;
@@ -237,6 +247,12 @@ export class BattleScreen implements PlaybackHost {
     if (request) state.request = request;
     const r = state.request;
     if (!r || r.kind === RequestKind.WAIT || r.kind === RequestKind.UNSPECIFIED) return;
+    if (r.kind === RequestKind.LEARN_MOVE) {
+      const slot = r.learn?.partySlot ?? 0;
+      const forget = yield* this.askToLearn(slot, r.learn?.move ?? 0);
+      this.send({ case: "learn", value: { $typeName: "pokeuniverse.battle.v1.LearnMoveAction", forgetSlot: forget ?? undefined } });
+      return;
+    }
     if (r.kind === RequestKind.SWITCH) {
       const slot = yield* this.chooseFromParty({ forced: true });
       if (slot !== null) this.send({ case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } });
@@ -308,12 +324,48 @@ export class BattleScreen implements PlaybackHost {
     while (gba.palettes.fadeActive) yield;
     yield* wait(1);
     gba.sound.stopBgm();
+    if (e.evolutions.length) {
+      const evolving = this.evolutionHost();
+      for (const pending of e.evolutions) yield* evolutionScene(evolving, pending);
+    }
     this.host.finished(e.result);
+  }
+
+  /** The party is mic-core's again here: the battle's outcome reached it with the ending. */
+  private evolutionHost(): EvolutionHost {
+    const { flow, host } = this;
+    const pokemon = (slot: number) => host.party.pokemon[slot];
+    return {
+      flow,
+      texts: this.texts,
+      nationalDex: host.nationalDex,
+      newScene: () => this.newScene(),
+      fadeIn: () => this.fadeIn(),
+      monName: (slot) => this.texts.name(create(BattlerSchema, { partySlot: slot })),
+      mon: pokemon,
+      moveAt: (slot, moveSlot) => pokemon(slot)?.moves[moveSlot]?.move ?? 0,
+      evolve: (slot) => host.evolve(slot),
+      learnMove: (slot, move, forget) => host.learnMove(slot, move, forget),
+      forgetScreen: (slot, move, pick, redraw) => this.forgetScreen(this.hostOf(host.party), slot, move, pick, redraw),
+    };
   }
 
   private *waitPress(): Generator<void, void, void> {
     while (!this.flow.gba.input.isPressed(Button.A | Button.B)) yield;
     this.flow.play("se_select");
+  }
+
+  /** BattleScript_AskToLearnMove for a party member, on the battle's own party. */
+  private askToLearn(slot: number, move: number): Generator<void, number | null, void> {
+    return askToLearnMove(() => this.scene, this.texts, this.texts.name(create(BattlerSchema, { partySlot: slot })), move, (pick) => this.forgetScreen(this.partyHost(), this.order.indexOf(slot), move, pick, () => this.drawBattle()));
+  }
+
+  /** The summary in its forget mode; `pick` hears the row chosen (4: none). */
+  private *forgetScreen(host: PartyHost, index: number, move: number, pick: (row: number) => void, redraw: () => void): Generator<void, void, void> {
+    const mon = host.party.pokemon[index];
+    yield* this.openScreen((back) => {
+      void this.flow.assets.pokemonArt(mon.species).then(() => startSummary(this.flow, host, index, () => back(), { move, pick }));
+    }, redraw);
   }
 
   // Screens: the party menu and the bag
@@ -349,7 +401,7 @@ export class BattleScreen implements PlaybackHost {
   }
 
   /** Fades out, opens another screen, and once it's back draws the battle again and fades in. */
-  private *openScreen(open: (back: () => void) => void): Generator<void, void, void> {
+  private *openScreen(open: (back: () => void) => void, redraw = () => this.drawBattle()): Generator<void, void, void> {
     const { gba } = this.flow;
     gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     while (gba.palettes.fadeActive) yield;
@@ -359,12 +411,16 @@ export class BattleScreen implements PlaybackHost {
       this.away = false;
       returned = true;
       gba.setMain(() => this.frame());
-      this.newScene();
-      this.drawField();
+      redraw();
       this.fadeIn();
     });
     while (!returned) yield;
     while (gba.palettes.fadeActive) yield;
+  }
+
+  private drawBattle(): void {
+    this.newScene();
+    this.drawField();
   }
 
   private newScene(): BattleScene {
@@ -395,12 +451,18 @@ export class BattleScreen implements PlaybackHost {
           mon.hp = m.health?.hp ?? mon.hp;
           mon.status = m.status;
           mon.heldItem = m.heldItem;
-          m.pp.forEach((pp, i) => mon.moves[i] && (mon.moves[i].pp = pp));
+          // Levels and moves gained in this battle aren't mic-core's party yet.
+          Object.assign(mon, { level: m.level, exp: m.exp, levelExp: m.levelExp, nextLevelExp: m.nextLevelExp, stats: m.stats ?? mon.stats });
+          mon.moves = m.moves.map((move, i) => create(MoveSchema, { move, pp: m.pp[i], maxPp: m.maxPp[i] }));
         }
         return mon;
       })
       .filter((p): p is Pokemon => p !== null);
-    const party = new PartyState(create(PartySchema, { pokemon }));
+    return this.hostOf(new PartyState(create(PartySchema, { pokemon })));
+  }
+
+  /** A party for the party menu and the summary, which change nothing here. */
+  private hostOf(party: PartyState): PartyHost {
     const host = this.host;
     const none = () => Promise.resolve(create(ItemResultSchema));
     return {
@@ -437,7 +499,7 @@ export class BattleScreen implements PlaybackHost {
       status: info.status,
     };
     if (b && !b.foe) {
-      const p = this.host.party.pokemon[b.partySlot];
+      const p = this.state.party.find((m) => m.partySlot === b.partySlot) ?? this.host.party.pokemon[b.partySlot];
       if (p) mon.exp = [p.exp - p.levelExp, p.nextLevelExp - p.levelExp];
     }
     return mon;

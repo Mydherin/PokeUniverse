@@ -46,7 +46,7 @@ func team(party pokemon.Party, trainerID uint32) *battlev1.BattleTeam {
 			Species: p.Species, Nickname: p.Nickname, Level: uint32(p.Level), Nature: p.Nature(), Ability: p.Ability(),
 			HeldItem: p.HeldItem, Ivs: p.IVs.Proto(), Evs: p.EVs.Proto(), Moves: moves, Hp: uint32(p.HP), Status: p.Status,
 			Gender: p.Gender(), Shiny: p.Shiny(), Personality: p.Personality, Friendship: uint32(p.Friendship),
-			Traded: trainerID != 0 && p.OT.ID != trainerID,
+			Traded: trainerID != 0 && p.OT.ID != trainerID, Exp: uint32(p.Exp),
 		}
 	}
 	return out

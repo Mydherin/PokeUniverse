@@ -18,3 +18,8 @@ message Pokedex {
   // Caught species are always seen too.
   bytes caught = 4;
 }
+
+// Server -> client: the Pokédex after a change (a battle, an evolution), saved.
+message PokedexChanged {
+  Pokedex pokedex = 1;
+}

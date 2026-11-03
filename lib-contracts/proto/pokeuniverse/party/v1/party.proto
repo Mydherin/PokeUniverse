@@ -99,6 +99,35 @@ message TakePartyItem {
   uint32 slot = 1;
 }
 
+// A party Pokémon that evolves after a battle (BattleEnded), once its scene isn't stopped.
+message PendingEvolution {
+  uint32 slot = 1;
+  pokeuniverse.species.v1.Species species = 2;
+}
+
+// Client -> server: the scene wasn't stopped. Answered with PartyChanged, then PokemonEvolved.
+message EvolvePokemon {
+  uint32 slot = 1;
+}
+
+// Server -> client: it evolved, and it was saved.
+message PokemonEvolved {
+  uint32 slot = 1;
+  // New moves at its level, already in free slots.
+  repeated pokeuniverse.move.v1.Move learned = 2;
+  // New moves with no slot free: each is answered with LearnMove, or not at all.
+  repeated pokeuniverse.move.v1.Move to_learn = 3;
+  // It was refused or couldn't be saved: nothing changed, the scene ends as if stopped.
+  bool failed = 4;
+}
+
+// Client -> server: one of PokemonEvolved.to_learn replaces a move. Answered with PartyChanged.
+message LearnMove {
+  uint32 slot = 1;
+  pokeuniverse.move.v1.Move move = 2;
+  uint32 forget_slot = 3;
+}
+
 // Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
 // or alone to correct a refused SwapPartySlots or SwapPokemonMoves.
 message PartyChanged {

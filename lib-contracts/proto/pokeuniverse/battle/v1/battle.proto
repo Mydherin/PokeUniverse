@@ -8,6 +8,7 @@ import "pokeuniverse/ability/v1/catalog.proto";
 import "pokeuniverse/battle/v1/event.proto";
 import "pokeuniverse/battle/v1/view.proto";
 import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/move/v1/catalog.proto";
 import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/pokemon/v1/nature.proto";
 import "pokeuniverse/pokemon/v1/pokemon.proto";
@@ -69,6 +70,8 @@ message BattleMon {
   uint32 friendship = 15;
   // Its trainer isn't its original trainer: 1.5× experience.
   bool traded = 16;
+  // Its total experience now: it levels up during the battle (mic-battles).
+  uint32 exp = 17;
 }
 
 // One side's trainer and team.
@@ -135,15 +138,19 @@ message MonOutcome {
   repeated uint32 pp = 3;
   // Unspecified: none (used up, knocked off…).
   pokeuniverse.item.v1.Item held_item = 4;
-  // Experience and EVs gained in this battle (mic-core applies levels and the EV caps).
+  // Experience and EVs gained in this battle, within the caps (the level follows from them).
   uint32 exp = 5;
   pokeuniverse.pokemon.v1.Stats evs = 6;
+  // Its moves at the end, in the same order as pp: level ups can bring new ones.
+  repeated pokeuniverse.move.v1.Move moves = 7;
 }
 
 message SideOutcome {
   BattleResult result = 1;
   // In party order, as the battle started.
   repeated MonOutcome pokemon = 2;
+  // The other side's species that came out, for the Pokédex.
+  repeated pokeuniverse.species.v1.Species seen = 3;
 }
 
 message BattleOutcome {

@@ -1,6 +1,8 @@
 package pokemon
 
 import (
+	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	movev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
 	pokemonv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
 )
 
@@ -9,6 +11,9 @@ const (
 	MaxStatEV  = 255
 	MaxTotalEV = 510
 )
+
+// MaxFriendship is FireRed's most friendship.
+const MaxFriendship = 255
 
 // Heal is HealPlayerParty for one Pokémon: full HP and PP, no status.
 func (p *Pokemon) Heal() {
@@ -46,10 +51,9 @@ func (pt Party) HighestLevel() int {
 }
 
 // Gain adds what a battle earned: EVs within Gen 4's caps, then experience up to level 100's,
-// levelling up as it goes. A level up raises HP by what max HP gained (FireRed's level up); a
-// fainted Pokémon stays at 0. Moves learned and evolution come with plans/battles M11.
+// levelling up as it goes, with friendship per level (AdjustFriendship). HP is the caller's: the
+// battle already raised it.
 func (p *Pokemon) Gain(exp int, evs Stats) {
-	before := p.Stats()[0]
 	total := 0
 	for _, v := range p.EVs {
 		total += v
@@ -63,9 +67,62 @@ func (p *Pokemon) Gain(exp int, evs Stats) {
 	}
 	rate := p.info().GetGrowthRate()
 	p.Exp = min(p.Exp+exp, ExpAt(rate, MaxLevel))
-	p.Level = max(p.Level, LevelAt(rate, p.Exp))
-	after := p.Stats()[0]
-	if p.HP > 0 {
-		p.HP = max(1, min(p.HP+after-before, after))
+	for level := LevelAt(rate, p.Exp); p.Level < level; p.Level++ {
+		p.growFriendship()
 	}
+}
+
+// growFriendship is FRIENDSHIP_EVENT_GROW_LEVEL: +5 below 100, +3 below 200, +2 from there, half
+// as much again with a SOOTHE BELL, +1 from a LUXURY BALL first.
+func (p *Pokemon) growFriendship() {
+	delta := 5
+	if p.Friendship >= 200 {
+		delta = 2
+	} else if p.Friendship >= 100 {
+		delta = 3
+	}
+	if p.Ball == itemv1.Item_ITEM_LUXURY_BALL {
+		delta++
+	}
+	if p.HeldItem == itemv1.Item_ITEM_SOOTHE_BELL {
+		delta = delta * 150 / 100
+	}
+	p.Friendship = min(p.Friendship+delta, MaxFriendship)
+}
+
+// ApplyMoves sets its moves as a battle left them, by position: a different one is a new move
+// with no PP UPs, accepted only when its species learns it by now (mic-battles decides the rules,
+// this guards the save). False when one wasn't accepted. PP stay within each move's maximum.
+func (p *Pokemon) ApplyMoves(moves []movev1.Move, pp []uint32) bool {
+	ok := true
+	for i, id := range moves {
+		if i >= MaxMoves {
+			break
+		}
+		if i >= len(p.Moves) || p.Moves[i].ID != id {
+			if !p.learnsByLevel(id) {
+				ok = false
+				continue
+			}
+			if i >= len(p.Moves) {
+				p.Moves = append(p.Moves, Move{})
+			}
+			p.Moves[i] = Move{ID: id, PP: MaxPP(id, 0)}
+		}
+	}
+	for i, left := range pp {
+		if i < len(p.Moves) {
+			p.Moves[i].PP = min(int(left), MaxPP(p.Moves[i].ID, p.Moves[i].PPUps))
+		}
+	}
+	return ok
+}
+
+func (p *Pokemon) learnsByLevel(id movev1.Move) bool {
+	for _, lm := range p.info().GetLevelMoves() {
+		if movev1.Move(lm.GetMove()) == id && int(lm.GetLevel()) <= p.Level {
+			return true
+		}
+	}
+	return false
 }

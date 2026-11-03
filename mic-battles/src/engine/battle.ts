@@ -10,6 +10,8 @@ import { FORMAT } from "../rules.ts";
 import { registerBagItems } from "./bag.ts";
 import { abilityId, genderId, itemId, moveId, natureName, speciesId, statusId } from "./lookup.ts";
 
+const MAX_MOVES = 4;
+
 export type Pokemon = Battle["sides"][number]["pokemon"][number];
 export type Side = Battle["sides"][number];
 
@@ -79,6 +81,52 @@ export function pokemonAt(battle: Battle, side: number, slot: number): Pokemon {
 }
 
 export const partySlot = (pokemon: Pokemon) => Number(pokemon.name);
+
+/** Its stats now, as our Stats: what a level up window and the party view show. */
+export function statsOf(pokemon: Pokemon) {
+  const s = pokemon.baseStoredStats;
+  return { hp: pokemon.baseMaxhp, attack: s.atk, defense: s.def, speed: s.spe, spAttack: s.spa, spDefense: s.spd };
+}
+
+/**
+ * A level up (CalculateMonStats): the level and stats change, and HP rises by what max HP gained.
+ * A Transformed Pokémon keeps fighting with what it copied until it switches out, as in FireRed.
+ */
+export function setLevel(battle: Battle, pokemon: Pokemon, level: number, evs: PokemonSet["evs"]): void {
+  pokemon.set.level = level;
+  pokemon.set.evs = evs;
+  (pokemon as { level: number }).level = level;
+  const stats = battle.spreadModify(pokemon.baseSpecies.baseStats, pokemon.set);
+  if (pokemon.baseSpecies.maxHP) stats.hp = pokemon.baseSpecies.maxHP;
+  const gained = stats.hp - pokemon.baseMaxhp;
+  pokemon.baseMaxhp = stats.hp;
+  pokemon.maxhp = stats.hp;
+  if (pokemon.hp > 0) pokemon.hp = Math.max(1, Math.min(pokemon.hp + gained, stats.hp));
+  pokemon.baseStoredStats = stats;
+  if (!pokemon.transformed) pokemon.storedStats = { ...stats };
+}
+
+export const moveSlotFree = (pokemon: Pokemon) => pokemon.baseMoveSlots.length < MAX_MOVES;
+
+/**
+ * A move learned, in a free slot or over `forget` (0 to 3). PP UPs go with the old move
+ * (RemoveMonPPBonus), and a slot replaced by Mimic or Transform stays as it is until the switch.
+ */
+export function learnMove(pokemon: Pokemon, move: number, forget?: number): void {
+  const id = moveId(move);
+  const data = pokemon.battle.dex.moves.get(id);
+  const slot = { move: data.name, id: data.id, pp: data.pp, maxpp: data.pp, target: data.target, disabled: false, used: false };
+  const at = forget ?? pokemon.baseMoveSlots.length;
+  const old = pokemon.baseMoveSlots[at]?.id;
+  pokemon.baseMoveSlots[at] = slot;
+  pokemon.set.moves[at] = id;
+  if (pokemon.transformed) return;
+  const live = forget === undefined ? pokemon.moveSlots.length : pokemon.moveSlots.findIndex((m) => m.id === old);
+  if (live >= 0) pokemon.moveSlots[live] = { ...slot };
+  // updatechoicemoveonlvlup: a Choice item stays locked on what replaced its move.
+  const lock = pokemon.volatiles.choicelock as { move?: string } | undefined;
+  if (lock && lock.move === old) lock.move = data.id;
+}
 
 function toSet(mon: BattleMon, slot: number): PokemonSet {
   return {

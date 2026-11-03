@@ -8,7 +8,9 @@ package pokeuniverse.battle.v1;
 import "pokeuniverse/battle/v1/event.proto";
 import "pokeuniverse/item/v1/catalog.proto";
 import "pokeuniverse/move/v1/catalog.proto";
+import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/pokemon/v1/pokemon.proto";
+import "pokeuniverse/pokemon/v1/stats.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1";
 
@@ -70,6 +72,8 @@ enum RequestKind {
   REQUEST_KIND_ACTION = 2;
   // A Pokémon must be sent out (after a faint, U-turn, Baton Pass): POKéMON only.
   REQUEST_KIND_SWITCH = 3;
+  // A level up brought a move and four are known: which one it replaces, if any.
+  REQUEST_KIND_LEARN_MOVE = 4;
 }
 
 // One of the active Pokémon's moves, for FIGHT.
@@ -92,6 +96,21 @@ message PartyMember {
   // Each move's PP now, in the party's move order.
   repeated uint32 pp = 5;
   bool active = 6;
+  // It levels up and learns moves during the battle (mic-core saves them with the outcome).
+  uint32 level = 7;
+  uint32 exp = 8;
+  uint32 level_exp = 9;
+  uint32 next_level_exp = 10;
+  pokeuniverse.pokemon.v1.Stats stats = 11;
+  // In the same order as pp.
+  repeated pokeuniverse.move.v1.Move moves = 12;
+  repeated uint32 max_pp = 13;
+}
+
+// REQUEST_KIND_LEARN_MOVE: the move a party member wants to learn.
+message LearnMoveRequest {
+  uint32 party_slot = 1;
+  pokeuniverse.move.v1.Move move = 2;
 }
 
 // A choice the reader must make. Locked moves (Outrage, recharging, a charged move) are chosen by
@@ -106,6 +125,7 @@ message BattleRequest {
   // ACTION: it can't switch out (Mean Look, Arena Trap, a partial trap…).
   bool trapped = 4;
   repeated PartyMember party = 5;
+  LearnMoveRequest learn = 6;
 }
 
 // FIGHT: one of the active Pokémon's moves.
@@ -134,12 +154,19 @@ message ItemAction {
 // RUN.
 message RunAction {}
 
+// The answer to a LEARN_MOVE request.
+message LearnMoveAction {
+  // The move it replaces (0 to 3). Unset: it doesn't learn the move.
+  optional uint32 forget_slot = 1;
+}
+
 message BattleAction {
   oneof kind {
     MoveAction move = 1;
     SwitchAction switch = 2;
     ItemAction item = 3;
     RunAction run = 4;
+    LearnMoveAction learn = 5;
   }
 }
 
@@ -182,4 +209,6 @@ message BattleEnded {
   BattleResult result = 2;
   // Money won (WON) or lost (LOST: FireRed's whiteout).
   uint32 money = 3;
+  // Who evolves now, in party order: the scene plays, then EvolvePokemon unless B stops it.
+  repeated pokeuniverse.party.v1.PendingEvolution evolutions = 4;
 }

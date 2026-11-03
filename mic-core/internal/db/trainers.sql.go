@@ -310,3 +310,30 @@ func (q *Queries) UpdateTrainerOptions(ctx context.Context, arg UpdateTrainerOpt
 	}
 	return result.RowsAffected(), nil
 }
+
+const updateTrainerPokedex = `-- name: UpdateTrainerPokedex :execrows
+UPDATE trainers
+SET pokedex_seen = $2, pokedex_caught = $3
+WHERE account_id = $1 AND created_at = $4
+`
+
+type UpdateTrainerPokedexParams struct {
+	AccountID     int64
+	PokedexSeen   []byte
+	PokedexCaught []byte
+	CreatedAt     time.Time
+}
+
+// Species seen and caught, after a battle or an evolution; only into the save they belong to.
+func (q *Queries) UpdateTrainerPokedex(ctx context.Context, arg UpdateTrainerPokedexParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerPokedex,
+		arg.AccountID,
+		arg.PokedexSeen,
+		arg.PokedexCaught,
+		arg.CreatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}

@@ -287,6 +287,11 @@ const PARTY_GRAPHICS = {
  * pictures (the opponent's front, the player's back with its throwing frames).
  */
 const BATTLE_GRAPHICS = {
+  levelUpStripes: { png: "pokemon_special_anim/level_up.png", bpp4: true },
+  evolutionSparkle: { png: "evolution_scene/sparkle.png", bpp4: true },
+  evolutionBg: { png: "evolution_scene/bg.png", bin: "evolution_scene/bg.bin", bpp4: true },
+  evolutionBg2: { bytes: "evolution_scene/bg2.bin" },
+  evolutionPal: { pal: "evolution_scene/transition.pal" },
   battleTextbox: { png: "battle_interface/textbox.png", bin: "battle_interface/textbox.bin" },
   battleTextboxPal1: { pal: "battle_interface/textbox1.pal" },
   battleTextboxPal2: { pal: "battle_interface/textbox2.pal" },
@@ -369,6 +374,18 @@ export const NEW_GAME_SOUNDS = [
 export const BATTLE_SOUNDS = [
   "mus_vs_trainer",
   "mus_victory_trainer",
+  "mus_level_up",
+  "mus_evolution_intro",
+  "mus_evolution",
+  "mus_evolved",
+  "se_exp",
+  "se_exp_max",
+  "se_rs_shop",
+  "se_ball_bounce_1",
+  "se_failure",
+  "se_m_bubble_beam2",
+  "se_shiny",
+  "se_m_petal_dance",
   "se_ball_throw",
   "se_effective",
   "se_super_effective",

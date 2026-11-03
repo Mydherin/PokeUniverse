@@ -6,9 +6,9 @@ import type { Battle } from "@pkmn/sim";
 import type { BattleOutcomeSchema, StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
 import type { BattlerInfoSchema, HealthSchema } from "@pokeuniverse/contracts/battle/v1/event";
 import { BattleResult, PartyBall, RequestKind, type BattleRequestSchema, type BattleViewSchema } from "@pokeuniverse/contracts/battle/v1/view";
-import { moveOptions, partySlot, pokemonAt, type Pokemon } from "../engine/battle.ts";
+import { moveOptions, partySlot, pokemonAt, statsOf, type Pokemon } from "../engine/battle.ts";
 import { itemNumber, moveNumber, statusNumber, weatherNumber } from "../engine/lookup.ts";
-import type { ExpState } from "../exp.ts";
+import { levelSpan, seenBy, totalExp, type ExpState } from "../exp.ts";
 
 /** Showdown keeps a fainted Pokémon's status; FireRed clears it. */
 const status = (p: Pokemon) => statusNumber(p.fainted ? "" : p.status);
@@ -19,7 +19,7 @@ export function health(pokemon: Pokemon, viewer: number): MessageInitShape<typeo
   return { hp: pokemon.hp ? Math.floor((48 * pokemon.hp) / pokemon.maxhp) || 1 : 0, maxHp: 48 };
 }
 
-export function request(battle: Battle, side: number, step: number): MessageInitShape<typeof BattleRequestSchema> {
+export function request(battle: Battle, start: StartBattle, exp: ExpState, side: number, step: number): MessageInitShape<typeof BattleRequestSchema> {
   const s = battle.sides[side];
   const req = s.activeRequest;
   const party = [...s.pokemon].sort((a, b) => partySlot(a) - partySlot(b)).map((p) => ({
@@ -29,7 +29,15 @@ export function request(battle: Battle, side: number, step: number): MessageInit
     heldItem: itemNumber(p.item),
     pp: p.baseMoveSlots.map((m) => m.pp),
     active: p.isActive,
+    level: p.level,
+    exp: totalExp(start, exp, side, partySlot(p)),
+    ...levelSpan(start.sides[side].pokemon[partySlot(p)], p.level),
+    stats: statsOf(p),
+    moves: p.baseMoveSlots.map((m) => moveNumber(m.id)),
+    maxPp: p.baseMoveSlots.map((m) => m.maxpp),
   }));
+  const pending = side === 0 ? exp.pending[0] : undefined;
+  if (pending) return { kind: RequestKind.LEARN_MOVE, step, party, learn: { partySlot: pending.slot, move: pending.move } };
   if (!req || req.wait || battle.ended) return { kind: RequestKind.WAIT, step, party };
   if (req.forceSwitch) return { kind: RequestKind.SWITCH, step, party };
 
@@ -53,7 +61,7 @@ export function battlerInfo(start: StartBattle, pokemon: Pokemon, viewer: number
     battler: { foe: side !== viewer, partySlot: partySlot(pokemon), position: pokemon.position },
     species: mon.species,
     nickname: mon.nickname,
-    level: mon.level,
+    level: pokemon.level,
     gender: mon.gender,
     shiny: mon.shiny,
     personality: mon.personality,
@@ -62,7 +70,7 @@ export function battlerInfo(start: StartBattle, pokemon: Pokemon, viewer: number
   };
 }
 
-export function view(battle: Battle, start: StartBattle, viewer: number, step: number): MessageInitShape<typeof BattleViewSchema> {
+export function view(battle: Battle, start: StartBattle, exp: ExpState, viewer: number, step: number): MessageInitShape<typeof BattleViewSchema> {
   const order = [viewer, ...start.sides.map((_, s) => s).filter((s) => s !== viewer)];
   return {
     battleId: start.battleId,
@@ -73,7 +81,7 @@ export function view(battle: Battle, start: StartBattle, viewer: number, step: n
       balls: start.sides[side].pokemon.map((_, slot) => ball(pokemonAt(battle, side, slot))),
     })),
     weather: weatherNumber(battle.field.weather),
-    request: request(battle, viewer, step),
+    request: request(battle, start, exp, viewer, step),
   };
 }
 
@@ -87,6 +95,7 @@ export function outcome(battle: Battle, start: StartBattle, exp: ExpState, forfe
   return {
     sides: start.sides.map((team, side) => ({
       result: result(battle, side, forfeit),
+      seen: seenBy(start, exp, side),
       pokemon: team.pokemon.map((_, slot) => {
         const p = pokemonAt(battle, side, slot);
         const gain = exp.gains[side][slot];
@@ -98,6 +107,7 @@ export function outcome(battle: Battle, start: StartBattle, exp: ExpState, forfe
           heldItem: itemNumber(p.item),
           exp: gain.exp,
           evs: { hp, attack, defense, speed, spAttack, spDefense },
+          moves: p.baseMoveSlots.map((m) => moveNumber(m.id)),
         };
       }),
     })),

@@ -9,6 +9,7 @@ import (
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/pokedex"
 	"pokeuniverse/mic-core/internal/pokemon"
 )
 
@@ -49,6 +50,11 @@ type Player struct {
 	items *item.State
 	// The trainer's Pokémon; saved to PostgreSQL on every change.
 	party pokemon.Party
+	// What a won battle left to do while its script goes on (memory only: leaving loses it, as a
+	// reset does).
+	evolving evolving
+	// Species seen and caught; saved with the battle or the evolution that changed it.
+	pokedex pokedex.Pokedex
 	// The trainer's ID (traded Pokémon) and money.
 	trainerID uint32
 	money     int
@@ -74,6 +80,7 @@ func (p *Player) ScriptDone(d *worldv1.ScriptDone) {
 	p.zone.do(func() {
 		if d.Script == p.script {
 			p.script, p.pcScript, p.scriptTrainer = 0, 0, ""
+			p.evolving = evolving{}
 		}
 	})
 }

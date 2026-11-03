@@ -42,6 +42,26 @@ func DefaultMoves(info *speciesv1.SpeciesInfo, level int) []Move {
 	return moves
 }
 
+// IsHM is IsHMMove2 (sHMMoves): a move that can't be forgotten.
+func IsHM(id movev1.Move) bool {
+	switch id {
+	case movev1.Move_MOVE_CUT, movev1.Move_MOVE_FLY, movev1.Move_MOVE_SURF, movev1.Move_MOVE_STRENGTH,
+		movev1.Move_MOVE_FLASH, movev1.Move_MOVE_ROCK_SMASH, movev1.Move_MOVE_WATERFALL, movev1.Move_MOVE_DIVE:
+		return true
+	}
+	return false
+}
+
+// Replace puts a new move in a slot, with no PP UPs (SetMonMoveSlot, RemoveMonPPBonus). False when
+// the slot is empty, it holds an HM or the move is already known.
+func (p *Pokemon) Replace(slot int, id movev1.Move) bool {
+	if slot < 0 || slot >= len(p.Moves) || IsHM(p.Moves[slot].ID) || knows(p.Moves, id) {
+		return false
+	}
+	p.Moves[slot] = Move{ID: id, PP: MaxPP(id, 0)}
+	return true
+}
+
 func knows(moves []Move, id movev1.Move) bool {
 	for _, m := range moves {
 		if m.ID == id {

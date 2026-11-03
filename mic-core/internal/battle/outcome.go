@@ -3,6 +3,7 @@ package battle
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	battlev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1"
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
@@ -18,32 +19,31 @@ const MaxMoney = 999999
 // whiteOutMultipliers: sWhiteOutMoneyLossMultipliers, by badges.
 var whiteOutMultipliers = [...]int{2, 4, 6, 9, 12, 16, 20, 25, 30}
 
-// Apply changes the party by its side's outcome (D14): HP, PP and status stay, experience and
-// EVs are gained. Badly poisoned becomes poisoned. A held item used up (a berry, a herb) is
-// gone; any other change (knocked off, stolen, swapped by Trick) is undone, as in Gen 4.
-// The party is in the order the battle started with: it can't change during a battle.
+// Apply changes the party by its side's outcome (D14): experience and EVs are gained, HP (with
+// what levelling up raised, D24), moves, PP and status stay. Badly poisoned becomes poisoned. A
+// held item used up (a berry, a herb) is gone; any other change (knocked off, stolen, swapped by
+// Trick) is undone, as in Gen 4. The party is in the order the battle started with: it can't
+// change during a battle.
 func Apply(party pokemon.Party, o *battlev1.SideOutcome) {
 	for i, out := range o.GetPokemon() {
 		p := party.At(i)
 		if p == nil {
 			continue
 		}
+		ev := out.GetEvs()
+		p.Gain(int(out.GetExp()), pokemon.Stats{int(ev.GetHp()), int(ev.GetAttack()), int(ev.GetDefense()),
+			int(ev.GetSpeed()), int(ev.GetSpAttack()), int(ev.GetSpDefense())})
 		p.HP = min(int(out.GetHp()), p.Stats()[0])
 		p.Status = out.GetStatus()
 		if p.Status == pokemonv1.Status_STATUS_TOXIC {
 			p.Status = pokemonv1.Status_STATUS_POISON
 		}
-		for m, pp := range out.GetPp() {
-			if m < len(p.Moves) {
-				p.Moves[m].PP = min(int(pp), pokemon.MaxPP(p.Moves[m].ID, p.Moves[m].PPUps))
-			}
+		if !p.ApplyMoves(out.GetMoves(), out.GetPp()) {
+			slog.Warn("battle outcome: move not learnable", "species", p.Species, "level", p.Level, "moves", out.GetMoves())
 		}
 		if out.GetHeldItem() == itemv1.Item_ITEM_UNSPECIFIED && usedUp(p.HeldItem) {
 			p.HeldItem = itemv1.Item_ITEM_UNSPECIFIED
 		}
-		ev := out.GetEvs()
-		p.Gain(int(out.GetExp()), pokemon.Stats{int(ev.GetHp()), int(ev.GetAttack()), int(ev.GetDefense()),
-			int(ev.GetSpeed()), int(ev.GetSpAttack()), int(ev.GetSpDefense())})
 	}
 }
 

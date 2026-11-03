@@ -76,6 +76,20 @@ export class Sound {
     p.source.onended = () => this.others.get(player) === p && this.others.delete(player);
   }
 
+  /** PlayFanfare: a song over the BGM, which stays silent until it ends. */
+  playFanfare(id: string): void {
+    this.others.get("fanfare")?.source.stop();
+    const p = this.start(id);
+    if (!p) return;
+    if (this.bgm) this.bgm.gain.gain.value = 0;
+    this.others.set("fanfare", p);
+    p.source.onended = () => {
+      if (this.others.get("fanfare") !== p) return;
+      this.others.delete("fanfare");
+      if (this.bgm) this.bgm.gain.gain.value = this.fadeSpeed ? this.fadeLevel / 16 : 1;
+    };
+  }
+
   /** Moves what a player plays to another pan (SE12PanpotControl). */
   setPan(player: string, pan: number): void {
     const p = this.others.get(player);

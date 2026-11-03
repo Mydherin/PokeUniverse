@@ -17,3 +17,10 @@ export function moveInfo(move: Move): MoveInfo {
 export function tmMove(item: Item): Move {
   return itemInfo(item)?.move ?? Move.UNSPECIFIED;
 }
+
+/** sHMMoves: moves that can't be forgotten (mic-core refuses them too). */
+const HM_MOVES = new Set<number>([Move.CUT, Move.FLY, Move.SURF, Move.STRENGTH, Move.FLASH, Move.ROCK_SMASH, Move.WATERFALL, Move.DIVE]);
+
+export function isHM(move: number): boolean {
+  return HM_MOVES.has(move);
+}

@@ -15,6 +15,7 @@ import (
 	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
+	v14 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokedex/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	reflect "reflect"
 	sync "sync"
@@ -123,6 +124,8 @@ type ClientMessage struct {
 	//	*ClientMessage_SwapPokemonMoves
 	//	*ClientMessage_BattleChoice
 	//	*ClientMessage_ScriptBattle
+	//	*ClientMessage_EvolvePokemon
+	//	*ClientMessage_LearnMove
 	Payload       isClientMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -361,6 +364,24 @@ func (x *ClientMessage) GetScriptBattle() *v1.ScriptBattle {
 	return nil
 }
 
+func (x *ClientMessage) GetEvolvePokemon() *v12.EvolvePokemon {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_EvolvePokemon); ok {
+			return x.EvolvePokemon
+		}
+	}
+	return nil
+}
+
+func (x *ClientMessage) GetLearnMove() *v12.LearnMove {
+	if x != nil {
+		if x, ok := x.Payload.(*ClientMessage_LearnMove); ok {
+			return x.LearnMove
+		}
+	}
+	return nil
+}
+
 type isClientMessage_Payload interface {
 	isClientMessage_Payload()
 }
@@ -449,6 +470,14 @@ type ClientMessage_ScriptBattle struct {
 	ScriptBattle *v1.ScriptBattle `protobuf:"bytes,22,opt,name=script_battle,json=scriptBattle,proto3,oneof"`
 }
 
+type ClientMessage_EvolvePokemon struct {
+	EvolvePokemon *v12.EvolvePokemon `protobuf:"bytes,23,opt,name=evolve_pokemon,json=evolvePokemon,proto3,oneof"`
+}
+
+type ClientMessage_LearnMove struct {
+	LearnMove *v12.LearnMove `protobuf:"bytes,24,opt,name=learn_move,json=learnMove,proto3,oneof"`
+}
+
 func (*ClientMessage_Authenticate) isClientMessage_Payload() {}
 
 func (*ClientMessage_Ping) isClientMessage_Payload() {}
@@ -491,6 +520,10 @@ func (*ClientMessage_BattleChoice) isClientMessage_Payload() {}
 
 func (*ClientMessage_ScriptBattle) isClientMessage_Payload() {}
 
+func (*ClientMessage_EvolvePokemon) isClientMessage_Payload() {}
+
+func (*ClientMessage_LearnMove) isClientMessage_Payload() {}
+
 // Server -> client: events.
 type ServerMessage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -510,6 +543,8 @@ type ServerMessage struct {
 	//	*ServerMessage_BattleStarted
 	//	*ServerMessage_BattleTurn
 	//	*ServerMessage_BattleEnded
+	//	*ServerMessage_PokemonEvolved
+	//	*ServerMessage_PokedexChanged
 	Payload       isServerMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -676,6 +711,24 @@ func (x *ServerMessage) GetBattleEnded() *v13.BattleEnded {
 	return nil
 }
 
+func (x *ServerMessage) GetPokemonEvolved() *v12.PokemonEvolved {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_PokemonEvolved); ok {
+			return x.PokemonEvolved
+		}
+	}
+	return nil
+}
+
+func (x *ServerMessage) GetPokedexChanged() *v14.PokedexChanged {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_PokedexChanged); ok {
+			return x.PokedexChanged
+		}
+	}
+	return nil
+}
+
 type isServerMessage_Payload interface {
 	isServerMessage_Payload()
 }
@@ -732,6 +785,14 @@ type ServerMessage_BattleEnded struct {
 	BattleEnded *v13.BattleEnded `protobuf:"bytes,14,opt,name=battle_ended,json=battleEnded,proto3,oneof"`
 }
 
+type ServerMessage_PokemonEvolved struct {
+	PokemonEvolved *v12.PokemonEvolved `protobuf:"bytes,15,opt,name=pokemon_evolved,json=pokemonEvolved,proto3,oneof"`
+}
+
+type ServerMessage_PokedexChanged struct {
+	PokedexChanged *v14.PokedexChanged `protobuf:"bytes,16,opt,name=pokedex_changed,json=pokedexChanged,proto3,oneof"`
+}
+
 func (*ServerMessage_Welcome) isServerMessage_Payload() {}
 
 func (*ServerMessage_Pong) isServerMessage_Payload() {}
@@ -757,6 +818,10 @@ func (*ServerMessage_BattleStarted) isServerMessage_Payload() {}
 func (*ServerMessage_BattleTurn) isServerMessage_Payload() {}
 
 func (*ServerMessage_BattleEnded) isServerMessage_Payload() {}
+
+func (*ServerMessage_PokemonEvolved) isServerMessage_Payload() {}
+
+func (*ServerMessage_PokedexChanged) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
@@ -1005,7 +1070,7 @@ var File_pokeuniverse_realtime_v1_realtime_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\n" +
-	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a!pokeuniverse/battle/v1/view.proto\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/item/v1/pc.proto\x1a!pokeuniverse/party/v1/party.proto\x1a!pokeuniverse/world/v1/world.proto\"\xe3\v\n" +
+	"'pokeuniverse/realtime/v1/realtime.proto\x12\x18pokeuniverse.realtime.v1\x1a!pokeuniverse/battle/v1/view.proto\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/item/v1/pc.proto\x1a!pokeuniverse/party/v1/party.proto\x1a%pokeuniverse/pokedex/v1/pokedex.proto\x1a!pokeuniverse/world/v1/world.proto\"\xf5\f\n" +
 	"\rClientMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12L\n" +
 	"\fauthenticate\x18\x02 \x01(\v2&.pokeuniverse.realtime.v1.AuthenticateH\x00R\fauthenticate\x124\n" +
@@ -1032,8 +1097,11 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x0ftake_party_item\x18\x13 \x01(\v2$.pokeuniverse.party.v1.TakePartyItemH\x00R\rtakePartyItem\x12W\n" +
 	"\x12swap_pokemon_moves\x18\x14 \x01(\v2'.pokeuniverse.party.v1.SwapPokemonMovesH\x00R\x10swapPokemonMoves\x12K\n" +
 	"\rbattle_choice\x18\x15 \x01(\v2$.pokeuniverse.battle.v1.BattleChoiceH\x00R\fbattleChoice\x12J\n" +
-	"\rscript_battle\x18\x16 \x01(\v2#.pokeuniverse.world.v1.ScriptBattleH\x00R\fscriptBattleB\t\n" +
-	"\apayload\"\x95\a\n" +
+	"\rscript_battle\x18\x16 \x01(\v2#.pokeuniverse.world.v1.ScriptBattleH\x00R\fscriptBattle\x12M\n" +
+	"\x0eevolve_pokemon\x18\x17 \x01(\v2$.pokeuniverse.party.v1.EvolvePokemonH\x00R\revolvePokemon\x12A\n" +
+	"\n" +
+	"learn_move\x18\x18 \x01(\v2 .pokeuniverse.party.v1.LearnMoveH\x00R\tlearnMoveB\t\n" +
+	"\apayload\"\xbb\b\n" +
 	"\rServerMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12=\n" +
 	"\awelcome\x18\x02 \x01(\v2!.pokeuniverse.realtime.v1.WelcomeH\x00R\awelcome\x124\n" +
@@ -1055,7 +1123,9 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x0ebattle_started\x18\f \x01(\v2%.pokeuniverse.battle.v1.BattleStartedH\x00R\rbattleStarted\x12E\n" +
 	"\vbattle_turn\x18\r \x01(\v2\".pokeuniverse.battle.v1.BattleTurnH\x00R\n" +
 	"battleTurn\x12H\n" +
-	"\fbattle_ended\x18\x0e \x01(\v2#.pokeuniverse.battle.v1.BattleEndedH\x00R\vbattleEndedB\t\n" +
+	"\fbattle_ended\x18\x0e \x01(\v2#.pokeuniverse.battle.v1.BattleEndedH\x00R\vbattleEnded\x12P\n" +
+	"\x0fpokemon_evolved\x18\x0f \x01(\v2%.pokeuniverse.party.v1.PokemonEvolvedH\x00R\x0epokemonEvolved\x12R\n" +
+	"\x0fpokedex_changed\x18\x10 \x01(\v2'.pokeuniverse.pokedex.v1.PokedexChangedH\x00R\x0epokedexChangedB\t\n" +
 	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
@@ -1124,16 +1194,20 @@ var file_pokeuniverse_realtime_v1_realtime_proto_goTypes = []any{
 	(*v12.SwapPokemonMoves)(nil), // 24: pokeuniverse.party.v1.SwapPokemonMoves
 	(*v13.BattleChoice)(nil),     // 25: pokeuniverse.battle.v1.BattleChoice
 	(*v1.ScriptBattle)(nil),      // 26: pokeuniverse.world.v1.ScriptBattle
-	(*v1.WorldSnapshot)(nil),     // 27: pokeuniverse.world.v1.WorldSnapshot
-	(*v1.Correction)(nil),        // 28: pokeuniverse.world.v1.Correction
-	(*v1.Script)(nil),            // 29: pokeuniverse.world.v1.Script
-	(*v11.BagChanged)(nil),       // 30: pokeuniverse.item.v1.BagChanged
-	(*v11.ItemResult)(nil),       // 31: pokeuniverse.item.v1.ItemResult
-	(*v11.PcChanged)(nil),        // 32: pokeuniverse.item.v1.PcChanged
-	(*v12.PartyChanged)(nil),     // 33: pokeuniverse.party.v1.PartyChanged
-	(*v13.BattleStarted)(nil),    // 34: pokeuniverse.battle.v1.BattleStarted
-	(*v13.BattleTurn)(nil),       // 35: pokeuniverse.battle.v1.BattleTurn
-	(*v13.BattleEnded)(nil),      // 36: pokeuniverse.battle.v1.BattleEnded
+	(*v12.EvolvePokemon)(nil),    // 27: pokeuniverse.party.v1.EvolvePokemon
+	(*v12.LearnMove)(nil),        // 28: pokeuniverse.party.v1.LearnMove
+	(*v1.WorldSnapshot)(nil),     // 29: pokeuniverse.world.v1.WorldSnapshot
+	(*v1.Correction)(nil),        // 30: pokeuniverse.world.v1.Correction
+	(*v1.Script)(nil),            // 31: pokeuniverse.world.v1.Script
+	(*v11.BagChanged)(nil),       // 32: pokeuniverse.item.v1.BagChanged
+	(*v11.ItemResult)(nil),       // 33: pokeuniverse.item.v1.ItemResult
+	(*v11.PcChanged)(nil),        // 34: pokeuniverse.item.v1.PcChanged
+	(*v12.PartyChanged)(nil),     // 35: pokeuniverse.party.v1.PartyChanged
+	(*v13.BattleStarted)(nil),    // 36: pokeuniverse.battle.v1.BattleStarted
+	(*v13.BattleTurn)(nil),       // 37: pokeuniverse.battle.v1.BattleTurn
+	(*v13.BattleEnded)(nil),      // 38: pokeuniverse.battle.v1.BattleEnded
+	(*v12.PokemonEvolved)(nil),   // 39: pokeuniverse.party.v1.PokemonEvolved
+	(*v14.PokedexChanged)(nil),   // 40: pokeuniverse.pokedex.v1.PokedexChanged
 }
 var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	3,  // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
@@ -1157,25 +1231,29 @@ var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	24, // 18: pokeuniverse.realtime.v1.ClientMessage.swap_pokemon_moves:type_name -> pokeuniverse.party.v1.SwapPokemonMoves
 	25, // 19: pokeuniverse.realtime.v1.ClientMessage.battle_choice:type_name -> pokeuniverse.battle.v1.BattleChoice
 	26, // 20: pokeuniverse.realtime.v1.ClientMessage.script_battle:type_name -> pokeuniverse.world.v1.ScriptBattle
-	4,  // 21: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
-	6,  // 22: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
-	7,  // 23: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
-	27, // 24: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
-	28, // 25: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
-	29, // 26: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
-	30, // 27: pokeuniverse.realtime.v1.ServerMessage.bag_changed:type_name -> pokeuniverse.item.v1.BagChanged
-	31, // 28: pokeuniverse.realtime.v1.ServerMessage.item_result:type_name -> pokeuniverse.item.v1.ItemResult
-	32, // 29: pokeuniverse.realtime.v1.ServerMessage.pc_changed:type_name -> pokeuniverse.item.v1.PcChanged
-	33, // 30: pokeuniverse.realtime.v1.ServerMessage.party_changed:type_name -> pokeuniverse.party.v1.PartyChanged
-	34, // 31: pokeuniverse.realtime.v1.ServerMessage.battle_started:type_name -> pokeuniverse.battle.v1.BattleStarted
-	35, // 32: pokeuniverse.realtime.v1.ServerMessage.battle_turn:type_name -> pokeuniverse.battle.v1.BattleTurn
-	36, // 33: pokeuniverse.realtime.v1.ServerMessage.battle_ended:type_name -> pokeuniverse.battle.v1.BattleEnded
-	0,  // 34: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
-	35, // [35:35] is the sub-list for method output_type
-	35, // [35:35] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	27, // 21: pokeuniverse.realtime.v1.ClientMessage.evolve_pokemon:type_name -> pokeuniverse.party.v1.EvolvePokemon
+	28, // 22: pokeuniverse.realtime.v1.ClientMessage.learn_move:type_name -> pokeuniverse.party.v1.LearnMove
+	4,  // 23: pokeuniverse.realtime.v1.ServerMessage.welcome:type_name -> pokeuniverse.realtime.v1.Welcome
+	6,  // 24: pokeuniverse.realtime.v1.ServerMessage.pong:type_name -> pokeuniverse.realtime.v1.Pong
+	7,  // 25: pokeuniverse.realtime.v1.ServerMessage.error:type_name -> pokeuniverse.realtime.v1.Error
+	29, // 26: pokeuniverse.realtime.v1.ServerMessage.snapshot:type_name -> pokeuniverse.world.v1.WorldSnapshot
+	30, // 27: pokeuniverse.realtime.v1.ServerMessage.correction:type_name -> pokeuniverse.world.v1.Correction
+	31, // 28: pokeuniverse.realtime.v1.ServerMessage.script:type_name -> pokeuniverse.world.v1.Script
+	32, // 29: pokeuniverse.realtime.v1.ServerMessage.bag_changed:type_name -> pokeuniverse.item.v1.BagChanged
+	33, // 30: pokeuniverse.realtime.v1.ServerMessage.item_result:type_name -> pokeuniverse.item.v1.ItemResult
+	34, // 31: pokeuniverse.realtime.v1.ServerMessage.pc_changed:type_name -> pokeuniverse.item.v1.PcChanged
+	35, // 32: pokeuniverse.realtime.v1.ServerMessage.party_changed:type_name -> pokeuniverse.party.v1.PartyChanged
+	36, // 33: pokeuniverse.realtime.v1.ServerMessage.battle_started:type_name -> pokeuniverse.battle.v1.BattleStarted
+	37, // 34: pokeuniverse.realtime.v1.ServerMessage.battle_turn:type_name -> pokeuniverse.battle.v1.BattleTurn
+	38, // 35: pokeuniverse.realtime.v1.ServerMessage.battle_ended:type_name -> pokeuniverse.battle.v1.BattleEnded
+	39, // 36: pokeuniverse.realtime.v1.ServerMessage.pokemon_evolved:type_name -> pokeuniverse.party.v1.PokemonEvolved
+	40, // 37: pokeuniverse.realtime.v1.ServerMessage.pokedex_changed:type_name -> pokeuniverse.pokedex.v1.PokedexChanged
+	0,  // 38: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
+	39, // [39:39] is the sub-list for method output_type
+	39, // [39:39] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_realtime_v1_realtime_proto_init() }
@@ -1205,6 +1283,8 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ClientMessage_SwapPokemonMoves)(nil),
 		(*ClientMessage_BattleChoice)(nil),
 		(*ClientMessage_ScriptBattle)(nil),
+		(*ClientMessage_EvolvePokemon)(nil),
+		(*ClientMessage_LearnMove)(nil),
 	}
 	file_pokeuniverse_realtime_v1_realtime_proto_msgTypes[1].OneofWrappers = []any{
 		(*ServerMessage_Welcome)(nil),
@@ -1220,6 +1300,8 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ServerMessage_BattleStarted)(nil),
 		(*ServerMessage_BattleTurn)(nil),
 		(*ServerMessage_BattleEnded)(nil),
+		(*ServerMessage_PokemonEvolved)(nil),
+		(*ServerMessage_PokedexChanged)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

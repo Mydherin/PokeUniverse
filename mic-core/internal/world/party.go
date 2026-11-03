@@ -1,9 +1,17 @@
 package world
 
 import (
+	"context"
+	"slices"
+	"time"
+
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	movev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
 	partyv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
+	pokedexv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokedex/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	speciesv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
+	"pokeuniverse/mic-core/internal/db"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/pokemon"
 )
@@ -84,6 +92,106 @@ func (z *zone) heldItemAction(p *Player, slot int, atPC bool, act func(*item.Sta
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_ItemResult{ItemResult: &itemv1.ItemResult{
 		Outcome: res.Outcome, Item: reported, Value: uint32(res.Value),
 	}}})
+}
+
+// evolving is what a won battle left: who may evolve, then the moves each one may still learn.
+type evolving struct {
+	pending map[int]*speciesv1.Evolution
+	toLearn map[int][]movev1.Move
+}
+
+func (e evolving) proto() []*partyv1.PendingEvolution {
+	var out []*partyv1.PendingEvolution
+	for slot := range pokemon.PartySize {
+		if evo := e.pending[slot]; evo != nil {
+			out = append(out, &partyv1.PendingEvolution{Slot: uint32(slot), Species: speciesv1.Species(evo.GetSpecies())})
+		}
+	}
+	return out
+}
+
+// night is Gen 4's clock, by the server's: 20:00 to 03:59.
+func night(t time.Time) bool { return t.Hour() >= 20 || t.Hour() < 4 }
+
+// EvolvePokemon: the scene wasn't stopped. It can only do what the battle's end offered.
+func (p *Player) EvolvePokemon(m *partyv1.EvolvePokemon) {
+	p.zone.do(func() { p.zone.evolve(p, int(m.GetSlot())) })
+}
+
+// LearnMove: one of the moves an evolution offered replaces another.
+func (p *Player) LearnMove(m *partyv1.LearnMove) {
+	p.zone.do(func() { p.zone.learnMove(p, int(m.GetSlot()), m.GetMove(), int(m.GetForgetSlot())) })
+}
+
+// evolve saves the evolution with what comes with it (the Pokédex, Shedinja and the ball it
+// takes) in one transaction, then shows it. The client waits for the answer, so a refusal or a
+// failed save answers too.
+func (z *zone) evolve(p *Player, slot int) {
+	evo := p.evolving.pending[slot]
+	if _, ok := z.players[p]; !ok || evo == nil || p.battle != nil {
+		return
+	}
+	delete(p.evolving.pending, slot)
+	party, items, dex := p.party.Clone(), p.items.Clone(), p.pokedex
+	done := pokemon.Evolved{}
+	if pokemon.CanEvolve(evo, p.pokedex.National) {
+		done = p.party.Evolve(slot, evo, p.items.Bag.Quantity(itemv1.Item_ITEM_POKE_BALL) > 0)
+	}
+	var changed item.Changed
+	if done.Shed != nil && p.items.Bag.Remove(itemv1.Item_ITEM_POKE_BALL, 1) {
+		info, _ := item.Info(itemv1.Item_ITEM_POKE_BALL)
+		changed.Pockets = []itemv1.Pocket{info.GetPocket()}
+	}
+	p.pokedex = p.pokedex.Catch(done.Species...)
+	if len(done.Species) == 0 || !z.transact(p, func(ctx context.Context, q *db.Queries, save time.Time) error {
+		if changed.Any() {
+			if err := item.Write(ctx, q, p.accountID, save, p.items, changed); err != nil {
+				return err
+			}
+		}
+		if err := pokemon.Write(ctx, q, p.accountID, save, p.party); err != nil {
+			return err
+		}
+		return savePokedex(ctx, q, p, save)
+	}) {
+		p.party, p.items, p.pokedex = party, items, dex
+		z.sendParty(p)
+		p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_PokemonEvolved{PokemonEvolved: &partyv1.PokemonEvolved{Slot: uint32(slot), Failed: true}}})
+		return
+	}
+	if p.evolving.toLearn == nil {
+		p.evolving.toLearn = map[int][]movev1.Move{}
+	}
+	p.evolving.toLearn[slot] = done.ToLearn
+	z.sendChanged(p, changed)
+	z.sendParty(p)
+	if !p.pokedex.Same(dex) {
+		z.sendPokedex(p)
+	}
+	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_PokemonEvolved{PokemonEvolved: &partyv1.PokemonEvolved{
+		Slot: uint32(slot), Learned: done.Learned, ToLearn: done.ToLearn,
+	}}})
+}
+
+// learnMove answers one of the moves an evolution left waiting; once, whatever the outcome.
+func (z *zone) learnMove(p *Player, slot int, id movev1.Move, forget int) {
+	if _, ok := z.players[p]; !ok {
+		return
+	}
+	waiting := p.evolving.toLearn[slot]
+	at := slices.Index(waiting, id)
+	party := p.party.Clone()
+	mon := p.party.At(slot)
+	if at >= 0 && mon != nil && mon.Replace(forget, id) && z.saveTrainer(p, item.Changed{}, true) {
+		p.evolving.toLearn[slot] = slices.Delete(slices.Clone(waiting), at, at+1)
+	} else {
+		p.party = party
+	}
+	z.sendParty(p)
+}
+
+func (z *zone) sendPokedex(p *Player) {
+	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_PokedexChanged{PokedexChanged: &pokedexv1.PokedexChanged{Pokedex: p.pokedex.Proto()}}})
 }
 
 func (z *zone) sendParty(p *Player) {

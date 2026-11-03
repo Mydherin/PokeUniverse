@@ -9,6 +9,7 @@ import "pokeuniverse/ability/v1/catalog.proto";
 import "pokeuniverse/item/v1/catalog.proto";
 import "pokeuniverse/move/v1/catalog.proto";
 import "pokeuniverse/pokemon/v1/pokemon.proto";
+import "pokeuniverse/pokemon/v1/stats.proto";
 import "pokeuniverse/species/v1/catalog.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1";
@@ -135,6 +136,8 @@ message BattleEvent {
     FormeChange forme_change = 30;
     Exp exp = 31;
     ItemUsed item_used = 32;
+    LevelUp level_up = 33;
+    MoveLearned move_learned = 34;
   }
   // Changes the battle's state only (HP, status…): no text, animation or sound.
   bool silent = 50;
@@ -409,8 +412,31 @@ message FormeChange {
   Effect from = 3;
 }
 
-// The reader's Pokémon gained experience.
+// The reader's Pokémon gained experience. Amount 0: the bar goes on after a level up, with no
+// message. A Pokémon levelling up gets one per level: the bar stops where its level ends.
 message Exp {
   Battler battler = 1;
   uint32 amount = 2;
+  // Where the bar stops: a total, and the totals its level starts and ends at.
+  uint32 exp = 3;
+  uint32 level_exp = 4;
+  uint32 next_level_exp = 5;
+}
+
+// The reader's Pokémon reached a level. Its HP and stats in the battle already changed with it.
+message LevelUp {
+  Battler battler = 1;
+  uint32 level = 2;
+  Health health = 3;
+  // Before and after, for the level up window.
+  pokeuniverse.pokemon.v1.Stats before = 4;
+  pokeuniverse.pokemon.v1.Stats stats = 5;
+}
+
+// The reader's Pokémon learned a move (a free slot, or the answer to a LEARN_MOVE request).
+message MoveLearned {
+  Battler battler = 1;
+  pokeuniverse.move.v1.Move move = 2;
+  // Unspecified: it replaced nothing.
+  pokeuniverse.move.v1.Move forgot = 3;
 }

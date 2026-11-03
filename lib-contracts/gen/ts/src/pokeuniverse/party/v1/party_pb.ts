@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/party/v1/party.proto.
  */
 export const file_pokeuniverse_party_v1_party: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iOwoMUGFydHlDaGFuZ2VkEisKBXBhcnR5GAEgASgLMhwucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlBhcnR5QkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcGFydHkvdjE7cGFydHl2MWIGcHJvdG8z", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iUwoQUGVuZGluZ0V2b2x1dGlvbhIMCgRzbG90GAEgASgNEjEKB3NwZWNpZXMYAiABKA4yIC5wb2tldW5pdmVyc2Uuc3BlY2llcy52MS5TcGVjaWVzIh0KDUV2b2x2ZVBva2Vtb24SDAoEc2xvdBgBIAEoDSKJAQoOUG9rZW1vbkV2b2x2ZWQSDAoEc2xvdBgBIAEoDRIrCgdsZWFybmVkGAIgAygOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRIsCgh0b19sZWFybhgDIAMoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSDgoGZmFpbGVkGAQgASgIIlgKCUxlYXJuTW92ZRIMCgRzbG90GAEgASgNEigKBG1vdmUYAiABKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEhMKC2ZvcmdldF9zbG90GAMgASgNIjsKDFBhcnR5Q2hhbmdlZBIrCgVwYXJ0eRgBIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3BhcnR5L3YxO3BhcnR5djFiBnByb3RvMw", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * One of the trainer's Pokémon, as its trainer sees it (the summary). IVs, EVs and friendship
@@ -337,6 +337,118 @@ export const TakePartyItemSchema: GenMessage<TakePartyItem> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_party_v1_party, 6);
 
 /**
+ * A party Pokémon that evolves after a battle (BattleEnded), once its scene isn't stopped.
+ *
+ * @generated from message pokeuniverse.party.v1.PendingEvolution
+ */
+export type PendingEvolution = Message<"pokeuniverse.party.v1.PendingEvolution"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+
+  /**
+   * @generated from field: pokeuniverse.species.v1.Species species = 2;
+   */
+  species: Species;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.PendingEvolution.
+ * Use `create(PendingEvolutionSchema)` to create a new message.
+ */
+export const PendingEvolutionSchema: GenMessage<PendingEvolution> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 7);
+
+/**
+ * Client -> server: the scene wasn't stopped. Answered with PartyChanged, then PokemonEvolved.
+ *
+ * @generated from message pokeuniverse.party.v1.EvolvePokemon
+ */
+export type EvolvePokemon = Message<"pokeuniverse.party.v1.EvolvePokemon"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.EvolvePokemon.
+ * Use `create(EvolvePokemonSchema)` to create a new message.
+ */
+export const EvolvePokemonSchema: GenMessage<EvolvePokemon> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 8);
+
+/**
+ * Server -> client: it evolved, and it was saved.
+ *
+ * @generated from message pokeuniverse.party.v1.PokemonEvolved
+ */
+export type PokemonEvolved = Message<"pokeuniverse.party.v1.PokemonEvolved"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+
+  /**
+   * New moves at its level, already in free slots.
+   *
+   * @generated from field: repeated pokeuniverse.move.v1.Move learned = 2;
+   */
+  learned: Move$1[];
+
+  /**
+   * New moves with no slot free: each is answered with LearnMove, or not at all.
+   *
+   * @generated from field: repeated pokeuniverse.move.v1.Move to_learn = 3;
+   */
+  toLearn: Move$1[];
+
+  /**
+   * It was refused or couldn't be saved: nothing changed, the scene ends as if stopped.
+   *
+   * @generated from field: bool failed = 4;
+   */
+  failed: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.PokemonEvolved.
+ * Use `create(PokemonEvolvedSchema)` to create a new message.
+ */
+export const PokemonEvolvedSchema: GenMessage<PokemonEvolved> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 9);
+
+/**
+ * Client -> server: one of PokemonEvolved.to_learn replaces a move. Answered with PartyChanged.
+ *
+ * @generated from message pokeuniverse.party.v1.LearnMove
+ */
+export type LearnMove = Message<"pokeuniverse.party.v1.LearnMove"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+
+  /**
+   * @generated from field: pokeuniverse.move.v1.Move move = 2;
+   */
+  move: Move$1;
+
+  /**
+   * @generated from field: uint32 forget_slot = 3;
+   */
+  forgetSlot: number;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.LearnMove.
+ * Use `create(LearnMoveSchema)` to create a new message.
+ */
+export const LearnMoveSchema: GenMessage<LearnMove> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 10);
+
+/**
  * Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
  * or alone to correct a refused SwapPartySlots or SwapPokemonMoves.
  *
@@ -354,5 +466,5 @@ export type PartyChanged = Message<"pokeuniverse.party.v1.PartyChanged"> & {
  * Use `create(PartyChangedSchema)` to create a new message.
  */
 export const PartyChangedSchema: GenMessage<PartyChanged> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 7);
+  messageDesc(file_pokeuniverse_party_v1_party, 11);
 

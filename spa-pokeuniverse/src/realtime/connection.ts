@@ -12,7 +12,8 @@ import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
-import type { PartyChanged } from "@pokeuniverse/contracts/party/v1/party";
+import type { PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
 import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
@@ -40,6 +41,8 @@ export interface WorldEvents {
   pcChanged(p: PcChanged): void;
   /** The whole party (before the ItemResult that changed it), or a correction. */
   partyChanged(p: PartyChanged): void;
+  pokemonEvolved(p: PokemonEvolved): void;
+  pokedexChanged(p: PokedexChanged): void;
   /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
   /** A battle started (or was redrawn after a resume): draw its view, then play its events. */
@@ -86,6 +89,8 @@ export interface WorldLink {
   takePartyItem(slot: number): void;
   /** SWITCH on the summary's move page (slots and moves from 0); shown at once, corrected like swapPartySlots. */
   swapPokemonMoves(slot: number, from: number, to: number): void;
+  evolvePokemon(slot: number): void;
+  learnMove(slot: number, move: number, forgetSlot: number): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -241,6 +246,14 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "swapPokemonMoves", value: { slot, from, to } });
   }
 
+  evolvePokemon(slot: number): void {
+    if (this.inWorld) this.send({ case: "evolvePokemon", value: { slot } });
+  }
+
+  learnMove(slot: number, move: number, forgetSlot: number): void {
+    if (this.inWorld) this.send({ case: "learnMove", value: { slot, move, forgetSlot } });
+  }
+
   private receive(data: Uint8Array): void {
     const msg = fromBinary(ServerMessageSchema, data);
     switch (msg.payload.case) {
@@ -277,6 +290,12 @@ export class Connection implements WorldLink {
         break;
       case "pcChanged":
         this.world?.pcChanged(msg.payload.value);
+        break;
+      case "pokemonEvolved":
+        this.world?.pokemonEvolved(msg.payload.value);
+        break;
+      case "pokedexChanged":
+        this.world?.pokedexChanged(msg.payload.value);
         break;
       case "partyChanged":
         this.world?.partyChanged(msg.payload.value);

@@ -72,6 +72,8 @@ export class BattleTexts {
     private readonly trainer: BattleTrainer | undefined,
     /** The Pokémon is on the field now. */
     readonly isActive: (b: Battler) => boolean,
+    /** A party Pokémon's name, for one not seen in this screen (a battle drawn again). */
+    private readonly benchName: (slot: number) => Text | undefined = () => undefined,
   ) {}
 
   /** One of the game's strings, as it is. */
@@ -111,7 +113,7 @@ export class BattleTexts {
   /** Its nickname, or its species' name. */
   name(b: Battler | undefined): Text {
     const info = this.info(b);
-    if (!info) return [EOS];
+    if (!info) return (b && !b.foe && this.benchName(b.partySlot)) || [EOS];
     return info.nickname ? this.flow.encode(info.nickname) : this.flow.assets.species(info.species).name;
   }
 

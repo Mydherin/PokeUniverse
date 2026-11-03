@@ -264,6 +264,65 @@ export class Healthbox {
     if (!this.foe) this.drawHpText(hp, true);
   }
 
+  /**
+   * Task_GiveExpWithExpBar: 13 frames, then the bar fills a pixel a frame (GetScaledExpFraction)
+   * with SE_EXP, up to `exp`. It starts empty after a level up.
+   */
+  *moveExp(exp: number, levelExp: number, nextLevelExp: number): Generator<void, void, void> {
+    const mon = this.mon;
+    const span = nextLevelExp - levelExp;
+    if (!mon || this.foe || span <= 0) return;
+    const [into, was] = mon.exp ?? [0, 0];
+    const old = into >= was ? 0 : into;
+    const now = exp - levelExp;
+    mon.exp = [now, span];
+    const gained = now - old;
+    if (gained <= 0) return this.drawExp();
+    const pixels = EXP_TILES * 8;
+    const crossed = Math.abs(Math.trunc((old * pixels) / span) - Math.trunc((now * pixels) / span)) || 1;
+    const bar = new BattleBar(span, old, -gained, pixels, Math.max(1, Math.trunc(gained / crossed)));
+    for (let i = 0; i < 13; i++) yield;
+    const { sound } = this.flow.gba;
+    sound.play("se_exp");
+    while (bar.step() >= 0) {
+      this.drawExpBar(bar);
+      yield;
+    }
+    sound.stop("se");
+    this.drawExp();
+  }
+
+  /** It reached a level: its numbers, and the bar empty once the next `moveExp` starts. */
+  levelUp(level: number, hp: number, maxHp: number): void {
+    const mon = this.mon;
+    if (!mon) return;
+    Object.assign(mon, { level, hp, maxHp });
+    this.drawLevel();
+    this.drawHpBar(new BattleBar(maxHp, hp, 0, HP_TILES * 8));
+    this.drawHpText(hp, true);
+    this.drawHpText(maxHp, false);
+    const [, span] = mon.exp ?? [0, 0];
+    mon.exp = [span, span];
+    this.copyEmptyExp();
+  }
+
+  /**
+   * AnimTask_FlashHealthboxOnLevelUp on its own copy of the palette, so the other box stays as it
+   * is: color 6 goes to light blue and back, two steps a frame.
+   */
+  *flashLevelUp(): Generator<void, void, void> {
+    const { palettes } = this.flow.gba;
+    const from = palettes.spritePaletteSlot("healthbox");
+    const slot = palettes.loadSpritePalette("healthboxLevelUp", palettes.unfaded.slice(256 + from * 16, 256 + (from + 1) * 16));
+    this.main.paletteNum = this.other.paletteNum = slot;
+    for (const coeff of [2, 4, 6, 8, 10, 12, 14, 16, 14, 12, 10, 8, 6, 4, 2, 0]) {
+      palettes.blendPalette(256 + slot * 16 + 6, 1, coeff, rgb(20, 27, 31));
+      yield;
+    }
+    this.main.paletteNum = this.other.paletteNum = from;
+    palettes.freeSpritePalette("healthboxLevelUp");
+  }
+
   destroy(): void {
     const { gba } = this.flow;
     for (const s of [this.main, this.other, this.bar]) gba.sprites.destroy(s);
@@ -333,7 +392,19 @@ export class Healthbox {
   /** MoveBattleBarGraphically(EXP_BAR): four tiles on each sprite; empty at Lv. 100. */
   private drawExp(): void {
     const [now, span] = this.mon!.exp ?? [0, 0];
-    const { perTile } = span > 0 ? new BattleBar(span, now, 0, EXP_TILES * 8).filled(EXP_TILES) : { perTile: new Array<number>(EXP_TILES).fill(0) };
+    if (span > 0) this.drawExpBar(new BattleBar(span, now, 0, EXP_TILES * 8));
+    else this.copyEmptyExp();
+  }
+
+  private drawExpBar(bar: BattleBar): void {
+    this.copyExpTiles(bar.filled(EXP_TILES).perTile);
+  }
+
+  private copyEmptyExp(): void {
+    this.copyExpTiles(new Array<number>(EXP_TILES).fill(0));
+  }
+
+  private copyExpTiles(perTile: readonly number[]): void {
     for (let i = 0; i < EXP_TILES; i++) this.copyElement(GFX.exp + perTile[i], this.sheet, i < 4 ? 36 + i : 92 + i, 1);
   }
 
