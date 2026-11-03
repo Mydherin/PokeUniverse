@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "pokeuniverse": {
+      "source": {
+        "source": "directory",
+        "path": "./.claude/mods"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "context-wrap-up@pokeuniverse": true
+  }
+}
