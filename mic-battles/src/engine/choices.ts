@@ -6,7 +6,7 @@ import { create } from "@bufbuild/protobuf";
 import { BattleEventSchema, type BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
 import { ItemActionSchema, type BattleAction } from "@pokeuniverse/contracts/battle/v1/view";
 import { decide, isAiSide, type AiMemory } from "../ai/index.ts";
-import { chooseBagItem } from "./bag.ts";
+import { bagItemWorks, chooseBagItem } from "./bag.ts";
 import type { ExpState } from "../exp.ts";
 import { learnMove, moveOptions, partySlot, pokemonAt, sideId } from "./battle.ts";
 import { moveNumber } from "./lookup.ts";
@@ -31,7 +31,7 @@ export function applyChoice(battle: Battle, side: number, action: BattleAction |
       input = `switch ${pokemonAt(battle, side, action.kind.value.partySlot).position + 1}`;
       break;
     case "item":
-      if (req.forceSwitch || !chooseBagItem(s.active[0], action.kind.value)) throw new InvalidChoice(`item ${action.kind.value.item} can't be used`);
+      if (req.forceSwitch || !bagItemWorks(s.active[0], action.kind.value) || !chooseBagItem(s.active[0], action.kind.value)) throw new InvalidChoice(`item ${action.kind.value.item} can't be used`);
       if (battle.allChoicesDone()) battle.commitChoices();
       return;
     default:

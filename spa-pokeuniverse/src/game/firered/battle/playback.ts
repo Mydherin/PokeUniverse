@@ -7,7 +7,8 @@
 // Each event changes the battle's state as it is shown.
 
 import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned } from "@pokeuniverse/contracts/battle/v1/event";
-import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { BattleUse, Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { itemInfo } from "../../world/items";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
 import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { BattleScene as BattleSceneOption } from "@pokeuniverse/contracts/trainer/v1/trainer";
@@ -174,7 +175,9 @@ export function* wait(frames: number): Generator<void, void, void> {
 }
 
 export class Playback {
-  private readonly recent: Recent = { itemUsed: false };
+  private readonly recent: Recent = { itemUsed: false, eaten: Item.UNSPECIFIED };
+  /** The event before this one (what `recent.eaten` lasts for). */
+  private previous: BattleEvent["kind"]["case"] = undefined;
   private readonly balls: PokeBalls;
   private hits = new Map<BattleEvent, HitResult>();
   private statArgs = new Map<BattleEvent, number>();
@@ -186,8 +189,6 @@ export class Playback {
   private readonly hidden = new Set<string>();
   /** Battlers behind a Substitute: their sprite shows the doll, and steps out of it to move. */
   private readonly behindSubstitute = new Set<string>();
-  /** The berry just eaten: its healing plays no second animation. */
-  private eaten = 0;
 
   constructor(private readonly host: PlaybackHost) {
     this.balls = new PokeBalls(host.flow);
@@ -204,7 +205,9 @@ export class Playback {
   private *event(e: BattleEvent): Generator<void, void, void> {
     const { state, texts, scene } = this.host;
     const k = e.kind;
-    if (k.case !== "heal" && k.case !== "statusCured" && k.case !== "itemUsed" && k.case !== "statChange") this.recent.itemUsed = false;
+    if (k.case !== "heal" && k.case !== "statusCured" && k.case !== "itemUsed" && k.case !== "statChange" && k.case !== "volatileEnd") this.recent.itemUsed = false;
+    if (this.previous !== "itemEnded") this.recent.eaten = Item.UNSPECIFIED;
+    this.previous = k.case;
     if (k.case === "moveUsed") this.recent.mover = k.value.battler;
     if (k.case === "abilityShown") this.recent.ability = k.value.battler;
     if (e.silent) {
@@ -246,7 +249,7 @@ export class Playback {
       case "setHealth": {
         const messages = eventMessages(texts, e, this.recent);
         state.apply(e);
-        if (k.case === "heal" && k.value.battler) yield* this.healAnimation(k.value.battler, k.value.from);
+        if (k.case === "heal" && state.battler(k.value.battler)) yield* this.healAnimation(k.value.battler!, k.value.from);
         yield* this.moveHp(k.value.battler, k.value.health?.hp ?? 0);
         for (const m of messages) yield* scene.message(m);
         return;
@@ -339,10 +342,10 @@ export class Playback {
         const b = k.value.battler;
         const from = k.value.from?.kind;
         if (!b) break;
-        if (k.value.eaten) {
-          this.eaten = k.value.item;
-          yield* this.animateEffect("B_ANIM_HELD_ITEM_EFFECT", b);
-        } else if (from?.case === "move" && from.value === Move.KNOCK_OFF) yield* this.animateEffect("B_ANIM_ITEM_KNOCKOFF", b, { attackerFoe: !b.foe, targetFoe: b.foe });
+        if (k.value.eaten) this.recent.eaten = k.value.item;
+        // Eaten or used up (a sash, a herb): BattleScript_*_RemoveItem plays B_ANIM_HELD_ITEM_EFFECT.
+        if (k.value.eaten || !from) yield* this.animateEffect("B_ANIM_HELD_ITEM_EFFECT", b);
+        else if (from?.case === "move" && from.value === Move.KNOCK_OFF) yield* this.animateEffect("B_ANIM_ITEM_KNOCKOFF", b, { attackerFoe: !b.foe, targetFoe: b.foe });
         break;
       }
       case "itemShown": {
@@ -377,6 +380,8 @@ export class Playback {
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         this.recent.itemUsed = true;
+        if (itemInfo(k.value.item)?.battleUse === BattleUse.BALL) yield* this.ballBlocked();
+        else if (itemInfo(k.value.item)?.effect?.pp || itemInfo(k.value.item)?.effect?.ppMax) yield* scene.message(texts.text("gText_PPWasRestored"));
         return;
       case "exp": {
         const { battler, exp, levelExp, nextLevelExp } = k.value;
@@ -440,7 +445,8 @@ export class Playback {
 
   /** The HP bar moving; the player's own reaching red plays the low HP alarm. */
   private *moveHp(b: Battler | undefined, hp: number): Generator<void, void, void> {
-    if (!b) return;
+    // A potion on the bench moves no bar.
+    if (!b || !this.host.state.battler(b)) return;
     const box = this.host.scene.healthbox(b.foe);
     const mon = this.host.state.side(b.foe).active[0];
     yield* box.moveHp(hp);
@@ -486,6 +492,7 @@ export class Playback {
   private *activateAnimation(b: Battler | undefined, effect: Effect["kind"] | undefined, source: Battler | undefined): Generator<void, void, void> {
     if (!b) return;
     if (effect?.case === "item" && effect.value === Item.FOCUS_BAND) yield* this.animateEffect("B_ANIM_FOCUS_BAND", b);
+    if (effect?.case === "item" && (effect.value === Item.LEPPA_BERRY || effect.value === Item.CUSTAP_BERRY)) yield* this.animateEffect("B_ANIM_HELD_ITEM_EFFECT", b);
     if (effect?.case !== "move") return;
     if (effect.value === Move.SUBSTITUTE) yield* this.hit(b, HitResult.UNSPECIFIED);
     if (effect.value === Move.SNATCH) yield* this.animateEffect("B_ANIM_SNATCH_MOVE", b, { targetFoe: source?.foe ?? !b.foe, always: true });
@@ -494,8 +501,7 @@ export class Playback {
   /** What a heal plays first: Wish coming true, Ingrain's roots, a held item (not the berry just eaten, nor a bag item). */
   private *healAnimation(b: Battler, from: Effect | undefined): Generator<void, void, void> {
     const k = from?.kind;
-    const eaten = this.eaten;
-    this.eaten = 0;
+    const eaten = this.recent.eaten;
     if (k?.case === "move" && k.value === Move.WISH) yield* this.animateEffect("B_ANIM_WISH_HEAL", b);
     if (k?.case === "move" && k.value === Move.INGRAIN) yield* this.animateEffect("B_ANIM_INGRAIN_HEAL", b);
     if (k?.case === "item" && k.value !== eaten && !this.recent.itemUsed) yield* this.animateEffect("B_ANIM_HELD_ITEM_EFFECT", b);
@@ -660,6 +666,25 @@ export class Playback {
       scene.removeMon(b.foe);
     }
     scene.healthbox(b.foe).visible = false;
+  }
+
+  /** BALL_TRAINER_BLOCK: the ball flies at the foe and is knocked away; a trainer's Pokémon can't be caught. */
+  private *ballBlocked(): Generator<void, void, void> {
+    const { flow, scene, texts } = this.host;
+    const foe = scene.mons[1];
+    if (foe) {
+      const ball = this.balls.flying(foe.sprite.x, foe.sprite.y, 2, 0);
+      yield* this.throwBall(ball);
+      flow.play("se_ball_bounce_1");
+      for (let i = 0; i < 24; i++) {
+        ball.x2 += 2;
+        ball.y2 = Math.round((i - 8) ** 2 / 4 - 16);
+        yield;
+      }
+      flow.gba.sprites.destroy(ball);
+    }
+    yield* scene.message(texts.text("sText_TrainerBlockedBall"));
+    yield* scene.message(texts.text("sText_DontBeAThief"));
   }
 
   /** The player's ball flies from the trainer's hand to the Pokémon's spot (SE_BALL_THROW). */

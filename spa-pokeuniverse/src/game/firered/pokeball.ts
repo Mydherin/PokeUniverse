@@ -92,6 +92,14 @@ export class PokeBalls {
     return this.flow.gba.sprites.slots[ball.data[MON]];
   }
 
+  /** A ball with no Pokémon in it, thrown at a spot (the caller moves it and destroys it). */
+  flying(x: number, y: number, priority: number, subpriority: number): Sprite {
+    this.loadGfx();
+    const ball = this.flow.gba.sprites.create(BALL, x, y, subpriority)!;
+    ball.priority = priority;
+    return ball;
+  }
+
   /** CreatePokeballSpriteToReleaseMon: the Pokémon comes out after `delay` frames, then moves home. */
   release(mon: Sprite, x: number, y: number, priority: number, subpriority: number, delay: number, fade: number): Sprite {
     const ball = this.createBall(mon, x, y, priority, subpriority, delay, fade);

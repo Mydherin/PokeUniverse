@@ -19,22 +19,22 @@ import (
 
 const testLevel = 50
 
-// testTeam: legal Gen 4 sets at Lv. 50, FireRed's items only until plans/battles M12.
+// testTeam: legal Gen 4 sets at Lv. 50, with Gen 4's held items.
 var testTeam = []Set{
-	{speciesv1.Species_SPECIES_CHARIZARD, pokemonv1.Nature_NATURE_TIMID, itemv1.Item_ITEM_UNSPECIFIED,
+	{speciesv1.Species_SPECIES_CHARIZARD, pokemonv1.Nature_NATURE_TIMID, itemv1.Item_ITEM_CHOICE_SPECS,
 		[]movev1.Move{movev1.Move_MOVE_FLAMETHROWER, movev1.Move_MOVE_AIR_SLASH, movev1.Move_MOVE_DRAGON_PULSE, movev1.Move_MOVE_ROOST},
 		Stats{4, 0, 0, 252, 252, 0}, nil},
 	{speciesv1.Species_SPECIES_PIKACHU, pokemonv1.Nature_NATURE_HASTY, itemv1.Item_ITEM_LIGHT_BALL,
 		[]movev1.Move{movev1.Move_MOVE_THUNDERBOLT, movev1.Move_MOVE_QUICK_ATTACK, movev1.Move_MOVE_IRON_TAIL, movev1.Move_MOVE_THUNDER_WAVE},
 		Stats{0, 4, 0, 252, 252, 0}, nil},
-	{speciesv1.Species_SPECIES_GARCHOMP, pokemonv1.Nature_NATURE_JOLLY, itemv1.Item_ITEM_UNSPECIFIED,
+	{speciesv1.Species_SPECIES_GARCHOMP, pokemonv1.Nature_NATURE_JOLLY, itemv1.Item_ITEM_FOCUS_SASH,
 		[]movev1.Move{movev1.Move_MOVE_EARTHQUAKE, movev1.Move_MOVE_DRAGON_CLAW, movev1.Move_MOVE_STEALTH_ROCK, movev1.Move_MOVE_SWORDS_DANCE},
 		Stats{4, 252, 0, 252, 0, 0}, nil},
 	// Bullet Punch is a Riolu egg move: Extreme Speed comes at Lv. 51.
-	{speciesv1.Species_SPECIES_LUCARIO, pokemonv1.Nature_NATURE_NAIVE, itemv1.Item_ITEM_UNSPECIFIED,
+	{speciesv1.Species_SPECIES_LUCARIO, pokemonv1.Nature_NATURE_NAIVE, itemv1.Item_ITEM_LIFE_ORB,
 		[]movev1.Move{movev1.Move_MOVE_AURA_SPHERE, movev1.Move_MOVE_CLOSE_COMBAT, movev1.Move_MOVE_BULLET_PUNCH, movev1.Move_MOVE_SWORDS_DANCE},
 		Stats{0, 252, 0, 252, 4, 0}, nil},
-	{speciesv1.Species_SPECIES_GARDEVOIR, pokemonv1.Nature_NATURE_MODEST, itemv1.Item_ITEM_UNSPECIFIED,
+	{speciesv1.Species_SPECIES_GARDEVOIR, pokemonv1.Nature_NATURE_MODEST, itemv1.Item_ITEM_EXPERT_BELT,
 		[]movev1.Move{movev1.Move_MOVE_PSYCHIC, movev1.Move_MOVE_SHADOW_BALL, movev1.Move_MOVE_CALM_MIND, movev1.Move_MOVE_THUNDERBOLT},
 		Stats{4, 0, 0, 252, 252, 0}, nil},
 	// Curse is an egg move (Munchlax).

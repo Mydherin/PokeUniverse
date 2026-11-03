@@ -142,7 +142,7 @@ class BerryPouch {
     private readonly host: BagHost,
     private readonly fromField: boolean,
     private readonly done: (picked?: Item) => void,
-    /** Opened from the party menu's GIVE: A chooses the item to give. */
+    /** Opened from the party menu's GIVE or BAG in battle: A chooses the berry. */
     private readonly pick: boolean,
   ) {
     const { gba, assets } = flow;
@@ -640,7 +640,9 @@ class BerryPouch {
 /** GetBerryNameAndIndexForMenu: "No01 CHERI BERRY", the number in the small font. */
 function berryLabel(flow: Flow, item: Item): Text {
   const { assets } = flow;
-  const number = decimalText(item - Item.CHERI_BERRY + 1, NumberMode.LeadingZeros, 2);
+  // Gen 4's berries go on after ENIGMA BERRY (No43), though their IDs don't.
+  const index = item <= Item.ENIGMA_BERRY ? item - Item.CHERI_BERRY : item - Item.CHILAN_BERRY + Item.ENIGMA_BERRY - Item.CHERI_BERRY + 1;
+  const number = decimalText(index + 1, NumberMode.LeadingZeros, 2);
   return joinText(assets.text("gText_FontSmall"), assets.text("gText_NumberClear01"), number, SPACE, assets.text("gText_FontNormal"), assets.itemName(item));
 }
 

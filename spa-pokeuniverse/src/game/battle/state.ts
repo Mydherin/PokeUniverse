@@ -82,8 +82,12 @@ export class BattleState {
       case "damage":
       case "heal":
       case "setHealth": {
-        const mon = this.battler(k.value.battler);
+        const b = k.value.battler;
+        const side = b ? this.side(b.foe) : { balls: [] as PartyBall[] };
+        const mon = this.battler(b);
         if (mon && k.value.health) mon.health = k.value.health;
+        // A Revive on the bench.
+        if (b && side.balls[b.partySlot] === PartyBall.FAINTED) side.balls[b.partySlot] = PartyBall.HEALTHY;
         return;
       }
       case "faint": {

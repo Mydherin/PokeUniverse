@@ -10,7 +10,7 @@
 
 import type { ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
-import { FieldUse, Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
+import { BattleUse, FieldUse, Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { Gender as MonGender, Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
@@ -19,7 +19,7 @@ import { PALETTES_ALL } from "../gba/palette";
 import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import { decimalText, expandPlaceholders, FontId, joinText, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import { RGB_BLACK, type Background } from "../gba/video";
-import { itemInfo } from "../world/items";
+import { itemInfo, itemWorksOn } from "../world/items";
 import type { PartyState } from "../world/party";
 import { BagLocation, startBag, type BagExit, type BagHost } from "./bag";
 import { fillBgRect, initBg } from "./common";
@@ -60,7 +60,7 @@ export interface PartyHost {
 export type PartyMenuMode =
   | { kind: "field" }
   | { kind: "give"; item: Item; pc: boolean }
-  | { kind: "battle"; forced: boolean; item?: Item; choose: (slot: number) => void };
+  | { kind: "battle"; forced: boolean; item?: Item; choose: (slot: number, moveSlot?: number) => void };
 
 /** What the field menu does once it shows again after a screen it opened (summary, bag). */
 type Resume = { slot: number; then: "selection" } | { slot: number; then: "give"; item: Item };
@@ -222,6 +222,7 @@ const enum Message {
   GiveToWhichMon,
   DoWhatWithMon,
   DoWhatWithItem,
+  RestoreWhichMove,
 }
 
 const HELD_ITEM_TEMPLATE: SpriteTemplate = {
@@ -608,7 +609,9 @@ class PartyMenu {
             ? "gText_GiveToWhichPokemon"
             : message === Message.DoWhatWithMon
               ? "gText_DoWhatWithPokemon"
-              : "gText_DoWhatWithItem";
+              : message === Message.RestoreWhichMove
+                ? "gText_RestoreWhichMove"
+                : "gText_DoWhatWithItem";
     const win = new Window(this.bg2, template);
     drawStdFrame(win, STD_FRAME_TILE, STD_FRAME_PALETTE);
     printDefault(flow, win, FontId.Normal, flow.assets.text(id), 0, 2);
@@ -819,9 +822,40 @@ class PartyMenu {
         const text = expandPlaceholders(this.flow.assets.text(refusal), { [PLACEHOLDER_STR_VAR_1]: monName(this.flow, mon) });
         return this.showMessage(text, false, () => this.returnToChooseMon());
       }
-    }
+    } else if (itemInfo(this.mode.item)?.battleUse === BattleUse.MOVE && mon.hp > 0) return this.chooseMoveForItem(mon);
+    else if (!itemWorksOn(this.mode.item, mon, slot === 0)) return this.wontHaveEffect(() => this.returnToChooseMon());
     this.mode.choose(slot);
     this.close();
+  }
+
+  /** "It won't have any effect." */
+  private wontHaveEffect(then: () => void): void {
+    this.showMessage(this.flow.assets.text("gText_WontHaveEffect"), false, then);
+  }
+
+  /** ShowMoveSelectWindow: an Ether's move. B goes back to the Pokémon. */
+  private chooseMoveForItem(mon: Pokemon): void {
+    const { flow } = this;
+    const font = flow.fonts[FontId.Normal];
+    const n = mon.moves.length;
+    const win = new Window(this.bg2, { left: 19, top: 19 - n * 2, width: 10, height: n * 2, palette: 14, baseBlock: 0x2bf });
+    drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
+    mon.moves.forEach((m, i) => win.print(font, 8, i * 16 + 2, COLORS_ACTIONS, flow.assets.moveName(m.move), font.letterSpacing, 0));
+    this.selection = new CursorMenu(flow, win, FontId.Normal, 0, 2, 16, n, 0);
+    win.copyToVram();
+    this.removeStdMessage();
+    this.showStdMessage(Message.RestoreWhichMove);
+    this.step = () => {
+      const input = this.selection!.processInput(false);
+      if (input === MENU_NOTHING_CHOSEN) return;
+      this.flow.play("se_select");
+      this.removeSelection();
+      if (this.mode.kind !== "battle") return;
+      if (input === MENU_B_PRESSED) return this.returnToChooseMon();
+      if (!itemWorksOn(this.mode.item!, mon, this.slotId === 0, input)) return this.wontHaveEffect(() => this.returnToChooseMon());
+      this.mode.choose(this.slotId, input);
+      this.close();
+    };
   }
 
   /** CursorCB_Summary: the menu fades out into the summary, and comes back on the Pokémon last shown. */

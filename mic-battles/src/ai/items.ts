@@ -2,7 +2,8 @@
 // once. Items after the first wait until the trainer is down to its last Pokémon or so.
 
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
-import { CURES, HEAL_HP, X_STATS } from "../engine/bag.ts";
+import { itemEffect, X_STATS } from "../engine/bag.ts";
+import { statusId } from "../engine/lookup.ts";
 import type { AiView } from "./view.ts";
 
 /** The item to use now (spent from `items`), or 0. `count` is how many the trainer started with. */
@@ -27,10 +28,10 @@ export function itemToUse(v: AiView, items: number[], count: number): number {
 function shouldUse(v: AiView, item: number): boolean | undefined {
   const u = v.user;
   if (item === Item.FULL_RESTORE) return u.hp > 0 && u.hp < u.maxhp / 4;
-  const heal = HEAL_HP[item as Item];
-  if (heal) return u.hp > 0 && (u.hp < u.maxhp / 4 || u.maxhp - u.hp > heal);
-  const cures = CURES[item as Item];
-  if (cures) return (!!u.status && cures.includes(u.status)) || (cures.includes("") && v.volatile(u, "confusion"));
+  const effect = itemEffect(item);
+  if (effect?.revive) return undefined;
+  if (effect?.hp || effect?.hpPercent === 100) return u.hp > 0 && (u.hp < u.maxhp / 4 || (!!effect.hp && u.maxhp - u.hp > effect.hp));
+  if (effect?.cures.length || effect?.confusion) return (!!u.status && effect.cures.map(statusId).includes(u.status)) || (effect.confusion && v.volatile(u, "confusion"));
   const stat = X_STATS[item as Item];
   if (stat) return v.firstTurn(u) && v.stage(u, stat) < 12;
   if (item === Item.DIRE_HIT) return v.firstTurn(u) && !v.volatile(u, "focusenergy");

@@ -15,6 +15,7 @@ import {
 } from "@pokeuniverse/contracts/battle/v1/event";
 import { Ability } from "@pokeuniverse/contracts/ability/v1/catalog";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
+import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { decimalText, EOS, NumberMode, type Text } from "../../gba/text";
 import type { TextId } from "../manifest";
@@ -28,6 +29,8 @@ export interface Recent {
   ability?: Battler;
   /** A trainer just used an item: its effect shows with no message of its own. */
   itemUsed: boolean;
+  /** The berry eaten just before this event: a cure or boost that follows says so. */
+  eaten: Item;
 }
 
 const STAT_NAMES: Partial<Record<BattleStat, TextId>> = {
@@ -172,8 +175,8 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     case "damage":
       return damageMessage(texts, k.value.battler, k.value.from, name);
     case "heal": {
-      if (recent.itemUsed) return [];
       const { battler, source } = k.value;
+      if (recent.itemUsed) return battler?.foe ? [] : msg("sText_PkmnRegainedHealth", { def: battler });
       const from = k.value.from?.kind;
       if (from?.case === "item") return msg("sText_PkmnsItemRestoredHealth", { scr: battler, item: from.value });
       if (from?.case === "ability") return msg("sText_PkmnRestoredHPUsing", { def: battler, ability: from.value });
@@ -193,9 +196,10 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       const b = k.value.battler;
       if (b && !texts.isActive(b)) return [];
       const from = k.value.from?.kind;
-      if (from?.case === "item") {
+      const item = from?.case === "item" ? from.value : recent.eaten;
+      if (item) {
         const status = STATUS_NAMES[k.value.status];
-        return msg("sText_PkmnsItemCuredProblem", { scr: b, item: from.value, buff1: status ? texts.text(status) : [] });
+        return msg("sText_PkmnsItemCuredProblem", { scr: b, item, buff1: status ? texts.text(status) : [] });
       }
       if (k.value.status === Status.SLEEP) return msg("sText_PkmnWokeUp", { atk: b });
       if (k.value.status === Status.FREEZE) return msg("sText_PkmnWasDefrosted2", { atk: b });
@@ -215,6 +219,8 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       if (from?.case === "ability" && from.value === Ability.INTIMIDATE) return msg("sText_PkmnCutsAttackWith", { scr: recent.ability, def: battler, ability: from.value });
       const how = [...(stages >= 2 ? texts.text(lower ? "sText_StatHarshly" : "sText_StatSharply") : [EOS])];
       const change = texts.join(how, texts.text(lower ? "sText_StatFell" : "gBattleText_Rose"));
+      const item = from?.case === "item" ? from.value : recent.eaten;
+      if (item && !lower && !recent.itemUsed) return msg("sText_UsingItemTheStatOfPkmnRose", { scr: battler, item, buff1: statName, buff2: change });
       return lower ? msg("gText_DefendersStatRose", { def: battler, buff1: statName, buff2: change }) : msg("sText_AttackersStatRose", { atk: battler, buff1: statName, buff2: change });
     }
     case "statSet": {
@@ -248,8 +254,10 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     }
     case "volatileEnd": {
       const effect = k.value.effect?.kind;
-      if (effect?.case === "condition" && effect.value === Condition.CONFUSION) return msg("sText_PkmnHealedConfusion", { atk: k.value.battler });
+      if (effect?.case === "condition" && effect.value === Condition.CONFUSION) return recent.eaten ? msg("sText_PkmnsItemSnappedOut", { scr: k.value.battler, item: recent.eaten }) : msg("sText_PkmnHealedConfusion", { atk: k.value.battler });
       if (effect?.case !== "move") return [];
+      const by = k.value.from?.kind;
+      if (effect.value === Move.ATTRACT && by?.case === "item") return msg("sText_PkmnsItemCuredProblem", { scr: k.value.battler, item: by.value, buff1: texts.text("gText_Love") });
       if (effect.value === Move.FUTURE_SIGHT || effect.value === Move.DOOM_DESIRE) return msg("sText_PkmnTookAttack", { def: k.value.battler, buff1: texts.moveName(effect.value) });
       const entry = VOLATILE_END[effect.value];
       return entry ? msg(entry[0], { [entry[1]]: k.value.battler }) : [];
@@ -258,6 +266,11 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       const { battler, source } = k.value;
       const effect = k.value.effect?.kind;
       if (effect?.case === "condition" && effect.value === Condition.CONFUSION) return msg("sText_PkmnIsConfused", { atk: battler });
+      if (effect?.case === "item") {
+        if (effect.value === Item.FOCUS_BAND) return msg("sText_PkmnHungOnWithX", { def: battler, item: effect.value });
+        if (effect.value === Item.LEPPA_BERRY) return msg("sText_PkmnsItemRestoredPP", { scr: battler, item: effect.value, buff1: texts.moveName(k.value.move) });
+        return [];
+      }
       if (effect?.case !== "move") return [];
       if (effect.value === Move.ATTRACT) return msg("sText_PkmnInLove", { atk: battler, scr: source });
       if (effect.value === Move.SPITE) return msg("sText_PkmnReducedPP", { def: battler, buff1: texts.moveName(k.value.move), buff2: num(k.value.amount) });
@@ -294,6 +307,8 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     }
     case "itemEnded": {
       const from = k.value.from?.kind;
+      if (!from && k.value.item === Item.FOCUS_SASH) return msg("sText_PkmnHungOnWithX", { def: k.value.battler, item: k.value.item });
+      if (!from && k.value.item === Item.WHITE_HERB) return msg("sText_PkmnsItemRestoredStatus", { scr: k.value.battler, item: k.value.item });
       if (from?.case !== "move") return [];
       if (from.value === Move.KNOCK_OFF) return msg("sText_PkmnKnockedOff", { atk: recent.mover, def: k.value.battler, item: k.value.item });
       return [];

@@ -78,7 +78,7 @@ export const enum BagLocation {
   ItemPc,
   /** The party menu's GIVE: an item to give is chosen. */
   Party,
-  /** BAG in battle: an item of the ITEMS pocket is chosen to use (plans/battles M7; their effects come with M12). */
+  /** BAG in battle: an item is chosen to use (plans/battles M12). */
   Battle,
 }
 
@@ -612,10 +612,15 @@ class Bag {
     this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.CANT_BE_HELD, item }));
   }
 
-  /** In battle: an ITEMS pocket item goes back to the battle to be used; others aren't for now (OAK's words). */
+  /** In battle: BattleUseFunc_*: an item with a use goes back to the battle, the BERRY POUCH opens to choose a berry; others aren't for now (OAK's words). */
   private chooseToUseInBattle(): void {
+    const { flow, gender, host, done } = this;
     const { item } = this.selected!;
-    if (state.pocket === Pocket.Items) return this.close(true, { chosen: item });
+    if (item === Item.BERRY_POUCH) {
+      const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Battle));
+      return this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true));
+    }
+    if (itemInfo(item)?.battleUse) return this.close(true, { chosen: item });
     this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NOT_NOW, item }));
   }
 

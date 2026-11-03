@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M12](m12-held-and-bag-items.md), from the start.
-- **Last state:** M11 is committed and closed without playing it: its code builds, nothing was seen in the game ([what to watch](m11-exp-level-up-evolution.md#progress), for M14). M6 still lacks the restart-resume check.
+- **Next:** the user picks [M13](m13-options-doubles-polish.md) (deferred) or [M14](m14-phase-4-battle-check.md) (the manual check, only when they ask).
+- **Last state:** M12 is committed and pushed: engine checked by a one-off, all builds pass, not played. M11 and M12 are still to play ([M11](m11-exp-level-up-evolution.md#progress), [M12](m12-held-and-bag-items.md), for M14). M6 still lacks the restart-resume check.
 
 ## Cold Start (every new session)
 
@@ -36,7 +36,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M9 | [FireRed move animations](m09-firered-move-animations.md) | ✅ | Moves 1-354, general animations, full sweep in the game |
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ✅ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ✅ | Exp bar, level up window, learning moves, evolution, Pokédex seen (not played yet: M14) |
-| M12 | [Held and bag items](m12-held-and-bag-items.md) | ⬜ | Gen 4 battle items, bag items in battle, item messages |
+| M12 | [Held and bag items](m12-held-and-bag-items.md) | ✅ | Gen 4 battle items, bag items in battle, item messages (not played yet: M14) |
 | M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ⏸ | SHIFT, doubles, performance (after M12) |
 | M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | ⬜ | Manual full check, only when the user asks |
 
@@ -71,3 +71,5 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-03 | M11 session 1 | D24; contracts; evolutions in the species catalog (`infra/pokemon/evolutions.mjs`); `mic-battles`: exp and level-ups inside Showdown's Faint event, learn step, outcome held until answered | M11 step 1: `mic-core` | One-off battle checked; all builds pass except vite (not run); the game not run; uncommitted; until step 1, `Apply` counts level-up HP twice |
 | 2026-11-03 | M11 session 2 | `mic-core` (outcome, learn choice, evolution rules, intents, Pokédex); client: exp bar, level up, stats box, learn flow, forget screen, evolution scene; assets | Play it, commit | All builds pass, rules checked by a one-off; nothing seen in the game; uncommitted |
 | 2026-11-03 | M11 close | User closed M11 without playing it; committed and pushed | M12 | Its play check goes with M14 |
+| 2026-11-03 | M12 code | D25; 96 Gen 4 items (375-470) with icons and text; their evolutions; bag use from the catalog, BERRY POUCH in battle, Ether's move window, blocked balls; held-item messages and animations; test team items and test bag | M12: engine check, vite, commit | Builds pass except vite (not run); the one-off engine check failed to start, so bag effects are unproven; uncommitted |
+| 2026-11-03 | M12 check | One-off engine check of bag and held items passes; fixed resist berries' double animation and Bug Bite/Pluck's unknown effect; vite ✅ | User picks M13 or M14 | User closed M12 without playing it; committed and pushed; its play check goes with M14 |

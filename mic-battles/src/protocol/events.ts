@@ -173,7 +173,10 @@ export function toEvents(line: Line, ctx: Context): BattleEvent[] {
       add({ case: "itemShown", value: { battler: who(0), item: itemNumber(args[1]), from: from(), source: of() } });
       break;
     case "-enditem":
-      add({ case: "itemEnded", value: { battler: who(0), item: itemNumber(args[1]), from: from(), eaten: "eat" in kw } });
+      // A resist berry writes `[eat]`, then `[weaken]` for the same berry.
+      if ("weaken" in kw) break;
+      // Bug Bite and Pluck: `[from] stealeat|[move] Bug Bite`.
+      add({ case: "itemEnded", value: { battler: who(0), item: itemNumber(args[1]), from: kw.from === "stealeat" ? parseEffect(`move: ${kw.move}`) : from(), eaten: "eat" in kw } });
       break;
     case "bagitem":
       add({ case: "itemUsed", value: { foe: parseSide(args[0]) !== ctx.viewer, item: Number(args[1]), target: who(2) } });

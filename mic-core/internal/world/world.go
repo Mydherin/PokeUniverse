@@ -99,7 +99,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if row.Gender == "girl" {
 		gender = trainerv1.Gender_GENDER_GIRL
 	}
-	party, err := w.loadParty(ctx, accountID, row, gender)
+	party, err := w.loadParty(ctx, accountID, row, gender, items)
 	if err != nil {
 		return nil, nil, fmt.Errorf("join: %w", err)
 	}
@@ -167,13 +167,17 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 }
 
 // loadParty reads the trainer's Pokémon. Test content (plans/battles): until the starter
-// (Phase 5), a trainer with none gets the test team.
-func (w *World) loadParty(ctx context.Context, accountID int64, row db.GetTrainerRow, gender trainerv1.Gender) (pokemon.Party, error) {
+// (Phase 5), a trainer with none gets the test team and the test bag.
+func (w *World) loadParty(ctx context.Context, accountID int64, row db.GetTrainerRow, gender trainerv1.Gender, items *item.State) (pokemon.Party, error) {
 	party, err := pokemon.Load(ctx, db.New(w.pool), accountID)
 	if err != nil || len(party) > 0 {
 		return party, err
 	}
-	return pokemon.GiveTestTeam(ctx, w.pool, accountID, row.CreatedAt, pokemon.Trainer{Name: row.Name, ID: uint32(row.TrainerID), Gender: gender})
+	party, err = pokemon.GiveTestTeam(ctx, w.pool, accountID, row.CreatedAt, pokemon.Trainer{Name: row.Name, ID: uint32(row.TrainerID), Gender: gender})
+	if err != nil {
+		return nil, err
+	}
+	return party, item.Write(ctx, db.New(w.pool), accountID, row.CreatedAt, items, giveTestBag(items))
 }
 
 // place checks a saved position against the maps: an unknown map or a tile outside it means Start.

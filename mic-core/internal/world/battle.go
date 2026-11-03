@@ -199,12 +199,11 @@ func (z *zone) abandonBattle(p *Player) {
 	p.battle = nil
 }
 
-// usableInBattle: an item of the bag's ITEMS or BERRIES the trainer has (mic-battles checks
-// what it does). Poké Balls come with wild battles (Phase 9).
+// usableInBattle: an item with a use in battle that the trainer has (mic-battles checks what it
+// does now). A trainer blocks Poké Balls; catching comes with wild battles (Phase 9).
 func usableInBattle(p *Player, id itemv1.Item) bool {
 	info, ok := item.Info(id)
-	pocket := info.GetPocket()
-	return ok && p.items.Bag.Quantity(id) > 0 && (pocket == itemv1.Pocket_POCKET_ITEMS || pocket == itemv1.Pocket_POCKET_BERRY_POUCH)
+	return ok && info.GetBattleUse() != itemv1.BattleUse_BATTLE_USE_UNSPECIFIED && p.items.Bag.Quantity(id) > 0
 }
 
 // refuseChoice asks the client for its choice again, with nothing new to show.
@@ -219,7 +218,7 @@ func (z *zone) refuseChoice(p *Player) {
 // request, then the end if it's over.
 func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, spend itemv1.Item) {
 	side := u.GetSides()[battle.PlayerSide]
-	if spend != itemv1.Item_ITEM_UNSPECIFIED && side.GetRequest().GetStep() > step && p.items.Bag.Remove(spend, 1) {
+	if info, _ := item.Info(spend); !info.GetImportant() && spend != itemv1.Item_ITEM_UNSPECIFIED && side.GetRequest().GetStep() > step && p.items.Bag.Remove(spend, 1) {
 		p.battle.Spent = append(p.battle.Spent, int32(spend))
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		// A restart resumes the battle with the item still spent.

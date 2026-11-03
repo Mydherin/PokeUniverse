@@ -2,7 +2,7 @@
 // so the game prints the original bytes and no game text is committed (docs/tech-stack.md#firered-as-reference).
 // Run by `make text`: node extract.mjs <pokefirered> <labels.json> <out dir> <pokeemerald-expansion> <lib-contracts proto dir>.
 // Output: strings.json (label -> bytes, ending in 0xFF), items.json (each item's name and
-// description by item ID, from src/data/items.json), the battle's strings (src/battle_message.c),
+// description by item ID, from src/data/items.json; Gen 4's from the expansion), the battle's strings (src/battle_message.c),
 // every trainer class name (TRAINER_CLASS_*) and type name (TYPE_*) as strings, moves.json and abilities.json (name and
 // description by catalog number), natures.json (name by catalog number) and charmap.json
 // (character <-> byte). Moves 1-354 and FireRed's abilities use FireRed's text; Gen 4's
@@ -94,7 +94,7 @@ const { reflow, lineWidth, widest } = makeReflow(src, encode, 4);
 /** The expansion's `[CONSTANT] = { ... }` blocks with Gen 4 settings, and a text field of one. */
 const expansionBlocks = (file) => new Map(speciesBlocks(preprocess(readExp(file)), /^[ \t]+\[(\w+)\]\s*=\s*\{/gm));
 function expansionText(block, field, label) {
-  const m = new RegExp(`\\.${field}\\s*=\\s*(?:COMPOUND_STRING|_)\\(((?:\\s*"(?:\\\\.|[^"\\\\])*")+)\\s*\\)`).exec(block);
+  const m = new RegExp(`\\.${field}\\s*=\\s*(?:COMPOUND_STRING_SIZE_LIMIT|COMPOUND_STRING|_)\\(((?:\\s*"(?:\\\\.|[^"\\\\])*")+)\\s*(?:,\\s*\\w+\\s*)?\\)`).exec(block);
   if (!m) throw new Error(`${label}: no .${field}`);
   return literals(m[1]);
 }
@@ -103,6 +103,18 @@ function gen4Name(name, max, label) {
   const upper = name.toUpperCase();
   if ([...encode(upper, label)].length > max) console.log(`${label}: "${upper}" is longer than ${max}`);
   return upper;
+}
+
+// Gen 4's items (those FireRed lacks): the expansion's name and description, written as FireRed's.
+const itemWidth = widest(JSON.parse(readFileSync(join(src, "src/data/items.json"), "utf8")).items.map((item) => item.description_english));
+const expansionItems = expansionBlocks("src/data/items.h");
+const threeLines = makeReflow(src, encode, 3).reflow;
+for (const [constant, n] of catalog("item/v1/catalog.proto", "Item")) {
+  if (items[n]) continue;
+  const block = expansionItems.get(constant);
+  if (!block) throw new Error(`${constant}: not in FireRed or the expansion`);
+  const name = gen4Name(expansionText(block, "name", constant), 12, constant);
+  items[n] = { name: bytes(name, constant), description: bytes(threeLines(style(expansionText(block, "description", constant)), itemWidth, constant), constant) };
 }
 
 // Moves: FireRed's names (MOVE_NAME_LENGTH 12) and descriptions (four lines, as the summary shows them).

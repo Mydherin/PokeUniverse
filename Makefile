@@ -87,7 +87,7 @@ graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and 
 	@for font in $(FIRERED_FONTS); do \
 		sed -n "/sFont$${font%%:*}LatinGlyphWidths\[\] =/,/};/{/=/d;p;}" $(FIRERED)/src/text.c | tr -cd '0-9,' | sed 's/^/[/; s/,*$$/]/' \
 			> $(FIRERED_OUT)/graphics/fonts/latin_$${font##*:}_widths.json; done
-	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/graphics/item-icons.mjs /repo/$(FIRERED) /repo/$(FIRERED_OUT)/graphics/items/icons.json
+	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/graphics/item-icons.mjs /repo/$(FIRERED) /repo/$(FIRERED_OUT)/graphics/items/icons.json /repo/$(EXPANSION) /repo/lib-contracts/proto/pokeuniverse/item/v1/catalog.proto /repo/$(FIRERED_OUT)/graphics
 
 text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lists the strings; moves, abilities and natures by catalog, Gen 4's from the expansion)
 	$(NEED_FIRERED)

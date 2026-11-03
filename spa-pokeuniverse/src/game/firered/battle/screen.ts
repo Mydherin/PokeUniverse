@@ -20,7 +20,8 @@ import {
   type BattleTurn,
   type BattleView,
 } from "@pokeuniverse/contracts/battle/v1/view";
-import type { Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { BattleUse, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { itemInfo } from "../../world/items";
 import { MoveSchema, PartySchema, PokemonSchema, type Pokemon, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import { ItemResultSchema } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
@@ -272,7 +273,7 @@ export class BattleScreen implements PlaybackHost {
         if (slot !== null) return this.send({ case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } });
       } else if (action === Action.Bag) {
         const used = yield* this.chooseFromBag();
-        if (used) return this.send({ case: "item", value: { $typeName: "pokeuniverse.battle.v1.ItemAction", item: used.item, partySlot: used.slot, moveSlot: 0 } });
+        if (used) return this.send({ case: "item", value: { $typeName: "pokeuniverse.battle.v1.ItemAction", item: used.item, partySlot: used.slot, moveSlot: used.move } });
       } else if (state.kind === BattleKind.TRAINER) {
         yield* this.scene.message(this.texts.format("sText_NoRunningFromTrainers"), 0);
       } else return this.send({ case: "run", value: { $typeName: "pokeuniverse.battle.v1.RunAction" } });
@@ -377,9 +378,9 @@ export class BattleScreen implements PlaybackHost {
     return chosen;
   }
 
-  /** BAG: an item chosen in the bag, then the Pokémon it's for; null when either is cancelled. */
-  private *chooseFromBag(): Generator<void, { item: Item; slot: number } | null, void> {
-    let used: { item: Item; slot: number } | null = null;
+  /** BAG: an item chosen in the bag, then the Pokémon and move it's for (X items and balls ask nothing); null when cancelled. */
+  private *chooseFromBag(): Generator<void, { item: Item; slot: number; move: number } | null, void> {
+    let used: { item: Item; slot: number; move: number } | null = null;
     yield* this.openScreen((back) =>
       startBag(
         this.flow,
@@ -388,7 +389,12 @@ export class BattleScreen implements PlaybackHost {
         (exit: BagExit) => {
           if (!exit || !("chosen" in exit)) return back();
           const item = exit.chosen;
-          this.openParty({ kind: "battle", forced: false, item, choose: (i) => (used = { item, slot: this.order[i] }) }, back);
+          const use = itemInfo(item)?.battleUse;
+          if (use === BattleUse.SELF || use === BattleUse.BALL) {
+            used = { item, slot: this.order[0], move: 0 };
+            return back();
+          }
+          this.openParty({ kind: "battle", forced: false, item, choose: (i, move = 0) => (used = { item, slot: this.order[i], move }) }, back);
         },
         BagLocation.Battle,
       ),

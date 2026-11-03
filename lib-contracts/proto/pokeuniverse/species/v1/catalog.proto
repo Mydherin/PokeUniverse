@@ -995,7 +995,8 @@ enum Species {
     base_stats: {hp: 105, attack: 130, defense: 120, speed: 40, sp_attack: 45, sp_defense: 45},
     abilities: [ABILITY_LIGHTNING_ROD, ABILITY_ROCK_HEAD], gender_ratio: 127, growth_rate: GROWTH_RATE_SLOW,
     catch_rate: 60, base_exp: 204, ev_yield: {attack: 2}, base_friendship: 70,
-    level_moves: [{level: 1, move: 23}, {level: 1, move: 30}, {level: 1, move: 31}, {level: 1, move: 39}, {level: 21, move: 184}, {level: 25, move: 350}, {level: 33, move: 36}, {level: 37, move: 32}, {level: 42, move: 359}, {level: 45, move: 444}, {level: 49, move: 89}, {level: 57, move: 224}]
+    level_moves: [{level: 1, move: 23}, {level: 1, move: 30}, {level: 1, move: 31}, {level: 1, move: 39}, {level: 21, move: 184}, {level: 25, move: 350}, {level: 33, move: 36}, {level: 37, move: 32}, {level: 42, move: 359}, {level: 45, move: 444}, {level: 49, move: 89}, {level: 57, move: 224}],
+    evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 464, item: 385}]
   }];
   SPECIES_CHANSEY = 113 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 11, weight: 346,
@@ -1093,14 +1094,16 @@ enum Species {
     base_stats: {hp: 65, attack: 83, defense: 57, speed: 105, sp_attack: 95, sp_defense: 85},
     abilities: [ABILITY_STATIC], gender_ratio: 63, growth_rate: GROWTH_RATE_MEDIUM_FAST,
     catch_rate: 45, base_exp: 156, ev_yield: {speed: 2}, base_friendship: 70,
-    level_moves: [{level: 1, move: 43}, {level: 1, move: 84}, {level: 1, move: 98}, {level: 10, move: 67}, {level: 16, move: 129}, {level: 19, move: 351}, {level: 25, move: 113}, {level: 28, move: 9}, {level: 37, move: 435}, {level: 43, move: 85}, {level: 52, move: 103}, {level: 58, move: 87}]
+    level_moves: [{level: 1, move: 43}, {level: 1, move: 84}, {level: 1, move: 98}, {level: 10, move: 67}, {level: 16, move: 129}, {level: 19, move: 351}, {level: 25, move: 113}, {level: 28, move: 9}, {level: 37, move: 435}, {level: 43, move: 85}, {level: 52, move: 103}, {level: 58, move: 87}],
+    evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 466, item: 386}]
   }];
   SPECIES_MAGMAR = 126 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 13, weight: 445,
     base_stats: {hp: 65, attack: 95, defense: 57, speed: 93, sp_attack: 100, sp_defense: 85},
     abilities: [ABILITY_FLAME_BODY], gender_ratio: 63, growth_rate: GROWTH_RATE_MEDIUM_FAST,
     catch_rate: 45, base_exp: 167, ev_yield: {sp_attack: 2}, base_friendship: 70,
-    level_moves: [{level: 1, move: 43}, {level: 1, move: 52}, {level: 1, move: 123}, {level: 10, move: 108}, {level: 16, move: 185}, {level: 19, move: 83}, {level: 25, move: 109}, {level: 28, move: 7}, {level: 36, move: 436}, {level: 41, move: 53}, {level: 49, move: 241}, {level: 54, move: 126}]
+    level_moves: [{level: 1, move: 43}, {level: 1, move: 52}, {level: 1, move: 123}, {level: 10, move: 108}, {level: 16, move: 185}, {level: 19, move: 83}, {level: 25, move: 109}, {level: 28, move: 7}, {level: 36, move: 436}, {level: 41, move: 53}, {level: 49, move: 241}, {level: 54, move: 126}],
+    evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 467, item: 387}]
   }];
   SPECIES_PINSIR = 127 [(info) = {
     type1: TYPE_BUG, type2: TYPE_BUG, height: 15, weight: 550,
@@ -1472,7 +1475,8 @@ enum Species {
     base_stats: {hp: 55, attack: 40, defense: 85, speed: 40, sp_attack: 80, sp_defense: 105},
     abilities: [ABILITY_HUSTLE, ABILITY_SERENE_GRACE], gender_ratio: 31, growth_rate: GROWTH_RATE_FAST,
     catch_rate: 75, base_exp: 114, ev_yield: {sp_defense: 2}, base_friendship: 70,
-    level_moves: [{level: 1, move: 45}, {level: 1, move: 118}, {level: 1, move: 186}, {level: 1, move: 204}, {level: 1, move: 345}, {level: 15, move: 281}, {level: 19, move: 227}, {level: 24, move: 266}, {level: 28, move: 273}, {level: 33, move: 246}, {level: 37, move: 219}, {level: 42, move: 226}, {level: 46, move: 38}, {level: 51, move: 387}]
+    level_moves: [{level: 1, move: 45}, {level: 1, move: 118}, {level: 1, move: 186}, {level: 1, move: 204}, {level: 1, move: 345}, {level: 15, move: 281}, {level: 19, move: 227}, {level: 24, move: 266}, {level: 28, move: 273}, {level: 33, move: 246}, {level: 37, move: 219}, {level: 42, move: 226}, {level: 46, move: 38}, {level: 51, move: 387}],
+    evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 468, item: 382}]
   }];
   SPECIES_NATU = 177 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_FLYING, height: 2, weight: 20,
@@ -1636,7 +1640,8 @@ enum Species {
     base_stats: {hp: 60, attack: 85, defense: 42, speed: 91, sp_attack: 85, sp_defense: 42},
     abilities: [ABILITY_INSOMNIA, ABILITY_SUPER_LUCK], gender_ratio: 127, growth_rate: GROWTH_RATE_MEDIUM_SLOW,
     catch_rate: 30, base_exp: 107, ev_yield: {speed: 1}, base_friendship: 35,
-    level_moves: [{level: 1, move: 64}, {level: 1, move: 310}, {level: 5, move: 228}, {level: 11, move: 114}, {level: 15, move: 17}, {level: 21, move: 101}, {level: 25, move: 372}, {level: 31, move: 269}, {level: 35, move: 185}, {level: 41, move: 212}, {level: 45, move: 389}]
+    level_moves: [{level: 1, move: 64}, {level: 1, move: 310}, {level: 5, move: 228}, {level: 11, move: 114}, {level: 15, move: 17}, {level: 21, move: 101}, {level: 25, move: 372}, {level: 31, move: 269}, {level: 35, move: 185}, {level: 41, move: 212}, {level: 45, move: 389}],
+    evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 430, item: 383}]
   }];
   SPECIES_SLOWKING = 199 [(info) = {
     type1: TYPE_WATER, type2: TYPE_PSYCHIC, height: 20, weight: 795,
@@ -1650,7 +1655,8 @@ enum Species {
     base_stats: {hp: 60, attack: 60, defense: 60, speed: 85, sp_attack: 85, sp_defense: 85},
     abilities: [ABILITY_LEVITATE], gender_ratio: 127, growth_rate: GROWTH_RATE_FAST,
     catch_rate: 45, base_exp: 147, ev_yield: {sp_attack: 1, sp_defense: 1}, base_friendship: 35,
-    level_moves: [{level: 1, move: 45}, {level: 1, move: 149}, {level: 5, move: 180}, {level: 10, move: 310}, {level: 14, move: 109}, {level: 19, move: 212}, {level: 23, move: 60}, {level: 28, move: 220}, {level: 32, move: 371}, {level: 37, move: 247}, {level: 41, move: 195}, {level: 46, move: 288}, {level: 50, move: 408}]
+    level_moves: [{level: 1, move: 45}, {level: 1, move: 149}, {level: 5, move: 180}, {level: 10, move: 310}, {level: 14, move: 109}, {level: 19, move: 212}, {level: 23, move: 60}, {level: 28, move: 220}, {level: 32, move: 371}, {level: 37, move: 247}, {level: 41, move: 195}, {level: 46, move: 288}, {level: 50, move: 408}],
+    evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 429, item: 383}]
   }];
   SPECIES_UNOWN = 201 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 5, weight: 50,
@@ -1700,7 +1706,8 @@ enum Species {
     base_stats: {hp: 65, attack: 75, defense: 105, speed: 85, sp_attack: 35, sp_defense: 65},
     abilities: [ABILITY_HYPER_CUTTER, ABILITY_SAND_VEIL], gender_ratio: 127, growth_rate: GROWTH_RATE_MEDIUM_SLOW,
     catch_rate: 60, base_exp: 108, ev_yield: {defense: 1}, base_friendship: 70,
-    level_moves: [{level: 1, move: 40}, {level: 5, move: 28}, {level: 9, move: 106}, {level: 12, move: 282}, {level: 16, move: 98}, {level: 20, move: 210}, {level: 23, move: 185}, {level: 27, move: 103}, {level: 31, move: 163}, {level: 34, move: 14}, {level: 38, move: 369}, {level: 42, move: 404}, {level: 45, move: 12}]
+    level_moves: [{level: 1, move: 40}, {level: 5, move: 28}, {level: 9, move: 106}, {level: 12, move: 282}, {level: 16, move: 98}, {level: 20, move: 210}, {level: 23, move: 185}, {level: 27, move: 103}, {level: 31, move: 163}, {level: 34, move: 14}, {level: 38, move: 369}, {level: 42, move: 404}, {level: 45, move: 12}],
+    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 472, item: 449, time: EVOLUTION_TIME_NIGHT}]
   }];
   SPECIES_STEELIX = 208 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_GROUND, height: 92, weight: 4000,
@@ -1757,7 +1764,8 @@ enum Species {
     base_stats: {hp: 55, attack: 95, defense: 55, speed: 115, sp_attack: 35, sp_defense: 75},
     abilities: [ABILITY_INNER_FOCUS, ABILITY_KEEN_EYE], gender_ratio: 127, growth_rate: GROWTH_RATE_MEDIUM_SLOW,
     catch_rate: 60, base_exp: 132, ev_yield: {speed: 1}, base_friendship: 35,
-    level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 1, move: 269}, {level: 8, move: 98}, {level: 10, move: 103}, {level: 14, move: 185}, {level: 21, move: 154}, {level: 24, move: 97}, {level: 28, move: 196}, {level: 35, move: 163}, {level: 38, move: 251}, {level: 42, move: 232}, {level: 49, move: 420}]
+    level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 1, move: 269}, {level: 8, move: 98}, {level: 10, move: 103}, {level: 14, move: 185}, {level: 21, move: 154}, {level: 24, move: 97}, {level: 28, move: 196}, {level: 35, move: 163}, {level: 38, move: 251}, {level: 42, move: 232}, {level: 49, move: 420}],
+    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 461, item: 448, time: EVOLUTION_TIME_NIGHT}]
   }];
   SPECIES_TEDDIURSA = 216 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 88,
@@ -1890,7 +1898,8 @@ enum Species {
     base_stats: {hp: 85, attack: 80, defense: 90, speed: 60, sp_attack: 105, sp_defense: 95},
     abilities: [ABILITY_TRACE, ABILITY_DOWNLOAD], gender_ratio: 255, growth_rate: GROWTH_RATE_MEDIUM_FAST,
     catch_rate: 45, base_exp: 180, ev_yield: {sp_attack: 2}, base_friendship: 70,
-    level_moves: [{level: 1, move: 33}, {level: 1, move: 111}, {level: 1, move: 160}, {level: 1, move: 176}, {level: 7, move: 60}, {level: 12, move: 97}, {level: 18, move: 105}, {level: 23, move: 393}, {level: 29, move: 324}, {level: 34, move: 278}, {level: 40, move: 435}, {level: 45, move: 199}, {level: 51, move: 161}, {level: 56, move: 277}, {level: 62, move: 192}, {level: 67, move: 63}]
+    level_moves: [{level: 1, move: 33}, {level: 1, move: 111}, {level: 1, move: 160}, {level: 1, move: 176}, {level: 7, move: 60}, {level: 12, move: 97}, {level: 18, move: 105}, {level: 23, move: 393}, {level: 29, move: 324}, {level: 34, move: 278}, {level: 40, move: 435}, {level: 45, move: 199}, {level: 51, move: 161}, {level: 56, move: 277}, {level: 62, move: 192}, {level: 67, move: 63}],
+    evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 474, item: 388}]
   }];
   SPECIES_STANTLER = 234 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 14, weight: 712,
@@ -2251,7 +2260,7 @@ enum Species {
     abilities: [ABILITY_SYNCHRONIZE, ABILITY_TRACE], gender_ratio: 127, growth_rate: GROWTH_RATE_SLOW,
     catch_rate: 120, base_exp: 140, ev_yield: {sp_attack: 2}, base_friendship: 35,
     level_moves: [{level: 1, move: 45}, {level: 1, move: 93}, {level: 1, move: 100}, {level: 1, move: 104}, {level: 17, move: 381}, {level: 22, move: 345}, {level: 25, move: 347}, {level: 31, move: 94}, {level: 36, move: 286}, {level: 39, move: 248}, {level: 45, move: 204}, {level: 50, move: 95}, {level: 53, move: 138}],
-    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 282, level: 30}]
+    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 282, level: 30}, {method: EVOLUTION_METHOD_ITEM, species: 475, item: 384, gender: GENDER_MALE}]
   }];
   SPECIES_GARDEVOIR = 282 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 16, weight: 484,
@@ -2504,7 +2513,8 @@ enum Species {
     base_stats: {hp: 50, attack: 60, defense: 45, speed: 65, sp_attack: 100, sp_defense: 80},
     abilities: [ABILITY_NATURAL_CURE, ABILITY_POISON_POINT], gender_ratio: 127, growth_rate: GROWTH_RATE_MEDIUM_SLOW,
     catch_rate: 150, base_exp: 152, ev_yield: {sp_attack: 1}, base_friendship: 70,
-    level_moves: [{level: 1, move: 71}, {level: 4, move: 74}, {level: 7, move: 40}, {level: 10, move: 78}, {level: 13, move: 72}, {level: 16, move: 73}, {level: 19, move: 345}, {level: 22, move: 320}, {level: 25, move: 202}, {level: 28, move: 390}, {level: 31, move: 230}, {level: 34, move: 275}, {level: 37, move: 92}, {level: 40, move: 80}, {level: 43, move: 312}, {level: 46, move: 235}]
+    level_moves: [{level: 1, move: 71}, {level: 4, move: 74}, {level: 7, move: 40}, {level: 10, move: 78}, {level: 13, move: 72}, {level: 16, move: 73}, {level: 19, move: 345}, {level: 22, move: 320}, {level: 25, move: 202}, {level: 28, move: 390}, {level: 31, move: 230}, {level: 34, move: 275}, {level: 37, move: 92}, {level: 40, move: 80}, {level: 43, move: 312}, {level: 46, move: 235}],
+    evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 407, item: 382}]
   }];
   SPECIES_GULPIN = 316 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 4, weight: 103,
@@ -2807,7 +2817,8 @@ enum Species {
     base_stats: {hp: 40, attack: 70, defense: 130, speed: 25, sp_attack: 60, sp_defense: 130},
     abilities: [ABILITY_PRESSURE], gender_ratio: 127, growth_rate: GROWTH_RATE_FAST,
     catch_rate: 90, base_exp: 179, ev_yield: {defense: 1, sp_defense: 2}, base_friendship: 35,
-    level_moves: [{level: 1, move: 7}, {level: 1, move: 8}, {level: 1, move: 9}, {level: 1, move: 20}, {level: 1, move: 43}, {level: 1, move: 50}, {level: 1, move: 101}, {level: 1, move: 356}, {level: 9, move: 193}, {level: 14, move: 310}, {level: 17, move: 109}, {level: 22, move: 425}, {level: 25, move: 228}, {level: 30, move: 174}, {level: 33, move: 261}, {level: 37, move: 325}, {level: 43, move: 212}, {level: 51, move: 371}, {level: 61, move: 248}]
+    level_moves: [{level: 1, move: 7}, {level: 1, move: 8}, {level: 1, move: 9}, {level: 1, move: 20}, {level: 1, move: 43}, {level: 1, move: 50}, {level: 1, move: 101}, {level: 1, move: 356}, {level: 9, move: 193}, {level: 14, move: 310}, {level: 17, move: 109}, {level: 22, move: 425}, {level: 25, move: 228}, {level: 30, move: 174}, {level: 33, move: 261}, {level: 37, move: 325}, {level: 43, move: 212}, {level: 51, move: 371}, {level: 61, move: 248}],
+    evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 477, item: 389}]
   }];
   SPECIES_TROPIUS = 357 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_FLYING, height: 20, weight: 1000,
@@ -2844,7 +2855,7 @@ enum Species {
     abilities: [ABILITY_INNER_FOCUS, ABILITY_ICE_BODY], gender_ratio: 127, growth_rate: GROWTH_RATE_MEDIUM_FAST,
     catch_rate: 190, base_exp: 74, ev_yield: {hp: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 43}, {level: 1, move: 181}, {level: 4, move: 104}, {level: 10, move: 44}, {level: 13, move: 196}, {level: 19, move: 29}, {level: 22, move: 182}, {level: 28, move: 423}, {level: 31, move: 242}, {level: 37, move: 420}, {level: 40, move: 258}, {level: 46, move: 59}],
-    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 362, level: 42}]
+    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 362, level: 42}, {method: EVOLUTION_METHOD_ITEM, species: 478, item: 384, gender: GENDER_FEMALE}]
   }];
   SPECIES_GLALIE = 362 [(info) = {
     type1: TYPE_ICE, type2: TYPE_ICE, height: 15, weight: 2565,
@@ -3432,7 +3443,8 @@ enum Species {
     base_stats: {hp: 100, attack: 5, defense: 5, speed: 30, sp_attack: 15, sp_defense: 65},
     abilities: [ABILITY_NATURAL_CURE, ABILITY_SERENE_GRACE], gender_ratio: 254, growth_rate: GROWTH_RATE_FAST,
     catch_rate: 130, base_exp: 255, ev_yield: {hp: 1}, base_friendship: 140,
-    level_moves: [{level: 1, move: 1}, {level: 1, move: 204}, {level: 5, move: 383}, {level: 9, move: 287}, {level: 12, move: 186}]
+    level_moves: [{level: 1, move: 1}, {level: 1, move: 204}, {level: 5, move: 383}, {level: 9, move: 287}, {level: 12, move: 186}],
+    evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 113, item: 390, time: EVOLUTION_TIME_DAY}]
   }];
   SPECIES_CHATOT = 441 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 5, weight: 19,
