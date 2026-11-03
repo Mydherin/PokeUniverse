@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Stage } from '../types'
 
-const LIMIT_PERCENT = 25
+const LIMIT_PERCENT = 20
 const PROMPT =
   'Finish in progress task and update proper milestone file to track the progression and remaining tasks leaving it ready for a new fresh start really efficient'
 

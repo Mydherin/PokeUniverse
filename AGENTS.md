@@ -24,7 +24,7 @@ Instructions for AI agents working on PokeUniverse.
 - **Continuing a plan** (now: [battles](docs/plans/battles/README.md)): read this file, the plan's `README.md` (Resume Here, Cold Start), its `context.md` and the current milestone's file. Nothing else up front.
 - **Trust the plan:** never re-check ✅ items, the status or the context in the code. Open another file only when the milestone file isn't enough to do the step at hand, and only that file.
 - **Save progress:** at the end of a session, and whenever the user is about to compact the context, write the progress into the milestone file (tasks, exact next step, files touched, build state, gotchas), then the plan's README (Resume Here, status, Log).
-- **Context guard:** the project mod [`context-wrap-up`](.claude/mods/context-wrap-up/hooks/register.ts) sends this request once the context passes 25%. Delete it when this rule is lifted.
+- **Context guard:** the project mod [`context-wrap-up`](.claude/mods/context-wrap-up/hooks/register.ts) sends this request once the context passes 20%. Delete it when this rule is lifted.
 
 ## Reference Repositories
 
