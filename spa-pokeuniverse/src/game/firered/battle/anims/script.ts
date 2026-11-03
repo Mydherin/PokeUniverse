@@ -113,6 +113,8 @@ export interface AnimContext {
 export interface AnimSpriteTemplate {
   /** The ANIM_TAG_* whose art it shows; none for an invisible sprite that moves a battler. */
   tag?: string;
+  /** The ANIM_TAG_* whose colors it wears, when not its art's (.paletteTag: the expansion's recolors). */
+  paletteTag?: string;
   /** Semi-transparent (ST_OAM_OBJ_BLEND), blended as setalpha says. */
   blend?: boolean;
   width: number;
@@ -150,6 +152,10 @@ export interface AnimRun extends AnimContext {
   art(name: string): Graphic | undefined;
   /** CreateSprite from a behavior: started like a script's sprite (its tag's art loaded), not waited for. */
   createSprite(template: AnimSpriteTemplate, x: number, y: number, subpriority: number, args?: readonly number[]): Sprite | null;
+  /** TryLoadPal: a tag's art and colors, from what the script loaded before it started (needs). */
+  loadTag(tag: string): void;
+  /** gBattleAnimTarget = …: the battler the script targets from now on. */
+  retarget(mon: AnimMon): void;
   /** Runs a task (CreateTask) beside the script, not waited for: it ends itself, or with the script. */
   spawn(task: Generator<void, void, void>): void;
 }

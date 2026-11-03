@@ -3,7 +3,7 @@
 import { SIN } from "../../../../gba/trig";
 import { ObjMode } from "../../../../gba/sprites";
 import type { SoundId } from "../../../manifest";
-import { AnimBattler, type AnimSpriteTemplate, type AnimTask } from "../script";
+import { AnimBattler, type AnimRun, type AnimSpriteTemplate, type AnimTask } from "../script";
 import { monBlend } from "./dark";
 import { monAffine } from "./effects";
 import { A, arc, battlerCoords, cloneMon, END, F, flip, goneAtAnimEnd, J, L, monSprite, PIC_HALF, resetMonScale, runSprite, spriteOnMon, tagPaletteOffset, toTargetLocation } from "./util";
@@ -177,6 +177,48 @@ export const PSYCHIC_TEMPLATES: Record<string, AnimSpriteTemplate> = {
 
 export const PSYCHIC_TASK_SOUNDS: Record<string, readonly string[]> = { gPsychoBoostOrbSpriteTemplate: ["se_m_teleport"] };
 
+/** AnimTask_SkillSwap: twelve orbs of a tag arc from one battler's corner to the other's. */
+function* orbSwap(run: AnimRun, args: readonly number[], tag: string): Generator<void, void, void> {
+  const [ax, ay] = run.center(AnimBattler.Attacker);
+  const [tx, ty] = run.center(AnimBattler.Target);
+  const fromTarget = args[0] === 1;
+  const [amp, x, y, toX, toY] = fromTarget
+    ? [-10, tx - PIC_HALF + 8, ty - PIC_HALF + 8, ax - PIC_HALF + 8, ay - PIC_HALF + 8]
+    : [10, ax + PIC_HALF - 8, ay + PIC_HALF - 8, tx + PIC_HALF - 8, ty + PIC_HALF - 8];
+  let wait = 6;
+  yield;
+  for (let n = 0; n < 12; ) {
+    if (++wait > 6) {
+      wait = 0;
+      const index = n & 3;
+      run.createSprite(
+        {
+          tag,
+          width: 16,
+          height: 16,
+          affineNormal: true,
+          affineAnims: [
+            [A(-8, -8, 0, 8), A(8, 8, 0, 8), J(0)],
+            [A(0xf0, 0xf0, 0, 0), A(-8, -8, 0, 6), A(8, 8, 0, 8), A(-8, -8, 0, 2), J(1)],
+            [A(0xd0, 0xd0, 0, 0), A(-8, -8, 0, 4), A(8, 8, 0, 8), A(-8, -8, 0, 4), J(1)],
+            [A(0xb0, 0xb0, 0, 0), A(-8, -8, 0, 2), A(8, 8, 0, 8), A(-8, -8, 0, 6), J(1)],
+          ],
+          init(sprite, _run, _args, done) {
+            sprite.startAffineAnim(index);
+            runSprite(sprite, arc(sprite, 16, toX, toY, amp), done);
+          },
+        },
+        x,
+        y,
+        0,
+      );
+      n++;
+    }
+    yield;
+  }
+  for (let n = 0; n <= 17; n++) yield;
+}
+
 export const PSYCHIC_TASKS: Record<string, AnimTask> = {
   /** AnimTask_MeditateStretchAttacker. */
   *AnimTask_MeditateStretchAttacker(run) {
@@ -232,46 +274,12 @@ export const PSYCHIC_TASKS: Record<string, AnimTask> = {
     video.resetBlend();
   },
 
-  /** AnimTask_SkillSwap: twelve orbs arc from one battler's corner to the other's. */
   *AnimTask_SkillSwap(run, args) {
-    const [ax, ay] = run.center(AnimBattler.Attacker);
-    const [tx, ty] = run.center(AnimBattler.Target);
-    const fromTarget = args[0] === 1;
-    const [amp, x, y, toX, toY] = fromTarget
-      ? [-10, tx - PIC_HALF + 8, ty - PIC_HALF + 8, ax - PIC_HALF + 8, ay - PIC_HALF + 8]
-      : [10, ax + PIC_HALF - 8, ay + PIC_HALF - 8, tx + PIC_HALF - 8, ty + PIC_HALF - 8];
-    let wait = 6;
-    yield;
-    for (let n = 0; n < 12; ) {
-      if (++wait > 6) {
-        wait = 0;
-        const index = n & 3;
-        run.createSprite(
-          {
-            tag: "ANIM_TAG_BLUEGREEN_ORB",
-            width: 16,
-            height: 16,
-            affineNormal: true,
-            affineAnims: [
-              [A(-8, -8, 0, 8), A(8, 8, 0, 8), J(0)],
-              [A(0xf0, 0xf0, 0, 0), A(-8, -8, 0, 6), A(8, 8, 0, 8), A(-8, -8, 0, 2), J(1)],
-              [A(0xd0, 0xd0, 0, 0), A(-8, -8, 0, 4), A(8, 8, 0, 8), A(-8, -8, 0, 4), J(1)],
-              [A(0xb0, 0xb0, 0, 0), A(-8, -8, 0, 2), A(8, 8, 0, 8), A(-8, -8, 0, 6), J(1)],
-            ],
-            init(sprite, _run, _args, done) {
-              sprite.startAffineAnim(index);
-              runSprite(sprite, arc(sprite, 16, toX, toY, amp), done);
-            },
-          },
-          x,
-          y,
-          0,
-        );
-        n++;
-      }
-      yield;
-    }
-    for (let n = 0; n <= 17; n++) yield;
+    yield* orbSwap(run, args, "ANIM_TAG_BLUEGREEN_ORB");
+  },
+
+  *AnimTask_HeartSwap(run, args) {
+    yield* orbSwap(run, args, "ANIM_TAG_PINKVIO_ORB");
   },
 
   /** AnimTask_ExtrasensoryDistortion: the target sways by a sine for 24 frames (the C waves its scanlines). */

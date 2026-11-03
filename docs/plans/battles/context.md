@@ -120,7 +120,7 @@ game/battle/* (state from events)  WS    internal/pokemon (stats, party)  NATS  
 | `mic-core/internal/pokemon/` | Stats (Gen 4 formula), natures, IVs/EVs, gender, shiny, growth rates, default moves, the party and its store (sqlc), the test team; party intents run in `internal/world/party.go` |
 | `mic-core/internal/battle/` | Starting battles, a player's active battle (Redis `player:<id>:battle`), choices, outcome transaction, NPC trainer table, whiteout |
 | `spa-pokeuniverse/src/game/battle/` | Battle state for any art style: applies events, holds the request (like `world/`) |
-| `spa-pokeuniverse/src/game/firered/battle/` | The FireRed battle screen: transition, terrain, intro, healthboxes, menus, messages, sprites, `anims/` (engine, `behaviors/` by family, converted scripts, `art.json`) |
+| `spa-pokeuniverse/src/game/firered/battle/` | The FireRed battle screen: transition, terrain, intro, healthboxes, menus, messages, sprites, `anims/` (engine, `behaviors/` by family and `gen4.ts` for the expansion's moves, converted scripts, `art.json`) |
 | `spa-pokeuniverse/src/game/firered/party-menu.ts`, `summary.ts` | POKéMON from the START menu and in battle |
 | `infra/battle/` | `catalog.mjs` (moves, abilities, species battle facts, learnsets; once), `anims.mjs` (animation scripts → JSON; once), `anim-art.mjs` (tag/background art table → `art.json`; once) |
 

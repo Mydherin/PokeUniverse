@@ -38,6 +38,22 @@ export const SOUND_TASK_SOUNDS: Record<string, readonly string[]> = { SoundTask_
 
 /** Sound tasks started with createsoundtask (waitsound waits for them). */
 export const SOUND_TASKS: Record<string, AnimTask> = {
+  /** SoundTask_PlaySeChangingVolume: the sound plays; its volume isn't faded, the task lasts as long as the fade would. */
+  *SoundTask_PlaySeChangingVolume(run, args, se) {
+    if (se) run.play(se, run.pan(args[1]));
+    if (!args[3]) return;
+    const rising = args[2] < args[4];
+    let [volume, wait] = [args[2], 0];
+    for (;;) {
+      if (wait++ >= args[5]) {
+        wait = 0;
+        volume = Math.max(0, Math.min(256, volume + args[3]));
+        if (rising ? volume >= args[4] : volume <= args[4]) return;
+      }
+      yield;
+    }
+  },
+
   /**
    * SoundTask_LoopSEAdjustPanning: the sound plays args[4] times, args[6] + 1 frames apart (the
    * first at once), its pan moving from args[1] toward args[2] by args[3] every args[5] + 1 frames.

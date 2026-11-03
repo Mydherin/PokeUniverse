@@ -8,8 +8,9 @@ import type { Sprite } from "../../../gba/sprites";
 import { ObjMode } from "../../../gba/sprites";
 import { Effect, Layer } from "../../../gba/video";
 import { Assets, type AnimArtFiles, type Graphic } from "../../manifest";
-import { ART, SOUND_TASKS, TASK_ART, TASK_SOUNDS, TASKS, TEMPLATES } from "./behaviors";
-import { AnimBattler, type AnimCommand, type AnimContext, type AnimProgram, type AnimRun, type AnimSpriteTemplate } from "./script";
+import { ART, SOUND_TASKS, TASK_ART, TASK_SOUNDS, TASK_TAG_ARG, TASK_TAGS, TASKS, TEMPLATES } from "./behaviors";
+import { tagName } from "./behaviors/util";
+import { AnimBattler, type AnimCommand, type AnimContext, type AnimMon, type AnimProgram, type AnimRun, type AnimSpriteTemplate } from "./script";
 
 const DUMMY = "animDummy";
 /** gBattleAnimArgs[ARG_RET_ID]: where tasks answer. */
@@ -56,7 +57,7 @@ export function canPlay(program: AnimProgram): boolean {
         if (UNSUPPORTED.has(c.op)) return false;
         if ("template" in c) {
           const t = TEMPLATES[c.template];
-          return t !== undefined && (!t.tag || t.tag in tags);
+          return t !== undefined && (!t.tag || t.tag in tags) && (!t.paletteTag || t.paletteTag in tags);
         }
         if (c.op === "createsoundtask") return c.task in SOUND_TASKS;
         if ("task" in c) return c.task in TASKS;
@@ -79,11 +80,18 @@ function needs(program: AnimProgram): { sounds: string[]; tags: string[]; backgr
       if ("tag" in c) tags.add(c.tag);
       const t = "template" in c && TEMPLATES[c.template];
       if (t && t.tag) tags.add(t.tag);
-      if ("template" in c) for (const se of TASK_SOUNDS[c.template] ?? []) sounds.add(se);
+      if (t && t.paletteTag) tags.add(t.paletteTag);
+      if ("template" in c) {
+        for (const se of TASK_SOUNDS[c.template] ?? []) sounds.add(se);
+        for (const tag of TASK_TAGS[c.template] ?? []) tags.add(tag);
+      }
       for (const bg of backgroundsOf(c)) backgrounds.add(bg);
       if ("task" in c) {
         for (const name of TASK_ART[c.task] ?? []) art.add(name);
         for (const se of TASK_SOUNDS[c.task] ?? []) sounds.add(se);
+        for (const tag of TASK_TAGS[c.task] ?? []) tags.add(tag);
+        const tagArg = "args" in c ? tagName(c.args[TASK_TAG_ARG[c.task]]) : undefined;
+        if (tagArg) tags.add(tagArg);
       }
     }
   return { sounds: [...sounds], tags: [...tags], backgrounds: [...backgrounds], art: [...art] };
@@ -125,9 +133,9 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     opponent: ctx.opponent ?? ctx.target,
     customPan: 0,
     args,
-    mon: (which) => (which === AnimBattler.Attacker ? ctx.attacker : ctx.target),
+    mon: (which) => (which === AnimBattler.Attacker ? ctx.attacker : run.target),
     center: (which) => {
-      const mon = which === AnimBattler.Attacker ? ctx.attacker : ctx.target;
+      const mon = which === AnimBattler.Attacker ? ctx.attacker : run.target;
       return mon.sprite ? [mon.sprite.x, mon.sprite.y] : mon.foe ? [176, 40] : [72, 80];
     },
     pan: (pan) => adjustPan(ctx, pan),
@@ -135,6 +143,8 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     play: (se, pan = 0, player = "se") => gba.sound.play(se, player, webPan(pan)),
     art: (name) => behaviorArt.get(name),
     createSprite: () => null,
+    loadTag: () => {},
+    retarget: (mon) => void ((run as { target: AnimMon }).target = mon),
     spawn: (task) => void spawned.push(task),
   };
   const turn = ctx.turn ?? 0;
@@ -232,10 +242,11 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
   const startSprite = (t: AnimSpriteTemplate, x: number, y: number, subpriority: number, spriteArgs: readonly number[], waited: boolean): Sprite | null => {
     // The expansion's scripts load no art: the template's own tag is loaded on its first sprite.
     if (t.tag) loadTag(t.tag);
+    if (t.paletteTag) loadTag(t.paletteTag);
     const sprite = gba.sprites.create(
       {
         sheet: t.tag ?? DUMMY,
-        palette: t.tag ?? DUMMY,
+        palette: t.paletteTag ?? t.tag ?? DUMMY,
         width: t.width,
         height: t.height,
         priority: 1,
@@ -259,10 +270,11 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
     return sprite;
   };
   run.createSprite = (t, x, y, subpriority, spriteArgs = []) => startSprite(t, x, y, subpriority, spriteArgs, false);
+  run.loadTag = loadTag;
   /** Cmd_createsprite: at the target's picture, in front of or behind its battler (attacker or target). */
   const createSprite = (template: string, battler: number, offset: number, spriteArgs: readonly number[]) => {
     const [x, y] = run.center(AnimBattler.Target);
-    const mon = battler === AnimBattler.Target ? ctx.target : ctx.attacker;
+    const mon = battler === AnimBattler.Target ? run.target : ctx.attacker;
     // GetBattlerSpriteSubpriority (player 30, foe 40); an offset of 64 + n is +n, others in front.
     const subpriority = Math.max(3, (mon.foe ? 40 : 30) + (offset >= 64 ? offset - 64 : -offset));
     startSprite(TEMPLATES[template], x, y, subpriority, spriteArgs, true);
@@ -394,7 +406,7 @@ export function* playAnimation(ctx: AnimContext, program: AnimProgram): Generato
           fadeToBackground(c.bg);
           break;
         case "fadetobgfromset":
-          fadeToBackground(ctx.target.foe ? c.bgOpponent : c.bgPlayer);
+          fadeToBackground(run.target.foe ? c.bgOpponent : c.bgPlayer);
           break;
         case "restorebg":
           fadeToBackground(-1);

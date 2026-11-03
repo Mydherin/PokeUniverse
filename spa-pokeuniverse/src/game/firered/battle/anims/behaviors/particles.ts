@@ -26,7 +26,7 @@ const hitSplat = (tag: string, init: AnimSpriteTemplate["init"], blend = true): 
 const placeBy = (which: number, ...rest: Parameters<typeof placeAtAttacker>) => (which === 0 ? placeAtAttacker(...rest) : placeAtTarget(...rest));
 
 /** AnimHitSplatBasic with another picture. */
-const basicHit: AnimSpriteTemplate["init"] = (sprite, run, args, done) => {
+export const basicHit: AnimSpriteTemplate["init"] = (sprite, run, args, done) => {
   sprite.startAffineAnim(args[3]);
   placeBy(args[2], sprite, run, args);
   goneAtAffineEnd(sprite, done);

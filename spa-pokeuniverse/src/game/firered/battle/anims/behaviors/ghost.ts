@@ -4,7 +4,7 @@ import { SIN } from "../../../../gba/trig";
 import { ObjMode } from "../../../../gba/sprites";
 import { Effect, Layer } from "../../../../gba/video";
 import type { SoundId } from "../../../manifest";
-import { AnimBattler, type AnimSpriteTemplate, type AnimTask } from "../script";
+import { AnimBattler, type AnimRun, type AnimSpriteTemplate, type AnimTask } from "../script";
 import { monBlend } from "./dark";
 import { A, battlerCoords, cloneMon, cos, END, F, flipTarget, J, monSprite, paletteMask, placeAtAttacker, PIC_HALF, placeAtTarget, runSprite, selectedPalettes, sin, slideAt } from "./util";
 
@@ -214,6 +214,72 @@ export const GHOST_TEMPLATES: Record<string, AnimSpriteTemplate> = {
 
 };
 
+/** AnimTask_DestinyBondWhiteShadow: a white shadow slides from the attacker to the foe and fades after args[0]. */
+function* whiteShadow(run: AnimRun, args: readonly number[], paletteTag?: string): Generator<void, void, void> {
+  monBlend(run, 0, 16);
+  const [baseX, baseY] = [run.center(AnimBattler.Attacker)[0], run.center(AnimBattler.Attacker)[1] + PIC_HALF];
+  const [x, y] = [run.center(AnimBattler.Target)[0], run.center(AnimBattler.Target)[1] + PIC_HALF];
+  const steps = args[1];
+  const shadow = run.target.sprite?.invisible
+    ? null
+    : run.createSprite(
+        {
+          ...WHITE_SHADOW,
+          paletteTag,
+          init(sprite) {
+            const stepX = Math.trunc(((x - baseX) << 4) / steps);
+            const stepY = Math.trunc(((y - baseY) << 4) / steps);
+            let [px, py, left] = [baseX << 4, baseY << 4, steps];
+            sprite.callback = () => {
+              if (!left) return;
+              px += stepX;
+              py += stepY;
+              sprite.x = px >> 4;
+              sprite.y = py >> 4;
+              left--;
+            };
+          },
+        },
+        baseX,
+        baseY,
+        55,
+      );
+  let [wait, stage, a, b, n, hold] = [0, 0, 0, 16, 0, args[0]];
+  let faded = false;
+  for (;;) {
+    yield;
+    if (stage === 0) {
+      if (!faded && ++wait > 1) {
+        wait = 0;
+        n++;
+        if (n & 1) {
+          if (a < 16) a++;
+        } else if (b) b--;
+        monBlend(run, a, b);
+        if (n >= 24) {
+          n = 0;
+          faded = true;
+        }
+      }
+      if (hold) hold--;
+      else if (faded) stage = 1;
+    } else {
+      if (++wait <= 1) continue;
+      wait = 0;
+      n++;
+      if (n & 1) {
+        if (a) a--;
+      } else if (b < 16) b++;
+      monBlend(run, a, b);
+      if (a === 0 && b === 16) break;
+    }
+  }
+  run.flow.gba.sprites.destroy(shadow);
+  yield;
+  yield;
+  run.flow.gba.video.resetBlend();
+}
+
 export const GHOST_TASKS: Record<string, AnimTask> = {
   /** AnimTask_NightShadeClone: the attacker, doubled and faint, shrinks back after args[0] frames. */
   *AnimTask_NightShadeClone(run, args) {
@@ -292,69 +358,13 @@ export const GHOST_TASKS: Record<string, AnimTask> = {
     video.resetBlend();
   },
 
-  /** AnimTask_DestinyBondWhiteShadow: a white shadow slides from the attacker to the foe and fades after args[0]. */
   *AnimTask_DestinyBondWhiteShadow(run, args) {
-    monBlend(run, 0, 16);
-    const [baseX, baseY] = [run.center(AnimBattler.Attacker)[0], run.center(AnimBattler.Attacker)[1] + PIC_HALF];
-    const [x, y] = [run.center(AnimBattler.Target)[0], run.center(AnimBattler.Target)[1] + PIC_HALF];
-    const steps = args[1];
-    const shadow = run.target.sprite?.invisible
-      ? null
-      : run.createSprite(
-          {
-            ...WHITE_SHADOW,
-            init(sprite) {
-              const stepX = Math.trunc(((x - baseX) << 4) / steps);
-              const stepY = Math.trunc(((y - baseY) << 4) / steps);
-              let [px, py, left] = [baseX << 4, baseY << 4, steps];
-              sprite.callback = () => {
-                if (!left) return;
-                px += stepX;
-                py += stepY;
-                sprite.x = px >> 4;
-                sprite.y = py >> 4;
-                left--;
-              };
-            },
-          },
-          baseX,
-          baseY,
-          55,
-        );
-    let [wait, stage, a, b, n, hold] = [0, 0, 0, 16, 0, args[0]];
-    let faded = false;
-    for (;;) {
-      yield;
-      if (stage === 0) {
-        if (!faded && ++wait > 1) {
-          wait = 0;
-          n++;
-          if (n & 1) {
-            if (a < 16) a++;
-          } else if (b) b--;
-          monBlend(run, a, b);
-          if (n >= 24) {
-            n = 0;
-            faded = true;
-          }
-        }
-        if (hold) hold--;
-        else if (faded) stage = 1;
-      } else {
-        if (++wait <= 1) continue;
-        wait = 0;
-        n++;
-        if (n & 1) {
-          if (a) a--;
-        } else if (b < 16) b++;
-        monBlend(run, a, b);
-        if (a === 0 && b === 16) break;
-      }
-    }
-    run.flow.gba.sprites.destroy(shadow);
-    yield;
-    yield;
-    run.flow.gba.video.resetBlend();
+    yield* whiteShadow(run, args);
+  },
+
+  /** The expansion's Dark Void: the shadow in another palette, a black hole (a move check in its C; a task here). */
+  *AnimTask_DarkVoidBlackHole(run, args) {
+    yield* whiteShadow(run, args, "ANIM_TAG_QUICK_GUARD_HAND");
   },
 
   /** AnimTask_CurseStretchingBlackBg: a black box grows from the attacker's corner over the background. */

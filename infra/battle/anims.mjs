@@ -27,7 +27,7 @@ const LABEL_PARAMS = new Set(["ptr", "ptr1", "ptr2", "jumpInstr"]);
 const SOUND_PARAMS = new Set(["se"]);
 const KEYS = { anim_battler: "battler", subpriority_offset: "subpriority", argv: "args", addr: "task", ptr: "label", jumpInstr: "label", ptr1: "first", ptr2: "second" };
 // Tasks whose args[0] is a sound (battle_anim_sound_tasks.c): the command also names it as `se`.
-const SOUND_ARG_TASKS = new Set(["SoundTask_PlaySE1WithPanning", "SoundTask_PlaySE2WithPanning", "SoundTask_LoopSEAdjustPanning"]);
+const SOUND_ARG_TASKS = new Set(["SoundTask_PlaySE1WithPanning", "SoundTask_PlaySE2WithPanning", "SoundTask_LoopSEAdjustPanning", "SoundTask_PlaySeChangingVolume"]);
 // Commands the game ignores.
 const SKIP = new Set(["nop", "nop2"]);
 // Commands that never fall through.

@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M10](m10-gen4-move-animations.md): Gen 4 move animations (355-467), test teams' moves first.
-- **Last state:** M9 ✅ and committed: all FireRed moves animate, sweep in the game done, closed without emulator checks (D23). M6 still lacks the restart-resume check.
+- **Next:** commit M10 when the user asks, then [M11](m11-exp-level-up-evolution.md).
+- **Last state:** M10 ✅, swept in the game (still frames, no sound or real turns), uncommitted. M6 still lacks the restart-resume check.
 
 ## Cold Start (every new session)
 
@@ -34,7 +34,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M7 | [The battle screen](m07-battle-screen.md) | ✅ | Transition, intro, healthboxes, menus, event playback, party/bag in battle, ending, music |
 | M8 | [Animation engine](m08-animation-engine.md) | ✅ | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather, two-turn moves |
 | M9 | [FireRed move animations](m09-firered-move-animations.md) | ✅ | Moves 1-354, general animations, full sweep in the game |
-| M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ⬜ | Moves 355-467 from the expansion |
+| M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ✅ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ⬜ | Exp bar, level up window, learning moves, evolution, Pokédex seen |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ⬜ | Gen 4 battle items, bag items in battle, item messages |
 | M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ⏸ | SHIFT, doubles, performance (after M12) |
@@ -66,3 +66,5 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-03 | M9 play test | `make graphics`, `make audio`, vite ✅; 45 sampled moves seen in the game on both sides, look right; fixed sliding backgrounds' garbage past 256 px (Thunder, Blizzard, Aeroblast, Sky Uppercut…) | Commit; user decides on emulator spot checks; M10 | No side-by-side with the emulator; general-animation hooks mostly unseen; uncommitted |
 | 2026-11-03 | M9 full sweep | Every move, general and status animation seen in the game through a temporary hook and team (both reverted); real turns for doll, Fly/Dig, items, status, weather, Future Sight; fixed `monbg` blending (compositor `onBg`), terrain on BG3 after the intro, spotlight window, hidden battlers, missing texts (foresaw, destiny, took, stole), animations of failed moves | Commit; user decides on emulator and sound; M10 | Still frames, no sound; a few effects not triggered in real turns (listed in M9); `make text` needed for the new strings; uncommitted |
 | 2026-11-03 | M9 close | User closed M9 without emulator spot checks (D23); M9 file cut down; committed | M10 | Fixes come from playing |
+| 2026-11-03 | M10 code | `behaviors/gen4.ts` (FireRed behaviors in new art, new callbacks, tasks), `paletteTag`, tags tasks draw (`TASK_TAGS`, `TASK_TAG_ARG`), `loadTag`, `retarget`; `expansion.json` edits where the C checks the move or a partner; 113/113 moves by a one-off scan | M10: `make graphics`, rebuild, sweep, commit | tsc ✅, vite ✅; the game not run (user asked to stop before testing); uncommitted |
+| 2026-11-03 | M10 sweep | `make graphics`; all 113 moves seen in the game, 36 of them on the foe's side, with hook checks for fallback, errors, hangs, leftovers; fixed Mud Bomb and Rock Wrecker crashes | Commit; M11 | Still frames, no sound or real turns; uncommitted |

@@ -342,11 +342,17 @@ const TAG_BY_ID: Record<number, string> = {
   10261: "ANIM_TAG_FLYING_DIRT",
   10267: "ANIM_TAG_WHITE_CIRCLE_OF_LIGHT",
   10285: "ANIM_TAG_CROSS_IMPACT",
+  10315: "ANIM_TAG_WATER_GUN",
 };
+
+/** The ANIM_TAG_* a script's number names. */
+export const tagName = (tagId: number): string | undefined => TAG_BY_ID[tagId];
 
 /** IndexOfSpritePaletteTag: the palette RAM offset of a tag's colors. */
 export function tagPaletteOffset(run: AnimRun, tagId: number): number {
-  return 256 + (run.flow.gba.palettes.spritePaletteSlot(TAG_BY_ID[tagId] ?? "") & 15) * 16;
+  const tag = TAG_BY_ID[tagId] ?? "";
+  run.loadTag(tag);
+  return 256 + (run.flow.gba.palettes.spritePaletteSlot(tag) & 15) * 16;
 }
 
 /** SeekSpriteAnim: the frame animation jumps to command `index`. */

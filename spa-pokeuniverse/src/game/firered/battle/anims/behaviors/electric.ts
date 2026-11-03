@@ -238,6 +238,54 @@ const timed = (tag: string, width: number, height: number, life: number, tileOff
   },
 });
 
+/** AnimTask_ElectricChargingParticles: args[1] particles gather on a battler, faster over time. */
+function* chargingParticles(run: AnimRun, args: readonly number[], paletteTag?: string): Generator<void, void, void> {
+  const [cx, cy] = run.center(args[0] ? AnimBattler.Target : AnimBattler.Attacker);
+  let [left, active, speedup, index, count, wait] = [args[1], 0, 0, 0, 0, 0];
+  const anims = [[F(3, 1), F(2, 1), F(1, 1), F(0, 1), END], [F(0, 5), F(1, 5), F(2, 5), F(3, 5), END]];
+  for (;;) {
+    yield;
+    if (left) {
+      if (++wait <= args[2]) continue;
+      wait = 0;
+      const [ox, oy] = CHARGE_OFFSETS[index];
+      const steps = 40 - speedup * 5;
+      active++;
+      run.createSprite(
+        {
+          tag: "ANIM_TAG_ELECTRIC_ORBS",
+          paletteTag,
+          width: 8,
+          height: 8,
+          anims,
+          init(sprite, _run, _args, done) {
+            runSprite(
+              sprite,
+              (function* () {
+                yield;
+                yield* animEnd(sprite);
+                sprite.startAnim(1);
+                yield* travel(sprite, steps, cx, cy);
+                active--;
+              })(),
+              done,
+            );
+          },
+        },
+        cx + ox,
+        cy + oy,
+        2,
+      );
+      if (++index > 15) index = 0;
+      if (++count >= args[3]) {
+        count = 0;
+        if (speedup <= 5) speedup++;
+      }
+      left--;
+    } else if (!active) return;
+  }
+}
+
 export const ELECTRIC_TASKS: Record<string, AnimTask> = {
   /** AnimTask_ElectricBolt: five segments fall down from the target's spot, one every other frame. */
   *AnimTask_ElectricBolt(run, args) {
@@ -254,51 +302,13 @@ export const ELECTRIC_TASKS: Record<string, AnimTask> = {
     }
   },
 
-  /** AnimTask_ElectricChargingParticles: args[1] particles gather on a battler, faster over time. */
   *AnimTask_ElectricChargingParticles(run, args) {
-    const [cx, cy] = run.center(args[0] ? AnimBattler.Target : AnimBattler.Attacker);
-    let [left, active, speedup, index, count, wait] = [args[1], 0, 0, 0, 0, 0];
-    const anims = [[F(3, 1), F(2, 1), F(1, 1), F(0, 1), END], [F(0, 5), F(1, 5), F(2, 5), F(3, 5), END]];
-    for (;;) {
-      yield;
-      if (left) {
-        if (++wait <= args[2]) continue;
-        wait = 0;
-        const [ox, oy] = CHARGE_OFFSETS[index];
-        const steps = 40 - speedup * 5;
-        active++;
-        run.createSprite(
-          {
-            tag: "ANIM_TAG_ELECTRIC_ORBS",
-            width: 8,
-            height: 8,
-            anims,
-            init(sprite, _run, _args, done) {
-              runSprite(
-                sprite,
-                (function* () {
-                  yield;
-                  yield* animEnd(sprite);
-                  sprite.startAnim(1);
-                  yield* travel(sprite, steps, cx, cy);
-                  active--;
-                })(),
-                done,
-              );
-            },
-          },
-          cx + ox,
-          cy + oy,
-          2,
-        );
-        if (++index > 15) index = 0;
-        if (++count >= args[3]) {
-          count = 0;
-          if (speedup <= 5) speedup++;
-        }
-        left--;
-      } else if (!active) return;
-    }
+    yield* chargingParticles(run, args);
+  },
+
+  /** The expansion's Flash Cannon: AnimTask_ElectricChargingParticles in gray (a move check in its C; a task here). */
+  *AnimTask_FlashCannonCharge(run, args) {
+    yield* chargingParticles(run, args, "ANIM_TAG_GUST");
   },
 
   /** AnimTask_VoltTackleAttackerReappear: the attacker flickers back in. */

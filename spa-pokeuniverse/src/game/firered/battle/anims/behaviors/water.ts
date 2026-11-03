@@ -239,6 +239,68 @@ const smallOrb = (init: (sprite: Sprite, done: () => void) => void): AnimSpriteT
   init: (sprite, _run, _args, done) => init(sprite, done),
 });
 
+/**
+ * The rain of AnimTask_WaterSpoutRain and AnimTask_BrineRain: `total` drops fall from `startY` to
+ * `top` plus a wave, at random X in `range` from `left`, and splash; the first splash shakes the target.
+ */
+function* rain(run: AnimRun, left: number, top: number, startY: number, firstX: number, range: number, total: number): Generator<void, void, void> {
+  let [x, phase, made, active, wait] = [firstX, 0, 0, 0, 0];
+  let [splashed, shaken] = [false, false];
+  yield;
+  for (;;) {
+    if (++wait > 2) {
+      wait = 0;
+      const stop = ((SIN[phase] + 3) >> 4) + top;
+      active++;
+      run.createSprite(
+        smallOrb((sprite, done) => {
+          sprite.callback = () => {
+            sprite.y += 8;
+            if (sprite.y < stop) return;
+            splashed = true;
+            run.createSprite(
+              {
+                ...BASIC_HIT_SPLAT,
+                tag: "ANIM_TAG_WATER_IMPACT",
+                init(hit, _run, _args, gone) {
+                  hit.startAffineAnim(3);
+                  let [t, n] = [0, 0];
+                  hit.callback = () => {
+                    if (++t <= 1) return;
+                    t = 0;
+                    hit.invisible = !hit.invisible;
+                    if (++n === 12) {
+                      active--;
+                      gone();
+                    }
+                  };
+                },
+              },
+              sprite.x,
+              sprite.y,
+              1,
+            );
+            done();
+          };
+        }),
+        x,
+        startY,
+        0,
+      );
+      made++;
+      phase = (phase + 39) & 0xff;
+      x = random(range) + left;
+    }
+    if (splashed && !shaken) {
+      run.spawn(MON_MOVEMENT_TASKS.AnimTask_HorizontalShake(run, [AnimBattler.Target, 0, 12]));
+      shaken = true;
+    }
+    if (made >= total) break;
+    yield;
+  }
+  while (active > 0) yield;
+}
+
 export const WATER_TASKS: Record<string, AnimTask> = {
   /** AnimTask_RotateAuroraRingColors: the rings' first 8 colors turn, args[0] frames. */
   *AnimTask_RotateAuroraRingColors(run, args) {
@@ -385,66 +447,17 @@ export const WATER_TASKS: Record<string, AnimTask> = {
     while (active > 0) yield;
   },
 
-  /** AnimTask_WaterSpoutRain: drops fall on the foe's side and splash; the first splash shakes the target. */
+  /** AnimTask_WaterSpoutRain: drops fall on the foe's side and splash, more with more HP. */
   *AnimTask_WaterSpoutRain(run) {
-    const player = !run.attacker.foe;
-    const [left, top] = player ? [136, 40] : [16, 80];
-    const total = spoutPower(run) * 5 + 5;
-    let [x, phase, made, active, wait] = [left + 49, 0, 0, 0, 0];
-    let [splashed, shaken] = [false, false];
-    yield;
-    for (;;) {
-      if (++wait > 2) {
-        wait = 0;
-        const stop = ((SIN[phase] + 3) >> 4) + top;
-        active++;
-        run.createSprite(
-          smallOrb((sprite, done) => {
-            sprite.callback = () => {
-              sprite.y += 8;
-              if (sprite.y < stop) return;
-              splashed = true;
-              run.createSprite(
-                {
-                  ...BASIC_HIT_SPLAT,
-                  tag: "ANIM_TAG_WATER_IMPACT",
-                  init(hit, _run, _args, gone) {
-                    hit.startAffineAnim(3);
-                    let [t, n] = [0, 0];
-                    hit.callback = () => {
-                      if (++t <= 1) return;
-                      t = 0;
-                      hit.invisible = !hit.invisible;
-                      if (++n === 12) {
-                        active--;
-                        gone();
-                      }
-                    };
-                  },
-                },
-                sprite.x,
-                sprite.y,
-                1,
-              );
-              done();
-            };
-          }),
-          x,
-          0,
-          0,
-        );
-        made++;
-        phase = (phase + 39) & 0xff;
-        x = random(98) + left;
-      }
-      if (splashed && !shaken) {
-        run.spawn(MON_MOVEMENT_TASKS.AnimTask_HorizontalShake(run, [AnimBattler.Target, 0, 12]));
-        shaken = true;
-      }
-      if (made >= total) break;
-      yield;
-    }
-    while (active > 0) yield;
+    const [left, top] = run.attacker.foe ? [16, 80] : [136, 40];
+    yield* rain(run, left, top, 0, left + 49, 98, spoutPower(run) * 5 + 5);
+  },
+
+  /** AnimTask_BrineRain: ten drops fall on the target. */
+  *AnimTask_BrineRain(run) {
+    const [x] = run.center(AnimBattler.Target);
+    const [top, startY] = run.attacker.foe ? [90, 40] : [40, 0];
+    yield* rain(run, x, top, startY, x, 40, 10);
   },
 
   /** AnimTask_WaterSport: a stream of drops sweeps across the screen, three times lower each. */

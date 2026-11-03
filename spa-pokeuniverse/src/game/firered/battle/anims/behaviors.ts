@@ -1,7 +1,7 @@
 // The behaviors scripts name (plans/battles D9): sprite templates (their callbacks) and visual
 // tasks, written from FireRed's behavior, a file per family (behaviors/). Keyed by the game's
 // names, so converted scripts find them; the generic animations' own behaviors are named
-// `Generic*`. Grows family by family (M9, M10).
+// `Generic*`. The expansion's moves add gen4.ts, mostly FireRed's behaviors in new art.
 
 import type { AnimArtFiles } from "../../manifest";
 import type { AnimSpriteTemplate, AnimTask } from "./script";
@@ -32,8 +32,9 @@ import { STATUS_ART, STATUS_TASK_ART, STATUS_TASKS, STATUS_TEMPLATES } from "./b
 import { GENERAL_ART, GENERAL_TASK_ART, GENERAL_TASK_SOUNDS, GENERAL_TASKS, GENERAL_TEMPLATES } from "./behaviors/general";
 import { UTILITY_ART, UTILITY_TASK_ART, UTILITY_TASKS, UTILITY_TEMPLATES } from "./behaviors/utility";
 import { WEATHER_ART, WEATHER_TASK_ART, WEATHER_TASKS, WEATHER_TEMPLATES } from "./behaviors/weather";
+import { gen4Templates, GEN4_TASK_SOUNDS, GEN4_TASK_TAGS, GEN4_TASKS } from "./behaviors/gen4";
 
-export const TEMPLATES: Record<string, AnimSpriteTemplate> = {
+const FIRERED_TEMPLATES: Record<string, AnimSpriteTemplate> = {
   ...MON_MOVEMENT_TEMPLATES,
   ...BLEND_TEMPLATES,
   ...PARTICLE_TEMPLATES,
@@ -61,6 +62,8 @@ export const TEMPLATES: Record<string, AnimSpriteTemplate> = {
   ...GENERAL_TEMPLATES,
 };
 
+export const TEMPLATES: Record<string, AnimSpriteTemplate> = { ...FIRERED_TEMPLATES, ...gen4Templates(FIRERED_TEMPLATES) };
+
 export const TASKS: Record<string, AnimTask> = {
   ...MON_MOVEMENT_TASKS,
   ...BLEND_TASKS,
@@ -86,6 +89,7 @@ export const TASKS: Record<string, AnimTask> = {
   ...ELECTRIC_TASKS,
   ...UTILITY_TASKS,
   ...GENERAL_TASKS,
+  ...GEN4_TASKS,
 };
 
 /** Art a behavior draws besides its tag's (masks, backgrounds of its own), by name. */
@@ -95,7 +99,13 @@ export const ART: Record<string, AnimArtFiles> = { ...STATUS_ART, ...WEATHER_ART
 export const TASK_ART: Record<string, readonly string[]> = { ...STATUS_TASK_ART, ...WEATHER_TASK_ART, ...DARK_TASK_ART, ...ICE_TASK_ART, ...WATER_TASK_ART, ...EFFECTS_2_TASK_ART, ...EFFECTS_3_TASK_ART, ...UTILITY_TASK_ART, ...GENERAL_TASK_ART };
 
 /** The sounds a task or sprite template plays by name (not in the script), loaded before it starts. */
-export const TASK_SOUNDS: Record<string, readonly string[]> = { ...ROCK_TASK_SOUNDS, ...FIRE_TASK_SOUNDS, ...ELECTRIC_TASK_SOUNDS, ...PSYCHIC_TASK_SOUNDS, ...EFFECTS_1_TASK_SOUNDS, ...EFFECTS_2_TASK_SOUNDS, ...EFFECTS_3_TASK_SOUNDS, ...SOUND_TASK_SOUNDS, ...GENERAL_TASK_SOUNDS };
+export const TASK_SOUNDS: Record<string, readonly string[]> = { ...ROCK_TASK_SOUNDS, ...FIRE_TASK_SOUNDS, ...ELECTRIC_TASK_SOUNDS, ...PSYCHIC_TASK_SOUNDS, ...EFFECTS_1_TASK_SOUNDS, ...EFFECTS_2_TASK_SOUNDS, ...EFFECTS_3_TASK_SOUNDS, ...SOUND_TASK_SOUNDS, ...GENERAL_TASK_SOUNDS, ...GEN4_TASK_SOUNDS };
+
+/** The tags a task or sprite template draws on its own: the expansion's scripts load no art (TryLoadSpriteAssets in its C). */
+export const TASK_TAGS: Record<string, readonly string[]> = GEN4_TASK_TAGS;
+
+/** The tasks that name a tag in an arg, by that arg's index (TryLoadPal in the expansion's C). */
+export const TASK_TAG_ARG: Record<string, number> = { AnimTask_BlendParticle: 0, AnimTask_BlendColorCycleByTag: 0, AnimTask_FlashAnimTagWithColor: 0, AnimTask_BlendPalInAndOutByTag: 0 };
 
 /** Sound tasks (createsoundtask: SoundTask_*), run beside the visual tasks; waitsound waits for them. */
 export { SOUND_TASKS };
