@@ -13,6 +13,8 @@ package itemv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
+	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -78,6 +80,9 @@ const (
 	ItemOutcome_ITEM_OUTCOME_USED_ON_POKEMON ItemOutcome = 25
 	// UsePartyItem: "It won't have any effect." Nothing changed.
 	ItemOutcome_ITEM_OUTCOME_NO_EFFECT ItemOutcome = 26
+	// UsePartyItem: an evolution item on a Pokémon that needs the National Pokédex to evolve (the
+	// scene ends in "...?"). Nothing changed, the item stays. `value` as in USED_ON_POKEMON.
+	ItemOutcome_ITEM_OUTCOME_CANT_EVOLVE ItemOutcome = 27
 )
 
 // Enum value maps for ItemOutcome.
@@ -110,6 +115,7 @@ var (
 		24: "ITEM_OUTCOME_REMOVE_MAIL",
 		25: "ITEM_OUTCOME_USED_ON_POKEMON",
 		26: "ITEM_OUTCOME_NO_EFFECT",
+		27: "ITEM_OUTCOME_CANT_EVOLVE",
 	}
 	ItemOutcome_value = map[string]int32{
 		"ITEM_OUTCOME_UNSPECIFIED":     0,
@@ -139,6 +145,7 @@ var (
 		"ITEM_OUTCOME_REMOVE_MAIL":     24,
 		"ITEM_OUTCOME_USED_ON_POKEMON": 25,
 		"ITEM_OUTCOME_NO_EFFECT":       26,
+		"ITEM_OUTCOME_CANT_EVOLVE":     27,
 	}
 )
 
@@ -662,7 +669,9 @@ type ItemResult struct {
 	// TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount; SWAPPED:
 	// the item taken back (`item` is the one given); USED_ON_POKEMON: how close the item scene shows
 	// the Pokémon, 0-3 (friendship stays on the server).
-	Value         uint32 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
+	Value uint32 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
+	// USED_ON_POKEMON: what a RARE CANDY or an evolution item brought with it.
+	Growth        *ItemGrowth `protobuf:"bytes,4,opt,name=growth,proto3" json:"growth,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -718,11 +727,91 @@ func (x *ItemResult) GetValue() uint32 {
 	return 0
 }
 
+func (x *ItemResult) GetGrowth() *ItemGrowth {
+	if x != nil {
+		return x.Growth
+	}
+	return nil
+}
+
+// What comes after an item made a party Pokémon grow, shown in this order.
+type ItemGrowth struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// New moves at its level, already in free slots.
+	Learned []v1.Move `protobuf:"varint,1,rep,packed,name=learned,proto3,enum=pokeuniverse.move.v1.Move" json:"learned,omitempty"`
+	// New moves with no slot free: each is answered with LearnMove, or not at all.
+	ToLearn []v1.Move `protobuf:"varint,2,rep,packed,name=to_learn,json=toLearn,proto3,enum=pokeuniverse.move.v1.Move" json:"to_learn,omitempty"`
+	// RARE CANDY: it may evolve into this. The scene can be stopped; if it isn't, EvolvePokemon.
+	EvolvesTo v11.Species `protobuf:"varint,3,opt,name=evolves_to,json=evolvesTo,proto3,enum=pokeuniverse.species.v1.Species" json:"evolves_to,omitempty"`
+	// Evolution item: it already evolved from this, and it's saved. The scene only shows it, and can't be stopped.
+	EvolvedFrom   v11.Species `protobuf:"varint,4,opt,name=evolved_from,json=evolvedFrom,proto3,enum=pokeuniverse.species.v1.Species" json:"evolved_from,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ItemGrowth) Reset() {
+	*x = ItemGrowth{}
+	mi := &file_pokeuniverse_item_v1_bag_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ItemGrowth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ItemGrowth) ProtoMessage() {}
+
+func (x *ItemGrowth) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_item_v1_bag_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ItemGrowth.ProtoReflect.Descriptor instead.
+func (*ItemGrowth) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_item_v1_bag_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ItemGrowth) GetLearned() []v1.Move {
+	if x != nil {
+		return x.Learned
+	}
+	return nil
+}
+
+func (x *ItemGrowth) GetToLearn() []v1.Move {
+	if x != nil {
+		return x.ToLearn
+	}
+	return nil
+}
+
+func (x *ItemGrowth) GetEvolvesTo() v11.Species {
+	if x != nil {
+		return x.EvolvesTo
+	}
+	return v11.Species(0)
+}
+
+func (x *ItemGrowth) GetEvolvedFrom() v11.Species {
+	if x != nil {
+		return x.EvolvedFrom
+	}
+	return v11.Species(0)
+}
+
 var File_pokeuniverse_item_v1_bag_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"\n" +
-	"\x1epokeuniverse/item/v1/bag.proto\x12\x14pokeuniverse.item.v1\x1a\"pokeuniverse/item/v1/catalog.proto\"|\n" +
+	"\x1epokeuniverse/item/v1/bag.proto\x12\x14pokeuniverse.item.v1\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a%pokeuniverse/species/v1/catalog.proto\"|\n" +
 	"\x03Bag\x129\n" +
 	"\apockets\x18\x01 \x03(\v2\x1f.pokeuniverse.item.v1.BagPocketR\apockets\x12:\n" +
 	"\n" +
@@ -754,12 +843,20 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"\apockets\x18\x01 \x03(\v2\x1f.pokeuniverse.item.v1.BagPocketR\apockets\x12:\n" +
 	"\n" +
 	"registered\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\n" +
-	"registered\"\x8f\x01\n" +
+	"registered\"\xc9\x01\n" +
 	"\n" +
 	"ItemResult\x12;\n" +
 	"\aoutcome\x18\x01 \x01(\x0e2!.pokeuniverse.item.v1.ItemOutcomeR\aoutcome\x12.\n" +
 	"\x04item\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x14\n" +
-	"\x05value\x18\x03 \x01(\rR\x05value*\x81\x06\n" +
+	"\x05value\x18\x03 \x01(\rR\x05value\x128\n" +
+	"\x06growth\x18\x04 \x01(\v2 .pokeuniverse.item.v1.ItemGrowthR\x06growth\"\xff\x01\n" +
+	"\n" +
+	"ItemGrowth\x124\n" +
+	"\alearned\x18\x01 \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\alearned\x125\n" +
+	"\bto_learn\x18\x02 \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\atoLearn\x12?\n" +
+	"\n" +
+	"evolves_to\x18\x03 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\tevolvesTo\x12C\n" +
+	"\fevolved_from\x18\x04 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\vevolvedFrom*\x9f\x06\n" +
 	"\vItemOutcome\x12\x1c\n" +
 	"\x18ITEM_OUTCOME_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14ITEM_OUTCOME_NOT_NOW\x10\x01\x12\x1b\n" +
@@ -788,7 +885,8 @@ const file_pokeuniverse_item_v1_bag_proto_rawDesc = "" +
 	"\x18ITEM_OUTCOME_NOT_HOLDING\x10\x17\x12\x1c\n" +
 	"\x18ITEM_OUTCOME_REMOVE_MAIL\x10\x18\x12 \n" +
 	"\x1cITEM_OUTCOME_USED_ON_POKEMON\x10\x19\x12\x1a\n" +
-	"\x16ITEM_OUTCOME_NO_EFFECT\x10\x1aB?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
+	"\x16ITEM_OUTCOME_NO_EFFECT\x10\x1a\x12\x1c\n" +
+	"\x18ITEM_OUTCOME_CANT_EVOLVE\x10\x1bB?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
 
 var (
 	file_pokeuniverse_item_v1_bag_proto_rawDescOnce sync.Once
@@ -803,7 +901,7 @@ func file_pokeuniverse_item_v1_bag_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_item_v1_bag_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_item_v1_bag_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_pokeuniverse_item_v1_bag_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_pokeuniverse_item_v1_bag_proto_goTypes = []any{
 	(ItemOutcome)(0),     // 0: pokeuniverse.item.v1.ItemOutcome
 	(*Bag)(nil),          // 1: pokeuniverse.item.v1.Bag
@@ -816,29 +914,37 @@ var file_pokeuniverse_item_v1_bag_proto_goTypes = []any{
 	(*MoveItem)(nil),     // 8: pokeuniverse.item.v1.MoveItem
 	(*BagChanged)(nil),   // 9: pokeuniverse.item.v1.BagChanged
 	(*ItemResult)(nil),   // 10: pokeuniverse.item.v1.ItemResult
-	(Item)(0),            // 11: pokeuniverse.item.v1.Item
-	(Pocket)(0),          // 12: pokeuniverse.item.v1.Pocket
+	(*ItemGrowth)(nil),   // 11: pokeuniverse.item.v1.ItemGrowth
+	(Item)(0),            // 12: pokeuniverse.item.v1.Item
+	(Pocket)(0),          // 13: pokeuniverse.item.v1.Pocket
+	(v1.Move)(0),         // 14: pokeuniverse.move.v1.Move
+	(v11.Species)(0),     // 15: pokeuniverse.species.v1.Species
 }
 var file_pokeuniverse_item_v1_bag_proto_depIdxs = []int32{
 	2,  // 0: pokeuniverse.item.v1.Bag.pockets:type_name -> pokeuniverse.item.v1.BagPocket
-	11, // 1: pokeuniverse.item.v1.Bag.registered:type_name -> pokeuniverse.item.v1.Item
-	12, // 2: pokeuniverse.item.v1.BagPocket.pocket:type_name -> pokeuniverse.item.v1.Pocket
+	12, // 1: pokeuniverse.item.v1.Bag.registered:type_name -> pokeuniverse.item.v1.Item
+	13, // 2: pokeuniverse.item.v1.BagPocket.pocket:type_name -> pokeuniverse.item.v1.Pocket
 	3,  // 3: pokeuniverse.item.v1.BagPocket.slots:type_name -> pokeuniverse.item.v1.BagSlot
-	11, // 4: pokeuniverse.item.v1.BagSlot.item:type_name -> pokeuniverse.item.v1.Item
-	11, // 5: pokeuniverse.item.v1.UseItem.item:type_name -> pokeuniverse.item.v1.Item
-	11, // 6: pokeuniverse.item.v1.GiveItem.item:type_name -> pokeuniverse.item.v1.Item
-	11, // 7: pokeuniverse.item.v1.TossItem.item:type_name -> pokeuniverse.item.v1.Item
-	11, // 8: pokeuniverse.item.v1.RegisterItem.item:type_name -> pokeuniverse.item.v1.Item
-	12, // 9: pokeuniverse.item.v1.MoveItem.pocket:type_name -> pokeuniverse.item.v1.Pocket
+	12, // 4: pokeuniverse.item.v1.BagSlot.item:type_name -> pokeuniverse.item.v1.Item
+	12, // 5: pokeuniverse.item.v1.UseItem.item:type_name -> pokeuniverse.item.v1.Item
+	12, // 6: pokeuniverse.item.v1.GiveItem.item:type_name -> pokeuniverse.item.v1.Item
+	12, // 7: pokeuniverse.item.v1.TossItem.item:type_name -> pokeuniverse.item.v1.Item
+	12, // 8: pokeuniverse.item.v1.RegisterItem.item:type_name -> pokeuniverse.item.v1.Item
+	13, // 9: pokeuniverse.item.v1.MoveItem.pocket:type_name -> pokeuniverse.item.v1.Pocket
 	2,  // 10: pokeuniverse.item.v1.BagChanged.pockets:type_name -> pokeuniverse.item.v1.BagPocket
-	11, // 11: pokeuniverse.item.v1.BagChanged.registered:type_name -> pokeuniverse.item.v1.Item
+	12, // 11: pokeuniverse.item.v1.BagChanged.registered:type_name -> pokeuniverse.item.v1.Item
 	0,  // 12: pokeuniverse.item.v1.ItemResult.outcome:type_name -> pokeuniverse.item.v1.ItemOutcome
-	11, // 13: pokeuniverse.item.v1.ItemResult.item:type_name -> pokeuniverse.item.v1.Item
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	12, // 13: pokeuniverse.item.v1.ItemResult.item:type_name -> pokeuniverse.item.v1.Item
+	11, // 14: pokeuniverse.item.v1.ItemResult.growth:type_name -> pokeuniverse.item.v1.ItemGrowth
+	14, // 15: pokeuniverse.item.v1.ItemGrowth.learned:type_name -> pokeuniverse.move.v1.Move
+	14, // 16: pokeuniverse.item.v1.ItemGrowth.to_learn:type_name -> pokeuniverse.move.v1.Move
+	15, // 17: pokeuniverse.item.v1.ItemGrowth.evolves_to:type_name -> pokeuniverse.species.v1.Species
+	15, // 18: pokeuniverse.item.v1.ItemGrowth.evolved_from:type_name -> pokeuniverse.species.v1.Species
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_item_v1_bag_proto_init() }
@@ -853,7 +959,7 @@ func file_pokeuniverse_item_v1_bag_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_item_v1_bag_proto_rawDesc), len(file_pokeuniverse_item_v1_bag_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

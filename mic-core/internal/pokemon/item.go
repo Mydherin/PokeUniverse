@@ -2,6 +2,7 @@ package pokemon
 
 import (
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	movev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
 	pokemonv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
 	speciesv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 )
@@ -28,6 +29,21 @@ func (pt Party) UseItem(e *itemv1.ItemEffect, slot, moveSlot int, mapID string) 
 	}
 	p := pt.At(slot)
 	return p != nil && p.useItem(e, moveSlot, mapID)
+}
+
+// RareCandy raises the Pokémon in `slot` one level through what battles use (Gain), its HP rising
+// with its maximum, which brings a fainted one back (ITEM6_HEAL_HP_LVL_UP; use_item_on_mon.c), and
+// teaches its moves at the new level. False at level 100: nothing changed.
+func (pt Party) RareCandy(slot int, mapID string) (learned, toLearn []movev1.Move, ok bool) {
+	p := pt.At(slot)
+	if p == nil || p.Level >= MaxLevel {
+		return nil, nil, false
+	}
+	maxHP := p.Stats()[0]
+	p.Gain(ExpAt(p.info().GetGrowthRate(), p.Level+1)-p.Exp, Stats{}, mapID)
+	p.HP += p.Stats()[0] - maxHP
+	learned, toLearn = p.learnAtLevel()
+	return learned, toLearn, true
 }
 
 // ItemSceneCloseness is how close FireRed's item scene shows the Pokémon in `slot`, from its friendship

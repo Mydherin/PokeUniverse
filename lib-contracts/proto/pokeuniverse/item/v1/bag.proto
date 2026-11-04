@@ -6,6 +6,8 @@ syntax = "proto3";
 package pokeuniverse.item.v1;
 
 import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/move/v1/catalog.proto";
+import "pokeuniverse/species/v1/catalog.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1";
 
@@ -79,6 +81,20 @@ message ItemResult {
   // the item taken back (`item` is the one given); USED_ON_POKEMON: how close the item scene shows
   // the Pokémon, 0-3 (friendship stays on the server).
   uint32 value = 3;
+  // USED_ON_POKEMON: what a RARE CANDY or an evolution item brought with it.
+  ItemGrowth growth = 4;
+}
+
+// What comes after an item made a party Pokémon grow, shown in this order.
+message ItemGrowth {
+  // New moves at its level, already in free slots.
+  repeated pokeuniverse.move.v1.Move learned = 1;
+  // New moves with no slot free: each is answered with LearnMove, or not at all.
+  repeated pokeuniverse.move.v1.Move to_learn = 2;
+  // RARE CANDY: it may evolve into this. The scene can be stopped; if it isn't, EvolvePokemon.
+  pokeuniverse.species.v1.Species evolves_to = 3;
+  // Evolution item: it already evolved from this, and it's saved. The scene only shows it, and can't be stopped.
+  pokeuniverse.species.v1.Species evolved_from = 4;
 }
 
 enum ItemOutcome {
@@ -132,4 +148,7 @@ enum ItemOutcome {
   ITEM_OUTCOME_USED_ON_POKEMON = 25;
   // UsePartyItem: "It won't have any effect." Nothing changed.
   ITEM_OUTCOME_NO_EFFECT = 26;
+  // UsePartyItem: an evolution item on a Pokémon that needs the National Pokédex to evolve (the
+  // scene ends in "...?"). Nothing changed, the item stays. `value` as in USED_ON_POKEMON.
+  ITEM_OUTCOME_CANT_EVOLVE = 27;
 }

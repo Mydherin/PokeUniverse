@@ -12,7 +12,7 @@ import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
-import type { PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import type { LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
 import type { Correction, Script, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
@@ -44,6 +44,7 @@ export interface WorldEvents {
   /** The whole party (before the ItemResult that changed it), or a correction. */
   partyChanged(p: PartyChanged): void;
   pokemonEvolved(p: PokemonEvolved): void;
+  learnMoveResult(r: LearnMoveResult): void;
   pokedexChanged(p: PokedexChanged): void;
   /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
@@ -310,6 +311,9 @@ export class Connection implements WorldLink {
         break;
       case "pokemonEvolved":
         this.world?.pokemonEvolved(msg.payload.value);
+        break;
+      case "learnMoveResult":
+        this.world?.learnMoveResult(msg.payload.value);
         break;
       case "pokedexChanged":
         this.world?.pokedexChanged(msg.payload.value);

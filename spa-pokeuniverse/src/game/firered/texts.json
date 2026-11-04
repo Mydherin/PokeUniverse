@@ -112,6 +112,7 @@
   "sText_PkmnCopiedStatChanges", "sText_PkmnReducedPP", "sText_ExclamationMark", "sText_PlayerWhiteoutAgainstTrainer",
   "sText_PkmnVanishedInstantly", "sText_PkmnTwistedDimensions", "sText_TrickRoomEnds", "sText_GravityIntensified", "sText_GravityEnds", "sText_ElectricityWeakened", "sText_FireWeakened",
   "gText_PkmnHPRestoredByVar2",
+  "gText_PkmnElevatedToLvVar2", "gText_PkmnLearnedMove3", "gText_PkmnNeedsToReplaceMove", "gText_StopLearningMove2", "gText_MoveNotLearned", "gText_WhichMoveToForget", "gText_12PoofForgotMove", "gText_Huh",
   "gText_PkmnCuredOfPoison",
   "gText_PkmnCuredOfParalysis",
   "gText_PkmnWokeUp2",

@@ -8,12 +8,12 @@
 // the Pokémon a bag item is for; after a faint it can't be cancelled. Field moves come with the
 // outdoor maps, using items on Pokémon with their effects. mic-core decides every change; this shows it.
 
-import type { ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import type { ItemGrowth, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
 import { BattleUse, FieldUse, Item, Pocket, type ItemEffect } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { Gender as MonGender, Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
-import { Stat } from "@pokeuniverse/contracts/pokemon/v1/stats";
+import { Stat, type Stats } from "@pokeuniverse/contracts/pokemon/v1/stats";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
@@ -31,7 +31,9 @@ import { userFrame } from "./manifest";
 import { clearStdWindowAndFrameToTransparent, copyTiles, CursorMenu, drawStdFrame, MENU_B_PRESSED, MENU_NOTHING_CHOSEN, printDefault, YesNoMenu } from "./menu";
 import { iconAnimForHp, MonIcon } from "./mon-icon";
 import { textSpeedDelay } from "./options";
-import { startSummary } from "./summary";
+import { levelUpGains, levelUpTotals } from "./battle/level-up";
+import { startFieldEvolution, type GrowthHost } from "./field-evolution";
+import { FORGET_NONE, startSummary } from "./summary";
 import { startUseItemScene } from "./use-item-scene";
 
 /** The trainer's Pokémon and what the party menu asks mic-core; the overworld answers. */
@@ -46,6 +48,8 @@ export interface PartyHost {
   readonly bag: BagHost;
   /** A bag item is used on a Pokémon (`moveSlot`: the move, for items that ask). */
   useItem(item: Item, slot: number, moveSlot: number): Promise<ItemResult>;
+  /** What a RARE CANDY or an evolution item needs after it; the field's only. */
+  readonly growth?: GrowthHost;
   /** A Pokémon holds the item, from the bag or the PC (`pc`). */
   give(item: Item, slot: number, pc: boolean): Promise<ItemResult>;
   take(slot: number): Promise<ItemResult>;
@@ -81,7 +85,11 @@ type Resume =
   | { slot: number; then: "selection" }
   | { slot: number; then: "give"; item: Item }
   /** Back from the item scene: the effect, already saved, shown from the box as it was. */
-  | { slot: number; then: "used"; item: Item; moveSlot: number; hp: number; ailment: Ailment };
+  | { slot: number; then: "used"; item: Item; moveSlot: number; hp: number; ailment: Ailment }
+  /** Back from a RARE CANDY's scene: the level up, saved already. */
+  | { slot: number; then: "leveled"; growth: ItemGrowth; stats: Stats | undefined; level: number; hp: number; ailment: Ailment }
+  /** Back from the summary's forget screen: what the player picked, then the moves still waiting. */
+  | { slot: number; then: "forgot"; growth: ItemGrowth; move: number; row: number };
 
 /**
  * Loads the party set and every party Pokémon's art on the black screen, then shows the party
@@ -206,6 +214,8 @@ const DO_WHAT_WITH_ITEM_WINDOW: WindowTemplate = { left: 1, top: 17, width: 19, 
 const WHICH_MOVE_WINDOW: WindowTemplate = { left: 1, top: 17, width: 15, height: 2, palette: 15, baseBlock: 0x299 };
 const MOVE_SELECT_WINDOW: WindowTemplate = { left: 18, top: 11, width: 11, height: 8, palette: 14, baseBlock: 0x2bf };
 const ITEM_GIVE_TAKE_WINDOW: WindowTemplate = { left: 22, top: 13, width: 7, height: 6, palette: 14, baseBlock: 0x373 };
+/** sLevelUpStatsWindowTemplate. */
+const LEVEL_UP_WINDOW: WindowTemplate = { left: 19, top: 1, width: 10, height: 11, palette: 14, baseBlock: 0x2bf };
 const YES_NO_WINDOW: WindowTemplate = { left: 21, top: 9, width: 6, height: 4, palette: 14, baseBlock: 0x2bf };
 
 /** BG0's, BG1's and BG2's shared tiles (one char base), the last window's ending under 0x400. */
@@ -473,6 +483,8 @@ class PartyMenu {
       this.showStdMessage(Message.DoWhatWithMon);
       this.openSelection();
     } else if (resume.then === "used") this.showUsed(resume);
+    else if (resume.then === "leveled") this.showLeveled(resume);
+    else if (resume.then === "forgot") this.afterForgetScreen(resume);
     else this.step = () => this.giveFromField(resume.item);
 
     palettes.blendPalettes(PALETTES_ALL, 16, RGB_BLACK);
@@ -547,7 +559,7 @@ class PartyMenu {
   }
 
   /** DisplayPartyPokemonData: the box, name, level (unless it has an ailment), gender, HP and its bar. */
-  private displayData(slot: number, shownHp?: number, shownAilment?: Ailment): void {
+  private displayData(slot: number, shownHp?: number, shownAilment?: Ailment, shownLevel?: number): void {
     const { flow } = this;
     const { assets } = flow;
     const mon = this.mon(slot)!;
@@ -559,7 +571,7 @@ class PartyMenu {
     win.print(small, r.nickname[0], r.nickname[1], COLORS_DEFAULT, name);
     const ailment = shownAilment ?? ailmentOf(mon);
     if (ailment === Ailment.None || ailment === Ailment.Pokerus)
-      win.print(small, r.level[0], r.level[1], COLORS_DEFAULT, joinText(assets.text("gText_Lv"), decimalText(mon.level, NumberMode.LeftAlign, 3)));
+      win.print(small, r.level[0], r.level[1], COLORS_DEFAULT, joinText(assets.text("gText_Lv"), decimalText(shownLevel ?? mon.level, NumberMode.LeftAlign, 3)));
     const gender = shownGender(mon);
     if (gender !== MonGender.UNSPECIFIED) {
       const male = gender === MonGender.MALE;
@@ -953,14 +965,23 @@ class PartyMenu {
   private useItem(item: Item, slot: number, moveSlot: number): void {
     this.removeStdMessage();
     const before = this.mon(slot);
-    const hp = before?.hp ?? 0;
-    const ailment = before ? ailmentOf(before) : Ailment.None;
+    if (!before) return;
+    const { hp, level, stats, species, shiny } = before;
+    const ailment = ailmentOf(before);
+    const name = monName(this.flow, before);
     this.ask(this.host.useItem(item, slot, moveSlot), (r) => {
       const { flow, host, mode, done } = this;
-      const mon = this.mon(slot);
-      if (r.outcome !== ItemOutcome.USED_ON_POKEMON || !mon) return this.showMessage(flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
-      const scene = { species: mon.species, shiny: mon.shiny, name: monName(flow, mon), item, closeness: r.value };
-      this.exitTo(() => startUseItemScene(flow, scene, () => startPartyMenu(flow, host, mode, done, { slot, then: "used", item, moveSlot, hp, ailment })));
+      const scene = { species, shiny, name, item, closeness: r.value };
+      if (r.outcome === ItemOutcome.CANT_EVOLVE) return this.exitTo(() => startUseItemScene(flow, { ...scene, cantEvolve: true }, done));
+      if (r.outcome !== ItemOutcome.USED_ON_POKEMON || !this.mon(slot)) return this.showMessage(flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
+      const { growth } = r;
+      if (growth?.evolvedFrom && host.growth) {
+        const evolving = host.growth;
+        const evolution = { slot, species: this.mon(slot)!.species, from: { species, shiny }, learned: growth.learned, toLearn: growth.toLearn };
+        return this.exitTo(() => startUseItemScene(flow, scene, () => startFieldEvolution(flow, host, evolving, evolution, done)));
+      }
+      const back: Resume = growth ? { slot, then: "leveled", growth, stats, level, hp, ailment } : { slot, then: "used", item, moveSlot, hp, ailment };
+      this.exitTo(() => startUseItemScene(flow, scene, () => startPartyMenu(flow, host, mode, done, back)));
     });
   }
 
@@ -973,6 +994,144 @@ class PartyMenu {
       if (this.flow.gba.palettes.fadeActive) return;
       this.playUsed(item);
       this.showRecovered(slot, hp, () => this.usedMessage(item, slot, moveSlot, hp), () => this.close());
+    };
+  }
+
+  /** ItemUseCB_RareCandyStep: the box as it was until the menu is back; the fanfare, the new level, its message. */
+  private showLeveled({ slot, growth, stats, level, hp, ailment }: { slot: number; growth: ItemGrowth; stats: Stats | undefined; level: number; hp: number; ailment: Ailment }): void {
+    const { flow } = this;
+    this.displayData(slot, hp, ailment, level);
+    this.step = () => {
+      if (flow.gba.palettes.fadeActive) return;
+      const mon = this.mon(slot);
+      const box = this.sprites[slot];
+      if (!mon || !box) return this.close();
+      flow.gba.sound.playFanfare("mus_level_up");
+      this.showAilment(box, ailmentOf(mon));
+      this.displayData(slot);
+      this.animateSlot(slot, 1);
+      const text = expandPlaceholders(flow.assets.text("gText_PkmnElevatedToLvVar2"), {
+        [PLACEHOLDER_STR_VAR_1]: monName(flow, mon),
+        [PLACEHOLDER_STR_VAR_2]: decimalText(mon.level, NumberMode.LeftAlign, 3),
+      });
+      this.showMessage(text, true, () => this.showLevelUpStats(slot, growth, stats));
+    };
+  }
+
+  /** Runs `then` on A or B, once the fanfare is over. */
+  private afterPress(then: () => void): void {
+    const { gba } = this.flow;
+    this.step = () => {
+      if (!gba.sound.isPlaying("fanfare") && gba.input.isPressed(Button.A | Button.B)) then();
+    };
+  }
+
+  /** Task_DisplayLevelUpStatsPg1 and 2, Task_TryLearnNewMoves: gains, totals, then what it learns. */
+  private showLevelUpStats(slot: number, growth: ItemGrowth, stats: Stats | undefined): void {
+    const { flow } = this;
+    const after = this.mon(slot)?.stats;
+    this.afterPress(() => {
+      flow.play("se_select");
+      const win = new Window(this.bg2, LEVEL_UP_WINDOW);
+      drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
+      win.fill(1);
+      levelUpGains(flow, win, stats, after, [1, 2, 3]);
+      win.copyToVram();
+      this.afterPress(() => {
+        flow.play("se_select");
+        win.fill(1);
+        levelUpTotals(flow, win, after, [1, 2, 3]);
+        win.copyToVram();
+        this.afterPress(() => {
+          clearStdWindowAndFrameToTransparent(win);
+          this.learnNext(slot, growth);
+        });
+      });
+    });
+  }
+
+  /** Task_TryLearningNextMove: the moves in free slots, those with none, then PartyMenuTryEvolution. */
+  private learnNext(slot: number, growth: ItemGrowth): void {
+    const { flow, host, done } = this;
+    const learned = growth.learned[0];
+    if (learned) return this.showLearned(slot, learned, { ...growth, learned: growth.learned.slice(1) });
+    const move = growth.toLearn[0];
+    if (move) return this.askToReplaceMove(slot, move, { ...growth, toLearn: growth.toLearn.slice(1) });
+    if (growth.evolvesTo && host.growth) {
+      const evolving = host.growth;
+      const evolution = { slot, species: growth.evolvesTo };
+      return this.exitTo(() => startFieldEvolution(flow, host, evolving, evolution, done));
+    }
+    this.close();
+  }
+
+  private moveText(id: TextId, slot: number, move: number): Text {
+    const { flow } = this;
+    return expandPlaceholders(flow.assets.text(id), {
+      [PLACEHOLDER_STR_VAR_1]: monName(flow, this.mon(slot)!),
+      [PLACEHOLDER_STR_VAR_2]: flow.assets.moveName(move),
+    });
+  }
+
+  /** Task_LearnedMove: its message, the fanfare, a press. */
+  private showLearned(slot: number, move: number, growth: ItemGrowth): void {
+    this.showMessage(this.moveText("gText_PkmnLearnedMove3", slot, move), true, () => {
+      this.flow.gba.sound.playFanfare("mus_level_up");
+      this.afterPress(() => this.learnNext(slot, growth));
+    });
+  }
+
+  private yesNoQuestion(yes: () => void, no: () => void): void {
+    const { flow } = this;
+    this.yesNo = new YesNoMenu(flow, this.bg2, YES_NO_WINDOW, FontId.Normal, 0, 2, 0, USER_FRAME_TILE, USER_FRAME_PALETTE);
+    this.step = () => {
+      const answer = this.yesNo!.processInput();
+      if (answer === MENU_NOTHING_CHOSEN) return;
+      this.yesNo = null;
+      if (answer === MENU_B_PRESSED) flow.play("se_select");
+      if (answer === 0) yes();
+      else no();
+    };
+  }
+
+  /** DisplayMonNeedsToReplaceMove, Task_ReplaceMoveYesNo. */
+  private askToReplaceMove(slot: number, move: number, growth: ItemGrowth): void {
+    const { flow, host, mode, done } = this;
+    this.showMessage(this.moveText("gText_PkmnNeedsToReplaceMove", slot, move), true, () =>
+      this.yesNoQuestion(
+        () =>
+          this.showMessage(flow.assets.text("gText_WhichMoveToForget"), true, () =>
+            this.exitTo(() => {
+              let row = FORGET_NONE;
+              startSummary(flow, host, slot, () => startPartyMenu(flow, host, mode, done, { slot, then: "forgot", growth, move, row }), { move, pick: (r) => (row = r) });
+            }),
+          ),
+        () => this.askToStopLearning(slot, move, growth),
+      ),
+    );
+  }
+
+  /** StopLearningMovePrompt: YES moves on without it, NO asks again. */
+  private askToStopLearning(slot: number, move: number, growth: ItemGrowth): void {
+    this.showMessage(this.moveText("gText_StopLearningMove2", slot, move), true, () =>
+      this.yesNoQuestion(
+        () => this.showMessage(this.moveText("gText_MoveNotLearned", slot, move), true, () => this.learnNext(slot, growth)),
+        () => this.askToReplaceMove(slot, move, growth),
+      ),
+    );
+  }
+
+  /** Task_ReturnToPartyMenuWhileLearningMove: "1, 2, and... Poof!", the move goes, the new one comes. */
+  private afterForgetScreen({ slot, growth, move, row }: { slot: number; growth: ItemGrowth; move: number; row: number }): void {
+    this.step = () => {
+      if (this.flow.gba.palettes.fadeActive) return;
+      if (row === FORGET_NONE) return this.askToStopLearning(slot, move, growth);
+      const gone = this.mon(slot)?.moves[row]?.move ?? 0;
+      this.showMessage(this.moveText("gText_12PoofForgotMove", slot, gone), true, () => {
+        const answer = this.host.growth?.learnMove(slot, move, row);
+        if (answer) this.ask(answer, (r) => this.showLearned(slot, move, { ...growth, evolvesTo: r.evolvesTo }));
+        else this.showLearned(slot, move, growth);
+      });
     };
   }
 
@@ -1178,7 +1337,7 @@ class PartyMenu {
   }
 
   /** Waits for mic-core's answer; nothing else runs meanwhile. */
-  private ask(answer: Promise<ItemResult>, then: (r: ItemResult) => void): void {
+  private ask<T>(answer: Promise<T>, then: (r: T) => void): void {
     this.step = () => {};
     void answer.then((r) => {
       this.step = () => then(r);

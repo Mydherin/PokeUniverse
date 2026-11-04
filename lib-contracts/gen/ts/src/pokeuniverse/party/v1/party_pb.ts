@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/party/v1/party.proto.
  */
 export const file_pokeuniverse_party_v1_party: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iWQoMVXNlUGFydHlJdGVtEigKBGl0ZW0YASABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEgwKBHNsb3QYAiABKA0SEQoJbW92ZV9zbG90GAMgASgNIlMKEFBlbmRpbmdFdm9sdXRpb24SDAoEc2xvdBgBIAEoDRIxCgdzcGVjaWVzGAIgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcyIdCg1Fdm9sdmVQb2tlbW9uEgwKBHNsb3QYASABKA0iiQEKDlBva2Vtb25Fdm9sdmVkEgwKBHNsb3QYASABKA0SKwoHbGVhcm5lZBgCIAMoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSLAoIdG9fbGVhcm4YAyADKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEg4KBmZhaWxlZBgEIAEoCCJYCglMZWFybk1vdmUSDAoEc2xvdBgBIAEoDRIoCgRtb3ZlGAIgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRITCgtmb3JnZXRfc2xvdBgDIAEoDSI7CgxQYXJ0eUNoYW5nZWQSKwoFcGFydHkYASABKAsyHC5wb2tldW5pdmVyc2UucGFydHkudjEuUGFydHlCQVo/cG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9wYXJ0eS92MTtwYXJ0eXYxYgZwcm90bzM", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iWQoMVXNlUGFydHlJdGVtEigKBGl0ZW0YASABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEgwKBHNsb3QYAiABKA0SEQoJbW92ZV9zbG90GAMgASgNIlMKEFBlbmRpbmdFdm9sdXRpb24SDAoEc2xvdBgBIAEoDRIxCgdzcGVjaWVzGAIgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcyIdCg1Fdm9sdmVQb2tlbW9uEgwKBHNsb3QYASABKA0iiQEKDlBva2Vtb25Fdm9sdmVkEgwKBHNsb3QYASABKA0SKwoHbGVhcm5lZBgCIAMoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSLAoIdG9fbGVhcm4YAyADKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEg4KBmZhaWxlZBgEIAEoCCJYCglMZWFybk1vdmUSDAoEc2xvdBgBIAEoDRIoCgRtb3ZlGAIgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRITCgtmb3JnZXRfc2xvdBgDIAEoDSJVCg9MZWFybk1vdmVSZXN1bHQSDAoEc2xvdBgBIAEoDRI0Cgpldm9sdmVzX3RvGAIgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcyI7CgxQYXJ0eUNoYW5nZWQSKwoFcGFydHkYASABKAsyHC5wb2tldW5pdmVyc2UucGFydHkudjEuUGFydHlCQVo/cG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9wYXJ0eS92MTtwYXJ0eXYxYgZwcm90bzM", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * One of the trainer's Pokémon, as its trainer sees it (the summary). IVs, EVs and friendship
@@ -339,7 +339,7 @@ export const TakePartyItemSchema: GenMessage<TakePartyItem> = /*@__PURE__*/
 /**
  * Client -> server: USE a bag item on a party Pokémon (the item's own rules are in its catalog
  * entry). Answered with PartyChanged and BagChanged (what changed), then an ItemResult:
- * USED_ON_POKEMON or NO_EFFECT.
+ * USED_ON_POKEMON (with its growth), NO_EFFECT or CANT_EVOLVE.
  *
  * @generated from message pokeuniverse.party.v1.UsePartyItem
  */
@@ -453,7 +453,7 @@ export const PokemonEvolvedSchema: GenMessage<PokemonEvolved> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_party_v1_party, 10);
 
 /**
- * Client -> server: one of PokemonEvolved.to_learn replaces a move. Answered with PartyChanged.
+ * Client -> server: one of PokemonEvolved.to_learn or ItemGrowth.to_learn replaces a move. Answered with PartyChanged, then LearnMoveResult.
  *
  * @generated from message pokeuniverse.party.v1.LearnMove
  */
@@ -482,6 +482,33 @@ export const LearnMoveSchema: GenMessage<LearnMove> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_party_v1_party, 11);
 
 /**
+ * Server -> client: the answer to LearnMove, refused or not.
+ *
+ * @generated from message pokeuniverse.party.v1.LearnMoveResult
+ */
+export type LearnMoveResult = Message<"pokeuniverse.party.v1.LearnMoveResult"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+
+  /**
+   * Who it may evolve into with the moves it knows now, replacing ItemGrowth.evolves_to: a move
+   * can make the evolution possible (Gen 4's Aipom) or take it away. Unset for none.
+   *
+   * @generated from field: pokeuniverse.species.v1.Species evolves_to = 2;
+   */
+  evolvesTo: Species;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.LearnMoveResult.
+ * Use `create(LearnMoveResultSchema)` to create a new message.
+ */
+export const LearnMoveResultSchema: GenMessage<LearnMoveResult> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 12);
+
+/**
  * Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
  * or alone to correct a refused SwapPartySlots or SwapPokemonMoves.
  *
@@ -499,5 +526,5 @@ export type PartyChanged = Message<"pokeuniverse.party.v1.PartyChanged"> & {
  * Use `create(PartyChangedSchema)` to create a new message.
  */
 export const PartyChangedSchema: GenMessage<PartyChanged> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 12);
+  messageDesc(file_pokeuniverse_party_v1_party, 13);
 

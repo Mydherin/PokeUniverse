@@ -2,7 +2,7 @@
 // pokemon_special_anim_scene.c): the Pokémon's picture comes closer the friendlier it is, the item
 // appears and shrinks into it, sparkles, "<item> was used on <name>.", and it goes back. A or B held
 // before the message skips it. mic-core has already decided and saved the item: this only shows it.
-// The level up, machine and can't-evolve variants (phase-6 M2, M3) belong on this file.
+// The machine variants (phase-6 M3) belong on this file.
 
 import type { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { toTiles } from "../gba/assets";
@@ -25,6 +25,8 @@ export interface UseItemScene {
   item: Item;
   /** GetClosenessFromFriendship, from mic-core: 0-3. */
   closeness: number;
+  /** Task_EvoStone_CantEvolve: "Huh?", and the picture stays until a press. */
+  cantEvolve?: boolean;
 }
 
 /** sAffineScales, by closeness. */
@@ -137,11 +139,11 @@ class Scene {
     drawStdFrame(win, FRAME_TILE, FRAME_PALETTE);
     yield;
     const { assets, fonts } = flow;
-    const text = joinText(assets.itemName(use.item), assets.text("gText_WasUsedOn"), use.name, assets.text("gText_Period"));
+    const text = use.cantEvolve ? assets.text("gText_Huh") : joinText(assets.itemName(use.item), assets.text("gText_WasUsedOn"), use.name, assets.text("gText_Period"));
     flow.text.add(win, { font: fonts[FontId.Normal], x: 0, y: 0, letterSpacing: 0, lineSpacing: 4, colors: [1, 2, 3] }, textSpeedDelay(flow.options), text);
     yield;
     while (flow.text.isActive(win)) yield;
-    yield* this.zoomTo(0);
+    if (!use.cantEvolve) yield* this.zoomTo(0);
     while (!gba.input.isPressed(Button.A) && !gba.input.isPressed(Button.B)) yield;
     gba.palettes.beginFade(PALETTES_ALL, -1, 0, 16, RGB_BLACK);
     yield;

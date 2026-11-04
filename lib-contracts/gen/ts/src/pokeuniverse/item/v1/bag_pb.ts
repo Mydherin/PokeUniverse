@@ -10,13 +10,17 @@ import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Item, Pocket } from "./catalog_pb";
 import { file_pokeuniverse_item_v1_catalog } from "./catalog_pb";
+import type { Move } from "../../move/v1/catalog_pb";
+import { file_pokeuniverse_move_v1_catalog } from "../../move/v1/catalog_pb";
+import type { Species } from "../../species/v1/catalog_pb";
+import { file_pokeuniverse_species_v1_catalog } from "../../species/v1/catalog_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file pokeuniverse/item/v1/bag.proto.
  */
 export const file_pokeuniverse_item_v1_bag: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wb2tldW5pdmVyc2UvaXRlbS92MS9iYWcucHJvdG8SFHBva2V1bml2ZXJzZS5pdGVtLnYxImcKA0JhZxIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtImcKCUJhZ1BvY2tldBIsCgZwb2NrZXQYASABKA4yHC5wb2tldW5pdmVyc2UuaXRlbS52MS5Qb2NrZXQSLAoFc2xvdHMYAiADKAsyHS5wb2tldW5pdmVyc2UuaXRlbS52MS5CYWdTbG90IkUKB0JhZ1Nsb3QSKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEAoIcXVhbnRpdHkYAiABKA0iQgoHVXNlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRINCgVmaWVsZBgCIAEoCCJACghHaXZlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIKCgJwYxgCIAEoCCJGCghUb3NzSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIQCghxdWFudGl0eRgCIAEoDSI4CgxSZWdpc3Rlckl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iUgoITW92ZUl0ZW0SLAoGcG9ja2V0GAEgASgOMhwucG9rZXVuaXZlcnNlLml0ZW0udjEuUG9ja2V0EgwKBGZyb20YAiABKA0SCgoCdG8YAyABKA0ibgoKQmFnQ2hhbmdlZBIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtInkKCkl0ZW1SZXN1bHQSMgoHb3V0Y29tZRgBIAEoDjIhLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW1PdXRjb21lEigKBGl0ZW0YAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg0KBXZhbHVlGAMgASgNKoEGCgtJdGVtT3V0Y29tZRIcChhJVEVNX09VVENPTUVfVU5TUEVDSUZJRUQQABIYChRJVEVNX09VVENPTUVfTk9UX05PVxABEhsKF0lURU1fT1VUQ09NRV9OT19QT0tFTU9OEAISHQoZSVRFTV9PVVRDT01FX0NBTlRfQkVfSEVMRBADEhcKE0lURU1fT1VUQ09NRV9UT1NTRUQQBBIVChFJVEVNX09VVENPTUVfVVNFRBAFEh4KGklURU1fT1VUQ09NRV9SRVBFTF9MSU5HRVJTEAYSFgoSSVRFTV9PVVRDT01FX0NPSU5TEAcSHQoZSVRFTV9PVVRDT01FX0JFUlJZX1BPV0RFUhAIEhwKGElURU1fT1VUQ09NRV9DQVRDSFlfVFVORRAJEhsKF0lURU1fT1VUQ09NRV9XSUxEX0xVUkVEEAoSHgoaSVRFTV9PVVRDT01FX1dJTERfUkVQRUxMRUQQCxIcChhJVEVNX09VVENPTUVfTk9fUkVTUE9OU0UQDBIVChFJVEVNX09VVENPTUVfT1BFThANEhsKF0lURU1fT1VUQ09NRV9QQVJUWV9NRU5VEA4SGQoVSVRFTV9PVVRDT01FX09OX0ZJRUxEEA8SGgoWSVRFTV9PVVRDT01FX1dJVEhEUkFXThAQEhoKFklURU1fT1VUQ09NRV9ERVBPU0lURUQQERIZChVJVEVNX09VVENPTUVfQkFHX0ZVTEwQEhIYChRJVEVNX09VVENPTUVfUENfRlVMTBATEhYKEklURU1fT1VUQ09NRV9HSVZFThAUEhgKFElURU1fT1VUQ09NRV9TV0FQUEVEEBUSFgoSSVRFTV9PVVRDT01FX1RBS0VOEBYSHAoYSVRFTV9PVVRDT01FX05PVF9IT0xESU5HEBcSHAoYSVRFTV9PVVRDT01FX1JFTU9WRV9NQUlMEBgSIAocSVRFTV9PVVRDT01FX1VTRURfT05fUE9LRU1PThAZEhoKFklURU1fT1VUQ09NRV9OT19FRkZFQ1QQGkI/Wj1wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2l0ZW0vdjE7aXRlbXYxYgZwcm90bzM", [file_pokeuniverse_item_v1_catalog]);
+  fileDesc("Ch5wb2tldW5pdmVyc2UvaXRlbS92MS9iYWcucHJvdG8SFHBva2V1bml2ZXJzZS5pdGVtLnYxImcKA0JhZxIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtImcKCUJhZ1BvY2tldBIsCgZwb2NrZXQYASABKA4yHC5wb2tldW5pdmVyc2UuaXRlbS52MS5Qb2NrZXQSLAoFc2xvdHMYAiADKAsyHS5wb2tldW5pdmVyc2UuaXRlbS52MS5CYWdTbG90IkUKB0JhZ1Nsb3QSKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEAoIcXVhbnRpdHkYAiABKA0iQgoHVXNlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRINCgVmaWVsZBgCIAEoCCJACghHaXZlSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIKCgJwYxgCIAEoCCJGCghUb3NzSXRlbRIoCgRpdGVtGAEgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIQCghxdWFudGl0eRgCIAEoDSI4CgxSZWdpc3Rlckl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iUgoITW92ZUl0ZW0SLAoGcG9ja2V0GAEgASgOMhwucG9rZXVuaXZlcnNlLml0ZW0udjEuUG9ja2V0EgwKBGZyb20YAiABKA0SCgoCdG8YAyABKA0ibgoKQmFnQ2hhbmdlZBIwCgdwb2NrZXRzGAEgAygLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnUG9ja2V0Ei4KCnJlZ2lzdGVyZWQYAiABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtIqsBCgpJdGVtUmVzdWx0EjIKB291dGNvbWUYASABKA4yIS5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtT3V0Y29tZRIoCgRpdGVtGAIgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRINCgV2YWx1ZRgDIAEoDRIwCgZncm93dGgYBCABKAsyIC5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtR3Jvd3RoItUBCgpJdGVtR3Jvd3RoEisKB2xlYXJuZWQYASADKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEiwKCHRvX2xlYXJuGAIgAygOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRI0Cgpldm9sdmVzX3RvGAMgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxI2Cgxldm9sdmVkX2Zyb20YBCABKA4yIC5wb2tldW5pdmVyc2Uuc3BlY2llcy52MS5TcGVjaWVzKp8GCgtJdGVtT3V0Y29tZRIcChhJVEVNX09VVENPTUVfVU5TUEVDSUZJRUQQABIYChRJVEVNX09VVENPTUVfTk9UX05PVxABEhsKF0lURU1fT1VUQ09NRV9OT19QT0tFTU9OEAISHQoZSVRFTV9PVVRDT01FX0NBTlRfQkVfSEVMRBADEhcKE0lURU1fT1VUQ09NRV9UT1NTRUQQBBIVChFJVEVNX09VVENPTUVfVVNFRBAFEh4KGklURU1fT1VUQ09NRV9SRVBFTF9MSU5HRVJTEAYSFgoSSVRFTV9PVVRDT01FX0NPSU5TEAcSHQoZSVRFTV9PVVRDT01FX0JFUlJZX1BPV0RFUhAIEhwKGElURU1fT1VUQ09NRV9DQVRDSFlfVFVORRAJEhsKF0lURU1fT1VUQ09NRV9XSUxEX0xVUkVEEAoSHgoaSVRFTV9PVVRDT01FX1dJTERfUkVQRUxMRUQQCxIcChhJVEVNX09VVENPTUVfTk9fUkVTUE9OU0UQDBIVChFJVEVNX09VVENPTUVfT1BFThANEhsKF0lURU1fT1VUQ09NRV9QQVJUWV9NRU5VEA4SGQoVSVRFTV9PVVRDT01FX09OX0ZJRUxEEA8SGgoWSVRFTV9PVVRDT01FX1dJVEhEUkFXThAQEhoKFklURU1fT1VUQ09NRV9ERVBPU0lURUQQERIZChVJVEVNX09VVENPTUVfQkFHX0ZVTEwQEhIYChRJVEVNX09VVENPTUVfUENfRlVMTBATEhYKEklURU1fT1VUQ09NRV9HSVZFThAUEhgKFElURU1fT1VUQ09NRV9TV0FQUEVEEBUSFgoSSVRFTV9PVVRDT01FX1RBS0VOEBYSHAoYSVRFTV9PVVRDT01FX05PVF9IT0xESU5HEBcSHAoYSVRFTV9PVVRDT01FX1JFTU9WRV9NQUlMEBgSIAocSVRFTV9PVVRDT01FX1VTRURfT05fUE9LRU1PThAZEhoKFklURU1fT1VUQ09NRV9OT19FRkZFQ1QQGhIcChhJVEVNX09VVENPTUVfQ0FOVF9FVk9MVkUQG0I/Wj1wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2l0ZW0vdjE7aXRlbXYxYgZwcm90bzM", [file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_species_v1_catalog]);
 
 /**
  * Everything the trainer carries, in the world snapshot.
@@ -270,6 +274,13 @@ export type ItemResult = Message<"pokeuniverse.item.v1.ItemResult"> & {
    * @generated from field: uint32 value = 3;
    */
   value: number;
+
+  /**
+   * USED_ON_POKEMON: what a RARE CANDY or an evolution item brought with it.
+   *
+   * @generated from field: pokeuniverse.item.v1.ItemGrowth growth = 4;
+   */
+  growth?: ItemGrowth | undefined;
 };
 
 /**
@@ -278,6 +289,48 @@ export type ItemResult = Message<"pokeuniverse.item.v1.ItemResult"> & {
  */
 export const ItemResultSchema: GenMessage<ItemResult> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_item_v1_bag, 9);
+
+/**
+ * What comes after an item made a party Pokémon grow, shown in this order.
+ *
+ * @generated from message pokeuniverse.item.v1.ItemGrowth
+ */
+export type ItemGrowth = Message<"pokeuniverse.item.v1.ItemGrowth"> & {
+  /**
+   * New moves at its level, already in free slots.
+   *
+   * @generated from field: repeated pokeuniverse.move.v1.Move learned = 1;
+   */
+  learned: Move[];
+
+  /**
+   * New moves with no slot free: each is answered with LearnMove, or not at all.
+   *
+   * @generated from field: repeated pokeuniverse.move.v1.Move to_learn = 2;
+   */
+  toLearn: Move[];
+
+  /**
+   * RARE CANDY: it may evolve into this. The scene can be stopped; if it isn't, EvolvePokemon.
+   *
+   * @generated from field: pokeuniverse.species.v1.Species evolves_to = 3;
+   */
+  evolvesTo: Species;
+
+  /**
+   * Evolution item: it already evolved from this, and it's saved. The scene only shows it, and can't be stopped.
+   *
+   * @generated from field: pokeuniverse.species.v1.Species evolved_from = 4;
+   */
+  evolvedFrom: Species;
+};
+
+/**
+ * Describes the message pokeuniverse.item.v1.ItemGrowth.
+ * Use `create(ItemGrowthSchema)` to create a new message.
+ */
+export const ItemGrowthSchema: GenMessage<ItemGrowth> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_item_v1_bag, 10);
 
 /**
  * @generated from enum pokeuniverse.item.v1.ItemOutcome
@@ -463,6 +516,14 @@ export enum ItemOutcome {
    * @generated from enum value: ITEM_OUTCOME_NO_EFFECT = 26;
    */
   NO_EFFECT = 26,
+
+  /**
+   * UsePartyItem: an evolution item on a Pokémon that needs the National Pokédex to evolve (the
+   * scene ends in "...?"). Nothing changed, the item stays. `value` as in USED_ON_POKEMON.
+   *
+   * @generated from enum value: ITEM_OUTCOME_CANT_EVOLVE = 27;
+   */
+  CANT_EVOLVE = 27,
 }
 
 /**

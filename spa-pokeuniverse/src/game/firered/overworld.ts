@@ -25,7 +25,7 @@ import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
-import { PokemonEvolvedSchema, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import { LearnMoveResultSchema, PokemonEvolvedSchema, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
@@ -111,6 +111,7 @@ export function startOverworld(flow: Flow): void {
     pcChanged: (p) => overworld?.pcChanged(p),
     partyChanged: (p) => overworld?.partyChanged(p),
     pokemonEvolved: (p) => overworld?.pokemonEvolved(p),
+    learnMoveResult: (r) => overworld?.learnMoveResult(r),
     pokedexChanged: (p) => overworld?.pokedexChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
@@ -230,6 +231,8 @@ class Overworld {
   private pokedex: PokedexState;
   /** Who waits for mic-core's PokemonEvolved. */
   private evolveAnswer: ((p: PokemonEvolved) => void) | null = null;
+  /** Who waits for mic-core's LearnMoveResult. */
+  private learnAnswer: ((r: LearnMoveResult) => void) | null = null;
   /** The trainer's Pokémon, as mic-core last said. */
   private party: PartyState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
@@ -356,6 +359,11 @@ class Overworld {
     this.evolveAnswer = null;
   }
 
+  learnMoveResult(r: LearnMoveResult): void {
+    this.learnAnswer?.(r);
+    this.learnAnswer = null;
+  }
+
   pokedexChanged(p: PokedexChanged): void {
     this.pokedex = new PokedexState(p.pokedex);
   }
@@ -425,13 +433,7 @@ class Overworld {
         return self.bagHost();
       },
       choose: (battleId, step, action, partner) => link.battleChoice(battleId, step, action, partner),
-      evolve: (slot) => {
-        if (!link.inWorld) return Promise.resolve(create(PokemonEvolvedSchema, { slot, failed: true }));
-        return new Promise((resolve) => {
-          this.evolveAnswer = resolve;
-          link.evolvePokemon(slot);
-        });
-      },
+      evolve: (slot) => this.askEvolve(slot),
       learnMove: (slot, move, forget) => link.learnMove(slot, move, forget),
       finished: (result) => {
         this.leaveBattle();
@@ -475,6 +477,26 @@ class Overworld {
     };
   }
 
+  /** EvolvePokemon: mic-core saves it, then answers; offline it stops. */
+  private askEvolve(slot: number): Promise<PokemonEvolved> {
+    const { link } = this.flow;
+    if (!link.inWorld) return Promise.resolve(create(PokemonEvolvedSchema, { slot, failed: true }));
+    return new Promise((resolve) => {
+      this.evolveAnswer = resolve;
+      link.evolvePokemon(slot);
+    });
+  }
+
+  /** LearnMove: mic-core saves it, then answers; offline nothing can evolve anyway. */
+  private askLearnMove(slot: number, move: number, forget: number): Promise<LearnMoveResult> {
+    const { link } = this.flow;
+    if (!link.inWorld) return Promise.resolve(create(LearnMoveResultSchema, { slot }));
+    return new Promise((resolve) => {
+      this.learnAnswer = resolve;
+      link.learnMove(slot, move, forget);
+    });
+  }
+
   /** The party menu's way to the trainer's Pokémon (and to the bag, for GIVE). */
   private partyHost(): PartyHost {
     const { link } = this.flow;
@@ -490,6 +512,13 @@ class Overworld {
         return self.bagHost();
       },
       useItem: (item, slot, moveSlot) => this.askItem(() => link.usePartyItem(item, slot, moveSlot)),
+      growth: {
+        evolve: (slot) => this.askEvolve(slot),
+        learnMove: (slot, move, forget) => this.askLearnMove(slot, move, forget),
+        mapMusic: () => {
+          if (this.map.music) this.flow.gba.sound.playBgm(this.map.music);
+        },
+      },
       give: (item, slot, pc) => this.askItem(() => link.givePartyItem(item, slot, pc)),
       take: (slot) => this.askItem(() => link.takePartyItem(slot)),
       swap: (a, b) => {

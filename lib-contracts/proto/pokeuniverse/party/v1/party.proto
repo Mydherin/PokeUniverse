@@ -101,7 +101,7 @@ message TakePartyItem {
 
 // Client -> server: USE a bag item on a party Pokémon (the item's own rules are in its catalog
 // entry). Answered with PartyChanged and BagChanged (what changed), then an ItemResult:
-// USED_ON_POKEMON or NO_EFFECT.
+// USED_ON_POKEMON (with its growth), NO_EFFECT or CANT_EVOLVE.
 message UsePartyItem {
   pokeuniverse.item.v1.Item item = 1;
   uint32 slot = 2;
@@ -131,11 +131,19 @@ message PokemonEvolved {
   bool failed = 4;
 }
 
-// Client -> server: one of PokemonEvolved.to_learn replaces a move. Answered with PartyChanged.
+// Client -> server: one of PokemonEvolved.to_learn or ItemGrowth.to_learn replaces a move. Answered with PartyChanged, then LearnMoveResult.
 message LearnMove {
   uint32 slot = 1;
   pokeuniverse.move.v1.Move move = 2;
   uint32 forget_slot = 3;
+}
+
+// Server -> client: the answer to LearnMove, refused or not.
+message LearnMoveResult {
+  uint32 slot = 1;
+  // Who it may evolve into with the moves it knows now, replacing ItemGrowth.evolves_to: a move
+  // can make the evolution possible (Gen 4's Aipom) or take it away. Unset for none.
+  pokeuniverse.species.v1.Species evolves_to = 2;
 }
 
 // Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,

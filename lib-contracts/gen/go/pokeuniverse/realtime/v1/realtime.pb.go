@@ -578,6 +578,7 @@ type ServerMessage struct {
 	//	*ServerMessage_PokemonEvolved
 	//	*ServerMessage_PokedexChanged
 	//	*ServerMessage_Warped
+	//	*ServerMessage_LearnMoveResult
 	Payload       isServerMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -771,6 +772,15 @@ func (x *ServerMessage) GetWarped() *v1.Warped {
 	return nil
 }
 
+func (x *ServerMessage) GetLearnMoveResult() *v12.LearnMoveResult {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_LearnMoveResult); ok {
+			return x.LearnMoveResult
+		}
+	}
+	return nil
+}
+
 type isServerMessage_Payload interface {
 	isServerMessage_Payload()
 }
@@ -839,6 +849,10 @@ type ServerMessage_Warped struct {
 	Warped *v1.Warped `protobuf:"bytes,17,opt,name=warped,proto3,oneof"`
 }
 
+type ServerMessage_LearnMoveResult struct {
+	LearnMoveResult *v12.LearnMoveResult `protobuf:"bytes,18,opt,name=learn_move_result,json=learnMoveResult,proto3,oneof"`
+}
+
 func (*ServerMessage_Welcome) isServerMessage_Payload() {}
 
 func (*ServerMessage_Pong) isServerMessage_Payload() {}
@@ -870,6 +884,8 @@ func (*ServerMessage_PokemonEvolved) isServerMessage_Payload() {}
 func (*ServerMessage_PokedexChanged) isServerMessage_Payload() {}
 
 func (*ServerMessage_Warped) isServerMessage_Payload() {}
+
+func (*ServerMessage_LearnMoveResult) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
@@ -1151,7 +1167,7 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"learn_move\x18\x18 \x01(\v2 .pokeuniverse.party.v1.LearnMoveH\x00R\tlearnMove\x12;\n" +
 	"\buse_warp\x18\x19 \x01(\v2\x1e.pokeuniverse.world.v1.UseWarpH\x00R\auseWarp\x12K\n" +
 	"\x0euse_party_item\x18\x1a \x01(\v2#.pokeuniverse.party.v1.UsePartyItemH\x00R\fusePartyItemB\t\n" +
-	"\apayload\"\xf4\b\n" +
+	"\apayload\"\xca\t\n" +
 	"\rServerMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12=\n" +
 	"\awelcome\x18\x02 \x01(\v2!.pokeuniverse.realtime.v1.WelcomeH\x00R\awelcome\x124\n" +
@@ -1176,7 +1192,8 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\fbattle_ended\x18\x0e \x01(\v2#.pokeuniverse.battle.v1.BattleEndedH\x00R\vbattleEnded\x12P\n" +
 	"\x0fpokemon_evolved\x18\x0f \x01(\v2%.pokeuniverse.party.v1.PokemonEvolvedH\x00R\x0epokemonEvolved\x12R\n" +
 	"\x0fpokedex_changed\x18\x10 \x01(\v2'.pokeuniverse.pokedex.v1.PokedexChangedH\x00R\x0epokedexChanged\x127\n" +
-	"\x06warped\x18\x11 \x01(\v2\x1d.pokeuniverse.world.v1.WarpedH\x00R\x06warpedB\t\n" +
+	"\x06warped\x18\x11 \x01(\v2\x1d.pokeuniverse.world.v1.WarpedH\x00R\x06warped\x12T\n" +
+	"\x11learn_move_result\x18\x12 \x01(\v2&.pokeuniverse.party.v1.LearnMoveResultH\x00R\x0flearnMoveResultB\t\n" +
 	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
@@ -1262,6 +1279,7 @@ var file_pokeuniverse_realtime_v1_realtime_proto_goTypes = []any{
 	(*v12.PokemonEvolved)(nil),   // 41: pokeuniverse.party.v1.PokemonEvolved
 	(*v14.PokedexChanged)(nil),   // 42: pokeuniverse.pokedex.v1.PokedexChanged
 	(*v1.Warped)(nil),            // 43: pokeuniverse.world.v1.Warped
+	(*v12.LearnMoveResult)(nil),  // 44: pokeuniverse.party.v1.LearnMoveResult
 }
 var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	3,  // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
@@ -1305,12 +1323,13 @@ var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	41, // 38: pokeuniverse.realtime.v1.ServerMessage.pokemon_evolved:type_name -> pokeuniverse.party.v1.PokemonEvolved
 	42, // 39: pokeuniverse.realtime.v1.ServerMessage.pokedex_changed:type_name -> pokeuniverse.pokedex.v1.PokedexChanged
 	43, // 40: pokeuniverse.realtime.v1.ServerMessage.warped:type_name -> pokeuniverse.world.v1.Warped
-	0,  // 41: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
-	42, // [42:42] is the sub-list for method output_type
-	42, // [42:42] is the sub-list for method input_type
-	42, // [42:42] is the sub-list for extension type_name
-	42, // [42:42] is the sub-list for extension extendee
-	0,  // [0:42] is the sub-list for field type_name
+	44, // 41: pokeuniverse.realtime.v1.ServerMessage.learn_move_result:type_name -> pokeuniverse.party.v1.LearnMoveResult
+	0,  // 42: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
+	43, // [43:43] is the sub-list for method output_type
+	43, // [43:43] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_realtime_v1_realtime_proto_init() }
@@ -1362,6 +1381,7 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ServerMessage_PokemonEvolved)(nil),
 		(*ServerMessage_PokedexChanged)(nil),
 		(*ServerMessage_Warped)(nil),
+		(*ServerMessage_LearnMoveResult)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

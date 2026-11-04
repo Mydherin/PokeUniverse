@@ -43,6 +43,31 @@ func (pt Party) levelEvolution(p *Pokemon, night bool) *speciesv1.Evolution {
 	return nil
 }
 
+// ItemEvolution is what the item evolves the Pokémon into (EVO_MODE_ITEM_USE), or nil. A held
+// EVERSTONE doesn't stop it: Gen 4's rule (GetMonEvolution, EVOCTX_ITEM_USE), FireRed's would.
+func (pt Party) ItemEvolution(slot int, id itemv1.Item) *speciesv1.Evolution {
+	p := pt.At(slot)
+	if p == nil {
+		return nil
+	}
+	for _, e := range p.info().GetEvolutions() {
+		if e.GetMethod() == speciesv1.EvolutionMethod_EVOLUTION_METHOD_ITEM && e.GetItem() == uint32(id) &&
+			(e.GetGender() == pokemonv1.Gender_GENDER_UNSPECIFIED || e.GetGender() == p.Gender()) {
+			return e
+		}
+	}
+	return nil
+}
+
+// LevelEvolution is who the Pokémon in the slot evolves into at its level now (EVO_MODE_NORMAL).
+func (pt Party) LevelEvolution(slot int, night bool) *speciesv1.Evolution {
+	p := pt.At(slot)
+	if p == nil {
+		return nil
+	}
+	return pt.levelEvolution(p, night)
+}
+
 func (pt Party) meets(p *Pokemon, e *speciesv1.Evolution, night bool) bool {
 	stats := p.Stats()
 	attack, defense := stats[1], stats[2]
@@ -125,22 +150,11 @@ func (pt *Party) Evolve(slot int, evo *speciesv1.Evolution, hasBall bool) Evolve
 	if p.HP > 0 {
 		p.HP += p.Stats()[0] - maxHP
 	}
-	if evo.GetItem() != 0 {
+	if evo.GetMethod() == speciesv1.EvolutionMethod_EVOLUTION_METHOD_LEVEL && evo.GetItem() != 0 {
 		p.HeldItem = itemv1.Item_ITEM_UNSPECIFIED
 	}
 	done := Evolved{Species: []speciesv1.Species{p.Species}}
-	for _, lm := range p.info().GetLevelMoves() {
-		id := movev1.Move(lm.GetMove())
-		if int(lm.GetLevel()) != p.Level || knows(p.Moves, id) {
-			continue
-		}
-		if len(p.Moves) < MaxMoves {
-			p.Moves = append(p.Moves, Move{ID: id, PP: MaxPP(id, 0)})
-			done.Learned = append(done.Learned, id)
-		} else {
-			done.ToLearn = append(done.ToLearn, id)
-		}
-	}
+	done.Learned, done.ToLearn = p.learnAtLevel()
 	if shed != nil && hasBall && len(*pt) < PartySize {
 		c := p.Clone()
 		c.Species, c.Nickname = speciesv1.Species(shed.GetSpecies()), ""
@@ -153,6 +167,24 @@ func (pt *Party) Evolve(slot int, evo *speciesv1.Evolution, hasBall bool) Evolve
 		done.Species = append(done.Species, c.Species)
 	}
 	return done
+}
+
+// learnAtLevel teaches its species' moves at its level (MonTryLearningNewMove): those with a free
+// slot now, and those with none, to be answered.
+func (p *Pokemon) learnAtLevel() (learned, toLearn []movev1.Move) {
+	for _, lm := range p.info().GetLevelMoves() {
+		id := movev1.Move(lm.GetMove())
+		if int(lm.GetLevel()) != p.Level || knows(p.Moves, id) {
+			continue
+		}
+		if len(p.Moves) < MaxMoves {
+			p.Moves = append(p.Moves, Move{ID: id, PP: MaxPP(id, 0)})
+			learned = append(learned, id)
+		} else {
+			toLearn = append(toLearn, id)
+		}
+	}
+	return learned, toLearn
 }
 
 func (p *Pokemon) shedEvolution() *speciesv1.Evolution {

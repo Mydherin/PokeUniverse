@@ -54,6 +54,8 @@ export interface EvolutionHost {
   readonly flow: Flow;
   readonly texts: BattleTexts;
   readonly nationalDex: boolean;
+  /** B stops it (canStopEvo): not one an evolution item began. */
+  readonly stoppable: boolean;
   /** A new scene, with the terrain as the evolution has it. */
   newScene(): BattleScene;
   fadeIn(): void;
@@ -299,7 +301,7 @@ class Evolution {
       toPost = !toPost;
       let settled = 0;
       while (settled < 2) {
-        if (flow.gba.input.isHeld(Button.B)) {
+        if (host.stoppable && flow.gba.input.isHeld(Button.B)) {
           end(pre, post);
           return "stopped";
         }

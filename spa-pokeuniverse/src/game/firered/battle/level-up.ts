@@ -80,7 +80,7 @@ export function* levelUpBox(flow: Flow, scene: BattleScene, before: Stats | unde
   const { input } = flow.gba;
   const close = scene.openWindow(18, 7, 29, 19);
   const win = scene.blankWindow("levelUp");
-  gains(flow, win, before, after);
+  levelUpGains(flow, win, before, after);
   win.copyToVram();
   const press = function* () {
     do yield;
@@ -89,32 +89,34 @@ export function* levelUpBox(flow: Flow, scene: BattleScene, before: Stats | unde
   };
   yield* press();
   win.fill(14);
-  totals(flow, win, after);
+  levelUpTotals(flow, win, after);
   win.copyToVram();
   yield* press();
   close();
 }
 
-function gains(flow: Flow, win: Window, before: Stats | undefined, after: Stats | undefined): void {
+/** DrawLevelUpWindowPg1, which the party menu's box shares: what each stat gained. */
+export function levelUpGains(flow: Flow, win: Window, before: Stats | undefined, after: Stats | undefined, colors = COLORS): void {
   const { assets, fonts } = flow;
   const font = fonts[FontId.Normal];
   ROWS.forEach(([label, stat], i) => {
     const y = i * 15;
     const diff = (after?.[stat] ?? 0) - (before?.[stat] ?? 0);
-    win.print(font, 0, y, COLORS, assets.text(label), 0, 0);
-    win.print(font, 56, y, COLORS, assets.text(diff >= 0 ? "gText_LevelUp_Plus" : "gText_LevelUp_Minus"), 0, 0);
-    win.print(font, (Math.abs(diff) < 10 ? 12 : 6) + 56, y, COLORS, joinText([CHAR_SPACE, EOS], decimalText(Math.abs(diff), NumberMode.LeftAlign, 2)), 0, 0);
+    win.print(font, 0, y, colors, assets.text(label), 0, 0);
+    win.print(font, 56, y, colors, assets.text(diff >= 0 ? "gText_LevelUp_Plus" : "gText_LevelUp_Minus"), 0, 0);
+    win.print(font, (Math.abs(diff) < 10 ? 12 : 6) + 56, y, colors, joinText([CHAR_SPACE, EOS], decimalText(Math.abs(diff), NumberMode.LeftAlign, 2)), 0, 0);
   });
 }
 
-function totals(flow: Flow, win: Window, after: Stats | undefined): void {
+/** DrawLevelUpWindowPg2: each stat's total. */
+export function levelUpTotals(flow: Flow, win: Window, after: Stats | undefined, colors = COLORS): void {
   const { assets, fonts } = flow;
   const font = fonts[FontId.Normal];
   ROWS.forEach(([label, stat], i) => {
     const y = i * 15;
     const value = after?.[stat] ?? 0;
     const digits = String(value).length;
-    win.print(font, 0, y, COLORS, assets.text(label), 0, 0);
-    win.print(font, 56 + 6 * (4 - digits), y, COLORS, decimalText(value, NumberMode.LeftAlign, digits), 0, 0);
+    win.print(font, 0, y, colors, assets.text(label), 0, 0);
+    win.print(font, 56 + 6 * (4 - digits), y, colors, decimalText(value, NumberMode.LeftAlign, digits), 0, 0);
   });
 }

@@ -65,6 +65,7 @@ message ServerMessage {
     pokeuniverse.party.v1.PokemonEvolved pokemon_evolved = 15;
     pokeuniverse.pokedex.v1.PokedexChanged pokedex_changed = 16;
     pokeuniverse.world.v1.Warped warped = 17;
+    pokeuniverse.party.v1.LearnMoveResult learn_move_result = 18;
   }
 }
 

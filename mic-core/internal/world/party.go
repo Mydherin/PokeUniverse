@@ -60,31 +60,101 @@ func (p *Player) UsePartyItem(m *partyv1.UsePartyItem) {
 	p.zone.do(func() { p.zone.usePartyItem(p, m) })
 }
 
-// usePartyItem applies the item and spends it, both saved or neither (phase-6 D3). The client waits
+// usePartyItem applies the item and spends it, all saved or nothing (phase-6 D3). The client waits
 // for the answer: what changed, then the result.
 func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
 	if _, ok := z.players[p]; !ok {
 		return
 	}
 	res := item.Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_NO_EFFECT}
-	id := m.GetItem()
+	id, slot := m.GetItem(), int(m.GetSlot())
+	var growth *itemv1.ItemGrowth
+	dex := p.pokedex
 	if effect, ok := item.PokemonEffect(p.items, id); ok && !p.busy() {
 		items, party := p.items.Clone(), p.party.Clone()
-		closeness := p.party.ItemSceneCloseness(int(m.GetSlot()))
-		if p.party.UseItem(effect, int(m.GetSlot()), int(m.GetMoveSlot()), z.m.ID) {
+		closeness := p.party.ItemSceneCloseness(slot)
+		info, _ := item.Info(id)
+		var pending *speciesv1.Evolution
+		worked := false
+		switch info.GetFieldUse() {
+		case itemv1.FieldUse_FIELD_USE_RARE_CANDY:
+			worked, growth, pending = z.useRareCandy(p, slot)
+		case itemv1.FieldUse_FIELD_USE_EVOLUTION_ITEM:
+			evo := p.party.ItemEvolution(slot, id)
+			switch {
+			case evo == nil:
+			case !pokemon.CanEvolve(evo, p.pokedex.National):
+				res = item.Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_CANT_EVOLVE, Value: closeness}
+			default:
+				worked, growth = true, z.useEvolutionItem(p, slot, evo)
+			}
+		default:
+			worked = p.party.UseItem(effect, slot, int(m.GetMoveSlot()), z.m.ID)
+		}
+		if worked {
 			res = item.SpendOnPokemon(p.items, id)
 			res.Value = closeness
-			if z.saveTrainer(p, res.Changed, true) {
+			if z.savePartyItem(p, res.Changed, !p.pokedex.Same(dex)) {
 				z.sendParty(p)
+				if !p.pokedex.Same(dex) {
+					z.sendPokedex(p)
+				}
+				p.evolving = evolving{}
+				if growth != nil {
+					p.evolving.toLearn = map[int][]movev1.Move{slot: growth.GetToLearn()}
+				}
+				p.evolving.offer(slot, pending)
 			} else {
-				p.items, p.party, res = items, party, item.Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_NO_EFFECT}
+				p.items, p.party, p.pokedex = items, party, dex
+				res, growth = item.Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_NO_EFFECT}, nil
 			}
 		}
 	}
 	z.sendChanged(p, res.Changed)
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_ItemResult{ItemResult: &itemv1.ItemResult{
-		Outcome: res.Outcome, Item: id, Value: uint32(res.Value),
+		Outcome: res.Outcome, Item: id, Value: uint32(res.Value), Growth: growth,
 	}}})
+}
+
+// useRareCandy raises the level; what to learn and who it may evolve into come with the answer.
+func (z *zone) useRareCandy(p *Player, slot int) (bool, *itemv1.ItemGrowth, *speciesv1.Evolution) {
+	learned, toLearn, ok := p.party.RareCandy(slot, z.m.ID)
+	if !ok {
+		return false, nil, nil
+	}
+	growth := &itemv1.ItemGrowth{Learned: learned, ToLearn: toLearn}
+	evo := p.party.LevelEvolution(slot, night(time.Now()))
+	if evo != nil {
+		growth.EvolvesTo = speciesv1.Species(evo.GetSpecies())
+	}
+	return true, growth, evo
+}
+
+// useEvolutionItem evolves it at once, saved with the item it spends, since its scene can't be
+// stopped (BeginEvolutionScene with canStopEvo FALSE): the client only shows it.
+func (z *zone) useEvolutionItem(p *Player, slot int, evo *speciesv1.Evolution) *itemv1.ItemGrowth {
+	from := p.party.At(slot).Species
+	done := p.party.Evolve(slot, evo, false)
+	p.pokedex = p.pokedex.Catch(done.Species...)
+	return &itemv1.ItemGrowth{Learned: done.Learned, ToLearn: done.ToLearn, EvolvedFrom: from}
+}
+
+// savePartyItem saves the bag and the party, and the Pokédex when it changed, in one transaction.
+func (z *zone) savePartyItem(p *Player, changed item.Changed, dex bool) bool {
+	return z.transact(p, func(ctx context.Context, q *db.Queries, save time.Time) error {
+		if changed.Any() {
+			if err := item.Write(ctx, q, p.accountID, save, p.items, changed); err != nil {
+				return err
+			}
+		}
+		if err := pokemon.Write(ctx, q, p.accountID, save, p.party); err != nil {
+			return err
+		}
+		if dex {
+			return savePokedex(ctx, q, p, save)
+		}
+		return nil
+	})
 }
 
 // partyChange runs a change the client predicted: saved when done, corrected (the party sent
@@ -93,6 +163,8 @@ func (z *zone) partyChange(p *Player, change func(pokemon.Party) bool) {
 	if _, ok := z.players[p]; !ok {
 		return
 	}
+	// A changed party leaves nothing waiting from before: both are by slot.
+	p.evolving = evolving{}
 	before := p.party.Clone()
 	if p.busy() || !change(p.party) || !z.saveTrainer(p, item.Changed{}, true) {
 		p.party = before
@@ -132,6 +204,18 @@ type evolving struct {
 	toLearn map[int][]movev1.Move
 }
 
+// offer sets who the slot may evolve into; nil for no one.
+func (e *evolving) offer(slot int, evo *speciesv1.Evolution) {
+	if evo == nil {
+		delete(e.pending, slot)
+		return
+	}
+	if e.pending == nil {
+		e.pending = map[int]*speciesv1.Evolution{}
+	}
+	e.pending[slot] = evo
+}
+
 func (e evolving) proto() []*partyv1.PendingEvolution {
 	var out []*partyv1.PendingEvolution
 	for slot := range pokemon.PartySize {
@@ -145,7 +229,7 @@ func (e evolving) proto() []*partyv1.PendingEvolution {
 // night is Gen 4's clock, by the server's: 20:00 to 03:59.
 func night(t time.Time) bool { return t.Hour() >= 20 || t.Hour() < 4 }
 
-// EvolvePokemon: the scene wasn't stopped. It can only do what the battle's end offered.
+// EvolvePokemon: the scene wasn't stopped. It can only do what the battle's end or a RARE CANDY offered.
 func (p *Player) EvolvePokemon(m *partyv1.EvolvePokemon) {
 	p.zone.do(func() { p.zone.evolve(p, int(m.GetSlot())) })
 }
@@ -205,7 +289,8 @@ func (z *zone) evolve(p *Player, slot int) {
 	}}})
 }
 
-// learnMove answers one of the moves an evolution left waiting; once, whatever the outcome.
+// learnMove answers one of the moves an evolution or a RARE CANDY left waiting; once, whatever the
+// outcome. What it may evolve into is worked out again: the moves it knows are part of that.
 func (z *zone) learnMove(p *Player, slot int, id movev1.Move, forget int) {
 	if _, ok := z.players[p]; !ok {
 		return
@@ -216,10 +301,16 @@ func (z *zone) learnMove(p *Player, slot int, id movev1.Move, forget int) {
 	mon := p.party.At(slot)
 	if at >= 0 && mon != nil && mon.Replace(forget, id) && z.saveTrainer(p, item.Changed{}, true) {
 		p.evolving.toLearn[slot] = slices.Delete(slices.Clone(waiting), at, at+1)
+		p.evolving.offer(slot, p.party.LevelEvolution(slot, night(time.Now())))
 	} else {
 		p.party = party
 	}
 	z.sendParty(p)
+	result := &partyv1.LearnMoveResult{Slot: uint32(slot)}
+	if evo := p.evolving.pending[slot]; evo != nil {
+		result.EvolvesTo = speciesv1.Species(evo.GetSpecies())
+	}
+	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_LearnMoveResult{LearnMoveResult: result}})
 }
 
 func (z *zone) sendPokedex(p *Player) {

@@ -398,6 +398,7 @@ export class BattleScreen implements PlaybackHost {
       flow,
       texts: this.texts,
       nationalDex: host.nationalDex,
+      stoppable: true,
       newScene: () => this.newScene(),
       fadeIn: () => this.fadeIn(),
       monName: (slot) => this.texts.name(create(BattlerSchema, { partySlot: slot })),
