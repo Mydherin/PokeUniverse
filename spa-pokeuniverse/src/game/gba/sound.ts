@@ -90,6 +90,11 @@ export class Sound {
     };
   }
 
+  /** IsFanfareTaskInactive's opposite: a fanfare is still playing. */
+  get fanfarePlaying(): boolean {
+    return this.others.has("fanfare");
+  }
+
   /** Moves what a player plays to another pan (SE12PanpotControl). */
   setPan(player: string, pan: number): void {
     const p = this.others.get(player);

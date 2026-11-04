@@ -413,7 +413,7 @@ class TmCase {
     this.selectedMsg = null;
   }
 
-  /** Action_Use: mic-core decides (no Pokémon: "There is no POKéMON."; else the party menu, to come). */
+  /** Action_Use: mic-core decides (no Pokémon: "There is no POKéMON."; else the party menu). */
   private useAction(): void {
     this.hideContextMenu();
     this.list.putTilemap();
@@ -464,10 +464,14 @@ class TmCase {
   }
 
   /**
-   * PrintMessageWithFollowupTask: the answer's message, then back to the list. USE's PARTY_MENU
-   * (teaching the move) comes with move learning (phase-5 M11); until then, back to the list.
+   * PrintMessageWithFollowupTask: the answer's message, then back to the list. USE's PARTY_MENU:
+   * the party menu to teach the move (ItemUseCB_TMHM), then back here.
    */
   private onResult(r: ItemResult): void {
+    if (r.outcome === ItemOutcome.PARTY_MENU) {
+      const { flow, gender, host, fromField, done, pick } = this;
+      return this.close(undefined, () => startPartyMenu(flow, host.party, { kind: "use", item: r.item }, () => startTmCase(flow, gender, host, fromField, done, pick)));
+    }
     const msg = itemMessage(this.flow, r, this.host.playerName);
     if (!msg) return this.closeMessageAndReturn();
     const player = new ItemMessagePlayer(

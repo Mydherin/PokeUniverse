@@ -88,6 +88,8 @@ func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
 			default:
 				worked, growth = true, z.useEvolutionItem(p, slot, evo)
 			}
+		case itemv1.FieldUse_FIELD_USE_TM_HM:
+			worked = p.party.TeachMachineMove(slot, info.GetMove(), int(m.GetMoveSlot()), effect, z.m.ID)
 		default:
 			worked = p.party.UseItem(effect, slot, int(m.GetMoveSlot()), z.m.ID)
 		}

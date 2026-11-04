@@ -53,6 +53,13 @@ var testBag = []item.Slot{
 	{Item: itemv1.Item_ITEM_RARE_CANDY, Quantity: 20},
 	{Item: itemv1.Item_ITEM_THUNDER_STONE, Quantity: 3},
 	{Item: itemv1.Item_ITEM_SUN_STONE, Quantity: 2},
+	// Test content (phase-6): removed in Phase 10. TMs and HMs (M3).
+	{Item: itemv1.Item_ITEM_TM_CASE, Quantity: 1},
+	{Item: itemv1.Item_ITEM_TM06, Quantity: 3},
+	{Item: itemv1.Item_ITEM_TM26, Quantity: 2},
+	{Item: itemv1.Item_ITEM_TM13, Quantity: 2},
+	{Item: itemv1.Item_ITEM_HM01, Quantity: 1},
+	{Item: itemv1.Item_ITEM_HM03, Quantity: 1},
 }
 
 // giveTestBag adds the test bag to the items, and says which pockets changed.

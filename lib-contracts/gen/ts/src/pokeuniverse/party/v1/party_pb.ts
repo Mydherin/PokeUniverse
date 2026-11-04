@@ -355,7 +355,8 @@ export type UsePartyItem = Message<"pokeuniverse.party.v1.UsePartyItem"> & {
   slot: number;
 
   /**
-   * The move it acts on (from 0), for the items that ask (Ether, PP UP).
+   * The move it acts on (from 0), for the items that ask (Ether, PP UP), or the one a TM or HM
+   * replaces when the Pokémon knows four.
    *
    * @generated from field: uint32 move_slot = 3;
    */

@@ -8,8 +8,9 @@
 // the Pokémon a bag item is for; after a faint it can't be cancelled. Field moves come with the
 // outdoor maps, using items on Pokémon with their effects. mic-core decides every change; this shows it.
 
+import { create } from "@bufbuild/protobuf";
 import type { ItemGrowth, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
-import { ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
+import { ItemGrowthSchema, ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
 import { BattleUse, FieldUse, Item, Pocket, type ItemEffect } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { Gender as MonGender, Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
@@ -21,6 +22,7 @@ import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import { decimalText, expandPlaceholders, FontId, joinText, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import { RGB_BLACK, type Background } from "../gba/video";
 import { itemInfo, itemWorksOn } from "../world/items";
+import { MachineAnswer, machineAnswer, tmMove } from "../world/moves";
 import type { PartyState } from "../world/party";
 import { BagLocation, startBag, type BagExit, type BagHost } from "./bag";
 import { fillBgRect, initBg } from "./common";
@@ -88,6 +90,8 @@ type Resume =
   | { slot: number; then: "used"; item: Item; moveSlot: number; hp: number; ailment: Ailment }
   /** Back from a RARE CANDY's scene: the level up, saved already. */
   | { slot: number; then: "leveled"; growth: ItemGrowth; stats: Stats | undefined; level: number; hp: number; ailment: Ailment }
+  /** Back from a TM or HM's scene, stopped with B: the move's message and fanfare. */
+  | { slot: number; then: "taught"; move: number }
   /** Back from the summary's forget screen: what the player picked, then the moves still waiting. */
   | { slot: number; then: "forgot"; growth: ItemGrowth; move: number; row: number };
 
@@ -105,6 +109,7 @@ export function startPartyMenu(flow: Flow, host: PartyHost, mode: PartyMenuMode,
 }
 
 const PARTY_SIZE = 6;
+const MAX_MOVES = 4;
 const SLOT_CONFIRM = PARTY_SIZE;
 const SLOT_CANCEL = PARTY_SIZE + 1;
 
@@ -151,8 +156,9 @@ function medicineTextId(e: ItemEffect): TextId {
 
 /** sPartyBoxInfoRects: where each part of a box goes, in pixels. */
 interface BoxRects {
-  /** The box's tiles (sSlotTilemap_*) and its width in tiles. */
+  /** The box's tiles (sSlotTilemap_*), without the HP for a description, and its width in tiles. */
   tiles: "partySlotMain" | "partySlotWide";
+  tilesNoHp: "partySlotMainNoHp" | "partySlotWideNoHp";
   width: number;
   height: number;
   nickname: [number, number];
@@ -162,9 +168,12 @@ interface BoxRects {
   maxHp: [number, number];
   /** x, y, width. */
   hpBar: [number, number, number];
+  /** Where ABLE! and the like go. */
+  description: [number, number];
 }
 const LEFT_COLUMN: BoxRects = {
   tiles: "partySlotMain",
+  tilesNoHp: "partySlotMainNoHp",
   width: 10,
   height: 7,
   nickname: [24, 11],
@@ -173,9 +182,11 @@ const LEFT_COLUMN: BoxRects = {
   hp: [38, 36],
   maxHp: [53, 36],
   hpBar: [24, 35, 48],
+  description: [12, 34],
 };
 const RIGHT_COLUMN: BoxRects = {
   tiles: "partySlotWide",
+  tilesNoHp: "partySlotWideNoHp",
   width: 18,
   height: 3,
   nickname: [22, 3],
@@ -184,6 +195,7 @@ const RIGHT_COLUMN: BoxRects = {
   hp: [102, 12],
   maxHp: [117, 12],
   hpBar: [88, 10, 48],
+  description: [77, 4],
 };
 
 /** sPartyMenuSpriteCoords (single layout): icon, held item, status and Poké Ball. */
@@ -288,6 +300,7 @@ const enum Message {
   RestoreWhichMove,
   BoostPpWhichMove,
   UseOnWhichMon,
+  TeachWhichMon,
 }
 
 const HELD_ITEM_TEMPLATE: SpriteTemplate = {
@@ -408,6 +421,8 @@ class PartyMenu {
   private step: () => void = () => this.chooseMonInput();
   /** The screen to open once the menu faded out (sPartyMenuInternal->exitCallback). */
   private exit: (() => void) | null = null;
+  /** Back from a screen it opened: PARTY_ACTION_CHOOSE_MON, the boxes as usual. */
+  private readonly resumed: boolean;
 
   constructor(
     private readonly flow: Flow,
@@ -417,6 +432,7 @@ class PartyMenu {
     resume: Resume | undefined,
   ) {
     const { gba, assets } = flow;
+    this.resumed = resume !== undefined;
     this.action = mode.kind === "give" ? Action.Give : Action.ChooseMon;
     if (resume && this.mon(resume.slot)) this.slotId = resume.slot;
     gba.setVBlank(null);
@@ -484,6 +500,7 @@ class PartyMenu {
       this.openSelection();
     } else if (resume.then === "used") this.showUsed(resume);
     else if (resume.then === "leveled") this.showLeveled(resume);
+    else if (resume.then === "taught") this.showTaught(resume.slot, resume.move);
     else if (resume.then === "forgot") this.afterForgetScreen(resume);
     else this.step = () => this.giveFromField(resume.item);
 
@@ -551,7 +568,7 @@ class PartyMenu {
   }
 
   /** BlitBitmapToPartyWindow: the box's tiles, by the layout's tile numbers in the background's. */
-  private blitBox(win: Window, layout: "partySlotMain" | "partySlotWide" | "partySlotWideEmpty", stride: number, width: number, height: number): void {
+  private blitBox(win: Window, layout: "partySlotMain" | "partySlotMainNoHp" | "partySlotWide" | "partySlotWideNoHp" | "partySlotWideEmpty", stride: number, width: number, height: number): void {
     const { assets } = this.flow;
     const numbers = assets.get(layout).bytes!;
     const tiles = assets.get("partyBg").tiles;
@@ -566,7 +583,8 @@ class PartyMenu {
     const win = this.boxes[slot];
     const r = this.rects(slot);
     const small = flow.fonts[FontId.Small];
-    this.blitBox(win, r.tiles, r.width, r.width, r.height);
+    const description = this.description(mon);
+    this.blitBox(win, description ? r.tilesNoHp : r.tiles, r.width, r.width, r.height);
     const name = monName(flow, mon);
     win.print(small, r.nickname[0], r.nickname[1], COLORS_DEFAULT, name);
     const ailment = shownAilment ?? ailmentOf(mon);
@@ -578,11 +596,24 @@ class PartyMenu {
       this.loadBoxColors(slot, male ? PALS.male : PALS.female, GENDER_PAL_OFFSETS);
       win.print(small, r.gender[0], r.gender[1], COLORS_GENDER, assets.text(male ? "gText_MaleSymbol" : "gText_FemaleSymbol"));
     }
+    if (description) return win.print(flow.fonts[FontId.NormalCopy1], r.description[0], r.description[1], COLORS_DEFAULT, assets.text(description));
     const maxHp = mon.stats?.hp ?? 0;
     const hp = shownHp ?? mon.hp;
     win.print(small, r.hp[0], r.hp[1], COLORS_DEFAULT, joinText(decimalText(hp, NumberMode.RightAlign, 3), assets.text("gText_Slash")));
     win.print(small, r.maxHp[0], r.maxHp[1], COLORS_DEFAULT, joinText(assets.text("gText_Slash"), decimalText(maxHp, NumberMode.RightAlign, 3)));
     this.displayHpBar(slot, hp, maxHp);
+  }
+
+  /** DisplayPartyPokemonDataToTeachMove: what replaces a Pokémon's HP while a TM or HM is chosen for. */
+  private description(mon: Pokemon): TextId | null {
+    if (this.machine === null || this.resumed) return null;
+    const answer = machineAnswer(mon, tmMove(this.machine));
+    return answer === MachineAnswer.NotAble ? "gText_NotAble2" : answer === MachineAnswer.Known ? "gText_Learned" : "gText_Able3";
+  }
+
+  /** The TM or HM being used; null for anything else. */
+  private get machine(): Item | null {
+    return this.mode.kind === "use" && itemInfo(this.mode.item)?.fieldUse === FieldUse.TM_HM ? this.mode.item : null;
   }
 
   /** DisplayPartyPokemonHPBar: green, yellow or red, the rest of its 48 pixels empty. */
@@ -686,7 +717,9 @@ class PartyMenu {
                   ? "gText_BoostPp"
                   : message === Message.UseOnWhichMon
                     ? "gText_UseOnWhichPokemon"
-                    : "gText_DoWhatWithItem";
+                    : message === Message.TeachWhichMon
+                      ? "gText_TeachWhichPokemon"
+                      : "gText_DoWhatWithItem";
     const win = new Window(this.bg2, template);
     drawStdFrame(win, STD_FRAME_TILE, STD_FRAME_PALETTE);
     printDefault(flow, win, FontId.Normal, flow.assets.text(id), 0, 2);
@@ -696,6 +729,7 @@ class PartyMenu {
   /** What the menu asks while a Pokémon is chosen. */
   private get chooseMessage(): Message {
     if (this.mode.kind === "give") return Message.GiveToWhichMon;
+    if (this.machine !== null) return Message.TeachWhichMon;
     return this.mode.kind === "use" || (this.mode.kind === "battle" && this.mode.item) ? Message.UseOnWhichMon : Message.ChooseMon;
   }
 
@@ -953,9 +987,49 @@ class PartyMenu {
     const mon = this.mon(slot);
     if (!mon) return;
     const info = itemInfo(item);
+    if (info?.fieldUse === FieldUse.TM_HM) return this.teach(item, slot, mon);
     const asksMove = info?.fieldUse === FieldUse.PP_UP ? Message.BoostPpWhichMove : info?.fieldUse === FieldUse.ETHER && !info.effect?.allMoves ? Message.RestoreWhichMove : null;
     if (asksMove === null) return this.useItem(item, slot, 0);
     this.chooseMoveForItem(mon, asksMove, (moveSlot) => this.useItem(item, slot, moveSlot));
+  }
+
+  /** ItemUseCB_TMHM: refused here for its message (mic-core has the last word), a free slot at once, otherwise which move goes. */
+  private teach(item: Item, slot: number, mon: Pokemon): void {
+    const move = tmMove(item);
+    const answer = machineAnswer(mon, move);
+    if (answer !== MachineAnswer.Able) return this.showMessage(this.moveText(answer === MachineAnswer.Known ? "gText_PkmnAlreadyKnows" : "gText_PkmnCantLearnMove", slot, move), false, () => this.close());
+    if (mon.moves.length === MAX_MOVES) return this.askToReplaceMove(slot, move, create(ItemGrowthSchema));
+    this.removeStdMessage();
+    this.teachAndShow(item, slot, move);
+  }
+
+  /** mic-core teaches and saves, then Task_UseTM_NoForget or Task_ForgetMove; a refusal plays no scene. */
+  private teachAndShow(item: Item, slot: number, move: number, forget?: number): void {
+    const { flow, host, mode, done } = this;
+    const mon = this.mon(slot);
+    if (!mon) return done();
+    const { species, shiny } = mon;
+    const name = monName(flow, mon);
+    const forgot = forget === undefined ? undefined : mon.moves[forget]?.move;
+    const answer = host.useItem(item, slot, forget ?? 0);
+    const scene = (closeness: number) => startUseItemScene(flow, { species, shiny, name, item, closeness, machine: { move, forgot } }, (played) => (played ? done() : startPartyMenu(flow, host, mode, done, { slot, then: "taught", move })));
+    // After the forget screen the menu is gone: the summary left a black screen.
+    if (forget !== undefined) {
+      void answer.then((r) => (r.outcome === ItemOutcome.USED_ON_POKEMON ? scene(r.value) : startPartyMenu(flow, host, mode, done)));
+      return;
+    }
+    this.ask(answer, (r) => {
+      if (r.outcome !== ItemOutcome.USED_ON_POKEMON) return this.showMessage(flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
+      this.exitTo(() => scene(r.value));
+    });
+  }
+
+  /** ItemUseCB_LearnedMove when the scene was stopped: once the menu is back, its message and fanfare. */
+  private showTaught(slot: number, move: number): void {
+    this.step = () => {
+      if (this.flow.gba.palettes.fadeActive) return;
+      this.showLearned(slot, move, create(ItemGrowthSchema));
+    };
   }
 
   /**
@@ -1103,7 +1177,9 @@ class PartyMenu {
           this.showMessage(flow.assets.text("gText_WhichMoveToForget"), true, () =>
             this.exitTo(() => {
               let row = FORGET_NONE;
-              startSummary(flow, host, slot, () => startPartyMenu(flow, host, mode, done, { slot, then: "forgot", growth, move, row }), { move, pick: (r) => (row = r) });
+              const { machine } = this;
+              const back = () => (machine !== null && row !== FORGET_NONE ? this.teachAndShow(machine, slot, move, row) : startPartyMenu(flow, host, mode, done, { slot, then: "forgot", growth, move, row }));
+              startSummary(flow, host, slot, back, { move, pick: (r) => (row = r) });
             }),
           ),
         () => this.askToStopLearning(slot, move, growth),

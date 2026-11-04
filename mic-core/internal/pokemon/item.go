@@ -1,6 +1,8 @@
 package pokemon
 
 import (
+	"slices"
+
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	movev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
 	pokemonv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
@@ -44,6 +46,23 @@ func (pt Party) RareCandy(slot int, mapID string) (learned, toLearn []movev1.Mov
 	p.HP += p.Stats()[0] - maxHP
 	learned, toLearn = p.learnAtLevel()
 	return learned, toLearn, true
+}
+
+// TeachMachineMove is a TM or HM on the Pokémon in `slot` (ItemUseCB_TMHM, Task_LearnedMove): the
+// species can learn it and doesn't know it, with a free slot or replacing the move in `forget`,
+// which can't be an HM. False: nothing changed.
+func (pt Party) TeachMachineMove(slot int, id movev1.Move, forget int, e *itemv1.ItemEffect, mapID string) bool {
+	p := pt.At(slot)
+	if p == nil || knows(p.Moves, id) || !slices.Contains(p.info().GetMachineMoves(), uint32(id)) {
+		return false
+	}
+	if len(p.Moves) < MaxMoves {
+		p.Moves = append(p.Moves, Move{ID: id, PP: MaxPP(id, 0)})
+	} else if !p.Replace(forget, id) {
+		return false
+	}
+	p.changeFriendshipByItem(e.GetFriendship(), mapID)
+	return true
 }
 
 // ItemSceneCloseness is how close FireRed's item scene shows the Pokémon in `slot`, from its friendship

@@ -113,6 +113,8 @@
   "sText_PkmnVanishedInstantly", "sText_PkmnTwistedDimensions", "sText_TrickRoomEnds", "sText_GravityIntensified", "sText_GravityEnds", "sText_ElectricityWeakened", "sText_FireWeakened",
   "gText_PkmnHPRestoredByVar2",
   "gText_PkmnElevatedToLvVar2", "gText_PkmnLearnedMove3", "gText_PkmnNeedsToReplaceMove", "gText_StopLearningMove2", "gText_MoveNotLearned", "gText_WhichMoveToForget", "gText_12PoofForgotMove", "gText_Huh",
+  "gText_TeachWhichPokemon", "gText_Able3", "gText_NotAble2", "gText_Learned", "gText_PkmnCantLearnMove", "gText_PkmnAlreadyKnows",
+  "gText_Counting_1", "gText_Counting_2And", "gText_Poof", "gText_MonForgotMove", "gText_And", "gText_MachineSet", "gText_MonLearnedTMHM",
   "gText_PkmnCuredOfPoison",
   "gText_PkmnCuredOfParalysis",
   "gText_PkmnWokeUp2",

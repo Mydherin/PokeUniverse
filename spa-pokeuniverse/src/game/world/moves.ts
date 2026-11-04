@@ -3,7 +3,9 @@
 import { create, getOption } from "@bufbuild/protobuf";
 import { info, Move, MoveInfoSchema, MoveSchema, type MoveInfo } from "@pokeuniverse/contracts/move/v1/catalog";
 import type { Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { itemInfo } from "./items";
+import { speciesInfo } from "./pokedex";
 
 const INFOS = new Map<Move, MoveInfo>(MoveSchema.values.filter((v) => v.number !== Move.UNSPECIFIED).map((v) => [v.number as Move, getOption(v, info)]));
 const NONE = create(MoveInfoSchema);
@@ -16,6 +18,19 @@ export function moveInfo(move: Move): MoveInfo {
 /** The move a TM or HM teaches; UNSPECIFIED for other items. */
 export function tmMove(item: Item): Move {
   return itemInfo(item)?.move ?? Move.UNSPECIFIED;
+}
+
+/** CanMonLearnTMTutor's answer for a TM or HM's move. */
+export const enum MachineAnswer {
+  Able,
+  NotAble,
+  Known,
+}
+
+/** mic-core decides; this picks the slot's word and the message. */
+export function machineAnswer(mon: Pokemon, move: Move): MachineAnswer {
+  if (!speciesInfo(mon.species).machineMoves.includes(move)) return MachineAnswer.NotAble;
+  return mon.moves.some((m) => m.move === move) ? MachineAnswer.Known : MachineAnswer.Able;
 }
 
 /** sHMMoves: moves that can't be forgotten (mic-core refuses them too). */

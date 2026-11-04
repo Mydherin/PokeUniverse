@@ -177,7 +177,7 @@ func PokemonEffect(s *State, id itemv1.Item) (effect *itemv1.ItemEffect, ok bool
 	switch info.FieldUse {
 	case itemv1.FieldUse_FIELD_USE_MEDICINE, itemv1.FieldUse_FIELD_USE_ETHER, itemv1.FieldUse_FIELD_USE_PP_UP,
 		itemv1.FieldUse_FIELD_USE_SACRED_ASH, itemv1.FieldUse_FIELD_USE_ENIGMA_BERRY,
-		itemv1.FieldUse_FIELD_USE_RARE_CANDY, itemv1.FieldUse_FIELD_USE_EVOLUTION_ITEM:
+		itemv1.FieldUse_FIELD_USE_RARE_CANDY, itemv1.FieldUse_FIELD_USE_EVOLUTION_ITEM, itemv1.FieldUse_FIELD_USE_TM_HM:
 		return info.Effect, true
 	}
 	return nil, false

@@ -243,9 +243,13 @@ const PARTY_GRAPHICS = {
   // The item scene (pokemon_special_anim_scene.c), opened from the party menu.
   useItemBg: { png: "pokemon_special_anim/bg.png", pal: "pokemon_special_anim/bg.pal", bin: "pokemon_special_anim/bg.bin", bpp4: true },
   useItemDots: { png: "pokemon_special_anim/outward_spiral_dots.png", bpp4: true },
+  useItemMachinePal: { pal: "pokemon_special_anim/bg_tm_hm.pal" },
+  useItemStar: { png: "pokemon_special_anim/star.png", bpp4: true },
   // The slots' layouts: tile numbers in the background's tiles (sSlotTilemap_*)
   partySlotMain: { bytes: "party_menu/slot_main.bin" },
+  partySlotMainNoHp: { bytes: "party_menu/slot_main_no_hp.bin" },
   partySlotWide: { bytes: "party_menu/slot_wide.bin" },
+  partySlotWideNoHp: { bytes: "party_menu/slot_wide_no_hp.bin" },
   partySlotWideEmpty: { bytes: "party_menu/slot_wide_empty.bin" },
   partyCancelButton: { bin: "party_menu/cancel_button.bin" },
   partyHoldIcons: { png: "party_menu/hold_icons.png" },
@@ -395,6 +399,8 @@ export const BATTLE_SOUNDS = [
   "mus_evolved",
   "se_exp",
   "se_exp_max",
+  "se_m_spit_up",
+  "se_switch",
   "se_rs_shop",
   "se_ball_bounce_1",
   "se_failure",

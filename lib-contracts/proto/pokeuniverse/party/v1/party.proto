@@ -105,7 +105,8 @@ message TakePartyItem {
 message UsePartyItem {
   pokeuniverse.item.v1.Item item = 1;
   uint32 slot = 2;
-  // The move it acts on (from 0), for the items that ask (Ether, PP UP).
+  // The move it acts on (from 0), for the items that ask (Ether, PP UP), or the one a TM or HM
+  // replaces when the Pokémon knows four.
   uint32 move_slot = 3;
 }
 

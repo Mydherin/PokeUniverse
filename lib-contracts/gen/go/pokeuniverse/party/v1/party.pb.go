@@ -597,7 +597,8 @@ type UsePartyItem struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Item  v12.Item               `protobuf:"varint,1,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
 	Slot  uint32                 `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
-	// The move it acts on (from 0), for the items that ask (Ether, PP UP).
+	// The move it acts on (from 0), for the items that ask (Ether, PP UP), or the one a TM or HM
+	// replaces when the Pokémon knows four.
 	MoveSlot      uint32 `protobuf:"varint,3,opt,name=move_slot,json=moveSlot,proto3" json:"move_slot,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

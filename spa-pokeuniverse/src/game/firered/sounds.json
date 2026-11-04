@@ -72,6 +72,8 @@
   "se_m_bite": { "song": "se_m_bite" },
   "se_bang": { "song": "se_bang" },
   "se_exp_max": { "song": "se_exp_max" },
+  "se_m_spit_up": { "song": "se_m_spit_up" },
+  "se_switch": { "song": "se_switch" },
   "se_fall": { "song": "se_fall" },
   "se_m_absorb_2": { "song": "se_m_absorb_2" },
   "se_m_acid_armor": { "song": "se_m_acid_armor" },

@@ -1,4 +1,4 @@
-# M3 TM/HM Teaching ⬜
+# M3 TM/HM Teaching 🔶
 
 Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M2's learn flow. Rules: [context.md](context.md), D1, D3, D5.
 
@@ -6,15 +6,21 @@ Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M2's learn flow. Rule
 
 ## Resume Here
 
-Not started. First step: the learnset script; settle the source rule below against the output.
+All code is written, builds and is committed on `gen4-battles` (not pushed); **nothing is played**. Next, in order:
+
+1. `make audio` (renders the two new sounds; `make text` is already done). The graphics are in folders `make graphics` already copies.
+2. `docker compose up -d --build mic-core spa-pokeuniverse`.
+3. Put the test TMs in account 2's bag: `giveTestBag` only runs when an account is created (`world/world.go:187`), so with the game closed add rows to `trainer_items` for TM CASE, TM06 x3, TM26 x2, TM13 x2, HM01, HM03 (see [Playing fast](context.md#playing-a-milestone): back up first).
+4. Play the **Play It** list, against the original where a scene looks off; fix; then the [regression check](context.md#playing-a-milestone). Restore the save.
+5. Cut this file down, mark ✅, update the phase file and the **Now** line, offer the commit of the fixes.
 
 ## Tasks
 
-- [ ] **Contract:** `SpeciesInfo` gets `machine_moves` and `tutor_moves` (moves, not TM numbers, so a TM's move is `ItemInfo.move`). `make contracts`, `make breaking`.
-- [ ] **Catalog:** `infra/pokemon/learnsets.mjs`, run once from `@pkmn/sim`'s data, writes both into `species/v1/catalog.proto`; print what's dropped. Then the proto is the source (D5). Add a row to AGENTS.md's exception list.
-- [ ] **`mic-core`:** `FIELD_USE_TM_HM` in M1's table: species can learn it, doesn't know it, teach or forget. TMs are spent, HMs aren't (FireRed). HMs can't be forgotten, as in M11.
-- [ ] **Client, party menu:** ABLE / NOT ABLE / LEARNED in the slots, "<Pokémon> learned <move>", forget flow; `tm-case.ts`'s USE opens it (`onResult`, line 470, today goes back to the list).
-- [ ] **Play it,** then the [regression check](context.md#playing-a-milestone).
+- [x] **Contract:** `SpeciesInfo.machine_moves` (15), `tutor_moves` (16), `uint32` move numbers like `Evolution.move`. `UsePartyItem.move_slot` also says which move a TM replaces (no new message, D1). `make contracts` and `make breaking` pass.
+- [x] **Catalog:** `infra/pokemon/learnsets.mjs` ran once; AGENTS.md's exception list has it. TMs carry `effect: {friendship: [1, 1, 0]}`, HMs also `reusable: true` (D2): that's the whole "HM isn't spent" rule.
+- [x] **`mic-core`:** `Party.TeachMachineMove` (`pokemon/item.go`), `FIELD_USE_TM_HM` in `usePartyItem` and `item.PokemonEffect`. Test bag has TMs and HMs.
+- [x] **Client:** slots show ABLE! / NOT ABLE! / LEARNED; "Teach which POKéMON?"; refusals; forget flow; TM CASE's USE opens the menu; the machine scene.
+- [ ] **Play it,** then the regression check.
 
 ## Play It
 
@@ -22,18 +28,30 @@ Not started. First step: the learnset script; settle the source rule below again
 - Teach with a free slot; with four moves forget one, or give up. TM spent once learned, not on giving up. HM stays.
 - Already known: refused. An HM can't be forgotten afterward. The learned move works in battle, with its animation.
 - Gen 4 species (387-493) and a species with few TMs (Magikarp: none) answer correctly. Reload keeps it.
+- **Scene:** played through, it goes straight back to the TM CASE. B during it (not while forgetting) goes black, then the party menu's "learned" message with fanfare, then the TM CASE. Compare with the original: icon position and scale, wobble, glow, dots, stars.
 
-## Decision to Settle
+## How It Works
 
-**Source of "can learn":** a species learns a TM's move if Showdown's learnset for it has `4M` or `3M`, tutor if `4T` or `3T`. FireRed's TMs teach Gen 3 moves, and the project's rules are Gen 4, so both generations count. Check the script's output for a few species before writing it down.
+- **Source of "can learn" (settled against the output):** `3M` or `4M`, tutor `3T` or `4T`; a species' base form. 493 species, 17780 machine and 9227 tutor moves, none dropped. Mew 58/58 of FireRed's machines; Bulbasaur 19, Garchomp 28, Tangrowth 27. No machine moves: Caterpie, Metapod, Weedle, Kakuna, Magikarp, Ditto, Unown, Wobbuffet, Smeargle, Wurmple, Silcoon, Cascoon, Wynaut, Beldum, Kricketot, Burmy, Combee. The script appended lines, so re-running needs the fields removed first.
+- **Friendship:** `{1, 1, 0}` through `changeFriendshipByItem`, as `AdjustFriendship(FRIENDSHIP_EVENT_LEARN_TMHM)`; HeartGold applies the same event (`party_menu_items.c:907`).
+- **Party menu (`party-menu.ts`):** `machine` getter (the TM or HM in `use` mode), `description()` (slot word; off once `resumed`, as FireRed's PARTY_ACTION_CHOOSE_MON), `teach()`, `teachAndShow()`, `showTaught()`. `askToReplaceMove` and `askToStopLearning` are M2's, with an empty `ItemGrowth`. After the summary with a move picked, the scene starts directly, with no menu in between (the menu is dead there, so `teachAndShow` uses a plain promise).
+- **Scene (`use-item-scene.ts`):** `runMachine`, `forgetMove`, `machineDots`, `createStars`. `done(played)`: false when stopped or the art failed. `gba/sound.ts` got `fanfarePlaying`. `world/moves.ts`: `machineAnswer`.
+- **Tutor moves are only stored:** tutor NPCs come in Phase 12.
 
-## What's Known
+## Differences From FireRed
 
-- `infra/battle/catalog.mjs:332` reads `Dex.data.Learnsets[id].learnset`, whose sources look like `4L15`; level moves come from `/^4L\d+$/`. Its header has the Docker command. `move.num > MOVE_COUNT` are skipped. `infra/pokemon/evolutions.mjs` is the shape of a once-only script that edits the proto.
-- `ItemInfo.move` (field 8) is the move a TM/HM teaches; client: `world/moves.ts` `tmMove`.
-- `item/use.go` already answers `PARTY_MENU` for `FIELD_USE_TM_HM`. `lib-contracts/proto/pokeuniverse/species/v1/catalog.proto:116` is `SpeciesInfo`, `level_moves` = 13.
-- FireRed: `party_menu.c` `ItemUseCB_TMHM` (4762); tutors `sTutorMoves`, `sTutorLearnsets` (1903-1927). Tutor NPCs come in Phase 12: this milestone only stores their moves.
+| Difference | Reason |
+|---|---|
+| The move is saved before the scene plays, so closing the game mid-scene keeps it | MMO, D3 |
+| Species learn from Gen 3 and Gen 4 machine lists | Gen 4 rules with FireRed's TMs, user's rule in this milestone |
+
+## Not Written or Not Looked At
+
+- **Not run at all:** the scene and the menu changes only typecheck and bundle. First suspects: the item's y (no `+4`, copying M1b's `itemOnMon`), `\p` in `say`, the counting text's x and speed.
+- **Bug found in M2's area, not fixed:** FireRed shows NO USE in the slots for an evolution stone that won't work (`PARTYBOX_DESC_NO_USE`, `party_menu.c:874`); we don't. `description()` is now where it fits; its string (`sDescriptionStringTable`) still has to be added to `texts.json`.
 
 ## Files
 
-`lib-contracts/proto/pokeuniverse/species/v1/catalog.proto`, `infra/pokemon/learnsets.mjs`, `mic-core/internal/pokemon/`, `mic-core/internal/world/party.go`, `spa-pokeuniverse/src/game/firered/party-menu.ts`, `firered/tm-case.ts`, `AGENTS.md`.
+Changed: `lib-contracts/proto/pokeuniverse/{species,item}/v1/catalog.proto`, `party/v1/party.proto`, generated code; `infra/pokemon/learnsets.mjs` (new); `mic-core/internal/item/use.go`, `pokemon/item.go`, `world/party.go`, `world/testbag.go`; `spa-pokeuniverse/src/game/world/moves.ts`, `gba/sound.ts`, `firered/{party-menu,use-item-scene,tm-case,manifest}.ts`, `firered/{texts,sounds}.json`; `AGENTS.md`.
+
+Build state: `mic-core` build and vet, SPA typecheck and bundle, `make breaking` all pass; `make text` done; `make audio` not.
