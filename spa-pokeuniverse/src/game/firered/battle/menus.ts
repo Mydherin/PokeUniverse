@@ -167,6 +167,7 @@ function canTarget(target: Target, user: Spot, spot: Spot): boolean {
   const self = spot.foe === user.foe && spot.position === user.position;
   switch (target) {
     case Target.NORMAL:
+    case Target.ANY:
       return !self;
     case Target.ADJACENT_ALLY:
       return !self && !spot.foe;
@@ -181,7 +182,7 @@ function canTarget(target: Target, user: Spot, spot: Spot): boolean {
 
 /** The move asks for a target at all (Showdown refuses these with none, in doubles). */
 export function choosesTarget(target: Target): boolean {
-  return target === Target.NORMAL || target === Target.ADJACENT_ALLY || target === Target.ADJACENT_ALLY_OR_SELF || target === Target.ADJACENT_FOE;
+  return target === Target.NORMAL || target === Target.ANY || target === Target.ADJACENT_ALLY || target === Target.ADJACENT_ALLY_OR_SELF || target === Target.ADJACENT_FOE;
 }
 
 /**
@@ -192,7 +193,7 @@ export function choosesTarget(target: Target): boolean {
  */
 export function* chooseTarget(flow: Flow, scene: BattleScene, user: Spot, target: Target, onField: (spot: Spot) => boolean): Generator<void, Spot | null, void> {
   const spots = TARGET_CYCLE.filter((s) => onField(s) && canTarget(target, user, s));
-  if (spots.length <= 1) return spots[0] ?? (target === Target.NORMAL || target === Target.ADJACENT_FOE ? { foe: true, position: 0 } : { foe: false, position: 1 - user.position });
+  if (spots.length <= 1) return spots[0] ?? (target === Target.NORMAL || target === Target.ANY || target === Target.ADJACENT_FOE ? { foe: true, position: 0 } : { foe: false, position: 1 - user.position });
   const first = target === Target.ADJACENT_ALLY_OR_SELF ? [(s: Spot) => !s.foe && s.position === user.position] : [(s: Spot) => s.foe && s.position === 0, (s: Spot) => s.foe];
   let cursor = Math.max(0, first.map((test) => spots.findIndex(test)).find((i) => i >= 0) ?? 0);
   const { input } = flow.gba;

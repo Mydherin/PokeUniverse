@@ -8,8 +8,8 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 ## Resume Here
 
-- **Next:** [M13](m13-options-doubles-polish.md#exact-next-step-play-test-no-phone), in a fresh session: the play test (no phone). Not M14 yet.
-- **Last state:** M13's code is committed (`b91810e`; SPA tsc, vite, `make text`, `make maps` pass; engine one-offs passed), but SHIFT and the client's doubles have never run in the game. M11, M12 and phone frame rate are still to play (M14). M6 still lacks the restart-resume check.
+- **Next:** [M14](m14-phase-4-battle-check.md), in a fresh session, the last milestone: the manual check, starting with its first unticked task.
+- **Last state:** M13 ✅; singles, SHIFT, doubles, whiteout and the double prize played and working. All committed. M11, M12 and phone frame rate are still to play. M6 still lacks the restart-resume check (an M14 task).
 
 ## Cold Start (every new session)
 
@@ -37,7 +37,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M10 | [Gen 4 move animations](m10-gen4-move-animations.md) | ✅ | Moves 355-467 from the expansion |
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ✅ | Exp bar, level up window, learning moves, evolution, Pokédex seen (not played yet: M14) |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ✅ | Gen 4 battle items, bag items in battle, item messages (not played yet: M14) |
-| M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | 🚧 | SHIFT, doubles, prize, partner animations, field texts, multi-hit replay (committed); left: play test |
+| M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ✅ | SHIFT, doubles, double prize, partner animations, field texts, multi-hit replay; played |
 | M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | ⬜ | Manual full check, only when the user asks |
 
 ## Log
@@ -76,3 +76,6 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-04 | M13 session 1 | D26, D27; SHIFT (engine, `mic-core`, client code); doubles in contracts, engine, AI, `mic-core`; second test trainer | M13: doubles on the client | One-offs pass (SHIFT, 12 doubles battles); all builds pass except vite (not run); the game not run; uncommitted |
 | 2026-11-04 | M13 session 2 | Doubles on the client: per-position scene and healthboxes, both choices, target selection, two-Pokémon send-outs, party order, playback, animation battlers; double prize | M13: partner animations, field condition texts | SPA tsc, vite, `mic-core` build pass; the game not run; `make text` needed; uncommitted |
 | 2026-11-04 | M13 session 3 | Partner animations (slides, `monbg`, palettes, shakes, hail); field condition texts; multi-hit replays per strike; Shadow Force text; `make text`, `make maps` | M13: play test in a fresh session, no phone | SPA tsc, vite pass; spread moves and performance only read, not played; committed as `b91810e` |
+| 2026-11-04 | M13 session 4 | Play test: singles, SHIFT, doubles choices, spread moves, effects, faints pass; fixed the invisible Yes/No and level up frames and the cursors not resetting on switch-in (uncommitted) | M13: 3 checks left | How to run it is in the milestone |
+| 2026-11-04 | M13 session 5 | Yes/No frame, B = No, Double Slap per strike, whiteout pass; double prize saved (at Level 5, as the user allowed); fixed any-target moves looping forever in doubles (`menus.ts`) | M13: see a win's last screens, close | Three fixes uncommitted; a win's screens unseen: `z` in the room restarted a battle, dropped; AA's money is 2560 |
+| 2026-11-04 | M13 close | User closed M13 without seeing a win's last screens; M13 file cut down; how to run it moved to M14 | M14 | Committed |

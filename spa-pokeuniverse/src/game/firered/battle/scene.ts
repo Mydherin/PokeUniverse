@@ -14,7 +14,8 @@ import { Layer, rgb, RGB_BLACK, type Background } from "../../gba/video";
 import type { BattleState } from "../../battle/state";
 import { initBg } from "../common";
 import type { Flow } from "../flow";
-import { TRAINER_PICS, type Graphic } from "../manifest";
+import { TRAINER_PICS, userFrame, type Graphic } from "../manifest";
+import { copyTiles } from "../menu";
 import { textSpeedDelay } from "../options";
 import { MON_AFFINE_ANIMS } from "../pokeball";
 import { Healthbox, type HealthboxMon } from "./healthbox";
@@ -169,6 +170,11 @@ export class BattleScene {
     palettes.load(assets.get("battleTextboxPal2").palette, 16, 16);
     palettes.load([rgb(9, 9, 9), rgb(9, 9, 9), rgb(31, 31, 31), rgb(26, 26, 25)], 5 * 16 + 12, 4);
     palettes.load([RGB_BLACK], 0, 1);
+    // LoadBattleMenuWindowGfx: the user's frame, for HandleBattleWindow's boxes.
+    const frame = assets.get(userFrame(flow.options.frame));
+    copyTiles(bg0, frame.tiles, 0x12, 9);
+    copyTiles(bg0, frame.tiles, 0x22, 9);
+    palettes.load(frame.palette, 16, 16);
     this.windows = Object.fromEntries(Object.entries(WINDOWS).map(([id, t]) => [id, new Window(bg0, t)])) as Record<WindowId, Window>;
 
     this.terrain.forEach((bg) => initBg(bg, 1, 3));

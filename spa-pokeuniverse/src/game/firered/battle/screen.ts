@@ -559,6 +559,8 @@ export class BattleScreen implements PlaybackHost {
 
   /** The player sent a Pokémon out at a position: it and the one it replaced trade places on the party menu (gBattlePartyCurrentOrder). */
   sentOut(slot: number, position: number): void {
+    // SwitchInClearSetData: the newcomer's cursors start over.
+    this.cursors[position] = { action: 0, move: 0 };
     const i = this.order.indexOf(slot);
     if (i >= 0 && i !== position && position < this.order.length) [this.order[position], this.order[i]] = [this.order[i], this.order[position]];
   }
