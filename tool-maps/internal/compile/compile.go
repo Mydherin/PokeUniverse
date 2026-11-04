@@ -50,6 +50,10 @@ func Client(r *world.Resolved) *mapv1.ClientMap {
 		Music:       r.Map.Music,
 		Weather:     r.Map.Weather,
 		ShowName:    r.Map.ShowName,
+		Region:      r.Map.Region,
+	}
+	for _, w := range r.Map.Warps {
+		m.Warps = append(m.Warps, &mapv1.WarpCell{X: uint32(w.At.X()), Y: uint32(w.At.Y())})
 	}
 	m.Walkable, m.Elevation, m.Behaviors = collision(r)
 	for i, t := range r.Tiles {

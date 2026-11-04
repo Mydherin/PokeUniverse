@@ -40,6 +40,7 @@ message ClientMessage {
     pokeuniverse.world.v1.ScriptBattle script_battle = 22;
     pokeuniverse.party.v1.EvolvePokemon evolve_pokemon = 23;
     pokeuniverse.party.v1.LearnMove learn_move = 24;
+    pokeuniverse.world.v1.UseWarp use_warp = 25;
   }
 }
 
@@ -62,6 +63,7 @@ message ServerMessage {
     pokeuniverse.battle.v1.BattleEnded battle_ended = 14;
     pokeuniverse.party.v1.PokemonEvolved pokemon_evolved = 15;
     pokeuniverse.pokedex.v1.PokedexChanged pokedex_changed = 16;
+    pokeuniverse.world.v1.Warped warped = 17;
   }
 }
 

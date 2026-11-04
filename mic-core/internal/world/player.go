@@ -6,6 +6,7 @@ import (
 
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
@@ -21,7 +22,8 @@ type Sink interface {
 }
 
 // Player is one online trainer. Its methods are called by the connection's goroutine and run
-// in its zone's goroutine, which alone owns the fields below `zone`.
+// in its zone's goroutine, which alone owns the fields below `zone`. Only the connection's
+// goroutine changes `zone`, while no zone has the player (UseWarp).
 type Player struct {
 	accountID int64
 	conn      string
@@ -55,6 +57,7 @@ type Player struct {
 	evolving evolving
 	// Species seen and caught; saved with the battle or the evolution that changed it.
 	pokedex pokedex.Pokedex
+	gender  trainerv1.Gender
 	// The trainer's ID (traded Pokémon) and money.
 	trainerID uint32
 	money     int

@@ -232,6 +232,12 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		}
 		c.player.Move(p.Move, at)
 		return true
+	case *realtimev1.ClientMessage_UseWarp:
+		if p.UseWarp == nil || !world.ValidDirection(p.UseWarp.Direction) {
+			break
+		}
+		c.player.UseWarp(p.UseWarp, at)
+		return true
 	case *realtimev1.ClientMessage_Turn:
 		if p.Turn == nil || !world.ValidDirection(p.Turn.Direction) {
 			break

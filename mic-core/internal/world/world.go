@@ -122,7 +122,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 
 	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party, pokedex: pokedex.Load(row),
-		trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle,
+		gender: gender, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle,
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -134,11 +134,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}
 	old := w.players[accountID]
 	w.players[accountID] = p
-	z := w.zones[m.ID]
-	if z == nil {
-		z = newZone(w, m)
-		w.zones[m.ID] = z
-	}
+	z := w.zoneOf(m)
 	p.zone = z
 	w.mu.Unlock()
 	if old != nil {
@@ -165,6 +161,16 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		Party:           party.Proto(),
 		Battle:          battleView,
 	}, nil
+}
+
+// zoneOf is the map's zone, started the first time someone goes there. Call it with w.mu held.
+func (w *World) zoneOf(m *Map) *zone {
+	z := w.zones[m.ID]
+	if z == nil {
+		z = newZone(w, m)
+		w.zones[m.ID] = z
+	}
+	return z
 }
 
 // loadParty reads the trainer's Pokémon. Test content (phase-5): until the starter

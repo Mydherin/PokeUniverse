@@ -47,6 +47,7 @@ type Map struct {
 	elevation     []byte
 	behaviors     []mapv1.TileBehavior
 	objects       []*mapv1.MapObject
+	warps         []*mapv1.Warp
 	// The NPCs, by the cell they stand on.
 	npcs map[Point]*mapv1.MapObject
 }
@@ -69,6 +70,26 @@ func (m *Map) Behavior(p Point) mapv1.TileBehavior {
 		return mapv1.TileBehavior_TILE_BEHAVIOR_UNSPECIFIED
 	}
 	return m.behaviors[p.Y*m.Width+p.X]
+}
+
+// WarpAt is the warp on a cell, or nil (a map has a handful: a scan is enough).
+func (m *Map) WarpAt(p Point) *mapv1.Warp {
+	for _, w := range m.warps {
+		if int(w.X) == p.X && int(w.Y) == p.Y {
+			return w
+		}
+	}
+	return nil
+}
+
+// warpNamed is the warp with an ID, or nil.
+func (m *Map) warpNamed(id string) *mapv1.Warp {
+	for _, w := range m.warps {
+		if w.Id == id {
+			return w
+		}
+	}
+	return nil
 }
 
 // NpcAt is the NPC standing on a cell, or nil.
@@ -142,6 +163,7 @@ func LoadMaps(fsys fs.FS) (Maps, error) {
 			elevation:     sm.Elevation,
 			behaviors:     sm.Behaviors,
 			objects:       sm.Objects,
+			warps:         sm.Warps,
 			npcs:          npcs,
 		}
 	}

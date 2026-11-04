@@ -41,6 +41,15 @@ message Turn {
   pokeuniverse.map.v1.Direction direction = 1;
 }
 
+// Standing on a warp and going its way (the stairs): the client plays the transition at once and
+// waits for Warped; a refused warp is answered with a Correction.
+message UseWarp {
+  pokeuniverse.map.v1.Direction direction = 1;
+  // The tile the player stands on; a warp from anywhere else is ignored.
+  uint32 x = 2;
+  uint32 y = 3;
+}
+
 // A button: check what the player faces. Always answered with a Script (empty when nothing
 // answers); the client waits for it before moving again.
 message Interact {
@@ -82,6 +91,17 @@ message Avatar {
 
 // The server refused a predicted step: where the player really is. The client goes back there;
 // steps it sent before receiving this are ignored.
+// Server -> client: the warp was saved: the player is on another map. Everything else the client
+// knows of the trainer stays as it is.
+message Warped {
+  // A map of lib-maps.
+  string map = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  pokeuniverse.map.v1.Direction facing = 4;
+  bool can_run = 5;
+}
+
 message Correction {
   // The refused step.
   uint32 step = 1;
@@ -117,6 +137,8 @@ message ScriptStep {
     // A song on the BGM player, by ID (a trainer's encounter music); the map's comes back once
     // the script ends.
     string music = 7;
+    // The NPC that answers turns back to where it faced as the map loaded (true).
+    bool face_original = 8;
   }
 }
 

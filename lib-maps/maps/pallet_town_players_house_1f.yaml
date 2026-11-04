@@ -1,0 +1,85 @@
+id: pallet_town_players_house_1f
+type: indoor
+region: pallet_town
+music: mus_pallet
+tileset: generic_building_1
+size: [13, 10]
+border:
+  - [solid_008, solid_008]
+  - [solid_008, solid_008]
+legend:
+  "!": solid_023
+  "#": solid_008
+  "$": solid_022
+  "%": solid_032
+  "&": solid_040
+  "'": ground_083
+  "(": solid_045
+  ")": solid_046
+  "*": kitchen_050
+  "+": kitchen_049
+  ",": ground_009
+  "-": ground_075
+  ".": ground_001
+  "/": solid_030
+  ":": ground_068
+  ";": ground_092
+  "<": solid_031
+  "=": cabinet_055
+  ">": solid_033
+  "?": solid_026
+  "@": cabinet_054
+  "A": solid_079
+  "B": solid_084
+  "C": solid_085
+  "D": solid_095
+  "E": television_053
+  "F": window_042
+  "[": solid_034
+  "]": solid_041
+  "^": solid_027
+  "_": ground_078
+  "`": ground_086
+  "a": ground_018
+  "b": ground_020
+  "c": ground_037
+  "d": ground_038
+  "e": ground_039
+  "f": ground_057
+  "g": ground_058
+  "h": ground_061
+  "i": ground_062
+  "j": ground_063
+  "k": ground_067
+  "l": ground_070
+  "m": ground_071
+  "n": ground_087
+  "o": ground_091
+  "p": ground_094
+  "q": south_arrow_warp_019
+  "r": up_right_stair_warp_029
+  "{": solid_047
+  "|": solid_028
+  "}": solid_076
+  "~": solid_077
+ground: |
+  #   0         1
+  #   0123456789012
+  00  #%%){%(>[%%%%
+  01  #+*@=&E]F&&$!
+  02  #fgij,h,,,r/<
+  03  #,..k::::lcde
+  04  #,..'-}~_`...
+  05  #,..'-BC_`...
+  06  #n..o;;;;p..m
+  07  #D..........A
+  08  #,.aqb.......
+  09  ###?^|#######
+warps:
+  - { id: town, at: [5, 8], to: pallet_town, spawn: town_players_house_1f }
+  - { id: town_2, at: [4, 8], to: pallet_town, spawn: town_players_house_1f }
+  - { id: 2f, at: [10, 2], to: pallet_town_players_house_2f, spawn: 1f }
+  - { id: town_3, at: [3, 9], to: pallet_town, spawn: town_players_house_1f }
+objects:
+  - { type: npc, id: mom, at: [8, 4], sprite: mom, movement: face_left, script: mom }
+  - { type: sign, id: tv, at: [6, 1], script: tv }

@@ -16,8 +16,7 @@ const (
 	CollisionNone Collision = iota
 	// A wall, the map's edge, a one-way tile or another elevation: the player bumps.
 	CollisionBlocked
-	// Standing on a stair warp and facing its way: the player only turns (the warp itself comes
-	// with map changes).
+	// Standing on a stair warp and going its way: no step, the player turns and warps (UseWarp).
 	CollisionStairWarp
 )
 

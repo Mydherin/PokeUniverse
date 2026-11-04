@@ -6,6 +6,7 @@ import (
 
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/live"
 )
@@ -182,7 +183,7 @@ func (z *zone) interact(p *Player, walkInto bool) {
 }
 
 // withPlayer fills in what a script's steps show of the player: what their PC stores (which
-// also allows its item actions while the script runs). It notes the trainer battle the script
+// also allows its item actions while the script runs) and the messages for a girl. It notes the trainer battle the script
 // may start. The scripts' tables stay untouched.
 func (z *zone) withPlayer(p *Player, steps Script) Script {
 	out := make(Script, len(steps))
@@ -193,6 +194,9 @@ func (z *zone) withPlayer(p *Player, steps Script) Script {
 		if step.GetPlayersPc() != nil {
 			p.pcScript = p.script
 			step = &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PlayersPc{PlayersPc: &worldv1.PlayersPc{Items: p.items.PC.Proto()}}}
+		}
+		if msg := step.GetMessage(); msg != nil && p.gender == trainerv1.Gender_GENDER_GIRL && girlTexts[msg.Text] != "" {
+			step = &worldv1.ScriptStep{Action: &worldv1.ScriptStep_Message{Message: &worldv1.Message{Text: girlTexts[msg.Text], Sign: msg.Sign}}}
 		}
 		out[i] = step
 	}

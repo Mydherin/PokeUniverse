@@ -26,7 +26,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/world/v1/world.proto.
  */
 export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcifwoGQXZhdGFyEgkKAXgYASABKA0SCQoBeRgCIAEoDRIuCgZmYWNpbmcYAyABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIvCgZnZW5kZXIYBCABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXIiYAoKQ29ycmVjdGlvbhIMCgRzdGVwGAEgASgNEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbiJTCgZTY3JpcHQSCgoCaWQYASABKA0SMAoFc3RlcHMYAiADKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuU2NyaXB0U3RlcBILCgNucGMYAyABKAkiyQIKClNjcmlwdFN0ZXASMQoHbWVzc2FnZRgBIAEoCzIeLnBva2V1bml2ZXJzZS53b3JsZC52MS5NZXNzYWdlSAASDwoFc291bmQYAiABKAlIABI0CglwY19zY3JlZW4YAyABKAsyHy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGNTY3JlZW5IABI2CgpwbGF5ZXJzX3BjGAQgASgLMiAucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllcnNQY0gAEi4KBnllc19ubxgFIAEoCzIcLnBva2V1bml2ZXJzZS53b3JsZC52MS5ZZXNOb0gAEj4KDnRyYWluZXJfYmF0dGxlGAYgASgLMiQucG9rZXVuaXZlcnNlLndvcmxkLnYxLlRyYWluZXJCYXR0bGVIABIPCgVtdXNpYxgHIAEoCUgAQggKBmFjdGlvbiI2CgVZZXNObxItCgJubxgBIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIiAKDVRyYWluZXJCYXR0bGUSDwoHdHJhaW5lchgBIAEoCSIeCgxTY3JpcHRCYXR0bGUSDgoGc2NyaXB0GAEgASgNIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcifwoGQXZhdGFyEgkKAXgYASABKA0SCQoBeRgCIAEoDRIuCgZmYWNpbmcYAyABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIvCgZnZW5kZXIYBCABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXIibAoGV2FycGVkEgsKA21hcBgBIAEoCRIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SDwoHY2FuX3J1bhgFIAEoCCJgCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlMKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwEgsKA25wYxgDIAEoCSLiAgoKU2NyaXB0U3RlcBIxCgdtZXNzYWdlGAEgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1lc3NhZ2VIABIPCgVzb3VuZBgCIAEoCUgAEjQKCXBjX3NjcmVlbhgDIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5QY1NjcmVlbkgAEjYKCnBsYXllcnNfcGMYBCABKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyc1BjSAASLgoGeWVzX25vGAUgASgLMhwucG9rZXVuaXZlcnNlLndvcmxkLnYxLlllc05vSAASPgoOdHJhaW5lcl9iYXR0bGUYBiABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuVHJhaW5lckJhdHRsZUgAEg8KBW11c2ljGAcgASgJSAASFwoNZmFjZV9vcmlnaW5hbBgIIAEoCEgAQggKBmFjdGlvbiI2CgVZZXNObxItCgJubxgBIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIiAKDVRyYWluZXJCYXR0bGUSDwoHdHJhaW5lchgBIAEoCSIeCgxTY3JpcHRCYXR0bGUSDgoGc2NyaXB0GAEgASgNIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
@@ -118,6 +118,38 @@ export const TurnSchema: GenMessage<Turn> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_world_v1_world, 2);
 
 /**
+ * Standing on a warp and going its way (the stairs): the client plays the transition at once and
+ * waits for Warped; a refused warp is answered with a Correction.
+ *
+ * @generated from message pokeuniverse.world.v1.UseWarp
+ */
+export type UseWarp = Message$1<"pokeuniverse.world.v1.UseWarp"> & {
+  /**
+   * @generated from field: pokeuniverse.map.v1.Direction direction = 1;
+   */
+  direction: Direction;
+
+  /**
+   * The tile the player stands on; a warp from anywhere else is ignored.
+   *
+   * @generated from field: uint32 x = 2;
+   */
+  x: number;
+
+  /**
+   * @generated from field: uint32 y = 3;
+   */
+  y: number;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.UseWarp.
+ * Use `create(UseWarpSchema)` to create a new message.
+ */
+export const UseWarpSchema: GenMessage<UseWarp> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 3);
+
+/**
  * A button: check what the player faces. Always answered with a Script (empty when nothing
  * answers); the client waits for it before moving again.
  *
@@ -138,7 +170,7 @@ export type Interact = Message$1<"pokeuniverse.world.v1.Interact"> & {
  * Use `create(InteractSchema)` to create a new message.
  */
 export const InteractSchema: GenMessage<Interact> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 3);
+  messageDesc(file_pokeuniverse_world_v1_world, 4);
 
 /**
  * The client finished showing a Script; the player can move again.
@@ -157,7 +189,7 @@ export type ScriptDone = Message$1<"pokeuniverse.world.v1.ScriptDone"> & {
  * Use `create(ScriptDoneSchema)` to create a new message.
  */
 export const ScriptDoneSchema: GenMessage<ScriptDone> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 4);
+  messageDesc(file_pokeuniverse_world_v1_world, 5);
 
 /**
  * Server -> client: where the player is, on entering the world (and after reconnecting).
@@ -225,7 +257,7 @@ export type WorldSnapshot = Message$1<"pokeuniverse.world.v1.WorldSnapshot"> & {
  * Use `create(WorldSnapshotSchema)` to create a new message.
  */
 export const WorldSnapshotSchema: GenMessage<WorldSnapshot> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 5);
+  messageDesc(file_pokeuniverse_world_v1_world, 6);
 
 /**
  * @generated from message pokeuniverse.world.v1.Avatar
@@ -257,12 +289,53 @@ export type Avatar = Message$1<"pokeuniverse.world.v1.Avatar"> & {
  * Use `create(AvatarSchema)` to create a new message.
  */
 export const AvatarSchema: GenMessage<Avatar> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 6);
+  messageDesc(file_pokeuniverse_world_v1_world, 7);
 
 /**
  * The server refused a predicted step: where the player really is. The client goes back there;
  * steps it sent before receiving this are ignored.
+ * Server -> client: the warp was saved: the player is on another map. Everything else the client
+ * knows of the trainer stays as it is.
  *
+ * @generated from message pokeuniverse.world.v1.Warped
+ */
+export type Warped = Message$1<"pokeuniverse.world.v1.Warped"> & {
+  /**
+   * A map of lib-maps.
+   *
+   * @generated from field: string map = 1;
+   */
+  map: string;
+
+  /**
+   * @generated from field: uint32 x = 2;
+   */
+  x: number;
+
+  /**
+   * @generated from field: uint32 y = 3;
+   */
+  y: number;
+
+  /**
+   * @generated from field: pokeuniverse.map.v1.Direction facing = 4;
+   */
+  facing: Direction;
+
+  /**
+   * @generated from field: bool can_run = 5;
+   */
+  canRun: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.Warped.
+ * Use `create(WarpedSchema)` to create a new message.
+ */
+export const WarpedSchema: GenMessage<Warped> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 8);
+
+/**
  * @generated from message pokeuniverse.world.v1.Correction
  */
 export type Correction = Message$1<"pokeuniverse.world.v1.Correction"> & {
@@ -294,7 +367,7 @@ export type Correction = Message$1<"pokeuniverse.world.v1.Correction"> & {
  * Use `create(CorrectionSchema)` to create a new message.
  */
 export const CorrectionSchema: GenMessage<Correction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 7);
+  messageDesc(file_pokeuniverse_world_v1_world, 9);
 
 /**
  * What an interaction runs, step by step. When it has steps, the player can't move until the
@@ -326,7 +399,7 @@ export type Script = Message$1<"pokeuniverse.world.v1.Script"> & {
  * Use `create(ScriptSchema)` to create a new message.
  */
 export const ScriptSchema: GenMessage<Script> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 8);
+  messageDesc(file_pokeuniverse_world_v1_world, 10);
 
 /**
  * @generated from message pokeuniverse.world.v1.ScriptStep
@@ -393,6 +466,14 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
      */
     value: string;
     case: "music";
+  } | {
+    /**
+     * The NPC that answers turns back to where it faced as the map loaded (true).
+     *
+     * @generated from field: bool face_original = 8;
+     */
+    value: boolean;
+    case: "faceOriginal";
   } | { case: undefined; value?: undefined };
 };
 
@@ -401,7 +482,7 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
  * Use `create(ScriptStepSchema)` to create a new message.
  */
 export const ScriptStepSchema: GenMessage<ScriptStep> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 9);
+  messageDesc(file_pokeuniverse_world_v1_world, 11);
 
 /**
  * @generated from message pokeuniverse.world.v1.YesNo
@@ -420,7 +501,7 @@ export type YesNo = Message$1<"pokeuniverse.world.v1.YesNo"> & {
  * Use `create(YesNoSchema)` to create a new message.
  */
 export const YesNoSchema: GenMessage<YesNo> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 10);
+  messageDesc(file_pokeuniverse_world_v1_world, 12);
 
 /**
  * @generated from message pokeuniverse.world.v1.TrainerBattle
@@ -439,7 +520,7 @@ export type TrainerBattle = Message$1<"pokeuniverse.world.v1.TrainerBattle"> & {
  * Use `create(TrainerBattleSchema)` to create a new message.
  */
 export const TrainerBattleSchema: GenMessage<TrainerBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 11);
+  messageDesc(file_pokeuniverse_world_v1_world, 13);
 
 /**
  * The client reached the running script's TrainerBattle step: the battle starts.
@@ -458,7 +539,7 @@ export type ScriptBattle = Message$1<"pokeuniverse.world.v1.ScriptBattle"> & {
  * Use `create(ScriptBattleSchema)` to create a new message.
  */
 export const ScriptBattleSchema: GenMessage<ScriptBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 12);
+  messageDesc(file_pokeuniverse_world_v1_world, 14);
 
 /**
  * AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
@@ -482,7 +563,7 @@ export type PcScreen = Message$1<"pokeuniverse.world.v1.PcScreen"> & {
  * Use `create(PcScreenSchema)` to create a new message.
  */
 export const PcScreenSchema: GenMessage<PcScreen> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 13);
+  messageDesc(file_pokeuniverse_world_v1_world, 15);
 
 /**
  * BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
@@ -504,7 +585,7 @@ export type PlayersPc = Message$1<"pokeuniverse.world.v1.PlayersPc"> & {
  * Use `create(PlayersPcSchema)` to create a new message.
  */
 export const PlayersPcSchema: GenMessage<PlayersPc> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 14);
+  messageDesc(file_pokeuniverse_world_v1_world, 16);
 
 /**
  * @generated from message pokeuniverse.world.v1.Message
@@ -530,7 +611,7 @@ export type Message = Message$1<"pokeuniverse.world.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 15);
+  messageDesc(file_pokeuniverse_world_v1_world, 17);
 
 /**
  * mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
@@ -555,7 +636,7 @@ export type SessionTaken = Message$1<"pokeuniverse.world.v1.SessionTaken"> & {
  * Use `create(SessionTakenSchema)` to create a new message.
  */
 export const SessionTakenSchema: GenMessage<SessionTaken> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 16);
+  messageDesc(file_pokeuniverse_world_v1_world, 18);
 
 /**
  * @generated from enum pokeuniverse.world.v1.Pc
