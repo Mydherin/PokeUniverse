@@ -262,7 +262,7 @@ export class BattleScene {
     win.putTilemap();
     const font = flow.fonts[style.font];
     flow.text.ctx.canABSpeedUpPrint = id === "msg";
-    flow.text.add(win, { font, x: x ?? style.x, y: style.y, letterSpacing: style.letterSpacing ?? 0, lineSpacing: style.lineSpacing, colors: style.colors }, speed, text);
+    flow.text.add(win, { font, x: x ?? style.x, y: style.y, letterSpacing: style.letterSpacing ?? 0, lineSpacing: style.lineSpacing, colors: style.colors, alternateDownArrow: true }, speed, text);
     if (speed === 0) win.copyToVram();
   }
 
@@ -375,6 +375,12 @@ export class BattleScene {
     const [front, back, elevation] = this.flow.assets.species(info.species).coords ?? [0, 0, 0];
     const [x, y] = this.spot({ foe, position: info.battler?.position ?? 0 });
     return [x, foe ? y + front - elevation : y + back];
+  }
+
+  /** GetBattlerYDeltaFromSpriteId: how far down its 64×64 box its picture sits. */
+  monYDelta(info: BattlerInfo): number {
+    const [front, back] = this.flow.assets.species(info.species).coords ?? [0, 0, 0];
+    return info.battler?.foe ? front : back;
   }
 
   /** The Pokémon's sprite (its art must be loaded), replacing the one at its spot. */

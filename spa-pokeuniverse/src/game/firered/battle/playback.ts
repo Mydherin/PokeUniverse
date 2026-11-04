@@ -698,7 +698,12 @@ export class Playback {
     const foe = info.battler!.foe;
     const [x, y] = scene.monPosition(info);
     if (mon) {
-      const ball = this.balls.release(mon.sprite, x, y + (foe ? 16 : 8), 2, 0, foe ? 0 : 24, 0);
+      // DoPokeballSendOutAnimation: the foe's ball sits below its spot (ignoring the picture's
+      // offset) for 16 frames, the player's lands below the Pokémon; in a double battle's intro
+      // the right-hand ball opens 25 frames later (SpriteCB_ReleaseMon2FromBall).
+      const ballY = (foe ? scene.spot(info.battler!)[1] : y) + 24;
+      const stagger = this.host.starting && info.battler!.position === 1 ? 25 : 0;
+      const ball = this.balls.releaseInBattle(mon.sprite, x, ballY, 2, 0, (foe ? 16 : 24) + stagger);
       if (!foe) yield* this.throwBall(ball);
       // The cry as the Pokémon comes out of the ball.
       let cried = false;
@@ -725,7 +730,7 @@ export class Playback {
     return "sText_YourFoesWeakGetEmPkmn";
   }
 
-  /** "<MON>, come back!" (or the trainer withdrew it), and it shrinks back into its ball. */
+  /** "<MON>, come back!" (or the trainer withdrew it), and it shrinks away with the ball's effect. */
   private *recall(previous: BattlerInfo): Generator<void, void, void> {
     const { scene, texts } = this.host;
     const b = previous.battler!;
@@ -733,12 +738,30 @@ export class Playback {
     yield* scene.message(line, 0);
     const mon = scene.mon(b);
     if (mon) {
-      const ball = this.balls.takeBack(mon.sprite, mon.sprite.x, mon.sprite.y + 16, 2, 0, 0, 0);
-      yield* wait(40);
-      this.host.flow.gba.sprites.destroy(ball);
+      yield* this.switchOut(previous, mon.sprite);
       scene.removeMon(b);
     }
     scene.healthbox(b).visible = false;
+  }
+
+  /** Special_SwitchOutPlayerMon: the ball's effect, and 10 frames in the Pokémon shrinks onto the ground. */
+  private *switchOut(info: BattlerInfo, mon: Sprite): Generator<void, void, void> {
+    const { scene } = this.host;
+    const [x, y] = scene.spot(info.battler!);
+    const effect = this.balls.switchOutEffect(mon, x, y + 32);
+    yield* wait(10);
+    // AnimTask_SwitchOutShrinkMon with SetBattlerSpriteYOffsetFromYScale: its feet stay where they are.
+    const height = 64 - scene.monYDelta(info) * 2;
+    mon.affineAnimPaused = true;
+    yield;
+    for (let scale = 0x130; ; scale += 0x30) {
+      mon.setRotScale(scale, scale, 0);
+      mon.y2 = Math.trunc((height - Math.min(Math.trunc((height << 8) / scale), 128)) / 2);
+      yield;
+      if (scale >= 0x2d0) break;
+    }
+    mon.invisible = true;
+    while (effect.active) yield;
   }
 
   /** BALL_TRAINER_BLOCK: the ball flies at the foe and is knocked away; a trainer's Pokémon can't be caught. */

@@ -321,8 +321,9 @@ export const WATER_TASKS: Record<string, AnimTask> = {
   },
 
   /**
-   * AnimTask_CreateSurfWave: the wave's BG crosses the screen, its colors turning. FireRed widens
-   * the blended lines with a scanline effect; here the whole BG blends (the wave has few other tiles).
+   * AnimTask_CreateSurfWave: the wave's BG crosses the screen, its colors turning. Only the lines
+   * from `first` to `end` blend it in (AnimTask_SurfWaveScanlineEffect): the others keep it at 0,
+   * hiding the map's solid water as it wraps around the screen and behind the text box.
    */
   *AnimTask_CreateSurfWave(run, args) {
     const foe = run.attacker.foe;
@@ -330,7 +331,9 @@ export const WATER_TASKS: Record<string, AnimTask> = {
     if (!art) return;
     const { gba } = run.flow;
     const { video, palettes } = gba;
-    Object.assign(video, { effect: Effect.Blend, target1: Layer.BG1, target2: Layer.ALL, eva: 0, evb: 16 });
+    const hidden = 16 << 8;
+    const alphaLines = new Uint16Array(160).fill(hidden);
+    Object.assign(video, { effect: Effect.Blend, target1: Layer.BG1, target2: Layer.ALL, alphaLines });
     const bg1 = video.bgs[1];
     initBg(bg1, 1, 1);
     bg1.tiles = art.tiles;
@@ -342,7 +345,8 @@ export const WATER_TASKS: Record<string, AnimTask> = {
     bg1.x = x * 256;
     bg1.y = y * 256;
     const base = ANIM_PALETTE * 16;
-    let [turn, wait, level, count] = [0, 1, 0, 0];
+    let [turn, wait, level, count, alpha] = [0, 1, 0, 0, hidden];
+    let [first, end] = foe ? [0, 0] : [48, 112];
     for (;;) {
       yield;
       x += dx;
@@ -358,17 +362,18 @@ export const WATER_TASKS: Record<string, AnimTask> = {
       if (++wait > 1) {
         wait = 0;
         if (++count < 14) {
-          video.eva = count;
-          video.evb = 16 - count;
+          alpha = count | ((16 - count) << 8);
           level++;
         }
         if (count > 54) {
           level--;
-          video.eva = level;
-          video.evb = 16 - level;
+          alpha = level | ((16 - level) << 8);
         }
       }
-      if ((video.eva & 0x1f) === 0) break;
+      if (foe) end = Math.min(end + 1, 112);
+      else first = Math.max(first - 1, 0);
+      alphaLines.fill(hidden).fill(alpha, first, end);
+      if ((alpha & 0x1f) === 0) break;
     }
     yield;
     bg1.visible = false;

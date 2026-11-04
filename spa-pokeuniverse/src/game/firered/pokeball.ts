@@ -1,6 +1,8 @@
-// The Poké Ball outside battle, as in Oak's speech: a ball that opens and releases a
-// Pokémon (it grows out with a flash of the ball's color) or takes it back (it shrinks
-// and rises into the ball), with the ball-open sparkles and the white screen flash.
+// The Poké Ball: a ball that opens and releases a Pokémon (it grows out with a flash of the
+// ball's color) or takes it back (it shrinks and rises into the ball), with the ball-open
+// sparkles and the white screen flash. Oak's speech flies the Pokémon out in an arc
+// (`release`); battles have it come out where it stands (`releaseInBattle`) and go back with
+// no ball on screen (`switchOutEffect`).
 
 import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import type { Task } from "../gba/tasks";
@@ -125,6 +127,45 @@ export class PokeBalls {
     return ball;
   }
 
+  /** SpriteCB_ReleaseMonFromBall: in battle the Pokémon comes out where it stands, rising as it grows. */
+  releaseInBattle(mon: Sprite, x: number, y: number, priority: number, subpriority: number, delay: number): Sprite {
+    // Palettes 1 to 3 (the terrain's) flash white.
+    const ball = this.createBall(mon, x, y, priority, subpriority, delay, 14);
+    mon.invisible = true;
+    ball.callback = (b) => {
+      if (b.data[DELAY]) {
+        b.data[DELAY]--;
+        return;
+      }
+      this.open(b);
+      const m = this.mon(b);
+      b.callback = (s) => this.emerge(s);
+      m.invisible = false;
+      m.startAffineAnim(MonAffine.Emerge);
+      this.flow.gba.sprites.animateSprite(m);
+      m.data[1] = 0x1000;
+    };
+    return ball;
+  }
+
+  /** HandleBallAnimEnd: done once both the ball's animation and the Pokémon's growth end. */
+  private emerge(ball: Sprite): void {
+    const mon = this.mon(ball);
+    let emerged = false;
+    if (ball.animEnded) ball.invisible = true;
+    if (mon.affineEnded) {
+      mon.startAffineAnim(MonAffine.Normal);
+      emerged = true;
+    } else {
+      mon.data[1] -= 288;
+      mon.y2 = mon.data[1] >> 8;
+    }
+    if (ball.animEnded && emerged) {
+      mon.y2 = 0;
+      this.destroyBall(ball);
+    }
+  }
+
   private flyOut(ball: Sprite): void {
     const mon = this.mon(ball);
     let emerged = false;
@@ -183,6 +224,33 @@ export class PokeBalls {
       mon.data[1] += 96;
       mon.y2 = -mon.data[1] >> 8;
     }
+  }
+
+  /**
+   * AnimTask_SwitchOutBallEffect: a Pokémon going back in battle has no ball on screen, only the
+   * sparkles, its palette fading to the ball's color and the terrain's flash. Over when the task ends.
+   */
+  switchOutEffect(mon: Sprite, x: number, y: number): Task {
+    const { gba } = this.flow;
+    const { palettes } = gba;
+    const offset = 256 + mon.paletteNum * 16;
+    const selected = 14;
+    this.particles(x, y, mon.priority, mon.subpriority);
+    palettes.blendPalette(offset, 16, 0, BALL_COLOR);
+    const task = gba.tasks.create((t: Task) => {
+      const d = t.data;
+      if (d[2] <= 16) {
+        palettes.blendPalette(offset, 16, d[0], BALL_COLOR);
+        d[0] += d[1];
+        d[2]++;
+      } else if (!palettes.fadeActive) {
+        palettes.beginFade(selected, 0, 16, 0, RGB_WHITE);
+        gba.tasks.destroy(t);
+      }
+    }, 5);
+    task.data[1] = 1;
+    palettes.beginFade(selected, 0, 0, 16, RGB_WHITE);
+    return task;
   }
 
   /** The ball opens: its animation, the sparkles and the flash. */

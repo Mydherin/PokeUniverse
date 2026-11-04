@@ -479,6 +479,7 @@ export class PartySummary {
     gba.sprites.loadSheet("partySummaryBar", assets.get("partySummaryBar").tiles);
     gba.sprites.loadSheet("partySummaryBalls", assets.get("healthboxElements").tiles.subarray(GFX.partyBall * 64, (GFX.partyBall + 4) * 64));
     gba.palettes.loadSpritePalette("healthbox", assets.get("healthboxPal").palette);
+    gba.palettes.loadSpritePalette("healthbar", assets.get("healthbarPal").palette);
     this.bar = gba.sprites.create({ sheet: "partySummaryBar", palette: "healthbox", width: 128, height: 8, priority: 1 }, foe ? 40 : 200, foe ? 44 : 100, 10)!;
     this.bar.hFlip = foe;
     this.bar.x2 = foe ? -100 : 100;
@@ -488,7 +489,7 @@ export class PartySummary {
       const ball = party[member];
       const image = ball === undefined || ball === PartyBall.UNSPECIFIED ? 1 : ball === PartyBall.FAINTED ? 3 : ball === PartyBall.STATUS ? 2 : 0;
       const x = foe ? 30 + 10 * i : 160 + 10 * i;
-      const s = gba.sprites.create({ sheet: "partySummaryBalls", palette: "healthbox", width: 8, height: 8, priority: 1, anims: [[{ image, duration: 0 }, "end"]] }, x, foe ? 36 : 92, 9)!;
+      const s = gba.sprites.create({ sheet: "partySummaryBalls", palette: "healthbar", width: 8, height: 8, priority: 1, anims: [[{ image, duration: 0 }, "end"]] }, x, foe ? 36 : 92, 9)!;
       s.x2 = foe ? -120 : 120;
       s.data[0] = foe ? (6 - i) * 7 + 10 : i * 7 + 10;
       this.balls.push(s);

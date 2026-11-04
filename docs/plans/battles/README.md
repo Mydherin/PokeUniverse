@@ -4,12 +4,12 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 
 - **Status:** 🚧 In progress, part of [Phase 4](../../phases/phase-4-players-room.md) (moved there from Phases 8 and 9 by the user, 2026-11-01).
 - **Goal:** in the player's room, the trainer has a team of six (POKéMON in the START menu, party screen and summary). A trainer NPC stands in the room, and talking to them starts a **FireRed-style trainer battle with Gen 4 rules**: FireRed's screen, sprites, animations, sounds and texts, resolved by Showdown in `mic-battles`, with a FireRed-style AI adapted to Gen 4.
-- **Stays in later phases:** wild encounters and catching ([Phase 9](../../phases/phase-9-battles.md)), the rival battle in Oak's lab (Phase 9), following Pokémon and Bill's PC boxes ([Phase 8](../../phases/phase-8-pokemon-party.md)), PvP ([Phase 11](../../phases/phase-11-social.md)).
+- **Stays in later phases:** wild encounters and catching ([Phase 9](../../phases/phase-9-battles.md)), the rival battle in Oak's lab (Phase 9), following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 8](../../phases/phase-8-pokemon-party.md)), PvP ([Phase 11](../../phases/phase-11-social.md)).
 
 ## Resume Here
 
-- **Next:** [M14](m14-phase-4-battle-check.md), in a fresh session, the last milestone: the manual check, starting with its first unticked task.
-- **Last state:** M13 ✅; singles, SHIFT, doubles, whiteout and the double prize played and working. All committed. M11, M12 and phone frame rate are still to play. M6 still lacks the restart-resume check (an M14 task).
+- **Next:** [M14](m14-phase-4-battle-check.md), the last milestone: its **Resume Here**, then its unticked tasks, then its **Clean Up**.
+- **Last state:** singles win, level up, learning, evolution with its cancel and reload played and working. SURF's wave, the party balls and the battle's prompt arrow fixed, **not committed**; temporary test files in the tree, never to commit (M14 lists both). Left: singles loss, the rest of the bag and held items, restart-resume, party after a battle, mobile.
 
 ## Cold Start (every new session)
 
@@ -38,7 +38,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ✅ | Exp bar, level up window, learning moves, evolution, Pokédex seen (not played yet: M14) |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ✅ | Gen 4 battle items, bag items in battle, item messages (not played yet: M14) |
 | M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ✅ | SHIFT, doubles, double prize, partner animations, field texts, multi-hit replay; played |
-| M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | ⬜ | Manual full check, only when the user asks |
+| M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | 🚧 | Manual full check, only when the user asks |
 
 ## Log
 
@@ -79,3 +79,4 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-04 | M13 session 4 | Play test: singles, SHIFT, doubles choices, spread moves, effects, faints pass; fixed the invisible Yes/No and level up frames and the cursors not resetting on switch-in (uncommitted) | M13: 3 checks left | How to run it is in the milestone |
 | 2026-11-04 | M13 session 5 | Yes/No frame, B = No, Double Slap per strike, whiteout pass; double prize saved (at Level 5, as the user allowed); fixed any-target moves looping forever in doubles (`menus.ts`) | M13: see a win's last screens, close | Three fixes uncommitted; a win's screens unseen: `z` in the room restarted a battle, dropped; AA's money is 2560 |
 | 2026-11-04 | M13 close | User closed M13 without seeing a win's last screens; M13 file cut down; how to run it moved to M14 | M14 | Committed |
+| 2026-11-04 | M14 session 1 | Singles win, level up, learning, HM refusal, evolution, its cancel, Potion, reload pass; fixed SURF's wave (per-line BLDALPHA), the party balls' palette, battle's prompt arrow; temporary `infra/playtest/scenario.sh` and `zz_playtest.go` | M14's unticked tasks, then its Clean Up | Fixes not committed; the user put Rare Candy, field items and Exp. Share in Phase 8 |

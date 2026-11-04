@@ -362,6 +362,8 @@ export interface PrinterTemplate {
   letterSpacing: number;
   lineSpacing: number;
   colors: readonly [number, number, number];
+  /** gTextFlags.useAlternateDownArrow: the prompt arrow battle's palette shows red. */
+  alternateDownArrow?: boolean;
 }
 
 const enum RenderState {
@@ -382,6 +384,8 @@ const enum Render {
 }
 
 const DOWN_ARROW_X = [0, 16, 32, 16];
+/** DARK_DOWN_ARROW_OFFSET: where the sheet's other arrow starts. */
+const ALTERNATE_DOWN_ARROW_X = 64;
 const CURSOR_DELAY = 8;
 
 /** One printer, as the games' TextPrinter: prints into a window, one character per step. */
@@ -626,7 +630,8 @@ export class TextPrinter {
       if (this.downArrowDelay) this.downArrowDelay--;
       else {
         this.window.fillRect(this.colors[0], this.currentX, this.currentY, 10, 12);
-        this.window.blitRect(ctx.downArrow, DOWN_ARROW_X[this.downArrowIndex], 0, this.currentX, this.currentY, 10, 12);
+        const sheetX = this.template.alternateDownArrow ? ALTERNATE_DOWN_ARROW_X : 0;
+        this.window.blitRect(ctx.downArrow, sheetX + DOWN_ARROW_X[this.downArrowIndex], 0, this.currentX, this.currentY, 10, 12);
         this.window.copyToVram();
         this.downArrowDelay = CURSOR_DELAY;
         this.downArrowIndex = (this.downArrowIndex + 1) & 3;

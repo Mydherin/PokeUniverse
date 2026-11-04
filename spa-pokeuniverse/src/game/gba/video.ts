@@ -163,6 +163,8 @@ export class Video {
   evy = 0;
   /** Per-scanline BLDY, as the game's scanline effect writes it; null when off. */
   evyLines: Int16Array | null = null;
+  /** Per-scanline BLDALPHA (eva | evb << 8), as the game's scanline effect writes it; null when off. */
+  alphaLines: Uint16Array | null = null;
 
   private readonly rgba = new Uint32Array(WIDTH * HEIGHT);
   private readonly lut = new Uint32Array(32768);
@@ -202,6 +204,7 @@ export class Video {
     this.target1 = this.target2 = 0;
     this.eva = this.evb = this.evy = 0;
     this.evyLines = null;
+    this.alphaLines = null;
   }
 
   /** Renders a frame into RGBA pixels. */
@@ -216,8 +219,9 @@ export class Video {
     const backdrop = palette[0];
     const anyWindow = this.win0On || this.win1On || this.objWinOn;
     const evy = Math.min(16, this.evyLines ? this.evyLines[line] : this.evy);
-    const eva = Math.min(16, this.eva);
-    const evb = Math.min(16, this.evb);
+    const alpha = this.alphaLines ? this.alphaLines[line] : this.eva | (this.evb << 8);
+    const eva = Math.min(16, alpha & 0x1f);
+    const evb = Math.min(16, alpha >> 8);
     const in0V = this.win0On && inRange(line, this.win0.top, this.win0.bottom, 160);
     const in1V = this.win1On && inRange(line, this.win1.top, this.win1.bottom, 160);
     const base = line * WIDTH;
