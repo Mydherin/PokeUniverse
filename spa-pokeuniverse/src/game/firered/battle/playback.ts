@@ -213,7 +213,7 @@ export function* wait(frames: number): Generator<void, void, void> {
 }
 
 export class Playback {
-  private readonly recent: Recent = { itemUsed: false, eaten: Item.UNSPECIFIED };
+  private readonly recent: Recent = { itemUsed: false, flute: false, eaten: Item.UNSPECIFIED };
   /** The event before this one (what `recent.eaten` lasts for). */
   private previous: BattleEvent["kind"]["case"] = undefined;
   private readonly balls: PokeBalls;
@@ -253,6 +253,7 @@ export class Playback {
     const { state, texts, scene } = this.host;
     const k = e.kind;
     if (k.case !== "heal" && k.case !== "statusCured" && k.case !== "itemUsed" && k.case !== "statChange" && k.case !== "volatileEnd") this.recent.itemUsed = false;
+    if (k.case !== "statusCured" && k.case !== "itemUsed") this.recent.flute = false;
     if (this.previous !== "itemEnded") this.recent.eaten = Item.UNSPECIFIED;
     this.previous = k.case;
     if (k.case === "moveUsed") this.recent.mover = k.value.battler;
@@ -428,7 +429,13 @@ export class Playback {
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         this.recent.itemUsed = true;
-        if (itemInfo(k.value.item)?.battleUse === BattleUse.BALL) yield* this.ballBlocked();
+        if (k.value.awoke) {
+          // BattleScript_PokeFluteWakeUp.
+          this.recent.flute = true;
+          this.host.flow.gba.sound.playFanfare("mus_poke_flute");
+          while (this.host.flow.gba.sound.isPlaying("fanfare")) yield;
+          yield* scene.message(texts.format("sText_PkmnHearingFluteAwoke"));
+        } else if (itemInfo(k.value.item)?.battleUse === BattleUse.BALL) yield* this.ballBlocked();
         else if (itemInfo(k.value.item)?.effect?.pp || itemInfo(k.value.item)?.effect?.ppMax) yield* scene.message(texts.text("gText_PPWasRestored"));
         return;
       case "exp": {

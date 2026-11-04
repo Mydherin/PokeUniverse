@@ -84,7 +84,7 @@
   "sText_WildPkmnPrefix", "sText_FoePkmnPrefix",
   "sText_AttackerUsedX", "sText_CriticalHit", "sText_SuperEffective", "sText_NotVeryEffective", "sText_ItDoesntAffect", "sText_AttackMissed", "sText_OneHitKO",
   "sText_ButItFailed", "sText_ButNothingHappened", "sText_HitXTimes", "sText_PkmnProtectedItself", "sText_PkmnMustRecharge", "sText_PkmnFlinched",
-  "sText_PkmnHitWithRecoil", "sText_PkmnEnergyDrained", "sText_PkmnRegainedHealth", "sText_PkmnHPFull", "sText_PkmnMakesGroundMiss", "sText_PkmnAvoidedAttack",
+  "sText_PkmnHitWithRecoil", "sText_PkmnEnergyDrained", "sText_PkmnRegainedHealth", "sText_PlayedFluteCatchyTune", "sText_PlayedThe", "sText_PkmnHearingFluteAwoke", "sText_PkmnHPFull", "sText_PkmnMakesGroundMiss", "sText_PkmnAvoidedAttack",
   "sText_TargetFainted", "sText_PkmnFellAsleep", "sText_PkmnWasPoisoned", "sText_PkmnBadlyPoisoned", "sText_PkmnWasBurned", "sText_PkmnWasFrozen", "sText_PkmnWasParalyzed",
   "sText_PkmnFastAsleep", "sText_PkmnIsFrozen", "sText_PkmnIsParalyzed", "sText_PkmnIsConfused", "sText_PkmnImmobilizedByLove", "sText_PkmnLostFocus", "sText_PkmnInLove",
   "sText_PkmnWokeUp", "sText_PkmnWasDefrosted2", "sText_PkmnHealedParalysis", "sText_PkmnStatusNormal", "sText_PkmnHurtByPoison", "sText_PkmnHurtByBurn", "sText_PkmnHurtBy",

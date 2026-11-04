@@ -677,7 +677,8 @@ class PartyMenu {
 
   /** What the menu asks while a Pokémon is chosen. */
   private get chooseMessage(): Message {
-    return this.mode.kind === "give" ? Message.GiveToWhichMon : this.mode.kind === "use" ? Message.UseOnWhichMon : Message.ChooseMon;
+    if (this.mode.kind === "give") return Message.GiveToWhichMon;
+    return this.mode.kind === "use" || (this.mode.kind === "battle" && this.mode.item) ? Message.UseOnWhichMon : Message.ChooseMon;
   }
 
   /** ShouldUseChooseMonText: more than one Pokémon still able to battle. */

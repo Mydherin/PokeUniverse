@@ -70,7 +70,7 @@ func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
 	id := m.GetItem()
 	if effect, ok := item.PokemonEffect(p.items, id); ok && !p.busy() {
 		items, party := p.items.Clone(), p.party.Clone()
-		if p.party.UseItem(effect, int(m.GetSlot()), int(m.GetMoveSlot())) {
+		if p.party.UseItem(effect, int(m.GetSlot()), int(m.GetMoveSlot()), z.m.ID) {
 			res = item.SpendOnPokemon(p.items, id)
 			if z.saveTrainer(p, res.Changed, true) {
 				z.sendParty(p)

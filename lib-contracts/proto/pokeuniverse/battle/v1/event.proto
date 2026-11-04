@@ -397,6 +397,8 @@ message ItemUsed {
   pokeuniverse.item.v1.Item item = 2;
   // The Pokémon it was used on (active or not).
   Battler target = 3;
+  // POKé FLUTE: someone heard it and woke up (otherwise it's just a catchy tune).
+  bool awoke = 4;
 }
 
 message Transform {

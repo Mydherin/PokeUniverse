@@ -29,13 +29,16 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 | Graphics | Gen 3 style |
 | Pokémon | All Pokémon up to **Gen 4** (493) |
 | Mechanics | **Gen 4 rules**: physical/special split, Gen 4 moves, abilities and items |
-| Base | **Pokémon FireRed**, as reference only |
+| Base | **Pokémon FireRed**: its system is matched whenever possible, its code is never reused |
 | World | Own world, starting from FireRed's map and extending it |
 | Multiplayer | MMO: many players in the same world |
 
 ### FireRed as Reference
 
-- FireRed is used to understand **how things work** (movement, rules, maps, menus).
+- **The game's system matches FireRed whenever possible:** screens, menus, flows, input, messages, sounds, animations and how the world behaves.
+- **Battle and Pokémon rules are Gen 4:** battle mechanics, moves, abilities, what items do in battle, stats, natures, growth, learning and evolution. Where they meet, the rule is Gen 4 and FireRed's way of showing it stays.
+- **Unless it conflicts with the MMO:** where FireRed's behavior can't work in an MMO, as much of it as possible is kept. SAVE behaves exactly like FireRed's dialog, though the MMO saves everything all the time.
+- **A difference needs a reason:** a Gen 4 rule, the MMO or the user's request. *Why: the game should feel like FireRed, with Gen 4's depth.*
 - The start of the game (intro, Oak's speech, room, Pallet Town) is rebuilt **exactly like FireRed**, with its original graphics, music and text.
 - **All code is new:** Go on the server, Phaser on the frontend. No FireRed code is reused (see [tech-stack.md](tech-stack.md#firered-as-reference)).
 - The FireRed map is the starting world; it is kept and **extended** with new areas.

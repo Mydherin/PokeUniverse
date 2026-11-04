@@ -16,18 +16,28 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md),
 - **Friendship:** `[low, mid, high]` from `item_effects.h`; Energy Powder -5/-5/-10, Energy Root -10/-10/-15, Heal Powder -5/-5/-10, Revival Herb -15/-15/-20, vitamins and PP items 5/3/2. Rare Candy's (M2) goes in the same field.
 - **Enigma Berry** has no effect data, so it answers `NO_EFFECT`.
 - **The item-use scene** is left to [M1b](m01b-item-use-scene.md). The seam is `useItem` in `party-menu.ts`.
-- **Battles' friendship from bag items:** not applied by `mic-battles` (unchanged, not part of this milestone).
+- **Battles' friendship from bag items:** `played` records each in `Active.Friendship` (item, target slot) and `finish` applies them with the outcome, so leaving rolls it back. X items, Dire Hit and Guard Spec. have only `friendship` in their catalog `effect` ([1, 1, 0]): `itemEffect` in `mic-battles` hides it for `BATTLE_USE_SELF`. Item and level-up friendship add +1 on the map where the Pokémon was met (`mapID` through `UseItem`, `Gain`, `battle.Apply`).
 - **Vitamins and the EV cap:** the test team sits at 510 EVs, so a vitamin answers "no effect" on all of it. That's right, not a bug: lower a Pokémon's `evs` to test one.
 
 ## Not Checked
 
 - **Sounds:** the browser pane plays nothing we can hear (Blue Flute's flute, `se_use_item`).
 - **Ether in battle:** the move list opened, the move was taken and the turn played; the message went by unseen.
+- **The battle BAG's fixes below and battle friendship:** built, not played. To play them: A, then USE or CANCEL; B in the party; an X item at +6; POKé FLUTE with and without a sleeper; TOSS in the battle pouch; friendship after a battle.
 
-## Found While Playing (Before M1, Not Fixed)
+## Battle BAG, Fixed After Playing
 
-The BAG in battle differs from FireRed in three ways, by reading `item_menu.c` and `party_menu.c`, not compared on the ROM:
+The BAG in battle now follows FireRed, by reading `item_menu.c`, `party_menu.c` and `berry_pouch.c`, not compared on the ROM:
 
-- A in the battle BAG goes straight to the party; FireRed asks USE / CANCEL first (`sContextMenuItems_BattleUse`).
-- The party says "Choose a POKéMON."; FireRed says "Use on which POKéMON?" (`Message` choice in `party-menu.ts`, the `battle` mode with an `item`).
-- B in that party goes back to the battle; FireRed goes back to the BAG (`chooseFromBag` in `battle/screen.ts`).
+- A in the battle BAG opens USE / CANCEL, OPEN / CANCEL for the BERRY POUCH, only CANCEL for an item with no battle use (`openContextMenu` in `bag.ts`).
+- The BERRY POUCH in battle opens USE / TOSS / EXIT; a berry with no battle use gets OAK's words (`battle` in `berry-pouch.ts`).
+- The party says "Use on which POKéMON?" (`chooseMessage` in `party-menu.ts`).
+- B in that party goes back to the BAG, or the BERRY POUCH for a berry (`chooseFromBag` in `battle/screen.ts`).
+- POKé FLUTE always plays: with nobody asleep "Now, that's a catchy tune!"; otherwise its fanfare (`mus_poke_flute`) and "The POKéMON hearing the FLUTE awoke!", waking both parties, bench included, except Soundproof (`hearingFlute` in `mic-battles`, `ItemUsed.awoke`, `recent.flute`).
+- An X item, Dire Hit or Guard Spec. that would do nothing says "It won't have any effect." in the BAG: `no_effect_items` in the request (`selfItemsWithNoEffect` in `mic-battles`), passed to `startBag`.
+
+Still differs from FireRed:
+
+- **Kept, a Gen 4 rule:** an X item that works takes effect in the turn (Gen 4 order, phase-5 D12); FireRed spends it and prints its effect in the BAG.
+- **Kept, no sections yet:** the met-location +1 compares `MetMap` with the zone's map (`metOn`); FireRed compares region map sections, so another map of the same town gives no +1 until maps have sections.
+- **Kept, Enigma Berry:** no effect data (it came from the e-Reader).

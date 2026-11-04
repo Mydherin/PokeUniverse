@@ -381,6 +381,7 @@ export const BATTLE_SOUNDS = [
   "mus_vs_trainer",
   "mus_victory_trainer",
   "mus_level_up",
+  "mus_poke_flute",
   "mus_evolution_intro",
   "mus_evolution",
   "mus_evolved",

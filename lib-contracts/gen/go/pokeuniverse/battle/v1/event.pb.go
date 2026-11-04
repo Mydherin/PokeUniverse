@@ -3221,7 +3221,9 @@ type ItemUsed struct {
 	Foe  bool     `protobuf:"varint,1,opt,name=foe,proto3" json:"foe,omitempty"`
 	Item v14.Item `protobuf:"varint,2,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
 	// The Pokémon it was used on (active or not).
-	Target        *Battler `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	Target *Battler `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	// POKé FLUTE: someone heard it and woke up (otherwise it's just a catchy tune).
+	Awoke         bool `protobuf:"varint,4,opt,name=awoke,proto3" json:"awoke,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3275,6 +3277,13 @@ func (x *ItemUsed) GetTarget() *Battler {
 		return x.Target
 	}
 	return nil
+}
+
+func (x *ItemUsed) GetAwoke() bool {
+	if x != nil {
+		return x.Awoke
+	}
+	return false
 }
 
 type Transform struct {
@@ -3816,11 +3825,12 @@ const file_pokeuniverse_battle_v1_event_proto_rawDesc = "" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\x12.\n" +
 	"\x04item\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x122\n" +
 	"\x04from\x18\x03 \x01(\v2\x1e.pokeuniverse.battle.v1.EffectR\x04from\x12\x14\n" +
-	"\x05eaten\x18\x04 \x01(\bR\x05eaten\"\x85\x01\n" +
+	"\x05eaten\x18\x04 \x01(\bR\x05eaten\"\x9b\x01\n" +
 	"\bItemUsed\x12\x10\n" +
 	"\x03foe\x18\x01 \x01(\bR\x03foe\x12.\n" +
 	"\x04item\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x127\n" +
-	"\x06target\x18\x03 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\x06target\"\x7f\n" +
+	"\x06target\x18\x03 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\x06target\x12\x14\n" +
+	"\x05awoke\x18\x04 \x01(\bR\x05awoke\"\x7f\n" +
 	"\tTransform\x129\n" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\x127\n" +
 	"\x06target\x18\x02 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\x06target\"\x92\x01\n" +

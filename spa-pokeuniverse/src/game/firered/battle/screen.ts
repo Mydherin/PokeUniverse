@@ -22,7 +22,7 @@ import {
   type BattleView,
   type PositionRequest,
 } from "@pokeuniverse/contracts/battle/v1/view";
-import { BattleUse, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { BattleUse, Item as ItemId, Pocket, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { itemInfo } from "../../world/items";
 import { moveInfo } from "../../world/moves";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
@@ -38,7 +38,7 @@ import { decimalText, NumberMode, type Text } from "../../gba/text";
 import { RGB_BLACK } from "../../gba/video";
 import { BattleState } from "../../battle/state";
 import { PartyState } from "../../world/party";
-import { BagLocation, startBag, type BagExit, type BagHost } from "../bag";
+import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "../bag";
 import type { Flow } from "../flow";
 import { Assets, BATTLE_SOUNDS } from "../manifest";
 import { loadAnimations } from "./anims";
@@ -288,8 +288,8 @@ export class BattleScreen implements PlaybackHost {
   }
 
   /** Who must choose, in order: singles' one position, or the request's. */
-  private positionsAsked(r: BattleRequest): Pick<PositionRequest, "position" | "moves">[] {
-    return this.state.doubles ? r.positions : [{ position: 0, moves: r.moves }];
+  private positionsAsked(r: BattleRequest): Pick<PositionRequest, "position" | "moves" | "noEffectItems">[] {
+    return this.state.doubles ? r.positions : [{ position: 0, moves: r.moves, noEffectItems: r.noEffectItems }];
   }
 
   /** A forced switch: the party slot, not the one the partner just took. */
@@ -299,7 +299,7 @@ export class BattleScreen implements PlaybackHost {
   }
 
   /** One position's FIGHT, BAG, POKéMON or RUN; null when B went back to the partner's. */
-  private *chooseFor(asked: Pick<PositionRequest, "position" | "moves">, canGoBack: boolean, chosen: readonly BattleAction["kind"][]): Generator<void, BattleAction["kind"] | null, void> {
+  private *chooseFor(asked: Pick<PositionRequest, "position" | "moves" | "noEffectItems">, canGoBack: boolean, chosen: readonly BattleAction["kind"][]): Generator<void, BattleAction["kind"] | null, void> {
     const { state } = this;
     const active = state.side(false).active[asked.position]?.battler;
     if (!active) return null;
@@ -317,7 +317,7 @@ export class BattleScreen implements PlaybackHost {
         const slot = yield* this.chooseFromParty({ forced: false, partner: chosen[0] });
         if (slot !== null) return { case: "switch", value: { $typeName: "pokeuniverse.battle.v1.SwitchAction", partySlot: slot } };
       } else if (action === Action.Bag) {
-        const used = yield* this.chooseFromBag(active);
+        const used = yield* this.chooseFromBag(active, asked.noEffectItems);
         if (used) return { case: "item", value: { $typeName: "pokeuniverse.battle.v1.ItemAction", item: used.item, partySlot: used.slot, moveSlot: used.move } };
       } else if (state.kind === BattleKind.TRAINER) {
         yield* this.scene.message(this.texts.format("sText_NoRunningFromTrainers"), 0);
@@ -450,26 +450,38 @@ export class BattleScreen implements PlaybackHost {
   }
 
   /** BAG: an item chosen in the bag, then the Pokémon and move it's for (X items and balls ask nothing); null when cancelled. */
-  private *chooseFromBag(active: Battler): Generator<void, { item: Item; slot: number; move: number } | null, void> {
+  private *chooseFromBag(active: Battler, noEffect: readonly Item[]): Generator<void, { item: Item; slot: number; move: number } | null, void> {
     let used: { item: Item; slot: number; move: number } | null = null;
-    yield* this.openScreen((back) =>
-      startBag(
-        this.flow,
-        this.host.gender,
-        this.host.bag,
-        (exit: BagExit) => {
-          if (!exit || !("chosen" in exit)) return back();
-          const item = exit.chosen;
-          const use = itemInfo(item)?.battleUse;
-          if (use === BattleUse.SELF || use === BattleUse.BALL) {
-            used = { item, slot: active.partySlot, move: 0 };
-            return back();
-          }
-          this.openParty({ kind: "battle", forced: false, item, inBattle: (i) => this.inBattle(i), choose: (i, move = 0) => (used = { item, slot: this.order[i], move }) }, back);
-        },
-        BagLocation.Battle,
-      ),
-    );
+    yield* this.openScreen((back) => {
+      const { flow } = this;
+      const { gender, bag } = this.host;
+      const openBag = () =>
+        startBag(
+          flow,
+          gender,
+          bag,
+          (exit: BagExit) => {
+            if (!exit || !("chosen" in exit)) return back();
+            chosen(exit.chosen);
+          },
+          BagLocation.Battle,
+          noEffect,
+        );
+      const chosen = (item: Item) => {
+        const use = itemInfo(item)?.battleUse;
+        if (use === BattleUse.SELF || use === BattleUse.BALL) {
+          used = { item, slot: active.partySlot, move: 0 };
+          return back();
+        }
+        // EnterPartyFromItemMenuInBattle: B goes back to the BAG, or the BERRY POUCH for a berry.
+        const cancelled = () => {
+          if (itemInfo(item)?.pocket !== Pocket.BERRY_POUCH) return openBag();
+          openItemScreen(flow, gender, bag, ItemId.BERRY_POUCH, false, (picked) => (picked ? chosen(picked) : openBag()), true, true);
+        };
+        this.openParty({ kind: "battle", forced: false, item, inBattle: (i) => this.inBattle(i), choose: (i, move = 0) => (used = { item, slot: this.order[i], move }) }, () => (used ? back() : cancelled()));
+      };
+      openBag();
+    });
     return used;
   }
 

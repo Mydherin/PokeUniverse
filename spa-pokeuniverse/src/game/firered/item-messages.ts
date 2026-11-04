@@ -34,6 +34,7 @@ interface Template {
 
 const TEMPLATES: Partial<Record<ItemOutcome, Template>> = {
   [ItemOutcome.NOT_NOW]: { text: "gText_OakForbidsUseOfItemHere", font: FontId.Male },
+  [ItemOutcome.NO_EFFECT]: { text: "gText_WontHaveEffect" },
   [ItemOutcome.NO_POKEMON]: { text: "gText_ThereIsNoPokemon", waitA: true },
   [ItemOutcome.CANT_BE_HELD]: { text: "gText_ItemCantBeHeld", waitA: true },
   // FieldUseFunc_Repel: SE_REPEL, its end, then the item is used up.

@@ -30,6 +30,8 @@ export interface Recent {
   ability?: Battler;
   /** A trainer just used an item: its effect shows with no message of its own. */
   itemUsed: boolean;
+  /** The POKé FLUTE just woke them: one message says so for all. */
+  flute: boolean;
   /** The berry eaten just before this event: a cure or boost that follows says so. */
   eaten: Item;
 }
@@ -197,7 +199,7 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     }
     case "statusCured": {
       const b = k.value.battler;
-      if (b && !texts.isActive(b)) return [];
+      if (recent.flute || (b && !texts.isActive(b))) return [];
       const from = k.value.from?.kind;
       const item = from?.case === "item" ? from.value : recent.eaten;
       if (item) {
@@ -330,6 +332,7 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       return [];
     }
     case "itemUsed":
+      if (k.value.item === Item.POKE_FLUTE) return msg(k.value.awoke ? "sText_PlayedThe" : "sText_PlayedFluteCatchyTune", { item: k.value.item });
       return msg(k.value.foe ? "sText_Trainer1UsedItem" : "sText_PlayerUsedItem", { item: k.value.item });
     case "transform":
       return msg("sText_PkmnTransformedInto", { atk: k.value.battler, buff1: texts.name(k.value.target) });

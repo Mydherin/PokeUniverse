@@ -4,7 +4,8 @@
 // and description below. A opens USE, GIVE, TOSS, EXIT; mic-core decides what they do. B or
 // CLOSE (and SELECT when opened from the field) fade back where it was opened from.
 
-import { ItemOutcome, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import { create } from "@bufbuild/protobuf";
+import { ItemOutcome, ItemResultSchema, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
@@ -12,7 +13,7 @@ import { PALETTES_ALL } from "../gba/palette";
 import type { AffineCmd, Sprite, SpriteTemplate } from "../gba/sprites";
 import { decimalText, EOS, expandPlaceholders, FontId, joinText, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import { RGB_BLACK, type Background } from "../gba/video";
-import type { BagSlot } from "../world/items";
+import { itemInfo, type BagSlot } from "../world/items";
 import type { BagHost } from "./bag";
 import { startPartyMenu } from "./party-menu";
 import { iconTiles, initBg } from "./common";
@@ -29,10 +30,11 @@ const position: ListPosition = { scroll: 0, row: 0 };
 
 /**
  * Shows the BERRY POUCH, then `done` once it faded out. `fromField`: opened with SELECT on
- * the field, where SELECT also closes it (allowSelect).
+ * the field, where SELECT also closes it (allowSelect). `battle`: BERRYPOUCH_FROMBATTLE, USE
+ * gives `done` the berry.
  */
-export function startBerryPouch(flow: Flow, gender: Gender, host: BagHost, fromField: boolean, done: (picked?: Item) => void, pick = false): void {
-  new BerryPouch(flow, gender, host, fromField, done, pick);
+export function startBerryPouch(flow: Flow, gender: Gender, host: BagHost, fromField: boolean, done: (picked?: Item) => void, pick = false, battle = false): void {
+  new BerryPouch(flow, gender, host, fromField, done, pick, battle);
 }
 
 /** BG0 (priority 1) and BG2 (priority 0) share the windows' tiles; BG1 (priority 2) is the screen. */
@@ -103,6 +105,8 @@ const enum Action {
   Exit,
 }
 const ACTIONS: Action[] = [Action.Use, Action.Give, Action.Toss, Action.Exit];
+/** sOptions_UseToss_Exit. */
+const BATTLE_ACTIONS: Action[] = [Action.Use, Action.Toss, Action.Exit];
 const ACTION_TEXTS: Record<Action, TextId> = {
   [Action.Use]: "gOtherText_Use",
   [Action.Give]: "gOtherText_Give",
@@ -144,6 +148,7 @@ class BerryPouch {
     private readonly done: (picked?: Item) => void,
     /** Opened from the party menu's GIVE or BAG in battle: A chooses the berry. */
     private readonly pick: boolean,
+    private readonly battle: boolean,
   ) {
     const { gba, assets } = flow;
     gba.setVBlank(null);
@@ -319,7 +324,7 @@ class BerryPouch {
     this.setDescriptionBorder(true);
     this.printCursor(COLORS_GRAY);
     this.selected = { slot: this.slots[chosen], index: chosen };
-    if (this.pick) this.pickToGive();
+    if (this.pick && !this.battle) this.pickToGive();
     else this.openContextMenu();
   }
 
@@ -333,15 +338,20 @@ class BerryPouch {
 
   // The berry's menu
 
-  /** CreateNormalContextMenu: USE, GIVE, TOSS, EXIT, and "<berry> is selected." beside them. */
+  /** The context menu's actions for where the pouch was opened from. */
+  private get actions(): Action[] {
+    return this.battle ? BATTLE_ACTIONS : ACTIONS;
+  }
+
+  /** CreateNormalContextMenu: USE, GIVE, TOSS, EXIT (USE, TOSS, EXIT in battle), and "<berry> is selected." beside them. */
   private openContextMenu(): void {
-    const { flow } = this;
+    const { flow, actions } = this;
     const font = flow.fonts[FontId.Normal];
     const lineHeight = font.maxLetterHeight + 2;
-    const win = new Window(this.bg2, CONTEXT_WINDOWS[ACTIONS.length - 1]);
+    const win = new Window(this.bg2, CONTEXT_WINDOWS[actions.length - 1]);
     drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
-    ACTIONS.forEach((a, i) => win.print(font, 8, 2 + i * lineHeight, [1, 2, 3], flow.assets.text(ACTION_TEXTS[a]), font.letterSpacing));
-    this.contextMenu = new CursorMenu(flow, win, FontId.Normal, 0, 2, lineHeight, ACTIONS.length, 0);
+    actions.forEach((a, i) => win.print(font, 8, 2 + i * lineHeight, [1, 2, 3], flow.assets.text(ACTION_TEXTS[a]), font.letterSpacing));
+    this.contextMenu = new CursorMenu(flow, win, FontId.Normal, 0, 2, lineHeight, actions.length, 0);
     this.showPrompt(Prompt.Selected, expandPlaceholders(flow.assets.text("gText_Var1IsSelected"), { [PLACEHOLDER_STR_VAR_1]: this.selectedLabel() }));
     this.step = () => this.contextMenuInput();
   }
@@ -356,7 +366,7 @@ class BerryPouch {
     const chosen = this.contextMenu!.processInput(false);
     if (chosen === MENU_NOTHING_CHOSEN) return;
     if (chosen === MENU_B_PRESSED) this.flow.play("se_select");
-    switch (chosen === MENU_B_PRESSED ? Action.Exit : ACTIONS[chosen]) {
+    switch (chosen === MENU_B_PRESSED ? Action.Exit : this.actions[chosen]) {
       case Action.Use:
         return this.useAction();
       case Action.Give:
@@ -380,7 +390,9 @@ class BerryPouch {
     this.hideContextMenu();
     this.list.putTilemap();
     this.description.putTilemap();
-    this.ask(this.host.use(this.selected!.slot.item), (r) => this.onResult(r));
+    const { item } = this.selected!.slot;
+    if (this.battle) return itemInfo(item)?.battleUse ? this.close(item) : this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NOT_NOW, item }));
+    this.ask(this.host.use(item), (r) => this.onResult(r));
   }
 
   /** Task_BerryPouch_Give: "There is no POKéMON.", or the party menu chooses who holds it (CB2_ChooseMonToGiveItem). */

@@ -149,7 +149,7 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 			z.refuseChoice(p)
 			return
 		}
-		z.played(p, u, req.Step, spend)
+		z.played(p, u, req.Step, choiceItems(c))
 	})
 }
 
@@ -166,6 +166,17 @@ func (z *zone) checkAction(p *Player, a *battlev1.BattleAction) ([]itemv1.Item, 
 	}
 	// RUN: there's no running from a trainer battle (the client says so first).
 	return nil, false
+}
+
+// choiceItems: the bag items a choice uses.
+func choiceItems(c *battlev1.BattleChoice) []*battlev1.ItemAction {
+	var used []*battlev1.ItemAction
+	for _, a := range []*battlev1.BattleAction{c.GetAction(), c.GetPartner()} {
+		if k, ok := a.GetKind().(*battlev1.BattleAction_Item); ok {
+			used = append(used, k.Item)
+		}
+	}
+	return used
 }
 
 // enoughInBag: the bag holds every item of this choice, counting repeats.
@@ -248,13 +259,17 @@ func (z *zone) refuseChoice(p *Player) {
 // played shows a step mic-battles played: a bag item is spent first (D12: mic-core owns the
 // bag; saved with the outcome, so leaving rolls it back), then the events and the next
 // request, then the end if it's over.
-func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, spend []itemv1.Item) {
+func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, used []*battlev1.ItemAction) {
 	side := u.GetSides()[battle.PlayerSide]
 	removed := false
 	if side.GetRequest().GetStep() > step {
-		for _, id := range spend {
+		for _, a := range used {
+			id := a.GetItem()
 			if info, _ := item.Info(id); !info.GetImportant() && p.items.Bag.Remove(id, 1) {
 				p.battle.Spent = append(p.battle.Spent, int32(id))
+				if len(info.GetEffect().GetFriendship()) > 0 {
+					p.battle.Friendship = append(p.battle.Friendship, battle.ItemFriendship{Item: int32(id), Slot: int32(a.GetPartySlot())})
+				}
 				removed = true
 			}
 		}
@@ -306,7 +321,11 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	b := p.battle
 	result := o.GetSides()[battle.PlayerSide].GetResult()
 	party, money, dex := p.party.Clone(), p.money, p.pokedex
-	battle.Apply(p.party, o.GetSides()[battle.PlayerSide])
+	battle.Apply(p.party, o.GetSides()[battle.PlayerSide], z.m.ID)
+	for _, f := range b.Friendship {
+		info, _ := item.Info(itemv1.Item(f.Item))
+		p.party.ChangeFriendshipByItem(info.GetEffect(), int(f.Slot), z.m.ID)
+	}
 	won := result == battlev1.BattleResult_BATTLE_RESULT_WON || result == battlev1.BattleResult_BATTLE_RESULT_FORFEIT_WON
 	delta := 0
 	if won {

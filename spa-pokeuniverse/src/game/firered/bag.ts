@@ -92,8 +92,8 @@ const state = {
 };
 
 /** Shows the bag, then `done` once it faded out. */
-export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field): void {
-  new Bag(flow, gender, host, done, location);
+export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field, noEffect: readonly Item[] = []): void {
+  new Bag(flow, gender, host, done, location, noEffect);
 }
 
 /**
@@ -102,9 +102,9 @@ export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit:
  * item opens no screen yet (TOWN MAP, FAME CHECKER, TEACHY TV and mail come later). `pick`: opened
  * from the party menu's GIVE, A chooses the item to give (`done` with it).
  */
-export function openItemScreen(flow: Flow, gender: Gender, host: BagHost, item: Item, fromField: boolean, done: (picked?: Item) => void, pick = false): boolean {
+export function openItemScreen(flow: Flow, gender: Gender, host: BagHost, item: Item, fromField: boolean, done: (picked?: Item) => void, pick = false, battle = false): boolean {
   if (item === Item.TM_CASE) startTmCase(flow, gender, host, fromField, done, pick);
-  else if (item === Item.BERRY_POUCH) startBerryPouch(flow, gender, host, fromField, done, pick);
+  else if (item === Item.BERRY_POUCH) startBerryPouch(flow, gender, host, fromField, done, pick, battle);
   else return false;
   return true;
 }
@@ -248,6 +248,8 @@ class Bag {
     private readonly host: BagHost,
     private readonly done: (exit: BagExit) => void,
     private readonly location: BagLocation,
+    /** In battle: the items that would do nothing now. */
+    private readonly noEffect: readonly Item[],
   ) {
     const { gba, assets } = flow;
     this.icons = new ItemMenuIcons(flow);
@@ -352,7 +354,6 @@ class Bag {
     this.setMessageBoxPalette(1);
     if (this.location === BagLocation.ItemPc) this.depositAction();
     else if (this.location === BagLocation.Party) this.chooseToGive();
-    else if (this.location === BagLocation.Battle) this.chooseToUseInBattle();
     else this.openContextMenu();
   }
 
@@ -520,7 +521,9 @@ class Bag {
     const { flow } = this;
     const { item } = this.selected!;
     const field = itemInfo(item)?.fieldUse;
-    switch (state.pocket) {
+    const pocket = this.location === BagLocation.Battle ? null : state.pocket;
+    if (pocket === null) this.actions = item === Item.BERRY_POUCH ? [Action.Open, Action.Cancel] : itemInfo(item)?.battleUse ? [Action.Use, Action.Cancel] : [Action.Cancel];
+    switch (pocket) {
       case Pocket.Items:
         this.actions = field === FieldUse.MAIL ? [Action.Check, Action.Give, Action.Toss, Action.Cancel] : [Action.Use, Action.Give, Action.Toss, Action.Cancel];
         break;
@@ -586,6 +589,10 @@ class Bag {
 
   /** Task_ItemMenuAction_Use: mic-core decides (no Pokémon, not now, the item's effect). */
   private useAction(): void {
+    if (this.location === BagLocation.Battle) {
+      this.hideContextMenu();
+      return this.chooseToUseInBattle();
+    }
     if (!itemInfo(this.selected!.item)?.fieldUse) return; // No USE: nothing happens, the menu stays.
     this.hideContextMenu();
     this.ask(this.host.use(this.selected!.item), (r) => this.onResult(r));
@@ -617,16 +624,14 @@ class Bag {
     this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.CANT_BE_HELD, item }));
   }
 
-  /** In battle: BattleUseFunc_*: an item with a use goes back to the battle, the BERRY POUCH opens to choose a berry; others aren't for now (OAK's words). */
+  /** Task_ItemMenuAction_BattleUse: the item goes back to the battle, unless it would do nothing (BattleUseFunc_StatBooster); the BERRY POUCH opens to choose a berry. */
   private chooseToUseInBattle(): void {
     const { flow, gender, host, done } = this;
     const { item } = this.selected!;
-    if (item === Item.BERRY_POUCH) {
-      const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Battle));
-      return this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true));
-    }
-    if (itemInfo(item)?.battleUse) return this.close(true, { chosen: item });
-    this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NOT_NOW, item }));
+    if (this.noEffect.includes(item)) return this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NO_EFFECT, item }));
+    if (item !== Item.BERRY_POUCH) return this.close(true, { chosen: item });
+    const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Battle, this.noEffect));
+    this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true, true));
   }
 
   /** Task_ItemMenuAction_ToggleSelect: the list shows the SELECT mark at once. */

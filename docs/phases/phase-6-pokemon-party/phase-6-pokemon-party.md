@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M1b](milestones/m01b-item-use-scene.md#resume-here): not started. M1 is played and closed; the battle BAG gaps it found are listed [in its file](milestones/m01-party-item-use.md#found-while-playing-before-m1-not-fixed), for the user to decide.
+**Next step:** [M1b](milestones/m01b-item-use-scene.md#resume-here): not started. M1 is played and closed. Its [battle BAG fixes](milestones/m01-party-item-use.md#battle-bag-fixed-after-playing) are built, not played: `make audio` and a Docker rebuild first, then play them with M1b's regression check, using the list under [Not Checked](milestones/m01-party-item-use.md#not-checked).
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 

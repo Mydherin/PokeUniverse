@@ -64,7 +64,7 @@ func (pt Party) HighestLevel() int {
 // Gain adds what a battle earned: EVs within Gen 4's caps, then experience up to level 100's,
 // levelling up as it goes, with friendship per level (AdjustFriendship). HP is the caller's: the
 // battle already raised it.
-func (p *Pokemon) Gain(exp int, evs Stats) {
+func (p *Pokemon) Gain(exp int, evs Stats, mapID string) {
 	total := 0
 	for _, v := range p.EVs {
 		total += v
@@ -79,13 +79,13 @@ func (p *Pokemon) Gain(exp int, evs Stats) {
 	rate := p.info().GetGrowthRate()
 	p.Exp = min(p.Exp+exp, ExpAt(rate, MaxLevel))
 	for level := LevelAt(rate, p.Exp); p.Level < level; p.Level++ {
-		p.growFriendship()
+		p.growFriendship(mapID)
 	}
 }
 
 // growFriendship is FRIENDSHIP_EVENT_GROW_LEVEL: +5 below 100, +3 below 200, +2 from there, half
-// as much again with a SOOTHE BELL, +1 from a LUXURY BALL first.
-func (p *Pokemon) growFriendship() {
+// as much again with a SOOTHE BELL, +1 from a LUXURY BALL first, +1 on the map where it was met.
+func (p *Pokemon) growFriendship(mapID string) {
 	delta := 5
 	if p.Friendship >= 200 {
 		delta = 2
@@ -97,6 +97,9 @@ func (p *Pokemon) growFriendship() {
 	}
 	if p.HeldItem == itemv1.Item_ITEM_SOOTHE_BELL {
 		delta = delta * 150 / 100
+	}
+	if p.metOn(mapID) {
+		delta++
 	}
 	p.Friendship = min(p.Friendship+delta, MaxFriendship)
 }
@@ -136,4 +139,10 @@ func (p *Pokemon) learnsByLevel(id movev1.Move) bool {
 		}
 	}
 	return false
+}
+
+// metOn: it was met on this map (a fateful encounter has none). FireRed compares region map
+// sections, which our maps don't have yet.
+func (p *Pokemon) metOn(mapID string) bool {
+	return p.MetMap != "" && p.MetMap == mapID
 }

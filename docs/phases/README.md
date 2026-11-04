@@ -9,6 +9,7 @@ High-level plan to build the **MVP: all of Kanto, including social features**.
 - **Global systems before content:** what affects the whole game (battles, items on Pokémon, multiplayer, social) is built first, on test content. Maps and events come last. *Why: content built on finished systems isn't redone.*
 - **Server-authoritative from day one:** even single-player movement goes through the server.
 - **Faithful first, then better:** the start of the game (intro, Oak, room, Pallet Town) is rebuilt exactly like FireRed with its original art, then upgraded with public art.
+- **FireRed system, Gen 4 rules:** every phase matches FireRed unless it conflicts with the MMO, with Gen 4 battle and Pokémon rules ([vision.md](../vision.md#firered-as-reference)).
 - **Riskiest parts early:** the map pipeline and client-server movement validate the approach.
 
 ## How a Phase Is Tracked

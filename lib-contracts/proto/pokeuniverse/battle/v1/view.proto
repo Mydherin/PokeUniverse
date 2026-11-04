@@ -124,6 +124,8 @@ message PositionRequest {
   // ACTION: as BattleRequest.moves.
   repeated RequestMove moves = 2;
   bool trapped = 3;
+  // ACTION: as BattleRequest.no_effect_items.
+  repeated pokeuniverse.item.v1.Item no_effect_items = 4;
 }
 
 // A choice the reader must make. Locked moves (Outrage, recharging, a charged move) are chosen by
@@ -144,6 +146,9 @@ message BattleRequest {
   // Doubles: who must choose, in order (a locked or fainted Pokémon isn't asked). In doubles
   // `moves` and `trapped` are the first one's.
   repeated PositionRequest positions = 8;
+  // ACTION: items the active Pokémon uses itself that would do nothing now ("It won't have any
+  // effect." in the BAG, BattleUseFunc_StatBooster). In doubles, the first one's.
+  repeated pokeuniverse.item.v1.Item no_effect_items = 9;
 }
 
 // FIGHT: one of the active Pokémon's moves.

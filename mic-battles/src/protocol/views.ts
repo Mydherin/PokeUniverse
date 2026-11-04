@@ -8,6 +8,7 @@ import type { BattlerInfoSchema, HealthSchema } from "@pokeuniverse/contracts/ba
 import { BattleResult, PartyBall, RequestKind, type BattleRequestSchema, type BattleViewSchema } from "@pokeuniverse/contracts/battle/v1/view";
 import type { ShiftOffer } from "../engine/choices.ts";
 import { moveOptions, partySlot, pokemonAt, positionsToChoose, statsOf, type Pokemon, type Side } from "../engine/battle.ts";
+import { selfItemsWithNoEffect } from "../engine/bag.ts";
 import { itemNumber, moveNumber, statusNumber, weatherNumber } from "../engine/lookup.ts";
 import { levelSpan, seenBy, totalExp, type ExpState } from "../exp.ts";
 
@@ -58,7 +59,7 @@ function moveChoice(s: Side, position: number) {
     maxPp: m.maxpp,
     disabled: struggle || m.pp === 0 || !!allowed.find((a: { id: string; disabled?: unknown }) => a.id === m.id)?.disabled,
   }));
-  return { moves, trapped: !!(options?.trapped || options?.maybeTrapped) };
+  return { moves, trapped: !!(options?.trapped || options?.maybeTrapped), noEffectItems: selfItemsWithNoEffect(s.active[position]) };
 }
 
 export function battlerInfo(start: StartBattle, pokemon: Pokemon, viewer: number): MessageInitShape<typeof BattlerInfoSchema> {

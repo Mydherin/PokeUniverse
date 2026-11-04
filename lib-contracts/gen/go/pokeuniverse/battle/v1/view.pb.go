@@ -767,8 +767,10 @@ type PositionRequest struct {
 	// Battler.position.
 	Position uint32 `protobuf:"varint,1,opt,name=position,proto3" json:"position,omitempty"`
 	// ACTION: as BattleRequest.moves.
-	Moves         []*RequestMove `protobuf:"bytes,2,rep,name=moves,proto3" json:"moves,omitempty"`
-	Trapped       bool           `protobuf:"varint,3,opt,name=trapped,proto3" json:"trapped,omitempty"`
+	Moves   []*RequestMove `protobuf:"bytes,2,rep,name=moves,proto3" json:"moves,omitempty"`
+	Trapped bool           `protobuf:"varint,3,opt,name=trapped,proto3" json:"trapped,omitempty"`
+	// ACTION: as BattleRequest.no_effect_items.
+	NoEffectItems []v12.Item `protobuf:"varint,4,rep,packed,name=no_effect_items,json=noEffectItems,proto3,enum=pokeuniverse.item.v1.Item" json:"no_effect_items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -824,6 +826,13 @@ func (x *PositionRequest) GetTrapped() bool {
 	return false
 }
 
+func (x *PositionRequest) GetNoEffectItems() []v12.Item {
+	if x != nil {
+		return x.NoEffectItems
+	}
+	return nil
+}
+
 // A choice the reader must make. Locked moves (Outrage, recharging, a charged move) are chosen by
 // mic-battles itself: the battle plays on without a request.
 type BattleRequest struct {
@@ -842,7 +851,10 @@ type BattleRequest struct {
 	NextFoe *BattlerInfo `protobuf:"bytes,7,opt,name=next_foe,json=nextFoe,proto3" json:"next_foe,omitempty"`
 	// Doubles: who must choose, in order (a locked or fainted Pokémon isn't asked). In doubles
 	// `moves` and `trapped` are the first one's.
-	Positions     []*PositionRequest `protobuf:"bytes,8,rep,name=positions,proto3" json:"positions,omitempty"`
+	Positions []*PositionRequest `protobuf:"bytes,8,rep,name=positions,proto3" json:"positions,omitempty"`
+	// ACTION: items the active Pokémon uses itself that would do nothing now ("It won't have any
+	// effect." in the BAG, BattleUseFunc_StatBooster). In doubles, the first one's.
+	NoEffectItems []v12.Item `protobuf:"varint,9,rep,packed,name=no_effect_items,json=noEffectItems,proto3,enum=pokeuniverse.item.v1.Item" json:"no_effect_items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -929,6 +941,13 @@ func (x *BattleRequest) GetNextFoe() *BattlerInfo {
 func (x *BattleRequest) GetPositions() []*PositionRequest {
 	if x != nil {
 		return x.Positions
+	}
+	return nil
+}
+
+func (x *BattleRequest) GetNoEffectItems() []v12.Item {
+	if x != nil {
+		return x.NoEffectItems
 	}
 	return nil
 }
@@ -1677,11 +1696,12 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\x10LearnMoveRequest\x12\x1d\n" +
 	"\n" +
 	"party_slot\x18\x01 \x01(\rR\tpartySlot\x12.\n" +
-	"\x04move\x18\x02 \x01(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x04move\"\x82\x01\n" +
+	"\x04move\x18\x02 \x01(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x04move\"\xc6\x01\n" +
 	"\x0fPositionRequest\x12\x1a\n" +
 	"\bposition\x18\x01 \x01(\rR\bposition\x129\n" +
 	"\x05moves\x18\x02 \x03(\v2#.pokeuniverse.battle.v1.RequestMoveR\x05moves\x12\x18\n" +
-	"\atrapped\x18\x03 \x01(\bR\atrapped\"\xb3\x03\n" +
+	"\atrapped\x18\x03 \x01(\bR\atrapped\x12B\n" +
+	"\x0fno_effect_items\x18\x04 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\rnoEffectItems\"\xf7\x03\n" +
 	"\rBattleRequest\x127\n" +
 	"\x04kind\x18\x01 \x01(\x0e2#.pokeuniverse.battle.v1.RequestKindR\x04kind\x12\x12\n" +
 	"\x04step\x18\x02 \x01(\rR\x04step\x129\n" +
@@ -1690,7 +1710,8 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\x05party\x18\x05 \x03(\v2#.pokeuniverse.battle.v1.PartyMemberR\x05party\x12>\n" +
 	"\x05learn\x18\x06 \x01(\v2(.pokeuniverse.battle.v1.LearnMoveRequestR\x05learn\x12>\n" +
 	"\bnext_foe\x18\a \x01(\v2#.pokeuniverse.battle.v1.BattlerInfoR\anextFoe\x12E\n" +
-	"\tpositions\x18\b \x03(\v2'.pokeuniverse.battle.v1.PositionRequestR\tpositions\"Y\n" +
+	"\tpositions\x18\b \x03(\v2'.pokeuniverse.battle.v1.PositionRequestR\tpositions\x12B\n" +
+	"\x0fno_effect_items\x18\t \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\rnoEffectItems\"Y\n" +
 	"\n" +
 	"MoveAction\x12\x12\n" +
 	"\x04slot\x18\x01 \x01(\rR\x04slot\x127\n" +
@@ -1832,33 +1853,35 @@ var file_pokeuniverse_battle_v1_view_proto_depIdxs = []int32{
 	25, // 12: pokeuniverse.battle.v1.PartyMember.moves:type_name -> pokeuniverse.move.v1.Move
 	25, // 13: pokeuniverse.battle.v1.LearnMoveRequest.move:type_name -> pokeuniverse.move.v1.Move
 	7,  // 14: pokeuniverse.battle.v1.PositionRequest.moves:type_name -> pokeuniverse.battle.v1.RequestMove
-	2,  // 15: pokeuniverse.battle.v1.BattleRequest.kind:type_name -> pokeuniverse.battle.v1.RequestKind
-	7,  // 16: pokeuniverse.battle.v1.BattleRequest.moves:type_name -> pokeuniverse.battle.v1.RequestMove
-	8,  // 17: pokeuniverse.battle.v1.BattleRequest.party:type_name -> pokeuniverse.battle.v1.PartyMember
-	9,  // 18: pokeuniverse.battle.v1.BattleRequest.learn:type_name -> pokeuniverse.battle.v1.LearnMoveRequest
-	23, // 19: pokeuniverse.battle.v1.BattleRequest.next_foe:type_name -> pokeuniverse.battle.v1.BattlerInfo
-	10, // 20: pokeuniverse.battle.v1.BattleRequest.positions:type_name -> pokeuniverse.battle.v1.PositionRequest
-	30, // 21: pokeuniverse.battle.v1.MoveAction.target:type_name -> pokeuniverse.battle.v1.Battler
-	28, // 22: pokeuniverse.battle.v1.ItemAction.item:type_name -> pokeuniverse.item.v1.Item
-	12, // 23: pokeuniverse.battle.v1.BattleAction.move:type_name -> pokeuniverse.battle.v1.MoveAction
-	13, // 24: pokeuniverse.battle.v1.BattleAction.switch:type_name -> pokeuniverse.battle.v1.SwitchAction
-	14, // 25: pokeuniverse.battle.v1.BattleAction.item:type_name -> pokeuniverse.battle.v1.ItemAction
-	15, // 26: pokeuniverse.battle.v1.BattleAction.run:type_name -> pokeuniverse.battle.v1.RunAction
-	16, // 27: pokeuniverse.battle.v1.BattleAction.learn:type_name -> pokeuniverse.battle.v1.LearnMoveAction
-	17, // 28: pokeuniverse.battle.v1.BattleAction.shift:type_name -> pokeuniverse.battle.v1.ShiftAction
-	18, // 29: pokeuniverse.battle.v1.BattleChoice.action:type_name -> pokeuniverse.battle.v1.BattleAction
-	18, // 30: pokeuniverse.battle.v1.BattleChoice.partner:type_name -> pokeuniverse.battle.v1.BattleAction
-	5,  // 31: pokeuniverse.battle.v1.BattleStarted.view:type_name -> pokeuniverse.battle.v1.BattleView
-	31, // 32: pokeuniverse.battle.v1.BattleStarted.events:type_name -> pokeuniverse.battle.v1.BattleEvent
-	31, // 33: pokeuniverse.battle.v1.BattleTurn.events:type_name -> pokeuniverse.battle.v1.BattleEvent
-	11, // 34: pokeuniverse.battle.v1.BattleTurn.request:type_name -> pokeuniverse.battle.v1.BattleRequest
-	3,  // 35: pokeuniverse.battle.v1.BattleEnded.result:type_name -> pokeuniverse.battle.v1.BattleResult
-	32, // 36: pokeuniverse.battle.v1.BattleEnded.evolutions:type_name -> pokeuniverse.party.v1.PendingEvolution
-	37, // [37:37] is the sub-list for method output_type
-	37, // [37:37] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	28, // 15: pokeuniverse.battle.v1.PositionRequest.no_effect_items:type_name -> pokeuniverse.item.v1.Item
+	2,  // 16: pokeuniverse.battle.v1.BattleRequest.kind:type_name -> pokeuniverse.battle.v1.RequestKind
+	7,  // 17: pokeuniverse.battle.v1.BattleRequest.moves:type_name -> pokeuniverse.battle.v1.RequestMove
+	8,  // 18: pokeuniverse.battle.v1.BattleRequest.party:type_name -> pokeuniverse.battle.v1.PartyMember
+	9,  // 19: pokeuniverse.battle.v1.BattleRequest.learn:type_name -> pokeuniverse.battle.v1.LearnMoveRequest
+	23, // 20: pokeuniverse.battle.v1.BattleRequest.next_foe:type_name -> pokeuniverse.battle.v1.BattlerInfo
+	10, // 21: pokeuniverse.battle.v1.BattleRequest.positions:type_name -> pokeuniverse.battle.v1.PositionRequest
+	28, // 22: pokeuniverse.battle.v1.BattleRequest.no_effect_items:type_name -> pokeuniverse.item.v1.Item
+	30, // 23: pokeuniverse.battle.v1.MoveAction.target:type_name -> pokeuniverse.battle.v1.Battler
+	28, // 24: pokeuniverse.battle.v1.ItemAction.item:type_name -> pokeuniverse.item.v1.Item
+	12, // 25: pokeuniverse.battle.v1.BattleAction.move:type_name -> pokeuniverse.battle.v1.MoveAction
+	13, // 26: pokeuniverse.battle.v1.BattleAction.switch:type_name -> pokeuniverse.battle.v1.SwitchAction
+	14, // 27: pokeuniverse.battle.v1.BattleAction.item:type_name -> pokeuniverse.battle.v1.ItemAction
+	15, // 28: pokeuniverse.battle.v1.BattleAction.run:type_name -> pokeuniverse.battle.v1.RunAction
+	16, // 29: pokeuniverse.battle.v1.BattleAction.learn:type_name -> pokeuniverse.battle.v1.LearnMoveAction
+	17, // 30: pokeuniverse.battle.v1.BattleAction.shift:type_name -> pokeuniverse.battle.v1.ShiftAction
+	18, // 31: pokeuniverse.battle.v1.BattleChoice.action:type_name -> pokeuniverse.battle.v1.BattleAction
+	18, // 32: pokeuniverse.battle.v1.BattleChoice.partner:type_name -> pokeuniverse.battle.v1.BattleAction
+	5,  // 33: pokeuniverse.battle.v1.BattleStarted.view:type_name -> pokeuniverse.battle.v1.BattleView
+	31, // 34: pokeuniverse.battle.v1.BattleStarted.events:type_name -> pokeuniverse.battle.v1.BattleEvent
+	31, // 35: pokeuniverse.battle.v1.BattleTurn.events:type_name -> pokeuniverse.battle.v1.BattleEvent
+	11, // 36: pokeuniverse.battle.v1.BattleTurn.request:type_name -> pokeuniverse.battle.v1.BattleRequest
+	3,  // 37: pokeuniverse.battle.v1.BattleEnded.result:type_name -> pokeuniverse.battle.v1.BattleResult
+	32, // 38: pokeuniverse.battle.v1.BattleEnded.evolutions:type_name -> pokeuniverse.party.v1.PendingEvolution
+	39, // [39:39] is the sub-list for method output_type
+	39, // [39:39] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_view_proto_init() }

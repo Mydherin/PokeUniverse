@@ -18,7 +18,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M1b: FireRed's item-use scene](docs/phases/phase-6-pokemon-party/milestones/m01b-item-use-scene.md#resume-here) is next, not started. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M1b: FireRed's item-use scene](docs/phases/phase-6-pokemon-party/milestones/m01b-item-use-scene.md#resume-here) is next, not started; M1's battle BAG fixes are built, not played ([phase file](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md#resume-here)). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
@@ -41,10 +41,18 @@ Rules:
 
 - **Read only.** Never modify, build or commit anything inside `references/`. Only update a submodule's pinned commit when the user asks.
 - **Never copy code.** Understand the behavior, then write it from zero with our design ([tech-stack.md](docs/tech-stack.md#code-principles)).
-- **Our docs win** when they disagree with a reference.
+- **Our docs win** when they disagree with a reference; behavior still follows [FireRed System, Gen 4 Rules](#firered-system-gen-4-rules).
 - Only exception: the build copies FireRed's graphics as they are (`make graphics`, plus `pokeemerald-expansion`'s Gen 4 move category icons and battle animation art, plus the fonts' glyph widths read from `src/text.c` and the item icon table), `make text` encodes its strings (and item, move, ability and nature names and descriptions, Gen 4's and a few Gen 4 battle strings from `pokeemerald-expansion`) with its charmap, `make audio` renders its sound (and every species' cry), `make pokemon` builds every species' art (front, back, shiny palette, icon, footprint) and Pokédex text from `pokefirered` (1-386) and `pokeemerald-expansion` (387-493), and `tool-maps` renders its tilesets (`make maps`); all write to gitignored folders, never committed. `tool-maps convert` also reads `pokefirered` maps as **input** once per map: the text maps it writes to `lib-maps/` are our source code and are committed. The item catalog (`lib-contracts/proto/pokeuniverse/item/v1/catalog.proto`) was converted once from `src/data/items.json` the same way (Gen 4's items by `infra/battle/items.mjs`, whose icons `make graphics` copies from `pokeemerald-expansion`) and is now our source, like the species catalog (`species/v1/catalog.proto`) and the Pokédex habitats (`spa-pokeuniverse/src/game/firered/pokedex-habitats.json`), converted once by `infra/pokemon/catalog.mjs` (and the species' evolutions by `infra/pokemon/evolutions.mjs`), and the battle catalogs (moves, abilities, natures, species battle facts and learnsets), converted once by `infra/battle/catalog.mjs` from `@pkmn/sim`'s Gen 4 data and both references, and the move animation scripts and their art table (`spa-pokeuniverse/src/game/firered/battle/anims/`, converted once from FireRed's and the expansion's battle animation scripts and tables as data; the behaviors that run them are our own code, phase-5 D9) ([maps.md](docs/maps.md), [audio.md](docs/audio.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
 
 ## Guidelines
+
+### FireRed System, Gen 4 Rules
+
+- **Match FireRed whenever possible:** screens, menus, flows, input, messages, sounds, animations and how the world behaves. Check `references/pokefirered/` first; don't simplify or invent.
+- **Battle and Pokémon rules are Gen 4:** battle mechanics, moves, abilities, what items do in battle, stats, natures, growth, learning and evolution, from `references/pokemon-showdown/` and `@pkmn/sim`'s Gen 4 data.
+- **Where they meet:** the rule is Gen 4, FireRed's way of showing it stays. A Gen 4 feature FireRed doesn't have is presented as FireRed would.
+- **Unless it conflicts with the MMO:** keep FireRed's behavior wherever the MMO approach (server authority, many players, always saved) allows it. Where it can't work, keep as much of it as possible: SAVE behaves exactly like FireRed's dialog, though the MMO saves everything all the time.
+- **A difference needs a reason:** a Gen 4 rule, the MMO or the user's request. Write it in the milestone file; anything else is a bug to fix.
 
 ### Living Documentation
 

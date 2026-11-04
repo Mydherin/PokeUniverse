@@ -179,7 +179,7 @@ export function toEvents(line: Line, ctx: Context): BattleEvent[] {
       add({ case: "itemEnded", value: { battler: who(0), item: itemNumber(args[1]), from: kw.from === "stealeat" ? parseEffect(`move: ${kw.move}`) : from(), eaten: "eat" in kw } });
       break;
     case "bagitem":
-      add({ case: "itemUsed", value: { foe: parseSide(args[0]) !== ctx.viewer, item: Number(args[1]), target: who(2) } });
+      add({ case: "itemUsed", value: { foe: parseSide(args[0]) !== ctx.viewer, item: Number(args[1]), target: who(2), awoke: args[3] === "awoke" } });
       break;
     case "-transform":
       add({ case: "transform", value: { battler: who(0), target: who(1) } });

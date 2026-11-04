@@ -24,7 +24,7 @@ var whiteOutMultipliers = [...]int{2, 4, 6, 9, 12, 16, 20, 25, 30}
 // held item used up (a berry, a herb) is gone; any other change (knocked off, stolen, swapped by
 // Trick) is undone, as in Gen 4. The party is in the order the battle started with: it can't
 // change during a battle.
-func Apply(party pokemon.Party, o *battlev1.SideOutcome) {
+func Apply(party pokemon.Party, o *battlev1.SideOutcome, mapID string) {
 	for i, out := range o.GetPokemon() {
 		p := party.At(i)
 		if p == nil {
@@ -32,7 +32,7 @@ func Apply(party pokemon.Party, o *battlev1.SideOutcome) {
 		}
 		ev := out.GetEvs()
 		p.Gain(int(out.GetExp()), pokemon.Stats{int(ev.GetHp()), int(ev.GetAttack()), int(ev.GetDefense()),
-			int(ev.GetSpeed()), int(ev.GetSpAttack()), int(ev.GetSpDefense())})
+			int(ev.GetSpeed()), int(ev.GetSpAttack()), int(ev.GetSpDefense())}, mapID)
 		p.HP = min(int(out.GetHp()), p.Stats()[0])
 		p.Status = out.GetStatus()
 		if p.Status == pokemonv1.Status_STATUS_TOXIC {

@@ -24,6 +24,14 @@ type Active struct {
 	Start []byte `json:"start"`
 	// Bag items used so far (itemv1.Item): taken from the bag in memory, saved with the outcome.
 	Spent []int32 `json:"spent,omitempty"`
+	// Those that change their target's friendship, applied with the outcome.
+	Friendship []ItemFriendship `json:"friendship,omitempty"`
+}
+
+// ItemFriendship is a bag item used on the Pokémon in a party slot.
+type ItemFriendship struct {
+	Item int32 `json:"item"`
+	Slot int32 `json:"slot"`
 }
 
 // activeTTL matches mic-battles' battle:<id> (a player may come back to it within a week).

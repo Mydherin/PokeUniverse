@@ -18,19 +18,26 @@ const (
 
 // UseItem is a bag item's effect outside battle on the Pokémon in `slot` (ExecuteTableBasedItemEffect),
 // or on every one it works on for SACRED ASH. False: it would do nothing, and nothing changed.
-func (pt Party) UseItem(e *itemv1.ItemEffect, slot, moveSlot int) bool {
+func (pt Party) UseItem(e *itemv1.ItemEffect, slot, moveSlot int, mapID string) bool {
 	if e.GetAllParty() {
 		worked := false
 		for _, p := range pt {
-			worked = p.useItem(e, moveSlot) || worked
+			worked = p.useItem(e, moveSlot, mapID) || worked
 		}
 		return worked
 	}
 	p := pt.At(slot)
-	return p != nil && p.useItem(e, moveSlot)
+	return p != nil && p.useItem(e, moveSlot, mapID)
 }
 
-func (p *Pokemon) useItem(e *itemv1.ItemEffect, moveSlot int) bool {
+// ChangeFriendshipByItem is a bag item's friendship change, for one used in battle.
+func (pt Party) ChangeFriendshipByItem(e *itemv1.ItemEffect, slot int, mapID string) {
+	if p := pt.At(slot); p != nil {
+		p.changeFriendshipByItem(e.GetFriendship(), mapID)
+	}
+}
+
+func (p *Pokemon) useItem(e *itemv1.ItemEffect, moveSlot int, mapID string) bool {
 	if e == nil {
 		return false
 	}
@@ -39,7 +46,7 @@ func (p *Pokemon) useItem(e *itemv1.ItemEffect, moveSlot int) bool {
 	worked = p.useOnPP(e, moveSlot) || worked
 	worked = p.useOnEVs(e) || worked
 	if worked {
-		p.changeFriendshipByItem(e.GetFriendship())
+		p.changeFriendshipByItem(e.GetFriendship(), mapID)
 	}
 	return worked
 }
@@ -148,8 +155,8 @@ func (p *Pokemon) useOnEVs(e *itemv1.ItemEffect) bool {
 }
 
 // changeFriendshipByItem is UPDATE_FRIENDSHIP_FROM_ITEM: the change by how friendly it is now; a rise
-// half as much again with a SOOTHE BELL, +1 from a LUXURY BALL.
-func (p *Pokemon) changeFriendshipByItem(changes []int32) {
+// half as much again with a SOOTHE BELL, +1 from a LUXURY BALL, +1 on the map where it was met.
+func (p *Pokemon) changeFriendshipByItem(changes []int32, mapID string) {
 	if len(changes) != 3 {
 		return
 	}
@@ -165,6 +172,9 @@ func (p *Pokemon) changeFriendshipByItem(changes []int32) {
 			change = change * 150 / 100
 		}
 		if p.Ball == itemv1.Item_ITEM_LUXURY_BALL {
+			change++
+		}
+		if p.metOn(mapID) {
 			change++
 		}
 	}
