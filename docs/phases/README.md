@@ -29,6 +29,7 @@ The phase file is the source of its goal, scope, technical details and progress,
       log.md              optional: session history, not needed to resume
   ```
 
+- **Planning a milestone:** list every piece, on every layer: contract, server, client screens, and what FireRed shows for it (scenes, art, strings, sounds, with their functions and files). What's missing gets rediscovered at full cost. If it won't fit one session (about 14% of the context after the start, reading included), split it.
 - **When a milestone is ✅,** cut its file down to what later milestones use.
 - **Code comments** cite a phase's milestones and decisions by short name: `phase-5 M7`, `phase-5 D9` (decisions are in its `context.md`).
 

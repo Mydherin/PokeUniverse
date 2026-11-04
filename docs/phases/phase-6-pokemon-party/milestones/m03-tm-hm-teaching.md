@@ -1,4 +1,4 @@
-# M3 TM/HM Teaching 🔶
+# M3 TM/HM Teaching 🚧
 
 Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M2's learn flow. Rules: [context.md](context.md), D1, D3, D5.
 
@@ -44,6 +44,10 @@ All code is written, builds and is committed on `gen4-battles` (not pushed); **n
 |---|---|
 | The move is saved before the scene plays, so closing the game mid-scene keeps it | MMO, D3 |
 | Species learn from Gen 3 and Gen 4 machine lists | Gen 4 rules with FireRed's TMs, user's rule in this milestone |
+
+## If Something Looks Wrong
+
+FireRed: `pokemon_special_anim.c` `Task_ForgetMove` (277), `Task_UseTM_NoForget` (458), `Task_MachineSet` (501); `pokemon_special_anim_scene.c` `PSA_PrintMessage` (386), `PSA_UseTM_RunZoomOutAnim` (503), star sprites (1190), dots (1267); `party_menu.c` `ItemUseCB_TMHM` (4762), `CB2_UseTMHMAfterForgettingMove`. Read only the one that differs.
 
 ## Not Written or Not Looked At
 

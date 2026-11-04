@@ -34,6 +34,20 @@ The user asked for this phase to be tested in the game (2026-11-04), so **a mile
 
 **Test content:** team, bag and box additions needed to play go in `pokemon/testteam.go` and `world/testbag.go`, each with the `// Test content (phase-6): removed in Phase 10` comment ([Phase 5 D13](../../phase-5-battle-system/milestones/context.md#decisions)). Levels changed only for one test are reverted.
 
+## Code Map
+
+Items used on a Pokémon, so a milestone starts from `grep -n` and not from reading these files. All touched by M1-M3.
+
+| Where | What |
+|---|---|
+| `mic-core/internal/world/party.go` `usePartyItem` | The switch by `FieldUse`, the transaction, the answer. New item kind: a `case` here |
+| `mic-core/internal/item/use.go` `uses`, `PokemonEffect`, `SpendOnPokemon` | What USE answers, which items act on a Pokémon, what's spent |
+| `mic-core/internal/pokemon/item.go` | The effects: `UseItem`, `RareCandy`, `TeachMachineMove`, `changeFriendshipByItem` |
+| `firered/party-menu.ts` (1,500 lines) | `chooseToUse`, `useItem`, `teach`, `learnNext`, `askToReplaceMove`, `afterForgetScreen`, `displayData`, `description`, `Resume`, `showStdMessage` |
+| `firered/use-item-scene.ts` | `run`, `runMachine`, `forgetMove`, `itemOnMon`, `zoomTo`, `say` |
+| `firered/tm-case.ts`, `bag.ts`, `berry-pouch.ts` `onResult` | PARTY_MENU opens the party menu, then back |
+| `firered/texts.json`, `sounds.json`, `manifest.ts` | New strings (`make text`), sounds (`make audio`, both the JSON and the manifest's list), graphics |
+
 ## Decisions
 
 | # | Decision | Why |
