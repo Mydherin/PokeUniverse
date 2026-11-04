@@ -91,6 +91,7 @@ const VOLATILE_START: Partial<Record<Move, [TextId, "atk" | "def"]>> = {
   [Move.INGRAIN]: ["sText_PkmnPlantedRoots", "atk"],
   [Move.CHARGE]: ["sText_PkmnChargingPower", "atk"],
   [Move.FOCUS_PUNCH]: ["sText_PkmnTighteningFocus", "atk"],
+  [Move.FOCUS_ENERGY]: ["gBattleText_GetPumped", "atk"],
   [Move.DESTINY_BOND]: ["sText_PkmnTryingToTakeFoe", "atk"],
   [Move.PROTECT]: ["sText_PkmnProtectedItself2", "atk"],
   [Move.DETECT]: ["sText_PkmnProtectedItself2", "atk"],
@@ -295,6 +296,7 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
         if (effect.value === Move.LIGHT_SCREEN) return msg("sText_PkmnRaisedSpDef", { atk: side, move: effect.value });
         if (effect.value === Move.SAFEGUARD) return msg("sText_PkmnCoveredByVeil", { atk: side });
         if (effect.value === Move.SPIKES) return msg("sText_SpikesScattered");
+        if (effect.value === Move.MIST) return msg("gBattleText_MistShroud", { atk: side });
         return [];
       }
       if (k.value.phase !== ConditionPhase.END) return [];

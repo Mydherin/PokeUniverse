@@ -90,7 +90,8 @@ function useOnSelf(battle: Battle, user: Pokemon, item: number): void {
   const stat = X_STATS[item as Item];
   if (stat) battle.boost({ [stat]: 1 }, user, user, null, false, true);
   // FireRed's Dire Hit is Focus Energy's effect; Guard Spec. is Mist for 5 turns.
-  else if (item === Item.DIRE_HIT) user.addVolatile("focusenergy");
+  // Its source effect is explicit: outside an event it would be the format, which saving the battle can't serialize.
+  else if (item === Item.DIRE_HIT) user.addVolatile("focusenergy", user, battle.dex.conditions.get("focusenergy"));
   else if (item === Item.GUARD_SPEC) user.side.addSideCondition("mist", user);
   else if (item === Item.POKE_FLUTE) for (const mon of battle.getAllActive()) if (mon.status === "slp") mon.cureStatus();
 }

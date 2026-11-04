@@ -161,6 +161,8 @@ const CANCEL_WINDOW: WindowTemplate = { left: 24, top: 17, width: 6, height: 2, 
 const STD_MESSAGE_WINDOW: WindowTemplate = { left: 1, top: 17, width: 21, height: 2, palette: 15, baseBlock: 0x24f };
 const DO_WHAT_WITH_MON_WINDOW: WindowTemplate = { left: 1, top: 17, width: 16, height: 2, palette: 15, baseBlock: 0x279 };
 const DO_WHAT_WITH_ITEM_WINDOW: WindowTemplate = { left: 1, top: 17, width: 19, height: 2, palette: 15, baseBlock: 0x299 };
+const WHICH_MOVE_WINDOW: WindowTemplate = { left: 1, top: 17, width: 15, height: 2, palette: 15, baseBlock: 0x299 };
+const MOVE_SELECT_WINDOW: WindowTemplate = { left: 18, top: 11, width: 11, height: 8, palette: 14, baseBlock: 0x2bf };
 const ITEM_GIVE_TAKE_WINDOW: WindowTemplate = { left: 22, top: 13, width: 7, height: 6, palette: 14, baseBlock: 0x373 };
 const YES_NO_WINDOW: WindowTemplate = { left: 21, top: 9, width: 6, height: 4, palette: 14, baseBlock: 0x2bf };
 
@@ -606,7 +608,8 @@ class PartyMenu {
     this.removeStdMessage();
     if (message === Message.None) return;
     const { flow } = this;
-    const template = message === Message.DoWhatWithMon ? DO_WHAT_WITH_MON_WINDOW : message === Message.DoWhatWithItem ? DO_WHAT_WITH_ITEM_WINDOW : STD_MESSAGE_WINDOW;
+    const template =
+      message === Message.DoWhatWithMon ? DO_WHAT_WITH_MON_WINDOW : message === Message.DoWhatWithItem ? DO_WHAT_WITH_ITEM_WINDOW : message === Message.RestoreWhichMove ? WHICH_MOVE_WINDOW : STD_MESSAGE_WINDOW;
     const id: TextId =
       message === Message.ChooseMon
         ? this.shouldUseChooseMonText()
@@ -847,7 +850,7 @@ class PartyMenu {
     const { flow } = this;
     const font = flow.fonts[FontId.Normal];
     const n = mon.moves.length;
-    const win = new Window(this.bg2, { left: 19, top: 19 - n * 2, width: 10, height: n * 2, palette: 14, baseBlock: 0x2bf });
+    const win = new Window(this.bg2, MOVE_SELECT_WINDOW);
     drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
     mon.moves.forEach((m, i) => win.print(font, 8, i * 16 + 2, COLORS_ACTIONS, flow.assets.moveName(m.move), font.letterSpacing, 0));
     this.selection = new CursorMenu(flow, win, FontId.Normal, 0, 2, 16, n, 0);

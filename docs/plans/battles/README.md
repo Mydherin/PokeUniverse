@@ -9,7 +9,7 @@ The whole battle system: Pokémon data, party, battle engine, NPC AI, battle scr
 ## Resume Here
 
 - **Next:** [M14](m14-phase-4-battle-check.md), the last milestone: its **Resume Here**, then its unticked tasks, then its **Clean Up**.
-- **Last state:** singles win, level up, learning, evolution with its cancel and reload played and working. SURF's wave, the party balls and the battle's prompt arrow fixed, **not committed**; temporary test files in the tree, never to commit (M14 lists both). Left: singles loss, the rest of the bag and held items, restart-resume, party after a battle, mobile.
+- **Last state:** singles win, level up, learning, evolution, reload, all bag and held items, party after a battle, send-out and recall played and working. All fixes committed; Mist's line and Ether's picker not seen yet; temporary test files in the tree, never to commit (M14 lists them). Left: learning give-up, Pokédex seen, singles loss, restart-resume, mobile.
 
 ## Cold Start (every new session)
 
@@ -80,3 +80,4 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-04 | M13 session 5 | Yes/No frame, B = No, Double Slap per strike, whiteout pass; double prize saved (at Level 5, as the user allowed); fixed any-target moves looping forever in doubles (`menus.ts`) | M13: see a win's last screens, close | Three fixes uncommitted; a win's screens unseen: `z` in the room restarted a battle, dropped; AA's money is 2560 |
 | 2026-11-04 | M13 close | User closed M13 without seeing a win's last screens; M13 file cut down; how to run it moved to M14 | M14 | Committed |
 | 2026-11-04 | M14 session 1 | Singles win, level up, learning, HM refusal, evolution, its cancel, Potion, reload pass; fixed SURF's wave (per-line BLDALPHA), the party balls' palette, battle's prompt arrow; temporary `infra/playtest/scenario.sh` and `zz_playtest.go` | M14's unticked tasks, then its Clean Up | Fixes not committed; the user put Rare Candy, field items and Exp. Share in Phase 8 |
+| 2026-11-04 | M14 session 2 | Send-out and recall now FireRed's battle routines (were Oak's and the trade's), committed. Items and party after a battle pass; fixed Dire Hit freezing the battle, the missing "getting pumped" and Mist lines, Ether's picker windows; test battle no longer heals | M14's five unticked tasks, then its Clean Up | Committed; Mist's line and Ether's picker not seen |
