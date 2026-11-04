@@ -746,7 +746,7 @@ export enum BattleKind {
   TRAINER = 1,
 
   /**
-   * Phase 9.
+   * Phase 6.
    *
    * @generated from enum value: BATTLE_KIND_WILD = 2;
    */

@@ -1,4 +1,4 @@
-// Test content (plans/battles/README.md): removed in Phase 5, when the NPC leaves the room.
+// Test content (plans/battles/README.md): removed in Phase 9, when the NPC leaves the room.
 
 package battle
 

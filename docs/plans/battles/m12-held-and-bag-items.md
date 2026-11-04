@@ -14,6 +14,6 @@ Part of the [battles plan](README.md). Shared rules and context: [context.md](co
 - The client doesn't track confusion, love or stat stages. If an item would do nothing there, `mic-battles` refuses it and the menu just comes back, with nothing spent and no message.
 - A bag item removing love prints nothing (Showdown's `-end` is silent there).
 - Gen 4-only item effects with no FireRed string (Quick Claw, Power Herb, resist berries, Custap, Micle, Bug Bite and Pluck eating a berry) show no text (D21). The ball's throw and knock-away is our own simple motion, not FireRed's `BALL_TRAINER_BLOCK`.
-- Poké Dolls and the Fluffy Tail stay unusable until wild battles (Phase 9).
+- Poké Dolls and the Fluffy Tail stay unusable until wild battles (Phase 6).
 
 **Gotcha:** `infra/pokemon/evolutions.mjs` can't run over the catalog as it is (it adds duplicates). This time its lines were stripped first, then the new `METHOD_ITEM` twins removed by hand (Gen 4: trade only, or level up holding), and M11's lines restored as they were.

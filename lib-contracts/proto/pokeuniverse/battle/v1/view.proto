@@ -18,7 +18,7 @@ enum BattleKind {
   BATTLE_KIND_UNSPECIFIED = 0;
   // Against an NPC trainer: no running, money for the winner.
   BATTLE_KIND_TRAINER = 1;
-  // Phase 9.
+  // Phase 6.
   BATTLE_KIND_WILD = 2;
 }
 

@@ -428,7 +428,7 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "pallet_town_players_house_2f.played_with_nes": "PalletTown_PlayersHouse_2F_Text_PlayedWithNES",
   "pallet_town_players_house_2f.press_lr_for_help": "PalletTown_PlayersHouse_2F_Text_PressLRForHelp",
   "common.player_booted_up_pc": "Text_PlayerBootedUpPC",
-  // Test content (plans/battles/README.md): the room's test trainer, removed in Phase 5.
+  // Test content (plans/battles/README.md): the room's test trainer, removed in Phase 9.
   "test_trainer.question": "Route13_Text_SheilaIntro",
   "test_trainer.intro": "VictoryRoad_1F_Text_RolandoIntro",
   "test_trainer.defeat": "VictoryRoad_1F_Text_RolandoDefeat",

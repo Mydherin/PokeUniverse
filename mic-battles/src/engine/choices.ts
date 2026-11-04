@@ -68,7 +68,7 @@ function toPart(battle: Battle, side: number, position: number | undefined, acti
       if (s.activeRequest?.forceSwitch || !bagItemWorks(s.active[position], action.kind.value)) throw new InvalidChoice(`item ${action.kind.value.item} can't be used`);
       return action.kind.value;
     default:
-      // RUN: trainer battles can't be fled; wild battles come in Phase 9.
+      // RUN: trainer battles can't be fled; wild battles come in Phase 6.
       throw new InvalidChoice(`unsupported action ${action.kind.case}`);
   }
 }

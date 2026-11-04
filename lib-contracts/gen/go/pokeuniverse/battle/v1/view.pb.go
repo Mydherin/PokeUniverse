@@ -35,7 +35,7 @@ const (
 	BattleKind_BATTLE_KIND_UNSPECIFIED BattleKind = 0
 	// Against an NPC trainer: no running, money for the winner.
 	BattleKind_BATTLE_KIND_TRAINER BattleKind = 1
-	// Phase 9.
+	// Phase 6.
 	BattleKind_BATTLE_KIND_WILD BattleKind = 2
 )
 

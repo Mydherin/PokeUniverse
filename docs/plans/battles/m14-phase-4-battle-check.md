@@ -4,10 +4,9 @@ Part of the [battles plan](README.md). Manual check of M4-M13 in the game, on de
 
 ## Resume Here
 
-No code left to write and nothing to read first. In order:
+No code left to write but the minor open items below, and nothing to read first.
 
-1. **Commit, when the user asks.** Uncommitted on `gen4-battles`: `World.Drain` (`mic-core/cmd/mic-core/main.go`, `mic-core/internal/world/world.go`), Ether's list (`spa-pokeuniverse/src/game/firered/party-menu.ts`), the docs (this file, the plan's README, M6, the phase-4 doc).
-2. **The user:** frame rate on a real phone (the preset can't show it). A problem found there is a new fix; otherwise this plan is closed.
+- **The user:** frame rate on a real phone (the preset can't show it). A problem found there is a new fix; otherwise this plan is closed.
 
 **State:** stack running with both fixes, no service warnings. AA's party, bag and money (2560) restored; Pokédex seen back to full. `infra/playtest/` and `zz_playtest.go` are deleted, so a new play test needs its own overrides (git has neither).
 
@@ -34,7 +33,7 @@ No code left to write and nothing to read first. In order:
 - **Mobile (phone preset):** D-pad, A, B show at their sizes and work through the battle menus, bag and party. START has no use in a battle, so it wasn't pressed.
 - **Already played in M13 (desktop):** moves, switch, faint, replacement, SHIFT, doubles, a doubles loss, a doubles win with its prize.
 
-**Not tested, not built, all in [Phase 8](../../phases/phase-8-pokemon-party.md) (the user, 2026-11-04):** TM/HM teaching, items used on a Pokémon outside battle (Rare Candy, potions, stones), Exp. Share's effect.
+**Not tested, not built, all in [Phase 5](../../phases/phase-5-pokemon-party.md) (the user, 2026-11-04):** TM/HM teaching, items used on a Pokémon outside battle (Rare Candy, potions, stones), Exp. Share's effect.
 
 ## Bugs Fixed
 

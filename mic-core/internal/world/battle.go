@@ -232,7 +232,7 @@ func (z *zone) abandonBattle(p *Player) {
 }
 
 // usableInBattle: an item with a use in battle that the trainer has (mic-battles checks what it
-// does now). A trainer blocks Poké Balls; catching comes with wild battles (Phase 9).
+// does now). A trainer blocks Poké Balls; catching comes with wild battles (Phase 6).
 func usableInBattle(p *Player, id itemv1.Item) bool {
 	info, ok := item.Info(id)
 	return ok && info.GetBattleUse() != itemv1.BattleUse_BATTLE_USE_UNSPECIFIED && p.items.Bag.Quantity(id) > 0

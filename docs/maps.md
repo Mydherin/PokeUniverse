@@ -109,7 +109,7 @@ tiles:
 - **Behaviors** are the values of `TileBehavior` in `lib-contracts` `map.proto` (lowercase, no prefix): the contract is the single list.
 - **Converted names say what a tile does:** `<behavior>_<index>`, or `ground_<index>` / `solid_<index>` for plain walkable / blocked tiles. Defaults (`walkable`, `elevation`) are what most Kanto cells use.
 - **Labeling:** look at `catalog-preview`, then `rename` tiles to meaningful names (`solid_008` → `wall`); every map follows.
-- **Art styles share tile names:** a public pack gets its own art with the same names, so text maps don't change when the art does ([Phase 6](phases/phase-6-pallet-town-art.md)).
+- **Art styles share tile names:** a public pack gets its own art with the same names, so text maps don't change when the art does ([Phase 10](phases/phase-10-pallet-town-art.md)).
 
 ## Tools
 

@@ -2,14 +2,14 @@
 
 The whole battle system: Pokémon data, party, battle engine, NPC AI, battle screen, sprites, animations and sounds, tracked across chats.
 
-- **Status:** ✅ Done, part of [Phase 4](../../phases/phase-4-players-room.md) (moved there from Phases 8 and 9 by the user, 2026-11-01). Frame rate on a real phone is left for the user.
+- **Status:** ✅ Done, part of [Phase 4](../../phases/phase-4-players-room.md) (moved there from later phases by the user, 2026-11-01). Frame rate on a real phone is left for the user.
 - **Goal:** in the player's room, the trainer has a team of six (POKéMON in the START menu, party screen and summary). A trainer NPC stands in the room, and talking to them starts a **FireRed-style trainer battle with Gen 4 rules**: FireRed's screen, sprites, animations, sounds and texts, resolved by Showdown in `mic-battles`, with a FireRed-style AI adapted to Gen 4.
-- **Stays in later phases:** wild encounters and catching ([Phase 9](../../phases/phase-9-battles.md)), the rival battle in Oak's lab (Phase 9), following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 8](../../phases/phase-8-pokemon-party.md)), PvP ([Phase 11](../../phases/phase-11-social.md)).
+- **Stays in later phases:** wild encounters and catching ([Phase 6](../../phases/phase-6-wild-battles-catching.md)), the rival battle in Oak's lab ([Phase 9](../../phases/phase-9-pallet-town.md)), following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 5](../../phases/phase-5-pokemon-party.md)), PvP ([Phase 8](../../phases/phase-8-social.md)).
 
 ## Resume Here
 
-- **Next:** [M14's Resume Here](m14-phase-4-battle-check.md#resume-here): commit when the user asks, then the user checks a real phone. No code left; read nothing else.
-- **Last state:** every milestone played and passing, temporary test files removed, last two fixes and the docs uncommitted. Minor open items are in [M14](m14-phase-4-battle-check.md#open-minor-not-fixed).
+- **Next:** [M14's Resume Here](m14-phase-4-battle-check.md#resume-here): the user checks a real phone. No code left but the minor open items; read nothing else.
+- **Last state:** every milestone played, passing and committed, temporary test files removed. Minor open items are in [M14](m14-phase-4-battle-check.md#open-minor-not-fixed).
 
 ## Cold Start (every new session)
 
@@ -79,6 +79,6 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-04 | M13 session 4 | Play test: singles, SHIFT, doubles choices, spread moves, effects, faints pass; fixed the invisible Yes/No and level up frames and the cursors not resetting on switch-in (uncommitted) | M13: 3 checks left | How to run it is in the milestone |
 | 2026-11-04 | M13 session 5 | Yes/No frame, B = No, Double Slap per strike, whiteout pass; double prize saved (at Level 5, as the user allowed); fixed any-target moves looping forever in doubles (`menus.ts`) | M13: see a win's last screens, close | Three fixes uncommitted; a win's screens unseen: `z` in the room restarted a battle, dropped; AA's money is 2560 |
 | 2026-11-04 | M13 close | User closed M13 without seeing a win's last screens; M13 file cut down; how to run it moved to M14 | M14 | Committed |
-| 2026-11-04 | M14 session 1 | Singles win, level up, learning, HM refusal, evolution, its cancel, Potion, reload pass; fixed SURF's wave (per-line BLDALPHA), the party balls' palette, battle's prompt arrow; temporary `infra/playtest/scenario.sh` and `zz_playtest.go` | M14's unticked tasks, then its Clean Up | Fixes not committed; the user put Rare Candy, field items and Exp. Share in Phase 8 |
+| 2026-11-04 | M14 session 1 | Singles win, level up, learning, HM refusal, evolution, its cancel, Potion, reload pass; fixed SURF's wave (per-line BLDALPHA), the party balls' palette, battle's prompt arrow; temporary `infra/playtest/scenario.sh` and `zz_playtest.go` | M14's unticked tasks, then its Clean Up | Fixes not committed; the user put Rare Candy, field items and Exp. Share in Phase 5 |
 | 2026-11-04 | M14 session 2 | Send-out and recall now FireRed's battle routines (were Oak's and the trade's), committed. Items and party after a battle pass; fixed Dire Hit freezing the battle, the missing "getting pumped" and Mist lines, Ether's picker windows; test battle no longer heals | M14's five unticked tasks, then its Clean Up | Committed; Mist's line and Ether's picker not seen |
 | 2026-11-04 | M14 close | Learning give-up, Pokédex seen, singles loss, restart-resume, phone preset, Mist's line, Ether's picker pass; fixed a restart dropping the battle (`World.Drain`) and Ether's covered list; M6's last check done; Clean Up done | Plan done | Fixes uncommitted; real phone's frame rate left for the user |

@@ -37,7 +37,7 @@ tsc, vite, `go build` + `go vet` pass; headless run of every script clean (1744 
 - **Looked wrong, are right:** the red Psychic, red/blue Ghost and magenta Dark backgrounds; Doom Desire failing while Future Sight is pending; no switching after Ingrain; Rapid Spin, Teleport and Baton Pass hiding the user.
 - **Not checked:** sound; emulator comparison; both sides of each move in the game. Not triggered in a real turn: Attract infatuating, Snatch stealing, Focus Band, Wish's heal, Nightmare and Curse upkeep, Hail, Transform on a real target. The doll-during-drain fix wasn't rerun; `failedMoves` was rerun with Attract only.
 
-**Left for later:** Rollout, Fury Cutter, Return, Water Spout and damage-based shakes need data not sent yet. SMOKEBALL_ESCAPE is written, not hooked (wild only, Phase 9). Not written on purpose: ball throw, bait, safari, ghost, level up programs (Phase 9; M11). SWITCH_OUT_* stays M7's `recall`.
+**Left for later:** Rollout, Fury Cutter, Return, Water Spout and damage-based shakes need data not sent yet. SMOKEBALL_ESCAPE is written, not hooked (wild only, Phase 6). Not written on purpose: ball throw, bait, safari, ghost, level up programs (Phase 6; M11). SWITCH_OUT_* stays M7's `recall`.
 
 ## Known Differences
 

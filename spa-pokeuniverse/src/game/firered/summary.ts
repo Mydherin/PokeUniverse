@@ -579,7 +579,7 @@ class Summary {
 
   /**
    * PokeSum_PrintTrainerMemo_Mon: its nature, and where and at what level it was met; "Apparently
-   * met" when the trainer isn't its OT. Met maps get their names with catching (Phase 9).
+   * met" when the trainer isn't its OT. Met maps get their names with catching (Phase 6).
    */
   private printTrainerMemo(): void {
     const { flow } = this;
