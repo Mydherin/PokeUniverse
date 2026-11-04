@@ -6,7 +6,7 @@
 
 // A battle as one side sees it, the choices it can make and the player's messages on the
 // WebSocket (inside pokeuniverse.realtime.v1's envelopes). mic-battles builds the views and
-// requests; mic-core forwards them and checks every choice first (plans/battles D3).
+// requests; mic-core forwards them and checks every choice first (phase-5 D3).
 
 package battlev1
 
@@ -35,7 +35,7 @@ const (
 	BattleKind_BATTLE_KIND_UNSPECIFIED BattleKind = 0
 	// Against an NPC trainer: no running, money for the winner.
 	BattleKind_BATTLE_KIND_TRAINER BattleKind = 1
-	// Phase 6.
+	// Phase 7.
 	BattleKind_BATTLE_KIND_WILD BattleKind = 2
 )
 
@@ -334,7 +334,7 @@ type BattleView struct {
 	Request *BattleRequest `protobuf:"bytes,5,opt,name=request,proto3" json:"request,omitempty"`
 	// The opponent in a trainer battle; filled in by mic-core, which owns the trainer table.
 	Trainer *BattleTrainer `protobuf:"bytes,6,opt,name=trainer,proto3" json:"trainer,omitempty"`
-	// Two Pokémon a side (plans/battles D27).
+	// Two Pokémon a side (phase-5 D27).
 	Doubles       bool `protobuf:"varint,7,opt,name=doubles,proto3" json:"doubles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -829,7 +829,7 @@ func (x *PositionRequest) GetTrapped() bool {
 type BattleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Kind  RequestKind            `protobuf:"varint,1,opt,name=kind,proto3,enum=pokeuniverse.battle.v1.RequestKind" json:"kind,omitempty"`
-	// The number BattleChoice must carry (plans/battles D2): it grows by one per choice played,
+	// The number BattleChoice must carry (phase-5 D2): it grows by one per choice played,
 	// forced switches included, so it isn't the turn number.
 	Step uint32 `protobuf:"varint,2,opt,name=step,proto3" json:"step,omitempty"`
 	// ACTION: the active Pokémon's moves. Every one disabled or out of PP: FIGHT uses Struggle.
@@ -1034,7 +1034,7 @@ func (x *SwitchAction) GetPartySlot() uint32 {
 	return 0
 }
 
-// BAG: use an item (plans/battles D12).
+// BAG: use an item (phase-5 D12).
 type ItemAction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Item  v12.Item               `protobuf:"varint,1,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`

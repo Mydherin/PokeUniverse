@@ -4,7 +4,7 @@
 // and HP. Opened from the START menu (PARTY_MENU_TYPE_FIELD) A opens SUMMARY, SWITCH (the two
 // boxes slide out and back in swapped), ITEM (GIVE from the bag, TAKE) and CANCEL; opened to
 // give an item (GIVE in the BAG, TM CASE, BERRY POUCH or the PC's WITHDRAW ITEM) A gives it.
-// In battle (plans/battles M7) it shows the battle's party: SHIFT, SUMMARY, CANCEL, or A picks
+// In battle (phase-5 M7) it shows the battle's party: SHIFT, SUMMARY, CANCEL, or A picks
 // the Pokémon a bag item is for; after a faint it can't be cancelled. Field moves come with the
 // outdoor maps, using items on Pokémon with their effects. mic-core decides every change; this shows it.
 

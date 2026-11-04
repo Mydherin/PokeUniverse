@@ -235,7 +235,7 @@ const POKEDEX_GRAPHICS = {
 /**
  * The party menu (party_menu.c) and the summary (pokemon_summary_screen.c): their backgrounds,
  * slot layouts, icons and bars, every ball's icon, and the Gen 4 move category icons
- * (pokeemerald-expansion's, plans/battles D10).
+ * (pokeemerald-expansion's, phase-5 D10).
  */
 const PARTY_GRAPHICS = {
   partyBg: { png: "party_menu/bg.png", bin: "party_menu/bg.bin", bpp4: true },
@@ -282,7 +282,7 @@ const PARTY_GRAPHICS = {
 } satisfies Record<string, GraphicFiles>;
 
 /**
- * The battle screen (plans/battles M7): the textbox and its menus' tiles, the building terrain
+ * The battle screen (phase-5 M7): the textbox and its menus' tiles, the building terrain
  * (indoor maps), healthboxes, their bars and the party balls, the PP colors, and the trainer
  * pictures (the opponent's front, the player's back with its throwing frames).
  */
@@ -428,7 +428,7 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "pallet_town_players_house_2f.played_with_nes": "PalletTown_PlayersHouse_2F_Text_PlayedWithNES",
   "pallet_town_players_house_2f.press_lr_for_help": "PalletTown_PlayersHouse_2F_Text_PressLRForHelp",
   "common.player_booted_up_pc": "Text_PlayerBootedUpPC",
-  // Test content (plans/battles/README.md): the room's test trainer, removed in Phase 9.
+  // Test content (phase-5): the room's test trainer, removed in Phase 10.
   "test_trainer.question": "Route13_Text_SheilaIntro",
   "test_trainer.intro": "VictoryRoad_1F_Text_RolandoIntro",
   "test_trainer.defeat": "VictoryRoad_1F_Text_RolandoDefeat",
@@ -797,7 +797,7 @@ export class Assets {
     return `cry_${nnn(n)}`;
   }
 
-  /** The sound ID of a species' faint cry (plans/battles D15), loaded on demand from cryUrl. */
+  /** The sound ID of a species' faint cry (phase-5 D15), loaded on demand from cryUrl. */
   static faintCryId(n: number): string {
     return `cry_${nnn(n)}_faint`;
   }

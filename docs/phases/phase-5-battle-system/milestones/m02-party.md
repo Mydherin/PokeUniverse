@@ -1,6 +1,6 @@
 # M2 Pokémon and the Party in `mic-core` ✅
 
-Part of the [battles plan](README.md). Finished 2026-11-01. What later milestones can use, without re-reading:
+Part of [Phase 5](../phase-5-battle-system.md). Finished 2026-11-01. What later milestones can use, without re-reading:
 
 - **`mic-core/internal/pokemon`:** Gen 4 stats (SHEDINJA 1 HP), natures, IVs/EVs, personality → gender, nature (`% 25`), shiny (with OT ID), ability slot (lowest bit); six growth rates (level ↔ exp, 0 exp at Lv 1); default moves (last four level-up moves); max PP with PP UPs; `Party` (with `Swap`, `SwapMoves`) and its store.
 - **Table `trainer_pokemon`** (migration `00012`): slot 0-5, species, nickname (empty = species name), level, exp, personality, IVs/EVs (6-arrays), ability slot, held item, moves + PP + PP UPs (parallel arrays), HP, status, friendship, ball, OT name/ID/gender, met level/map (empty = fateful encounter). Every change rewrites the party after `LockTrainerSave`, with the bag in one transaction (`world/save.go`). New Game empties it.

@@ -1,5 +1,5 @@
 // Run once to write which art each battle animation tag and move background uses; the table is our
-// source from then on, edited by hand like the scripts (docs/plans/battles D9). Kept for reference.
+// source from then on, edited by hand like the scripts (phase-5 D9). Kept for reference.
 //
 // node infra/battle/anim-art.mjs references/pokefirered references/pokeemerald-expansion \
 //   spa-pokeuniverse/src/game/firered/battle/anims/art.json

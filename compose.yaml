@@ -23,7 +23,7 @@ services:
   redis:
     image: redis:8-alpine
     restart: unless-stopped
-    # mic-battles' user reaches only battle:* keys (plans/battles D2), with no admin commands.
+    # mic-battles' user reaches only battle:* keys (phase-5 D2), with no admin commands.
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes", "--appendfsync", "always", "--maxmemory-policy", "noeviction",
               "--user", "mic-battles", "on", ">${REDIS_MIC_BATTLES_PASSWORD:?set REDIS_MIC_BATTLES_PASSWORD in .env}", "~battle:*", "resetchannels", "+@connection", "+@read", "+@write", "+@scripting", "-@dangerous"]
     environment:

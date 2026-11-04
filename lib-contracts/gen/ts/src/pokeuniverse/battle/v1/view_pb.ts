@@ -4,7 +4,7 @@
 
 // A battle as one side sees it, the choices it can make and the player's messages on the
 // WebSocket (inside pokeuniverse.realtime.v1's envelopes). mic-battles builds the views and
-// requests; mic-core forwards them and checks every choice first (plans/battles D3).
+// requests; mic-core forwards them and checks every choice first (phase-5 D3).
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
@@ -104,7 +104,7 @@ export type BattleView = Message<"pokeuniverse.battle.v1.BattleView"> & {
   trainer?: BattleTrainer | undefined;
 
   /**
-   * Two Pokémon a side (plans/battles D27).
+   * Two Pokémon a side (phase-5 D27).
    *
    * @generated from field: bool doubles = 7;
    */
@@ -355,7 +355,7 @@ export type BattleRequest = Message<"pokeuniverse.battle.v1.BattleRequest"> & {
   kind: RequestKind;
 
   /**
-   * The number BattleChoice must carry (plans/battles D2): it grows by one per choice played,
+   * The number BattleChoice must carry (phase-5 D2): it grows by one per choice played,
    * forced switches included, so it isn't the turn number.
    *
    * @generated from field: uint32 step = 2;
@@ -459,7 +459,7 @@ export const SwitchActionSchema: GenMessage<SwitchAction> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_battle_v1_view, 9);
 
 /**
- * BAG: use an item (plans/battles D12).
+ * BAG: use an item (phase-5 D12).
  *
  * @generated from message pokeuniverse.battle.v1.ItemAction
  */
@@ -746,7 +746,7 @@ export enum BattleKind {
   TRAINER = 1,
 
   /**
-   * Phase 6.
+   * Phase 7.
    *
    * @generated from enum value: BATTLE_KIND_WILD = 2;
    */

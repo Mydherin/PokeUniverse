@@ -1,6 +1,6 @@
 # M11 Experience, Level Up, Moves and Evolution ✅
 
-Part of the [battles plan](README.md). **Needs:** M6, M7. Shared rules and context: [context.md](context.md). Design: [D24](context.md#decisions).
+Part of [Phase 5](../phase-5-battle-system.md). **Needs:** M6, M7. Shared rules and context: [context.md](context.md). Design: [D24](context.md#decisions).
 
 **Done when:** the test team can level up, learn moves and evolve (test with a lower-level variant of the test NPC: the team is Lv 50, `pokemon/testteam.go` `testLevel`).
 
@@ -12,7 +12,7 @@ Part of the [battles plan](README.md). **Needs:** M6, M7. Shared rules and conte
 - [x] **`mic-core`:** outcome (HP, moves, friendship), learn choice, `pokemon/evolution.go`, `EvolvePokemon`, `LearnMove`, Pokédex saved (`UpdateTrainerPokedex`).
 - [x] **Client, battle:** exp bar, level up (`battle/level-up.ts`), learn flow (`battle/learn.ts`), summary forget mode (`ForgetMode`), `Sound.playFanfare`, `{PLAY_SE}` in the text printer (`TEXT_SONGS` in `boot.ts`).
 - [x] **Client, evolution scene** (`battle/evolution.ts`) and assets.
-- [ ] **Play it:** not done; the user closed M11 without it (2026-11-03). It goes with [M14](m14-phase-4-battle-check.md), or whenever the user asks.
+- [ ] **Play it:** not done; the user closed M11 without it (2026-11-03). It goes with [M14](m14-battle-check.md), or whenever the user asks.
 
 ## Progress
 
@@ -41,7 +41,7 @@ Part of the [battles plan](README.md). **Needs:** M6, M7. Shared rules and conte
 - A level-up on the bench shows no banner (`level_up_banner.png` unused): only its message and stats box.
 - Shedinja copies the moves known at the evolution, before any `to_learn` answer (FireRed copies after).
 - BG0 holds the level up box (BG1 in FireRed). The scene uses the building terrain's palette, not `Plain`'s (black within seconds, same tiles).
-- Server rule: no evolution past species 151 without the National Pokédex (the scene stops by itself, "……?"), so the test team's later species won't evolve until Phase 9 sets it.
+- Server rule: no evolution past species 151 without the National Pokédex (the scene stops by itself, "……?"), so the test team's later species won't evolve until Phase 10 sets it.
 - Item and trade evolutions are in the catalog, unused until their phases.
 
 ## Left Out of the Catalog

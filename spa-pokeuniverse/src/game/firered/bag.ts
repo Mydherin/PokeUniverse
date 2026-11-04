@@ -78,7 +78,7 @@ export const enum BagLocation {
   ItemPc,
   /** The party menu's GIVE: an item to give is chosen. */
   Party,
-  /** BAG in battle: an item is chosen to use (plans/battles M12). */
+  /** BAG in battle: an item is chosen to use (phase-5 M12). */
   Battle,
 }
 

@@ -1,6 +1,6 @@
 // Asset manifest for the current art style: the app refers to Pokémon by species ID only.
 // Temporary source: PokeAPI's public FireRed/LeafGreen sprites, pinned to a commit.
-// Phase 10 replaces this with the selected resource packs (vision.md#art-direction).
+// Phase 11 replaces this with the selected resource packs (vision.md#art-direction).
 
 const BASE = "https://cdn.jsdelivr.net/gh/PokeAPI/sprites@1dd55c0436d2a5b6e324c0b780e1b1b416fbfb64/sprites/pokemon";
 

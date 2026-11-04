@@ -10,7 +10,7 @@
 // script flickers its screen on, shows its menus and opens WITHDRAW ITEM or the BAG's DEPOSIT
 // ITEM from black, coming back to ITEM STORAGE. NPCs stand on the map; talking to one turns it
 // to the player, and a trainer's script asks YES/NO, plays their encounter music and starts a
-// battle: the battle screen (plans/battles M7) takes over until it ends, and the script goes on
+// battle: the battle screen (phase-5 M7) takes over until it ends, and the script goes on
 // after a win. A battle in progress after a reconnect is drawn again as it stands.
 
 import { create } from "@bufbuild/protobuf";

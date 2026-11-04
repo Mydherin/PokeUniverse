@@ -1,4 +1,4 @@
-// Battles in Redis (plans/battles D2): hash battle:<id> with the Showdown state, our meta, the
+// Battles in Redis (phase-5 D2): hash battle:<id> with the Showdown state, our meta, the
 // StartBattle and the last reply. A save only lands if the stored step is still the one played
 // (Lua compare-and-set), so two replicas playing the same step can't both win.
 

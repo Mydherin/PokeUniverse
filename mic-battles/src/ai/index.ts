@@ -1,4 +1,4 @@
-// The NPC AI (plans/battles D6): FireRed's order of decisions for a trainer, switch → item →
+// The NPC AI (phase-5 D6): FireRed's order of decisions for a trainer, switch → item →
 // move, plus a switch when every move is useless. Wild Pokémon pick a random move (FireRed's
 // wild battles have no flags).
 

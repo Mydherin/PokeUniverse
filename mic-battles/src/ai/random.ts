@@ -1,5 +1,5 @@
 // Temporary AI until M5: a random usable move, or a random Pokémon when it must switch. It draws
-// from the battle's own PRNG, so a replayed step makes the same choice (plans/battles D6).
+// from the battle's own PRNG, so a replayed step makes the same choice (phase-5 D6).
 
 import type { Battle } from "@pkmn/sim";
 import { moveOptions } from "../engine/battle.ts";

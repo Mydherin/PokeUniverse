@@ -1,4 +1,4 @@
-// The FireRed battle screen (plans/battles M7). It shows what mic-battles resolved and asks the
+// The FireRed battle screen (phase-5 M7). It shows what mic-battles resolved and asks the
 // player's choices; it decides nothing. Its work is a queue of jobs, each a generator stepped
 // once a frame: the transition, the intro (the terrain and trainers slide in, "<CLASS> <NAME>
 // would like to battle!", the send-outs), each turn's events, the player's choice (FIGHT, BAG,

@@ -1,6 +1,6 @@
 # M0 Prerequisites + M1 Data Catalogs ✅
 
-Part of the [battles plan](README.md). Finished 2026-11-01. What later milestones can use, without re-reading:
+Part of [Phase 5](../phase-5-battle-system.md). Finished 2026-11-01. What later milestones can use, without re-reading:
 
 - **Showdown reference:** `references/pokemon-showdown` checked out (read only).
 - **Catalogs (committed, D7), edited by hand from now on** (`infra/battle/catalog.mjs` was run once; re-running needs the old species catalog):

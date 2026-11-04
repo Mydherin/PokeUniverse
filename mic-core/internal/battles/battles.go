@@ -74,7 +74,7 @@ func call[T proto.Message](ctx context.Context, nc *nats.Conn, subject string, r
 }
 
 // retry repeats a request until it's answered or ctx ends, waiting longer each time (up to 3
-// seconds): mic-battles may be restarting (plans/battles D2 makes repeats safe). mic-battles
+// seconds): mic-battles may be restarting (phase-5 D2 makes repeats safe). mic-battles
 // answers nothing to a request it refuses, so a refused one also ends with ctx.
 func retry[T any](ctx context.Context, try func(context.Context) (T, error)) (T, error) {
 	wait := 250 * time.Millisecond

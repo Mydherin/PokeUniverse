@@ -142,7 +142,7 @@ func summary(row db.GetTrainerRow) *trainerv1.TrainerSummary {
 		Name:            row.Name,
 		Gender:          g,
 		PlayTimeSeconds: uint32(min(row.PlayTimeSeconds, int64(^uint32(0)))),
-		// Badges arrive with the gyms (Phase 11).
+		// Badges arrive with the gyms (Phase 12).
 		Badges:        0,
 		PokedexCaught: pokedex.Load(row).CaughtCount(),
 		Location:      &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},

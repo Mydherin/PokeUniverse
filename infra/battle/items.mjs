@@ -1,5 +1,5 @@
 // Run once to add what the item catalog lacked for Gen 4 battles; item/v1/catalog.proto and
-// mic-battles/src/engine/ids.ts are the source from then on, edited by hand (docs/plans/battles M12).
+// mic-battles/src/engine/ids.ts are the source from then on, edited by hand (phase-5 M12).
 // Kept for reference.
 //
 // node infra/battle/items.mjs <pokemon-showdown> <pokeemerald-expansion> <lib-contracts proto dir> <ids.ts>

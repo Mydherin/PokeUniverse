@@ -5,7 +5,7 @@ import (
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 )
 
-// Script is what an interaction runs. Phase 9 replaces these tables with the event interpreter.
+// Script is what an interaction runs. Phase 10 replaces these tables with the event interpreter.
 type Script []*worldv1.ScriptStep
 
 func message(text string) *worldv1.ScriptStep {
@@ -43,7 +43,7 @@ func trainerBattle(trainer string) *worldv1.ScriptStep {
 
 // npcScripts are the scripts of NPC objects, by map and name (lib-maps objects' `script`).
 var npcScripts = map[string]Script{
-	// Test content (plans/battles/README.md): removed in Phase 9. Asks, heals both teams
+	// Test content (phase-5): removed in Phase 10. Asks, heals both teams
 	// (the trainer table's Heals) and battles with FireRed's encounter music for COOLTRAINERs
 	// (MUS_ENCOUNTER_BOY) during the intro; after a win, the post-battle text.
 	"pallet_town_players_house_2f.test_trainer": {

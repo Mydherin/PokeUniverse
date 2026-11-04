@@ -2,7 +2,7 @@
 # Renders FireRed's sounds exactly from the decompilation (docs/audio.md). Run by `make audio` in infra/audio's image.
 # Input: the sound list (sound ID -> song or cry). Output: <id>.webm (Opus), <id>.m4a (AAC) and manifest.json (loop points).
 # Then every species' cry (make pokemon's cries.json) to cries/<nnn>.webm|.m4a, and its faint cry to
-# cries/<nnn>_faint.webm|.m4a (plans/battles D15), loaded on demand.
+# cries/<nnn>_faint.webm|.m4a (phase-5 D15), loaded on demand.
 set -eu
 
 SRC=/repo/references/pokefirered

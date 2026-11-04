@@ -1,6 +1,6 @@
 # M13 Options, Doubles and Polish ✅
 
-Part of the [battles plan](README.md). Cut down to what later milestones use.
+Part of [Phase 5](../phase-5-battle-system.md). Cut down to what later milestones use.
 
 - **D27:** doubles are one step per side's whole choice. The client collects both positions and sends one `BattleChoice` (`action`, `partner`); `BattleRequest.positions` says who must choose, and the engine fills in locked and fainted Pokémon. Singles requests and choices don't change.
 - **D26:** SHIFT is emulated in `mic-battles`.

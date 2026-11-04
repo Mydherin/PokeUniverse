@@ -56,7 +56,7 @@ func usedUp(id itemv1.Item) bool {
 }
 
 // WhiteOutLoss is ComputeWhiteOutMoneyLoss: highest level × 4 × the badges' multiplier, at
-// most the money there is. Badges come with the story flags (Phase 9): none until then.
+// most the money there is. Badges come with the story flags (Phase 10): none until then.
 func WhiteOutLoss(party pokemon.Party, money int) int {
 	const badges = 0
 	return min(party.HighestLevel()*4*whiteOutMultipliers[badges], money)

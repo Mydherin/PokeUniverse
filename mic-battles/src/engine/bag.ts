@@ -1,4 +1,4 @@
-// Bag items in battle (plans/battles D12). Showdown has no bag: an item is a queued `event`
+// Bag items in battle (phase-5 D12). Showdown has no bag: an item is a queued `event`
 // action (order 102: after Showdown's own start-of-turn actions, before switches and moves, as in
 // Gen 4) that runs the BagItem event, answered here. mic-core has already checked and spent a
 // player's item; an AI trainer's come from its BattleTeam.items (ai/items.ts). What HP, status and

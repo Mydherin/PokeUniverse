@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: pokeuniverse/battle/v1/event.proto
 
-// What happens in a battle, as compact events (plans/battles D4): mic-battles translates Showdown's
+// What happens in a battle, as compact events (phase-5 D4): mic-battles translates Showdown's
 // log into them, one stream per side (D5), and the client turns each into its art style's text,
 // animation and sound. Every Pokémon is seen from the stream's side: `foe` is the other side.
 

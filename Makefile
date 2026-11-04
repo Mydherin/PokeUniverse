@@ -34,7 +34,7 @@ FIRERED_GFX_FILES := weather/fog_horizontal.png fonts/latin_normal.png fonts/lat
 	$(addprefix battle_terrain/building/,terrain.png terrain.bin terrain.pal) interface/text_pp.pal \
 	trainers/front_pics/cool_trainer_m_front_pic.png trainers/palettes/cool_trainer_m.pal \
 	trainers/back_pics/red_back_pic.png trainers/back_pics/leaf_back_pic.png trainers/palettes/red_back_pic.pal trainers/palettes/leaf_back_pic.pal
-# The expansion's Gen 4 art FireRed has no slot for (plans/battles D10), under graphics/expansion/.
+# The expansion's Gen 4 art FireRed has no slot for (phase-5 D10), under graphics/expansion/.
 EXPANSION_GFX_FILES := interface/category_icons.png
 # Whole folders from the expansion (its battle animation art for Gen 4 moves: battle/anims/art.json).
 EXPANSION_GFX := battle_anims

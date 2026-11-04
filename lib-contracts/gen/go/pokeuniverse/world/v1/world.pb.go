@@ -362,7 +362,7 @@ type WorldSnapshot struct {
 	Pokedex *v12.Pokedex `protobuf:"bytes,6,opt,name=pokedex,proto3" json:"pokedex,omitempty"`
 	// The trainer's Pokémon.
 	Party *v13.Party `protobuf:"bytes,7,opt,name=party,proto3" json:"party,omitempty"`
-	// The battle the trainer is in, if any: the client redraws it (plans/battles, Resume).
+	// The battle the trainer is in, if any: the client redraws it (phase-5, Resume).
 	Battle        *v14.BattleView `protobuf:"bytes,8,opt,name=battle,proto3" json:"battle,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

@@ -1,4 +1,4 @@
-# Phase 8: Social
+# Phase 9: Social
 
 **Goal:** players interact with each other beyond seeing and chatting.
 

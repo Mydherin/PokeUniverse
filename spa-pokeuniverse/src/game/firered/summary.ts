@@ -4,7 +4,7 @@
 // memo with its nature and where it was met), POKéMON SKILLS (HP and its bar, stats, EXP. and its
 // bar, ability) and KNOWN MOVES (each move's type and PP). RIGHT slides the top page away, LEFT
 // slides it back; UP and DOWN show the party's other Pokémon. A on KNOWN MOVES slides in the
-// move details (type, power, accuracy, the Gen 4 category icon (plans/battles D10) and
+// move details (type, power, accuracy, the Gen 4 category icon (phase-5 D10) and
 // description), where A then A again SWITCHes two moves (mic-core saves it). Eggs, Pokérus and
 // markings come with breeding and the PC.
 
@@ -579,7 +579,7 @@ class Summary {
 
   /**
    * PokeSum_PrintTrainerMemo_Mon: its nature, and where and at what level it was met; "Apparently
-   * met" when the trainer isn't its OT. Met maps get their names with catching (Phase 6).
+   * met" when the trainer isn't its OT. Met maps get their names with catching (Phase 7).
    */
   private printTrainerMemo(): void {
     const { flow } = this;

@@ -381,7 +381,7 @@ export const FieldUseSchema: GenEnum<FieldUse> = /*@__PURE__*/
   enumDesc(file_pokeuniverse_item_v1_catalog, 1);
 
 /**
- * How BAG uses an item in battle (plans/battles M12). Unspecified: it can't be ("This isn't the time...").
+ * How BAG uses an item in battle (phase-5 M12). Unspecified: it can't be ("This isn't the time...").
  *
  * @generated from enum pokeuniverse.item.v1.BattleUse
  */

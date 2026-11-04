@@ -11,6 +11,26 @@ High-level plan to build the **MVP: all of Kanto, including social features**.
 - **Faithful first, then better:** the start of the game (intro, Oak, room, Pallet Town) is rebuilt exactly like FireRed with its original art, then upgraded with public art.
 - **Riskiest parts early:** the map pipeline and client-server movement validate the approach.
 
+## How a Phase Is Tracked
+
+The phase file is the source of its goal, scope, technical details and progress, self-contained enough to resume with no other read. [AGENTS.md](../../AGENTS.md#current-work) points at the file to resume.
+
+- **Every phase file:** goal, **Resume Here** while it is open (exact next step, what is left), scope with ✅ per item, done when, and the technical details found so far.
+- **A phase too big for one file** becomes a folder, like [Phase 5](phase-5-battle-system/phase-5-battle-system.md):
+
+  ```
+  phase-N-name/
+    phase-N-name.md       goal, Resume Here, milestone table with status, scope, done when
+    milestones/
+      mNN-name.md         tasks, Resume Here, files, commands, decisions, gotchas: enough alone to resume
+      context.md          optional: decisions and details milestones share, read by section
+      references.md       optional: where things are in the reference repositories
+      log.md              optional: session history, not needed to resume
+  ```
+
+- **When a milestone is ✅,** cut its file down to what later milestones use.
+- **Code comments** cite a phase's milestones and decisions by short name: `phase-5 M7`, `phase-5 D9` (decisions are in its `context.md`).
+
 ## Phases
 
 ✅ done · 🚧 in progress
@@ -21,12 +41,13 @@ High-level plan to build the **MVP: all of Kanto, including social features**.
 | 1 | [Web App and Auth](phase-1-web-app-auth.md) ✅ | Log in with Google and reach an empty game screen |
 | 2 | [FireRed Intro](phase-2-firered-intro.md) ✅ | Play shows FireRed's intro, title screen and menu like the original |
 | 3 | [New Game with Oak](phase-3-new-game.md) ✅ | A new player finishes Oak's speech and their trainer is saved |
-| 4 | [Player's Room](phase-4-players-room.md) 🚧 | Walk in your room, server-authoritative; START menu and PC like FireRed; maps edited as text; the Gen 4 battle system ✅ against a test trainer ([plan](../plans/battles/README.md)). Left: SAVE, the stairs to the first floor |
-| 5 | [Pokémon and Party](phase-5-pokemon-party.md) | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you |
-| 6 | [Wild Battles and Catching](phase-6-wild-battles-catching.md) | Wild battles and catching work, on a test encounter |
-| 7 | [Multiplayer World](phase-7-multiplayer-world.md) | Many players move together smoothly, with chat |
-| 8 | [Social](phase-8-social.md) | Players use the social menus, trade and battle each other |
-| 9 | [Pallet Town](phase-9-pallet-town.md) | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
-| 10 | [Pallet Town Art Upgrade](phase-10-pallet-town-art.md) | Pallet Town with awesome public art, same game |
-| 11 | [World Content](phase-11-world-content.md) | All of Kanto playable start to end |
-| 12 | [Polish and Launch](phase-12-polish-launch.md) | Game is public and stable |
+| 4 | [Player's Room](phase-4-players-room.md) 🚧 | Walk in your room, server-authoritative; START menu and PC like FireRed; maps edited as text. Left: SAVE, the stairs to the first floor |
+| 5 | [Battle System](phase-5-battle-system/phase-5-battle-system.md) ✅ | A Gen 4 battle against a test trainer plays to the end like FireRed ([milestones](phase-5-battle-system/phase-5-battle-system.md#milestones)) |
+| 6 | [Pokémon and Party](phase-6-pokemon-party.md) 🚧 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you. Done: data, party menu, summary, growing in battle |
+| 7 | [Wild Battles and Catching](phase-7-wild-battles-catching.md) | Wild battles and catching work, on a test encounter |
+| 8 | [Multiplayer World](phase-8-multiplayer-world.md) | Many players move together smoothly, with chat |
+| 9 | [Social](phase-9-social.md) | Players use the social menus, trade and battle each other |
+| 10 | [Pallet Town](phase-10-pallet-town.md) | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
+| 11 | [Pallet Town Art Upgrade](phase-11-pallet-town-art.md) | Pallet Town with awesome public art, same game |
+| 12 | [World Content](phase-12-world-content.md) | All of Kanto playable start to end |
+| 13 | [Polish and Launch](phase-13-polish-launch.md) | Game is public and stable |

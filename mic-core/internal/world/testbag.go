@@ -1,4 +1,4 @@
-// Test content (plans/battles/README.md): removed in Phase 9, when the starter replaces the test team.
+// Test content (phase-5): removed in Phase 10, when the starter replaces the test team.
 
 package world
 

@@ -30,7 +30,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (plans/battles D6).
+// FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (phase-5 D6).
 type AiFlag int32
 
 const (
@@ -396,9 +396,9 @@ type BattleTeam struct {
 	// Empty: a player chooses for this side (or, in a wild battle, side 1 picks a random move).
 	// Otherwise mic-battles' AI does, with these flags.
 	AiFlags []AiFlag `protobuf:"varint,2,rep,packed,name=ai_flags,json=aiFlags,proto3,enum=pokeuniverse.battle.v1.AiFlag" json:"ai_flags,omitempty"`
-	// An AI trainer's items (up to 4, FireRed's rules: plans/battles M5). Each is used once.
+	// An AI trainer's items (up to 4, FireRed's rules: phase-5 M5). Each is used once.
 	Items []v13.Item `protobuf:"varint,3,rep,packed,name=items,proto3,enum=pokeuniverse.item.v1.Item" json:"items,omitempty"`
-	// This player's battle style is SHIFT: offered a change when a foe faints (plans/battles D26).
+	// This player's battle style is SHIFT: offered a change when a foe faints (phase-5 D26).
 	ShiftStyle    bool `protobuf:"varint,4,opt,name=shift_style,json=shiftStyle,proto3" json:"shift_style,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -472,7 +472,7 @@ type StartBattle struct {
 	Sides []*BattleTeam `protobuf:"bytes,3,rep,name=sides,proto3" json:"sides,omitempty"`
 	// Showdown's PRNG seed: the whole battle follows from it and the choices.
 	Seed uint64 `protobuf:"varint,4,opt,name=seed,proto3" json:"seed,omitempty"`
-	// Two Pokémon a side (plans/battles D27).
+	// Two Pokémon a side (phase-5 D27).
 	Doubles       bool `protobuf:"varint,5,opt,name=doubles,proto3" json:"doubles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -606,7 +606,7 @@ func (x *SideChoice) GetPartner() *BattleAction {
 }
 
 // Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step
-// already played answers its saved BattleUpdate again (safe retries, plans/battles D2).
+// already played answers its saved BattleUpdate again (safe retries, phase-5 D2).
 type TurnRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BattleId      string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`

@@ -85,7 +85,7 @@ func (m *Map) SignAt(p Point) *mapv1.Sign {
 }
 
 // HiddenItemNear reports whether a hidden item lies within the ITEMFINDER's range of p
-// (7 tiles across, 5 up or down). Found items are tracked with the story flags (Phase 9).
+// (7 tiles across, 5 up or down). Found items are tracked with the story flags (Phase 10).
 func (m *Map) HiddenItemNear(p Point) bool {
 	for _, o := range m.objects {
 		if o.GetHiddenItem() != nil && abs(int(o.X)-p.X) <= 7 && abs(int(o.Y)-p.Y) <= 5 {

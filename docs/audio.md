@@ -12,7 +12,7 @@ pokefirered (MIDI + instruments) ──► [mid2agb] ──► game song data �
 - **One command:** `make audio` runs the whole pipeline in a Docker image (`infra/audio/`: `Dockerfile` + `render.sh`, run as the host user; no tools to install on the host). `make up` runs it first.
 - **Input:** the sound list, `spa-pokeuniverse/src/game/firered/sounds.json` (sound ID → song or cry). Adding a sound is one line there.
 - **Species cries:** every species' cry (1-493) from `make pokemon`'s `cries.json` (which `make audio` runs first): FireRed's cry number for 1-386, rendered as above; `pokeemerald-expansion`'s sample for 387-493 (`sound/direct_sound_samples/cries/<name>.wav`), resampled to 48 kHz; both trimmed and encoded the same way to `audio/cries/<nnn>.webm|.m4a`, rendered once.
-- **Faint cries** (plans/battles D15): each species' cry in FireRed's faint mode (`CRY_MODE_FAINT`: release 200, pitch 14440) to `audio/cries/<nnn>_faint.webm|.m4a`; the expansion's samples lowered by the same pitch (×0.8125). Rendered once.
+- **Faint cries** (phase-5 D15): each species' cry in FireRed's faint mode (`CRY_MODE_FAINT`: release 200, pitch 14440) to `audio/cries/<nnn>_faint.webm|.m4a`; the expansion's samples lowered by the same pitch (×0.8125). Rendered once.
 - **Output:** a **gitignored** folder in `spa-pokeuniverse` (`public/firered/audio/`), served like any static file.
 - **Incremental:** a sound is rendered again only when the list is newer than its files; species cries only once.
 - **Reproducible:** the submodule commit, the poryaaaa commit (validated at `a047cde`) and the encoder settings are pinned, so every build gives the same files.

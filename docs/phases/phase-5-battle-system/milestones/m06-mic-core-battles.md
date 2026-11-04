@@ -1,6 +1,6 @@
 # M6 Battles in `mic-core` and the Room Trainer ✅
 
-Part of the [battles plan](README.md). **Needs:** M4 (M5 for the real AI). Shared rules and context: [context.md](context.md).
+Part of [Phase 5](../phase-5-battle-system.md). **Needs:** M4 (M5 for the real AI). Shared rules and context: [context.md](context.md).
 
 **Read:** `internal/world/{zone,player,interact}.go`, `internal/realtime/realtime.go`, `internal/battles/battles.go`, `internal/live/live.go`, `lib-maps/maps/pallet_town_players_house_2f.yaml`, `docs/maps.md` (objects), `tool-maps` compile for objects.
 

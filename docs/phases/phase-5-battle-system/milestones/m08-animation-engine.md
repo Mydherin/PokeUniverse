@@ -1,6 +1,6 @@
 # M8 Animation Engine and Generic Animations ✅
 
-Part of the [battles plan](README.md). Done 2026-11-02 (lightly play-tested by the user). How to write behaviors, the coverage check and the open checks moved to [M9](m09-firered-move-animations.md).
+Part of [Phase 5](../phase-5-battle-system.md). Done 2026-11-02 (lightly play-tested by the user). How to write behaviors, the coverage check and the open checks moved to [M9](m09-firered-move-animations.md).
 
 ## What It Built (used by M9, M10)
 

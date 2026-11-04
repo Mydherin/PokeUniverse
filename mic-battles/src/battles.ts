@@ -1,4 +1,4 @@
-// The battles.* requests: load → play → translate → save → reply (plans/battles D2). Stateless:
+// The battles.* requests: load → play → translate → save → reply (phase-5 D2). Stateless:
 // any replica plays any step, and a step already played answers its saved reply.
 
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";

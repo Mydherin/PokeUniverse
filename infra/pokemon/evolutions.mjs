@@ -1,4 +1,4 @@
-// Adds `evolutions` to the species catalog, once (plans/battles M11): every way a species 1-493
+// Adds `evolutions` to the species catalog, once (phase-5 M11): every way a species 1-493
 // evolves into another of them, from pokeemerald-expansion's species info, which has Gen 4's. The
 // catalog is our source afterwards. What the game can't express yet is left out and printed: items
 // the item catalog doesn't have, Hoenn's places for location evolutions, contest Beauty.

@@ -1,4 +1,4 @@
-// The generic animations (plans/battles D9): what a move plays until its own script can. By
+// The generic animations (phase-5 D9): what a move plays until its own script can. By
 // category: physical is FireRed's Tackle (lunge, impact, shake); special sends an orb in the
 // type's color at the target; status flashes the type's color on whoever it affects. Each
 // type has its color and a sound from a FireRed move of that type.

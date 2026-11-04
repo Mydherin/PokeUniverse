@@ -1,6 +1,6 @@
 // What FireRed's AI script commands read (src/battle_ai_script_commands.c), from Showdown's live
 // battle objects. Everything is read on a throwaway copy (`sim`); random draws come from the real
-// battle's PRNG, so a replayed step makes the same choice (plans/battles D6).
+// battle's PRNG, so a replayed step makes the same choice (phase-5 D6).
 
 import type { ActiveMove, Battle, Move } from "@pkmn/sim";
 import { cloneBattle, type Pokemon } from "../engine/battle.ts";

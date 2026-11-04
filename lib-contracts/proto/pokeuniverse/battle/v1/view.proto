@@ -2,7 +2,7 @@ syntax = "proto3";
 
 // A battle as one side sees it, the choices it can make and the player's messages on the
 // WebSocket (inside pokeuniverse.realtime.v1's envelopes). mic-battles builds the views and
-// requests; mic-core forwards them and checks every choice first (plans/battles D3).
+// requests; mic-core forwards them and checks every choice first (phase-5 D3).
 package pokeuniverse.battle.v1;
 
 import "pokeuniverse/battle/v1/event.proto";
@@ -18,7 +18,7 @@ enum BattleKind {
   BATTLE_KIND_UNSPECIFIED = 0;
   // Against an NPC trainer: no running, money for the winner.
   BATTLE_KIND_TRAINER = 1;
-  // Phase 6.
+  // Phase 7.
   BATTLE_KIND_WILD = 2;
 }
 
@@ -50,7 +50,7 @@ message BattleView {
   BattleRequest request = 5;
   // The opponent in a trainer battle; filled in by mic-core, which owns the trainer table.
   BattleTrainer trainer = 6;
-  // Two Pokémon a side (plans/battles D27).
+  // Two Pokémon a side (phase-5 D27).
   bool doubles = 7;
 }
 
@@ -130,7 +130,7 @@ message PositionRequest {
 // mic-battles itself: the battle plays on without a request.
 message BattleRequest {
   RequestKind kind = 1;
-  // The number BattleChoice must carry (plans/battles D2): it grows by one per choice played,
+  // The number BattleChoice must carry (phase-5 D2): it grows by one per choice played,
   // forced switches included, so it isn't the turn number.
   uint32 step = 2;
   // ACTION: the active Pokémon's moves. Every one disabled or out of PP: FIGHT uses Struggle.
@@ -160,7 +160,7 @@ message SwitchAction {
   uint32 party_slot = 1;
 }
 
-// BAG: use an item (plans/battles D12).
+// BAG: use an item (phase-5 D12).
 message ItemAction {
   pokeuniverse.item.v1.Item item = 1;
   // The party member it's used on (Battler.party_slot); a Poké Ball ignores it.

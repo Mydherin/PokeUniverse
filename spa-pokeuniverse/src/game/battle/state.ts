@@ -1,4 +1,4 @@
-// A battle as the player sees it, the same for every art style (plans/battles M7): built from a
+// A battle as the player sees it, the same for every art style (phase-5 M7): built from a
 // BattleView, then changed by each BattleEvent as the screen plays it, and holding the request
 // the player must answer. It decides nothing: mic-battles resolves, mic-core forwards.
 

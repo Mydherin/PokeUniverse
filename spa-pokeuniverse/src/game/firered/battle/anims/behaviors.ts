@@ -1,4 +1,4 @@
-// The behaviors scripts name (plans/battles D9): sprite templates (their callbacks) and visual
+// The behaviors scripts name (phase-5 D9): sprite templates (their callbacks) and visual
 // tasks, written from FireRed's behavior, a file per family (behaviors/). Keyed by the game's
 // names, so converted scripts find them; the generic animations' own behaviors are named
 // `Generic*`. The expansion's moves add gen4.ts, mostly FireRed's behaviors in new art.

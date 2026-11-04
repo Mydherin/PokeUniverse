@@ -1,4 +1,4 @@
-// The expansion's moves (355-467, plans/battles M10): most of its templates are FireRed's behaviors
+// The expansion's moves (355-467, phase-5 M10): most of its templates are FireRed's behaviors
 // in new art (`skin`), the rest are its new callbacks and tasks, written here from their behavior.
 
 import type { AffineCmd, AnimCmd, Sprite } from "../../../../gba/sprites";

@@ -1,4 +1,4 @@
-// Move animations (plans/battles D9): a script is data, a list of FireRed's battle animation
+// Move animations (phase-5 D9): a script is data, a list of FireRed's battle animation
 // commands (battle_anim.c); the sprite templates and visual tasks it names are behaviors written
 // here (behaviors.ts). A script whose behaviors aren't all written plays the generic animation
 // of its move's type and category (generic.ts).

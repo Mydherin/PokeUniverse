@@ -213,7 +213,7 @@ export type WorldSnapshot = Message$1<"pokeuniverse.world.v1.WorldSnapshot"> & {
   party?: Party | undefined;
 
   /**
-   * The battle the trainer is in, if any: the client redraws it (plans/battles, Resume).
+   * The battle the trainer is in, if any: the client redraws it (phase-5, Resume).
    *
    * @generated from field: pokeuniverse.battle.v1.BattleView battle = 8;
    */

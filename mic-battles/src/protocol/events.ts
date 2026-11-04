@@ -1,4 +1,4 @@
-// Showdown's log → BattleEvents for one side (plans/battles D4, D5). `|split|` lines are resolved
+// Showdown's log → BattleEvents for one side (phase-5 D4, D5). `|split|` lines are resolved
 // before this (see translate.ts): the side's own Pokémon come with exact HP, a foe's as 48 pixels.
 
 import { create, type DescMessage, type MessageInitShape } from "@bufbuild/protobuf";

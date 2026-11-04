@@ -1,6 +1,6 @@
 # Battles: Reference Map
 
-Part of the [battles plan](README.md). Behavior only, never copy code ([AGENTS.md](../../../AGENTS.md#reference-repositories)).
+Part of [Phase 5](../phase-5-battle-system.md). Behavior only, never copy code ([AGENTS.md](../../../../AGENTS.md#reference-repositories)).
 
 | Need | Where |
 |---|---|

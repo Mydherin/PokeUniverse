@@ -1,5 +1,5 @@
 // Run once to write the battle animation scripts as data; they are our source from then on, edited
-// by hand like the other converted catalogs (docs/plans/battles D9). Kept for reference.
+// by hand like the other converted catalogs (phase-5 D9). Kept for reference.
 //
 // node infra/battle/anims.mjs references/pokefirered references/pokeemerald-expansion \
 //   lib-contracts/proto/pokeuniverse/move/v1/catalog.proto spa-pokeuniverse/src/game/firered/battle/anims

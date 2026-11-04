@@ -87,7 +87,7 @@ function statsRaised(p: Pokemon): boolean {
 
 /** GetMostSuitableMonToSwitchInto: the best typed Pokémon that also has a super-effective move,
  *  else the one with the most damaging move. FireRed keeps the type the foe's types hit hardest
- *  (a bug that sends in weak Pokémon); we keep the one they hit least (plans/battles D18). */
+ *  (a bug that sends in weak Pokémon); we keep the one they hit least (phase-5 D18). */
 export function bestReplacement(sim: Battle, side: number, sent: ReadonlySet<number> = new Set()): Pokemon {
   const s = sim.sides[side];
   const foe = s.foe.active.find((p) => !p.fainted) ?? s.foe.active[0];

@@ -49,7 +49,7 @@ type Bus interface {
 // keepAliveEvery renews this replica's sessions well within live.SessionTTL.
 const keepAliveEvery = live.SessionTTL / 3
 
-// hasRunningShoes: FireRed gives the Running Shoes in Pewter City; story flags come in Phase 9.
+// hasRunningShoes: FireRed gives the Running Shoes in Pewter City; story flags come in Phase 10.
 const hasRunningShoes = false
 
 type World struct {
@@ -167,8 +167,8 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}, nil
 }
 
-// loadParty reads the trainer's Pokémon. Test content (plans/battles): until the starter
-// (Phase 9), a trainer with none gets the test team and the test bag.
+// loadParty reads the trainer's Pokémon. Test content (phase-5): until the starter
+// (Phase 10), a trainer with none gets the test team and the test bag.
 func (w *World) loadParty(ctx context.Context, accountID int64, row db.GetTrainerRow, gender trainerv1.Gender, items *item.State) (pokemon.Party, error) {
 	party, err := pokemon.Load(ctx, db.New(w.pool), accountID)
 	if err != nil || len(party) > 0 {

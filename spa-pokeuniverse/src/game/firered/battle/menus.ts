@@ -1,6 +1,6 @@
 // The player's menus (battle_controller_player.c): FIGHT / BAG / POKéMON / RUN with "What will
 // <MON> do?", and the move menu with each move's PP (colored by how much is left) and its type.
-// The Gen 4 category icon (plans/battles D10) stands where "TYPE/" was, before the type's name.
+// The Gen 4 category icon (phase-5 D10) stands where "TYPE/" was, before the type's name.
 // In doubles, the target of a move that asks for one.
 
 import type { Battler } from "@pokeuniverse/contracts/battle/v1/event";

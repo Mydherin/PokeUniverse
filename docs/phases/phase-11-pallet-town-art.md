@@ -1,4 +1,4 @@
-# Phase 10: Pallet Town Art Upgrade
+# Phase 11: Pallet Town Art Upgrade
 
 **Goal:** Pallet Town looks awesome with public art, with the same maps and game ([vision.md](../vision.md#art-direction)).
 

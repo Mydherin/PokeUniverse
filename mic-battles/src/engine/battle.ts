@@ -1,4 +1,4 @@
-// Showdown battles from our StartBattle, and their state for Redis (plans/battles D1, D2).
+// Showdown battles from our StartBattle, and their state for Redis (phase-5 D1, D2).
 // Each Pokémon's Showdown name is its party slot ("0" to "5"): the log's idents then say exactly
 // which party member they mean, and nicknames stay ours.
 

@@ -1,6 +1,6 @@
-# M14 Phase 4 Battle Check ✅
+# M14 Battle Check ✅
 
-Part of the [battles plan](README.md). Manual check of M4-M13 in the game, on desktop and in the phone preset. Its temporary script and overrides are removed.
+Part of [Phase 5](../phase-5-battle-system.md). Manual check of M4-M13 in the game, on desktop and in the phone preset. Its temporary script and overrides are removed.
 
 ## Resume Here
 
@@ -8,7 +8,7 @@ No code left to write but the minor open items below, and nothing to read first.
 
 - **The user:** frame rate on a real phone (the preset can't show it). A problem found there is a new fix; otherwise this plan is closed.
 
-**State:** stack running with both fixes, no service warnings. AA's party, bag and money (2560) restored; Pokédex seen back to full. `infra/playtest/` and `zz_playtest.go` are deleted, so a new play test needs its own overrides (git has neither).
+**State:** AA's party, bag and money (2560) restored; Pokédex seen back to full. `infra/playtest/` and `zz_playtest.go` are deleted, so a new play test needs its own overrides (git has neither).
 
 **Not run, optional, only if the user asks:**
 
@@ -33,7 +33,7 @@ No code left to write but the minor open items below, and nothing to read first.
 - **Mobile (phone preset):** D-pad, A, B show at their sizes and work through the battle menus, bag and party. START has no use in a battle, so it wasn't pressed.
 - **Already played in M13 (desktop):** moves, switch, faint, replacement, SHIFT, doubles, a doubles loss, a doubles win with its prize.
 
-**Not tested, not built, all in [Phase 5](../../phases/phase-5-pokemon-party.md) (the user, 2026-11-04):** TM/HM teaching, items used on a Pokémon outside battle (Rare Candy, potions, stones), Exp. Share's effect.
+**Not tested, not built, all in [Phase 6](../../phase-6-pokemon-party.md) (the user, 2026-11-04):** TM/HM teaching, items used on a Pokémon outside battle (Rare Candy, potions, stones), Exp. Share's effect.
 
 ## Bugs Fixed
 
@@ -47,6 +47,8 @@ No code left to write but the minor open items below, and nothing to read first.
 
 ## Open, minor, not fixed
 
-- The player's throw is approximate (`throwBall`: from 32,72, no slowdown; FireRed: from 48,70, 25 frames, arc -30, slower mid-flight).
-- A transformed Pokémon's recall uses `info.species` for its Y delta, not checked against `transformSpecies`.
+The user approved fixing these (2026-11-04); not started.
+
+- The player's throw is approximate: `throwBall` in `spa-pokeuniverse/src/game/firered/battle/playback.ts` goes from 32,72 in 24 frames, arc 32, no slowdown; FireRed: from 48,70, 25 frames, arc -30, slower mid-flight. `ballBlocked` uses it too.
+- A transformed Pokémon's recall: `switchOut` in the same file takes `scene.monYDelta(info)`, which uses `info.species`; not checked against `transformSpecies`.
 - A failed `battles.turn` leaves the client on an empty box with no error (seen with Dire Hit, before its fix).

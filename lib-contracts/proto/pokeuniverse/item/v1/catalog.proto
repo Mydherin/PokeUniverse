@@ -67,7 +67,7 @@ enum FieldUse {
   FIELD_USE_TM_HM = 25;
 }
 
-// How BAG uses an item in battle (plans/battles M12). Unspecified: it can't be ("This isn't the time...").
+// How BAG uses an item in battle (phase-5 M12). Unspecified: it can't be ("This isn't the time...").
 enum BattleUse {
   BATTLE_USE_UNSPECIFIED = 0;
   // On a party Pokémon the player chooses.

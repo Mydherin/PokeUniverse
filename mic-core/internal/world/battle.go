@@ -19,7 +19,7 @@ import (
 	"pokeuniverse/mic-core/internal/pokemon"
 )
 
-// Battles from mic-core's side (plans/battles, Battle Flow): the zone checks every choice,
+// Battles from mic-core's side (phase-5, Battle Flow): the zone checks every choice,
 // asks mic-battles off its goroutine (retrying while mic-battles restarts) and, back in it,
 // saves what changed before showing it. The active battle lives in Redis (package battle), so
 // a restart of either service resumes it; a player who leaves mid-battle drops it (rollback).
@@ -232,7 +232,7 @@ func (z *zone) abandonBattle(p *Player) {
 }
 
 // usableInBattle: an item with a use in battle that the trainer has (mic-battles checks what it
-// does now). A trainer blocks Poké Balls; catching comes with wild battles (Phase 6).
+// does now). A trainer blocks Poké Balls; catching comes with wild battles (Phase 7).
 func usableInBattle(p *Player, id itemv1.Item) bool {
 	info, ok := item.Info(id)
 	return ok && info.GetBattleUse() != itemv1.BattleUse_BATTLE_USE_UNSPECIFIED && p.items.Bag.Quantity(id) > 0

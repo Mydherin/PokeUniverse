@@ -1,6 +1,6 @@
 # M10 Gen 4 Move Animations (355-467) ✅
 
-Part of the [battles plan](README.md). **Needs:** M8, M9. Shared rules: [context.md](context.md). **Done when:** moves 355-467 animate in Gen 3 style.
+Part of [Phase 5](../phase-5-battle-system.md). **Needs:** M8, M9. Shared rules: [context.md](context.md). **Done when:** moves 355-467 animate in Gen 3 style.
 
 - [x] The expansion's behaviors and art for all 113 moves. No sound was missing (all in `sounds.json`).
 - [x] The test teams' Gen 4 moves (written with the rest, not first).

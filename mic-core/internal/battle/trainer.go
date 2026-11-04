@@ -1,4 +1,4 @@
-// Package battle is what mic-core owns of battles (plans/battles D3): NPC trainers, the teams it
+// Package battle is what mic-core owns of battles (phase-5 D3): NPC trainers, the teams it
 // sends to mic-battles, how an outcome changes the party and money, and each player's active
 // battle in Redis. mic-battles resolves the turns (package battles talks to it).
 package battle
@@ -23,13 +23,13 @@ type Trainer struct {
 	// gTrainerMoneyTable's value for the class: the prize is 4 × the last Pokémon's level × it.
 	MoneyRate int
 	AI        []battlev1.AiFlag
-	// Up to 4, each used once (plans/battles M5).
+	// Up to 4, each used once (phase-5 M5).
 	Items []itemv1.Item
 	Level int
 	Team  []pokemon.Set
 	// Both teams are healed before each battle (the room's test trainer).
 	Heals bool
-	// Two Pokémon a side; the player needs two that can battle (plans/battles D27).
+	// Two Pokémon a side; the player needs two that can battle (phase-5 D27).
 	Doubles bool
 }
 

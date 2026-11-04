@@ -1,5 +1,5 @@
 // Package pokedex keeps the trainer's Pokédex: whether they have it, the National Pokédex, and
-// the species seen (battles) and caught (evolutions; catches come with wild battles, Phase 6).
+// the species seen (battles) and caught (evolutions; catches come with wild battles, Phase 7).
 package pokedex
 
 import (

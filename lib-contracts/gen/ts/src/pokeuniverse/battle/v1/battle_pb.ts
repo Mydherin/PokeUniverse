@@ -226,14 +226,14 @@ export type BattleTeam = Message<"pokeuniverse.battle.v1.BattleTeam"> & {
   aiFlags: AiFlag[];
 
   /**
-   * An AI trainer's items (up to 4, FireRed's rules: plans/battles M5). Each is used once.
+   * An AI trainer's items (up to 4, FireRed's rules: phase-5 M5). Each is used once.
    *
    * @generated from field: repeated pokeuniverse.item.v1.Item items = 3;
    */
   items: Item[];
 
   /**
-   * This player's battle style is SHIFT: offered a change when a foe faints (plans/battles D26).
+   * This player's battle style is SHIFT: offered a change when a foe faints (phase-5 D26).
    *
    * @generated from field: bool shift_style = 4;
    */
@@ -280,7 +280,7 @@ export type StartBattle = Message<"pokeuniverse.battle.v1.StartBattle"> & {
   seed: bigint;
 
   /**
-   * Two Pokémon a side (plans/battles D27).
+   * Two Pokémon a side (phase-5 D27).
    *
    * @generated from field: bool doubles = 5;
    */
@@ -327,7 +327,7 @@ export const SideChoiceSchema: GenMessage<SideChoice> = /*@__PURE__*/
 
 /**
  * Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step
- * already played answers its saved BattleUpdate again (safe retries, plans/battles D2).
+ * already played answers its saved BattleUpdate again (safe retries, phase-5 D2).
  *
  * @generated from message pokeuniverse.battle.v1.TurnRequest
  */
@@ -575,7 +575,7 @@ export const BattleUpdateSchema: GenMessage<BattleUpdate> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_battle_v1_battle, 13);
 
 /**
- * FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (plans/battles D6).
+ * FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (phase-5 D6).
  *
  * @generated from enum pokeuniverse.battle.v1.AiFlag
  */

@@ -222,7 +222,7 @@ func (FieldUse) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{1}
 }
 
-// How BAG uses an item in battle (plans/battles M12). Unspecified: it can't be ("This isn't the time...").
+// How BAG uses an item in battle (phase-5 M12). Unspecified: it can't be ("This isn't the time...").
 type BattleUse int32
 
 const (

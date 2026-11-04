@@ -33,7 +33,7 @@ message Pong {
   string format = 3;
 }
 
-// FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (plans/battles D6).
+// FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (phase-5 D6).
 enum AiFlag {
   AI_FLAG_UNSPECIFIED = 0;
   AI_FLAG_CHECK_BAD_MOVE = 1;
@@ -81,9 +81,9 @@ message BattleTeam {
   // Empty: a player chooses for this side (or, in a wild battle, side 1 picks a random move).
   // Otherwise mic-battles' AI does, with these flags.
   repeated AiFlag ai_flags = 2;
-  // An AI trainer's items (up to 4, FireRed's rules: plans/battles M5). Each is used once.
+  // An AI trainer's items (up to 4, FireRed's rules: phase-5 M5). Each is used once.
   repeated pokeuniverse.item.v1.Item items = 3;
-  // This player's battle style is SHIFT: offered a change when a foe faints (plans/battles D26).
+  // This player's battle style is SHIFT: offered a change when a foe faints (phase-5 D26).
   bool shift_style = 4;
 }
 
@@ -96,7 +96,7 @@ message StartBattle {
   repeated BattleTeam sides = 3;
   // Showdown's PRNG seed: the whole battle follows from it and the choices.
   uint64 seed = 4;
-  // Two Pokémon a side (plans/battles D27).
+  // Two Pokémon a side (phase-5 D27).
   bool doubles = 5;
 }
 
@@ -109,7 +109,7 @@ message SideChoice {
 }
 
 // Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step
-// already played answers its saved BattleUpdate again (safe retries, plans/battles D2).
+// already played answers its saved BattleUpdate again (safe retries, phase-5 D2).
 message TurnRequest {
   string battle_id = 1;
   uint32 step = 2;

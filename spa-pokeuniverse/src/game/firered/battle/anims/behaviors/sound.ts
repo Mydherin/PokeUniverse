@@ -10,7 +10,7 @@ const clampPan = (pan: number) => Math.max(-64, Math.min(63, pan));
 
 /**
  * PlayCry_ByMode on a battler, at the attacker's side. Only normal and faint cries are rendered
- * (plans/battles D15), so the normal cry stands in for the growl, roar, echo and high pitch modes.
+ * (phase-5 D15), so the normal cry stands in for the growl, roar, echo and high pitch modes.
  */
 function cry(run: AnimRun, which: AnimBattler): boolean {
   const { species, sprite } = run.mon(which);

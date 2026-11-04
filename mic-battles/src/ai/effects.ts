@@ -1,5 +1,5 @@
 // Each move's FireRed AI effect (FireRed's EFFECT_* names, include/constants/battle_move_effects.h),
-// read from Showdown's Gen 4 move data, so Gen 4 moves get one too (plans/battles D17). Moves whose
+// read from Showdown's Gen 4 move data, so Gen 4 moves get one too (phase-5 D17). Moves whose
 // data doesn't say it are named by ID.
 
 import type { Move } from "@pkmn/sim";

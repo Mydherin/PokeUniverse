@@ -1,6 +1,6 @@
 # M4 Battle Engine in `mic-battles` ✅
 
-Part of the [battles plan](README.md). Shared rules and context: [context.md](context.md). Done 2026-11-01; this file keeps what later milestones use.
+Part of [Phase 5](../phase-5-battle-system.md). Shared rules and context: [context.md](context.md). Done 2026-11-01; this file keeps what later milestones use.
 
 ## What Exists
 

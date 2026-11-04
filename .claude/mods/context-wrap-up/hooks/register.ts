@@ -5,7 +5,7 @@ import type { Stage } from '../types'
 
 const LIMIT_PERCENT = 20
 const PROMPT =
-  'Finish in progress task and update proper milestone file to track the progression and remaining tasks leaving it ready for a new fresh start really efficient'
+  'Finish in progress task and update the proper milestone or phase file and the Current Work pointer in AGENTS.md to track the progression and remaining tasks leaving it ready for a new fresh start really efficient'
 
 const stage = atom({ plugin: 'context-wrap-up', key: 'stage' } as const, 'armed' as Stage)
 
