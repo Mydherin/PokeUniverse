@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M1b](milestones/m01b-item-use-scene.md#resume-here): the scene and M1's battle BAG fixes played. Left: a whole battle won, PC, walk and SAVE, one look at the original. Then M2.
+**Next step:** [M2: Rare Candy and evolution stones](milestones/m02-growth-items.md). M1b is played and closed.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -15,7 +15,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | # | Milestone | Status | Needs | In short |
 |---|---|---|---|---|
 | M1 | [Items on a Pokémon: medicine and PP](milestones/m01-party-item-use.md) | ✅ | | The party menu's USE mode and `UsePartyItem`; potions, status cures, revives, vitamins, Sacred Ash, PP items |
-| M1b | [FireRed's item-use scene](milestones/m01b-item-use-scene.md) | 🚧 | M1 | The Pokémon and item scene before an item's effect; M2 and M3 add its other variants |
+| M1b | [FireRed's item-use scene](milestones/m01b-item-use-scene.md) | ✅ | M1 | The Pokémon and item scene before an item's effect; M2 and M3 add its other variants |
 | M2 | [Rare Candy and evolution stones](milestones/m02-growth-items.md) | ⬜ | M1b | Level up, learning and evolution outside battle, reusing Phase 5 M11 |
 | M3 | [TM/HM teaching](milestones/m03-tm-hm-teaching.md) | ⬜ | M2 | TM and tutor learnsets in the catalog; the TM CASE's USE; ABLE / NOT ABLE |
 | M4 | [Exp. Share and held items](milestones/m04-exp-share-held-items.md) | ⬜ | | Exp. Share's split in `mic-battles`; held items' effects outside battle |
