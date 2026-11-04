@@ -14,6 +14,8 @@
   "se_warp_in": { "song": "se_warp_in" },
   "se_win_open": { "song": "se_win_open" },
   "se_wall_hit": { "song": "se_wall_hit" },
+  "se_save": { "song": "se_save" },
+  "se_exit": { "song": "se_exit" },
   "se_pc_on": { "song": "se_pc_on" },
   "se_pc_login": { "song": "se_pc_login" },
   "se_pc_off": { "song": "se_pc_off" },

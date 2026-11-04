@@ -143,6 +143,7 @@ const NEW_GAME_GRAPHICS = {
   owRedRun: { png: "object_events/pics/people/red_surf_run.png" },
   // Overworld NPCs (npc-sprite.ts): their frames and palettes
   owCooltrainerM: { png: "object_events/pics/people/cooltrainer_m.png" },
+  owMom: { png: "object_events/pics/people/mom.png" },
   owNpcBluePal: { pal: "object_events/palettes/npc_blue.pal" },
   owGreenRun: { png: "object_events/pics/people/green_surf_run.png" },
   signpostFrame: { png: "text_window/signpost.png" },
@@ -371,6 +372,8 @@ export const NEW_GAME_SOUNDS = [
   "se_repel",
   "se_glass_flute",
   "se_ball_tray_enter",
+  "se_save",
+  "se_exit",
 ] as const;
 /** The battle's music and sounds, loaded with the battle set. */
 export const BATTLE_SOUNDS = [
@@ -428,6 +431,10 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "pallet_town_players_house_2f.played_with_nes": "PalletTown_PlayersHouse_2F_Text_PlayedWithNES",
   "pallet_town_players_house_2f.press_lr_for_help": "PalletTown_PlayersHouse_2F_Text_PressLRForHelp",
   "common.player_booted_up_pc": "Text_PlayerBootedUpPC",
+  "pallet_town_players_house_1f.mom": "PalletTown_PlayersHouse_1F_Text_AllBoysLeaveOakLookingForYou",
+  "pallet_town_players_house_1f.mom_girl": "PalletTown_PlayersHouse_1F_Text_AllGirlsLeaveOakLookingForYou",
+  "pallet_town_players_house_1f.tv": "PalletTown_PlayersHouse_1F_Text_MovieOnTVFourBoysOnRailroad",
+  "pallet_town_players_house_1f.tv_girl": "PalletTown_PlayersHouse_1F_Text_MovieOnTVGirlOnBrickRoad",
   // Test content (phase-5): the room's test trainer, removed in Phase 10.
   "test_trainer.question": "Route13_Text_SheilaIntro",
   "test_trainer.intro": "VictoryRoad_1F_Text_RolandoIntro",

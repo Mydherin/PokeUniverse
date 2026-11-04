@@ -9,7 +9,7 @@ export const enum Collision {
   None,
   /** A wall, the map's edge, a one-way tile or another elevation: the player bumps. */
   Blocked,
-  /** On a stair warp, facing its way: the player only turns (the warp comes with map changes). */
+  /** On a stair warp's tile, going its way: the player takes the warp, or only turns if the tile has none. */
   StairWarp,
 }
 

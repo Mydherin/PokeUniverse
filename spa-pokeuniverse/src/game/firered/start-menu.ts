@@ -122,10 +122,21 @@ export class StartMenu {
   /** CloseStartMenu, with the help bar (StartMenuExitCallback, or B). */
   close(): void {
     this.flow.play("se_select");
+    this.removeForSave();
+  }
+
+  /** The menu and help bar gone, without a sound: SAVE's dialog takes their place. */
+  removeForSave(): void {
     this.help?.destroy();
     this.help = null;
     clearStdWindowAndFrame(this.win);
     this.menu = null;
+  }
+
+  /** Back from SAVE (DrawStartMenuInOneGo). */
+  redraw(): void {
+    this.drawFrames = 1;
+    this.draw();
   }
 
   private name(entry: StartMenuEntry): Text {

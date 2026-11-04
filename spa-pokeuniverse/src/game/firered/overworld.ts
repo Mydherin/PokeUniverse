@@ -12,6 +12,9 @@
 // to the player, and a trainer's script asks YES/NO, plays their encounter music and starts a
 // battle: the battle screen (phase-5 M7) takes over until it ends, and the script goes on
 // after a win. A battle in progress after a reconnect is drawn again as it stands.
+// The stairs start leaving at once (predicted, no latency); mic-core decides and answers Warped
+// once saved. The next map loads on the black screen, so a slow answer only stays black longer,
+// and a refusal fades back in. SAVE is a homage: it asks mic-core nothing (save-dialog.ts).
 
 import { create } from "@bufbuild/protobuf";
 import type { BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
@@ -20,11 +23,11 @@ import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from 
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
-import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
+import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { PokemonEvolvedSchema, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
-import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
 import type { Task } from "../gba/tasks";
@@ -34,13 +37,15 @@ import { Avatar, type AvatarInput } from "../world/avatar";
 import { BagState, StoredItems } from "../world/items";
 import { PartyState } from "../world/party";
 import { PokedexState } from "../world/pokedex";
-import { loadMap, TILE } from "../world/map";
-import { FieldMessage } from "./field-message";
-import { DLG_WINDOW_PALETTE, MENU_NOTHING_CHOSEN, YesNoMenu } from "./menu";
+import { behaviorAt, loadMap, TILE } from "../world/map";
+import { FieldMessage, fieldYesNo } from "./field-message";
+import { MENU_NOTHING_CHOSEN, type YesNoMenu } from "./menu";
 import { NpcSprite } from "./npc-sprite";
 import type { Flow } from "./flow";
 import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
+import { SaveDialog } from "./save-dialog";
+import { ArrivingStairs, LeavingStairs } from "./stair-warp";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
 import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-messages";
 import { startItemPc, type ItemPcHost } from "./item-pc";
@@ -71,14 +76,16 @@ export function startOverworld(flow: Flow): void {
   let pending: WorldSnapshot | null = null;
   const enter = (snapshot: WorldSnapshot) => {
     pending = snapshot;
+    // A warp's load still running ends first: two world.show can't cross.
+    const settled = overworld?.settled;
     overworld?.destroy();
     overworld = null;
-    void Promise.all([flow.newGameReady(), loadWorld(flow, snapshot.map)]).then(
+    void Promise.all([flow.newGameReady(), Promise.resolve(settled).then(() => loadWorld(flow, snapshot.map))]).then(
       ([, map]) => {
         const latest = pending!;
         pending = null;
         if (latest.map !== map.id) return enter(latest);
-        overworld = new Overworld(flow, map, latest);
+        overworld = new Overworld(flow, map, latest, leave);
       },
       () => leave(),
     );
@@ -98,6 +105,7 @@ export function startOverworld(flow: Flow): void {
       else enter(s);
     },
     correction: (c) => overworld?.correct(c),
+    warped: (w) => overworld?.warped(w),
     script: (s) => overworld?.run(s),
     bagChanged: (b) => overworld?.bagChanged(b),
     pcChanged: (p) => overworld?.pcChanged(p),
@@ -143,6 +151,8 @@ interface Menu {
   returning: Return;
   /** The screen to open once the world faded to black. */
   opening: (() => void) | null;
+  /** SAVE's dialog, in place of the menu. */
+  saving: SaveDialog | null;
 }
 
 /** The PC in use: its menus and what it stores, as mic-core last said. */
@@ -161,6 +171,8 @@ interface PcScreenTile {
 /** A script the server sent, step by step. */
 interface Running {
   id: number;
+  /** The NPC who answered, if any. */
+  npc: string;
   steps: ScriptStep[];
   index: number;
   /** The current message is printed: waiting for A or B. */
@@ -171,8 +183,15 @@ interface Running {
   battling: boolean;
 }
 
-/** DisplayYesNoMenuDefaultYes: the field's YES/NO window, over the message box's right end. */
-const FIELD_YES_NO = { left: 21, top: 9, width: 6, height: 4, palette: DLG_WINDOW_PALETTE, baseBlock: 0x125 };
+/** A warp under way, from the moment the player leaves until the next map is placed. */
+interface Warp {
+  /** The sprite leaving; none when the warp was cancelled and mic-core's answer came after all. */
+  stairs: LeavingStairs | null;
+  /** mic-core's answer. */
+  arrival: Warped | null;
+  /** The next map is loading, on the black screen. */
+  loading: boolean;
+}
 
 /** Where an NPC turns to face the player who faces it (faceplayer). */
 const FACING_PLAYER: Partial<Record<Direction, Direction>> = {
@@ -183,10 +202,16 @@ const FACING_PLAYER: Partial<Record<Direction, Direction>> = {
 };
 
 class Overworld {
-  readonly mapId: string;
-  private readonly avatar: Avatar;
-  private readonly sprite: PlayerSprite;
-  private readonly npcs: NpcSprite[];
+  /** Ends when no map load of this overworld is running. Never rejects. */
+  settled: Promise<void> = Promise.resolve();
+  private map!: ClientMap;
+  private avatar!: Avatar;
+  private sprite!: PlayerSprite;
+  private npcs!: NpcSprite[];
+  private readonly gender: Gender;
+  private warp: Warp | null = null;
+  private arriving: ArrivingStairs | null = null;
+  private destroyed = false;
   private message!: FieldMessage;
   /** The battle the trainer is in (its ID): the player can't move until it ends. */
   private battle: string | null;
@@ -219,30 +244,46 @@ class Overworld {
 
   constructor(
     private readonly flow: Flow,
-    private readonly map: ClientMap,
+    map: ClientMap,
     snapshot: WorldSnapshot,
+    /** Back to the title: the next map couldn't load. */
+    private readonly leave: () => void,
   ) {
-    const { gba, world, link } = flow;
+    const { gba } = flow;
     const p = snapshot.player!;
-    this.mapId = map.id;
+    this.gender = p.gender;
     this.playerName = flow.encode(flow.trainer?.name ?? "");
     this.bag = new BagState(snapshot.bag);
     this.pokedex = new PokedexState(snapshot.pokedex);
     this.party = new PartyState(snapshot.party);
-    this.avatar = new Avatar(map, p.x, p.y, p.facing, snapshot.canRun, {
+    this.place(map, p.x, p.y, p.facing, snapshot.canRun);
+    this.battle = snapshot.battle?.battleId ?? null;
+    if (map.music) gba.sound.playBgm(map.music);
+    this.enter(false);
+    if (snapshot.battle) this.showBattle(snapshot.battle, [], false);
+  }
+
+  /** No map's id while the next one loads: any snapshot then starts over from what it says. */
+  get mapId(): string {
+    return this.warp?.loading ? "" : this.map.id;
+  }
+
+  /** The player and NPCs on a map that's already drawn. */
+  private place(map: ClientMap, x: number, y: number, facing: Direction, canRun: boolean): void {
+    const { flow } = this;
+    const { world, link } = flow;
+    this.map = map;
+    this.avatar = new Avatar(map, x, y, facing, canRun, {
       move: (step, d, run, x, y) => link.move(step, d, run, x, y),
       turn: (d) => link.turn(d),
+      warp: (d, x, y) => this.leaveByStairs(d, x, y),
       interact: (walkInto) => link.interact(walkInto),
       openMenu: () => this.openMenu(false),
       useRegistered: () => this.useRegistered(),
       bump: () => flow.play("se_wall_hit"),
     });
-    this.sprite = new PlayerSprite(world, flow.assets, p.gender);
+    this.sprite = new PlayerSprite(world, flow.assets, this.gender);
     this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
-    this.battle = snapshot.battle?.battleId ?? null;
-    if (map.music) gba.sound.playBgm(map.music);
-    this.enter(false);
-    if (snapshot.battle) this.showBattle(snapshot.battle, [], false);
   }
 
   /**
@@ -281,6 +322,7 @@ class Overworld {
   /** Back in the world after a reconnect: where the server has the player, no script running. */
   resume(s: WorldSnapshot): void {
     const p = s.player!;
+    this.cancelWarp();
     this.avatar.snap(p.x, p.y, p.facing);
     this.avatar.waiting = false;
     this.endScript(false);
@@ -526,14 +568,75 @@ class Overworld {
   }
 
   correct(c: Correction): void {
+    this.cancelWarp();
     this.avatar.snap(c.x, c.y, c.facing);
+  }
+
+  /** mic-core took the player through; a warp cancelled by an older correction fades out first. */
+  warped(w: Warped): void {
+    if (this.warp) {
+      this.warp.arrival = w;
+      return;
+    }
+    this.flow.gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+    this.warp = { stairs: null, arrival: w, loading: false };
+  }
+
+  /** The stairs, predicted: the sprite starts leaving at once. */
+  private leaveByStairs(d: Direction, x: number, y: number): void {
+    const { flow, avatar, sprite } = this;
+    flow.link.useWarp(d, x, y);
+    this.warp = { stairs: new LeavingStairs(flow, avatar, sprite, behaviorAt(this.map, x, y)), arrival: null, loading: false };
+  }
+
+  /** mic-core refused, or the connection came back without the warp: the player stays here. */
+  private cancelWarp(): void {
+    if (!this.warp || this.warp.loading) return;
+    this.warp = null;
+    this.sprite.offsetX = this.sprite.offsetY = 0;
+    this.sprite.forceOver = false;
+    const { palettes } = this.flow.gba;
+    if (!palettes.fadeActive && palettes.fadeY === 0) return;
+    palettes.stopFade();
+    palettes.beginFade(PALETTES_ALL, 0, palettes.fadeY, 0, RGB_BLACK);
+  }
+
+  /** The screen is black and mic-core answered: the next map loads, then the player arrives. */
+  private travel(warp: Warp, to: Warped): void {
+    const { flow } = this;
+    warp.loading = true;
+    this.destroySprites();
+    this.settled = loadWorld(flow, to.map).then(
+      (map) => {
+        if (this.destroyed) return;
+        const previousMusic = this.map.music;
+        this.warp = null;
+        this.place(map, to.x, to.y, to.facing, to.canRun);
+        // The same song keeps playing (TryFadeOutOldMapMusic).
+        if (map.music && map.music !== previousMusic) flow.gba.sound.playBgm(map.music);
+        this.enter(false);
+        this.arriving = new ArrivingStairs(flow, this.avatar, this.sprite, behaviorAt(map, to.x, to.y));
+      },
+      () => {
+        if (!this.destroyed) this.leave();
+      },
+    );
+  }
+
+  /** One frame of a warp under way, either way. */
+  private runWarp(): void {
+    if (this.arriving?.update()) this.arriving = null;
+    const w = this.warp;
+    if (!w) return;
+    const black = w.stairs ? w.stairs.update() : !this.flow.gba.palettes.fadeActive;
+    if (black && w.arrival) this.travel(w, w.arrival);
   }
 
   /** The answer to an interaction: nothing, or a script to show. */
   run(s: Script): void {
     this.avatar.waiting = false;
     if (!s.steps.length) return;
-    this.script = { id: s.id, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false };
+    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false };
     // A trainer's script: the battle's art and sounds load while they talk.
     if (s.steps.some((step) => step.action.case === "trainerBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
@@ -541,13 +644,22 @@ class Overworld {
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.destroySprites();
+    this.message.hide();
+  }
+
+  private destroySprites(): void {
     this.sprite.destroy();
     for (const npc of this.npcs) npc.destroy();
-    this.message.hide();
   }
 
   private frame(): void {
     const { input } = this.flow.gba;
+    if (this.warp?.loading) return;
+    this.runWarp();
+    // Just started loading: the sprites are gone.
+    if (this.warp?.loading) return;
     if (this.fieldOpening) {
       if (this.flow.gba.palettes.fadeActive) return;
       const open = this.fieldOpening;
@@ -571,7 +683,7 @@ class Overworld {
       select: input.isPressed(Button.Select),
     };
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
-    const locked = this.script !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
+    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
     this.draw();
   }
@@ -582,7 +694,7 @@ class Overworld {
     if (!returning) flow.play("se_win_open");
     const helpBar = flow.options.buttonMode === ButtonMode.HELP;
     const menu = new StartMenu(flow, flow.gba.video.bgs[0], this.playerName, { hasPokedex: this.pokedex.obtained, hasPokemon: this.party.count > 0, helpBar });
-    this.menu = { menu, returning: returning ? Return.Drawing : Return.None, opening: null };
+    this.menu = { menu, returning: returning ? Return.Drawing : Return.None, opening: null, saving: null };
     menu.draw();
   }
 
@@ -591,6 +703,13 @@ class Overworld {
     const { palettes } = this.flow.gba;
     if (m.opening) {
       if (!palettes.fadeActive) m.opening();
+      return;
+    }
+    if (m.saving) {
+      const outcome = m.saving.update();
+      if (outcome) m.saving = null;
+      if (outcome === "cancelled") m.menu.redraw();
+      else if (outcome === "saved") this.menu = null;
       return;
     }
     if (!m.menu.draw()) return;
@@ -627,7 +746,10 @@ class Overworld {
     else if (chosen === StartMenuEntry.Pokemon) this.openScreen((back) => startPartyMenu(this.flow, this.partyHost(), { kind: "field" }, back));
     else if (chosen === StartMenuEntry.Player) this.openScreen((back) => startTrainerCard(this.flow, this.flow.trainer!, this.playerName, back));
     else if (chosen === StartMenuEntry.Option) this.openScreen((back) => startOptionMenu(this.flow, FIELD_BACKDROP, back));
-    // SAVE comes next (phase 4); until then choosing it does nothing more.
+    else if (chosen === StartMenuEntry.Save) {
+      m.menu.removeForSave();
+      m.saving = new SaveDialog(this.flow, this.message, { playerName: this.playerName, region: this.map.region, pokedex: this.pokedex });
+    }
   }
 
   /**
@@ -702,6 +824,12 @@ class Overworld {
         }
         return;
       }
+      if (step.action.case === "faceOriginal") {
+        const npc = this.npcs.find((n) => n.npc.id === s.npc);
+        npc?.face(npc.npc.facing);
+        s.index++;
+        continue;
+      }
       if (step.action.case !== "message") {
         s.index++;
         continue;
@@ -726,7 +854,7 @@ class Overworld {
 
   /** The YES/NO menu over the message: true YES, false NO (or B), null while it waits. */
   private runYesNo(s: Running): boolean | null {
-    s.yesNo ??= new YesNoMenu(this.flow, this.flow.gba.video.bgs[0], FIELD_YES_NO, FontId.Normal, 0, 2, 0);
+    s.yesNo ??= fieldYesNo(this.flow);
     const answer = s.yesNo.processInput();
     if (answer === MENU_NOTHING_CHOSEN) return null;
     s.yesNo = null;

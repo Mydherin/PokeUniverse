@@ -5,10 +5,18 @@
 import { FontId, Window, type Text } from "../gba/text";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
-import { clearDialogWindowAndFrame, drawDialogueFrame, loadSignpostWindowFrameGfx, loadStdWindowFrameGfx, STANDARD_TEXT_BOX } from "./menu";
+import { clearDialogWindowAndFrame, DLG_WINDOW_PALETTE, drawDialogueFrame, loadSignpostWindowFrameGfx, loadStdWindowFrameGfx, STANDARD_TEXT_BOX, YesNoMenu } from "./menu";
 import { textSpeedDelay } from "./options";
+
 /** Tiles BG0 holds: the window's, then the frames'. */
 const BG0_TILES = 0x21d;
+/** DisplayYesNoMenuDefaultYes: the field's YES/NO window, over the message box's right end. */
+const FIELD_YES_NO = { left: 21, top: 9, width: 6, height: 4, palette: DLG_WINDOW_PALETTE, baseBlock: 0x125 };
+
+/** The field's YES/NO, YES first. */
+export function fieldYesNo(flow: Flow): YesNoMenu {
+  return new YesNoMenu(flow, flow.gba.video.bgs[0], FIELD_YES_NO, FontId.Normal, 0, 2, 0);
+}
 
 export class FieldMessage {
   private readonly win: Window;

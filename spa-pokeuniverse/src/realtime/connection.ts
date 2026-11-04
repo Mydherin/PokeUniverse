@@ -15,7 +15,7 @@ import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import type { PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
-import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, Script, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 
 export type ConnectionStatus =
@@ -34,6 +34,8 @@ export interface WorldEvents {
   /** Where the player is: on entering, and again after every reconnect. */
   snapshot(s: WorldSnapshot): void;
   correction(c: Correction): void;
+  /** The warp asked for is done and saved: the player is on another map. */
+  warped(w: Warped): void;
   script(s: Script): void;
   /** Bag pockets that changed (before the ItemResult that changed them), or a correction. */
   bagChanged(b: BagChanged): void;
@@ -64,6 +66,8 @@ export interface WorldLink {
   readonly inWorld: boolean;
   move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
   turn(direction: Direction): void;
+  /** Through the warp the player stands on: answered with Warped, or a Correction when refused. */
+  useWarp(direction: Direction, x: number, y: number): void;
   interact(walkInto: boolean): void;
   scriptDone(script: number): void;
   /** The running script reached its TrainerBattle step: answered with BattleStarted (or BattleEnded). */
@@ -182,6 +186,10 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "turn", value: { direction } });
   }
 
+  useWarp(direction: Direction, x: number, y: number): void {
+    if (this.inWorld) this.send({ case: "useWarp", value: { direction, x, y } });
+  }
+
   interact(walkInto: boolean): void {
     if (this.inWorld) this.send({ case: "interact", value: { walkInto } });
   }
@@ -281,6 +289,9 @@ export class Connection implements WorldLink {
         break;
       case "correction":
         this.world?.correction(msg.payload.value);
+        break;
+      case "warped":
+        this.world?.warped(msg.payload.value);
         break;
       case "script":
         this.world?.script(msg.payload.value);

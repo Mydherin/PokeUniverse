@@ -39,6 +39,11 @@ export function npcAt(map: ClientMap, x: number, y: number): boolean {
   return map.npcs.some((n) => n.x === x && n.y === y);
 }
 
+/** Whether a warp leaves from the cell (a map has a handful: a scan is enough). */
+export function warpAt(map: ClientMap, x: number, y: number): boolean {
+  return map.warps.some((w) => w.x === x && w.y === y);
+}
+
 /** The cell's tile behavior; unspecified outside the map. */
 export function behaviorAt(map: ClientMap, x: number, y: number): TileBehavior {
   return inside(map, x, y) ? map.behaviors[y * map.width + x] : TileBehavior.UNSPECIFIED;

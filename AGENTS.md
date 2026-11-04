@@ -18,7 +18,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 4's Resume Here](docs/phases/phase-4-players-room.md#resume-here): server and contracts for warps done (uncommitted); next assets, client stairs, then the SAVE homage. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party.md), the next open phase; Phase 4 is done (its last work, the stairs and SAVE, isn't committed yet). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

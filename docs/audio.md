@@ -110,6 +110,8 @@ Loaded in the background after boot (with the New Game art and text), so the int
 | `se_ball_open`, `se_ball_trade` | Sound effects (Nidoran♀'s Poké Ball) | SE |
 | `se_ball`, `se_win_open` | Sound effects (naming screen: delete, page swap; `se_win_open` also opens the START menu) | SE |
 | `se_warp_in` | Sound effect (the player shrinks) | SE |
+| `se_exit` | Sound effect (leaving by the stairs) | SE |
+| `se_save` | Sound effect (SAVE's dialog ends) | SE |
 | `se_card_open`, `se_card_flip`, `se_card_flipping` | Sound effects (Trainer Card: shown, flip, mid-flip) | SE |
 | `se_bag_cursor`, `se_bag_pocket` | Sound effects (Bag: cursor moved, pocket switched) | SE |
 | `se_repel`, `se_glass_flute` | Sound effects (a REPEL used; the WHITE or BLACK FLUTE) | SE |

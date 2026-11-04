@@ -80,6 +80,9 @@ for (const label of labels) {
 for (const [file, prefix] of [["src/data/text/trainer_class_names.h", "TRAINER_CLASS_"], ["src/battle_main.c", "TYPE_"]])
   for (const m of readFileSync(join(src, file), "utf8").matchAll(/\[(\w+)\]\s*=\s*_\("((?:\\.|[^"\\])*)"\)/g))
     if (m[1].startsWith(prefix)) strings[m[1]] = [...encode(m[2], m[1]), 0xff];
+// Every place's name by its section (mapsec.pallet_town): what ClientMap.region names, e.g. in the save window.
+for (const { id, name } of JSON.parse(readFileSync(join(src, "src/data/region_map/region_map_sections.json"), "utf8")).map_sections)
+  if (name) strings[`mapsec.${id.replace("MAPSEC_", "").toLowerCase()}`] = [...encode(name, id), 0xff];
 
 // Items: name and description by item ID; IDs FireRed leaves unused ("????????") are skipped.
 const itemIds = new Map([...readFileSync(join(src, "include/constants/items.h"), "utf8").matchAll(/#define (ITEM_\w+) (\d+)\n/g)].map((m) => [m[1], Number(m[2])]));

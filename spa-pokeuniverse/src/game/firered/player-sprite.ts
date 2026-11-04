@@ -84,6 +84,7 @@ function frameOf(facing: Direction, a: Action | null): number {
   const foot = (half: number) => (half === 0 ? footA : footB);
   switch (a.kind) {
     case "walk":
+    case "walkInPlace":
       return a.t < 8 ? foot(a.foot) : stand;
     case "run":
       return a.t < 5 ? stand : foot(a.foot);
@@ -98,6 +99,11 @@ function frameOf(facing: Direction, a: Action | null): number {
 
 /** The player drawn on the world, following the avatar. */
 export class PlayerSprite {
+  /** Pixels off its cell (x2, y2), e.g. on the stairs. */
+  offsetX = 0;
+  offsetY = 0;
+  /** Drawn over the tiles whatever the elevation, e.g. leaving by the stairs. */
+  forceOver = false;
   private readonly view: CharacterView;
 
   constructor(world: WorldView, assets: Assets, gender: Gender) {
@@ -106,9 +112,9 @@ export class PlayerSprite {
 
   /** Feet on the avatar's cell: the 16×32 frame starts 16 pixels above it. */
   update(avatar: Avatar): void {
-    this.view.setPosition(avatar.pixelX, avatar.pixelY - 16);
+    this.view.setPosition(avatar.pixelX + this.offsetX, avatar.pixelY - 16 + this.offsetY);
     this.view.setFrame(frameOf(avatar.facing, avatar.action), avatar.facing === Direction.EAST);
-    this.view.setOverTiles(avatar.overTiles);
+    this.view.setOverTiles(this.forceOver || avatar.overTiles);
   }
 
   destroy(): void {

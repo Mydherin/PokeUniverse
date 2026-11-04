@@ -11,6 +11,7 @@ import { characterSheet } from "./player-sprite";
 /** A map sprite ID's frames and palette. New NPC art goes here, in the manifest and in the Makefile. */
 const SPRITES: Record<string, { pic: GraphicId; palette: GraphicId }> = {
   cooltrainer_m: { pic: "owCooltrainerM", palette: "owNpcBluePal" },
+  mom: { pic: "owMom", palette: "owNpcBluePal" },
 };
 
 /** Standing frames: south, north, west; east is west flipped. */
