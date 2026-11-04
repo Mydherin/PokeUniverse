@@ -11,9 +11,20 @@ The user asked for this phase to be tested in the game (2026-11-04), so **a mile
 3. **Regression check**, about 5 minutes, after every milestone:
    - POKéMON: SWITCH, GIVE, TAKE, SUMMARY with move SWITCH.
    - BAG: USE, TOSS, an item that isn't for now. PC: WITHDRAW and DEPOSIT an item.
-   - A battle against the room's trainer: a potion from the bag, a win, exp, then a reload mid-battle resumes it.
+   - A battle against the room's trainer: a potion from the bag, a win, exp. `docker compose restart mic-core` mid-battle resumes it; a reload drops it, with the items used back in the bag ([Phase 5 D22](../../phase-5-battle-system/milestones/context.md#decisions)).
    - Walk, take the stairs and SAVE; a reload shows the same state.
 4. **Fix** what fails before closing, then cut the file down to what later milestones use.
+
+**Playing fast** (found in M1; saves most of the session):
+
+- **Account:** the browser pane is signed in as account 2 (trainer AA, the test team). Account 8 is someone else's: leave it alone.
+- **Back up first:** `pg_dump --data-only -t trainers -t trainer_items -t trainer_pc_items -t trainer_pokemon` into the scratchpad.
+- **Edit the save only with the game closed:** go to `/`, wait 3 s, change the rows, open `/play`. The server keeps the party in memory while you're connected.
+- **Keys:** `javascript_tool` with `dispatchEvent(new KeyboardEvent('keydown'/'keyup', {code}))` on `window` works and is far shorter than `computer` key calls. Hold 50 ms to press, about 280 ms per step to walk. A call is cut at 45 s. `code`: arrows, `KeyZ` A, `KeyX` B, `Enter` Start.
+- **Reaching the game:** `/play` takes about 30 s to load; then A (intro), A (title), A (menu), A (CONTINUE), about 3 s apart. Never press Down on that menu: NEW GAME is below CONTINUE.
+- **Screenshots at `scale: 0.4`** are enough to read everything. After a message that spends the last of a stack, the bag's list shifts up under the cursor: check the item before pressing.
+- **Room:** the PC is at (1,1), the player starts below it at (1,2); the trainer at (9,4) (stand at (9,5), face up); the stairs at (10,2): from (11,2) press Left twice. Don't go up at (11,2): that's the sign.
+- **The trainer heals both teams before each battle and has 6 at level 50.** Hurt yourself inside the battle to test a potion. For a quick win, raise the lead in the DB (Garchomp: level 90, exp 911250) and revert it after; on "Will AA change POKéMON?" press B.
 
 **Test content:** team, bag and box additions needed to play go in `pokemon/testteam.go` and `world/testbag.go`, each with the `// Test content (phase-6): removed in Phase 10` comment ([Phase 5 D13](../../phase-5-battle-system/milestones/context.md#decisions)). Levels changed only for one test are reverted.
 

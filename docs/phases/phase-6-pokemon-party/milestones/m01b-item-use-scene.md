@@ -8,6 +8,8 @@ Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M1. Found while build
 
 Not started. First step: read `CB2_DoUseItemAnim`'s callees in `pokemon_special_anim.c`, only the Normal path.
 
+**To play it:** the containers run M1's code. Account 2's bag already holds Potions, cures, Revive, Ether, PP UP, HP UP and berries; its party is healthy, so hurt a Pokémon in Postgres first. [Playing fast](context.md#playing-a-milestone) has the keys and the steps.
+
 ## Tasks
 
 - [ ] **Scene:** `firered/use-item-scene.ts`, the Normal variant first. The level up, machine (TM/HM) and can't-evolve variants belong to M2 and M3, on the same file.

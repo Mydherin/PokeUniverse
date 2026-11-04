@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M1](milestones/m01-party-item-use.md#resume-here): its code is committed and builds, but was never played. Rebuild, play it, close it; then M1b.
+**Next step:** [M1b](milestones/m01b-item-use-scene.md#resume-here): not started. M1 is played and closed; the battle BAG gaps it found are listed [in its file](milestones/m01-party-item-use.md#found-while-playing-before-m1-not-fixed), for the user to decide.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -14,7 +14,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 
 | # | Milestone | Status | Needs | In short |
 |---|---|---|---|---|
-| M1 | [Items on a Pokémon: medicine and PP](milestones/m01-party-item-use.md) | 🚧 | | The party menu's USE mode and `UsePartyItem`; potions, status cures, revives, vitamins, Sacred Ash, PP items |
+| M1 | [Items on a Pokémon: medicine and PP](milestones/m01-party-item-use.md) | ✅ | | The party menu's USE mode and `UsePartyItem`; potions, status cures, revives, vitamins, Sacred Ash, PP items |
 | M1b | [FireRed's item-use scene](milestones/m01b-item-use-scene.md) | ⬜ | M1 | The Pokémon and item scene before an item's effect; M2 and M3 add its other variants |
 | M2 | [Rare Candy and evolution stones](milestones/m02-growth-items.md) | ⬜ | M1b | Level up, learning and evolution outside battle, reusing Phase 5 M11 |
 | M3 | [TM/HM teaching](milestones/m03-tm-hm-teaching.md) | ⬜ | M2 | TM and tutor learnsets in the catalog; the TM CASE's USE; ABLE / NOT ABLE |
