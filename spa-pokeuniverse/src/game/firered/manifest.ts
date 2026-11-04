@@ -371,6 +371,7 @@ export const NEW_GAME_SOUNDS = [
   "se_bag_pocket",
   "se_repel",
   "se_glass_flute",
+  "se_use_item",
   "se_ball_tray_enter",
   "se_save",
   "se_exit",

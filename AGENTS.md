@@ -18,7 +18,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md), starting at [M1: Items on a Pokémon](docs/phases/phase-6-pokemon-party/milestones/m01-party-item-use.md). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M1: Items on a Pokémon](docs/phases/phase-6-pokemon-party/milestones/m01-party-item-use.md#resume-here) is committed but not played yet. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

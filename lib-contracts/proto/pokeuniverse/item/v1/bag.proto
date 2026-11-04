@@ -127,4 +127,8 @@ enum ItemOutcome {
   ITEM_OUTCOME_NOT_HOLDING = 23;
   // GIVE to a Pokémon holding MAIL: it must be removed first.
   ITEM_OUTCOME_REMOVE_MAIL = 24;
+  // UsePartyItem: it worked; the party and the bag already changed.
+  ITEM_OUTCOME_USED_ON_POKEMON = 25;
+  // UsePartyItem: "It won't have any effect." Nothing changed.
+  ITEM_OUTCOME_NO_EFFECT = 26;
 }

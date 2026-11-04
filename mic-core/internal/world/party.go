@@ -55,6 +55,36 @@ func (p *Player) TakePartyItem(m *partyv1.TakePartyItem) {
 	})
 }
 
+// UsePartyItem is USE on a party Pokémon, from the bag or the BERRY POUCH.
+func (p *Player) UsePartyItem(m *partyv1.UsePartyItem) {
+	p.zone.do(func() { p.zone.usePartyItem(p, m) })
+}
+
+// usePartyItem applies the item and spends it, both saved or neither (phase-6 D3). The client waits
+// for the answer: what changed, then the result.
+func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
+	if _, ok := z.players[p]; !ok {
+		return
+	}
+	res := item.Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_NO_EFFECT}
+	id := m.GetItem()
+	if effect, ok := item.PokemonEffect(p.items, id); ok && !p.busy() {
+		items, party := p.items.Clone(), p.party.Clone()
+		if p.party.UseItem(effect, int(m.GetSlot()), int(m.GetMoveSlot())) {
+			res = item.SpendOnPokemon(p.items, id)
+			if z.saveTrainer(p, res.Changed, true) {
+				z.sendParty(p)
+			} else {
+				p.items, p.party, res = items, party, item.Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_NO_EFFECT}
+			}
+		}
+	}
+	z.sendChanged(p, res.Changed)
+	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_ItemResult{ItemResult: &itemv1.ItemResult{
+		Outcome: res.Outcome, Item: id,
+	}}})
+}
+
 // partyChange runs a change the client predicted: saved when done, corrected (the party sent
 // again) when refused.
 func (z *zone) partyChange(p *Player, change func(pokemon.Party) bool) {

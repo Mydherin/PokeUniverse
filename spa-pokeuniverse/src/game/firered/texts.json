@@ -110,5 +110,22 @@
   "sText_AllyPkmnPrefix", "sText_FoePkmnPrefix2",
   "sText_PkmnRestoredHPUsing", "sText_PkmnSleptHealthy", "sText_BellChimed", "sText_SoothingAroma", "sText_PkmnCutHPMaxedAttack",
   "sText_PkmnCopiedStatChanges", "sText_PkmnReducedPP", "sText_ExclamationMark", "sText_PlayerWhiteoutAgainstTrainer",
-  "sText_PkmnVanishedInstantly", "sText_PkmnTwistedDimensions", "sText_TrickRoomEnds", "sText_GravityIntensified", "sText_GravityEnds", "sText_ElectricityWeakened", "sText_FireWeakened"
+  "sText_PkmnVanishedInstantly", "sText_PkmnTwistedDimensions", "sText_TrickRoomEnds", "sText_GravityIntensified", "sText_GravityEnds", "sText_ElectricityWeakened", "sText_FireWeakened",
+  "gText_PkmnHPRestoredByVar2",
+  "gText_PkmnCuredOfPoison",
+  "gText_PkmnCuredOfParalysis",
+  "gText_PkmnWokeUp2",
+  "gText_PkmnBurnHealed",
+  "gText_PkmnThawedOut",
+  "gText_PkmnBecameHealthy",
+  "gText_MovesPPIncreased",
+  "gText_PkmnBaseVar2StatIncreased",
+  "gText_ItemEffect_HP",
+  "gText_ItemEffect_Attack",
+  "gText_ItemEffect_Defense",
+  "gText_ItemEffect_Speed",
+  "gText_ItemEffect_SpAtk",
+  "gText_ItemEffect_SpDef",
+  "gText_UseOnWhichPokemon",
+  "gText_BoostPp"
 ]

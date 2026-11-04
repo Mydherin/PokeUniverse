@@ -489,6 +489,7 @@ class Overworld {
       get bag() {
         return self.bagHost();
       },
+      useItem: (item, slot, moveSlot) => this.askItem(() => link.usePartyItem(item, slot, moveSlot)),
       give: (item, slot, pc) => this.askItem(() => link.givePartyItem(item, slot, pc)),
       take: (slot) => this.askItem(() => link.takePartyItem(slot)),
       swap: (a, b) => {

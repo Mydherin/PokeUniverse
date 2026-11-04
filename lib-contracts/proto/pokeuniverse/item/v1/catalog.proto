@@ -9,6 +9,7 @@ package pokeuniverse.item.v1;
 import "google/protobuf/descriptor.proto";
 import "pokeuniverse/move/v1/catalog.proto";
 import "pokeuniverse/pokemon/v1/pokemon.proto";
+import "pokeuniverse/pokemon/v1/stats.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1";
 
@@ -94,6 +95,17 @@ message ItemEffect {
   uint32 pp = 7;
   bool pp_max = 8;
   bool all_moves = 9;
+  // Vitamins: 10 EVs in this stat, up to 100 from items.
+  pokeuniverse.pokemon.v1.Stat ev_stat = 10;
+  // PP UP: the chosen move's PP up by a fifth of its base, three times at most; PP MAX: all three.
+  bool pp_up = 11;
+  bool pp_max_up = 12;
+  // SACRED ASH: on every Pokémon of the party it can work on.
+  bool all_party = 13;
+  // Friendship change when it works: below 100, below 200, from 200 (ITEM5_FRIENDSHIP_*).
+  repeated sint32 friendship = 14;
+  // Not spent (the BLUE FLUTE outside battle).
+  bool reusable = 15;
 }
 
 // An item's rules, set on each Item value.
@@ -152,37 +164,37 @@ enum Item {
   ITEM_SODA_POP = 27 [(info) = {pocket: POCKET_ITEMS, price: 300, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 60}}];
   ITEM_LEMONADE = 28 [(info) = {pocket: POCKET_ITEMS, price: 350, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 80}}];
   ITEM_MOOMOO_MILK = 29 [(info) = {pocket: POCKET_ITEMS, price: 500, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 100}}];
-  ITEM_ENERGY_POWDER = 30 [(info) = {pocket: POCKET_ITEMS, price: 500, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 50}}];
-  ITEM_ENERGY_ROOT = 31 [(info) = {pocket: POCKET_ITEMS, price: 800, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 200}}];
-  ITEM_HEAL_POWDER = 32 [(info) = {pocket: POCKET_ITEMS, price: 450, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {cures: [STATUS_SLEEP, STATUS_POISON, STATUS_TOXIC, STATUS_BURN, STATUS_FREEZE, STATUS_PARALYSIS], confusion: true}}];
-  ITEM_REVIVAL_HERB = 33 [(info) = {pocket: POCKET_ITEMS, price: 2800, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {revive: true, hp_percent: 100}}];
+  ITEM_ENERGY_POWDER = 30 [(info) = {pocket: POCKET_ITEMS, price: 500, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 50, friendship: [-5, -5, -10]}}];
+  ITEM_ENERGY_ROOT = 31 [(info) = {pocket: POCKET_ITEMS, price: 800, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 200, friendship: [-10, -10, -15]}}];
+  ITEM_HEAL_POWDER = 32 [(info) = {pocket: POCKET_ITEMS, price: 450, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {cures: [STATUS_SLEEP, STATUS_POISON, STATUS_TOXIC, STATUS_BURN, STATUS_FREEZE, STATUS_PARALYSIS], confusion: true, friendship: [-5, -5, -10]}}];
+  ITEM_REVIVAL_HERB = 33 [(info) = {pocket: POCKET_ITEMS, price: 2800, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {revive: true, hp_percent: 100, friendship: [-15, -15, -20]}}];
   ITEM_ETHER = 34 [(info) = {pocket: POCKET_ITEMS, price: 1200, field_use: FIELD_USE_ETHER, party: true, battle_use: BATTLE_USE_MOVE, effect: {pp: 10}}];
   ITEM_MAX_ETHER = 35 [(info) = {pocket: POCKET_ITEMS, price: 2000, field_use: FIELD_USE_ETHER, party: true, battle_use: BATTLE_USE_MOVE, effect: {pp_max: true}}];
   ITEM_ELIXIR = 36 [(info) = {pocket: POCKET_ITEMS, price: 3000, field_use: FIELD_USE_ETHER, party: true, battle_use: BATTLE_USE_PARTY, effect: {pp: 10, all_moves: true}}];
   ITEM_MAX_ELIXIR = 37 [(info) = {pocket: POCKET_ITEMS, price: 4500, field_use: FIELD_USE_ETHER, party: true, battle_use: BATTLE_USE_PARTY, effect: {pp_max: true, all_moves: true}}];
   ITEM_LAVA_COOKIE = 38 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {cures: [STATUS_SLEEP, STATUS_POISON, STATUS_TOXIC, STATUS_BURN, STATUS_FREEZE, STATUS_PARALYSIS], confusion: true}}];
-  ITEM_BLUE_FLUTE = 39 [(info) = {pocket: POCKET_ITEMS, price: 100, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {cures: [STATUS_SLEEP]}}];
+  ITEM_BLUE_FLUTE = 39 [(info) = {pocket: POCKET_ITEMS, price: 100, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {cures: [STATUS_SLEEP], reusable: true}}];
   ITEM_YELLOW_FLUTE = 40 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW, party: true, battle_use: BATTLE_USE_PARTY, effect: {confusion: true}}];
   ITEM_RED_FLUTE = 41 [(info) = {pocket: POCKET_ITEMS, price: 300, field_use: FIELD_USE_NOT_NOW, party: true, battle_use: BATTLE_USE_PARTY, effect: {infatuation: true}}];
   ITEM_BLACK_FLUTE = 42 [(info) = {pocket: POCKET_ITEMS, price: 400, field_use: FIELD_USE_BLACK_WHITE_FLUTE, party: true}];
   ITEM_WHITE_FLUTE = 43 [(info) = {pocket: POCKET_ITEMS, price: 500, field_use: FIELD_USE_BLACK_WHITE_FLUTE, party: true}];
   ITEM_BERRY_JUICE = 44 [(info) = {pocket: POCKET_ITEMS, price: 100, field_use: FIELD_USE_MEDICINE, party: true, battle_use: BATTLE_USE_PARTY, effect: {hp: 20}}];
-  ITEM_SACRED_ASH = 45 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_SACRED_ASH, party: true}];
+  ITEM_SACRED_ASH = 45 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_SACRED_ASH, party: true, effect: {revive: true, hp_percent: 100, all_party: true}}];
   ITEM_SHOAL_SALT = 46 [(info) = {pocket: POCKET_ITEMS, price: 20, field_use: FIELD_USE_NOT_NOW}];
   ITEM_SHOAL_SHELL = 47 [(info) = {pocket: POCKET_ITEMS, price: 20, field_use: FIELD_USE_NOT_NOW}];
   ITEM_RED_SHARD = 48 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_BLUE_SHARD = 49 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_YELLOW_SHARD = 50 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_GREEN_SHARD = 51 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
-  ITEM_HP_UP = 63 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true}];
-  ITEM_PROTEIN = 64 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true}];
-  ITEM_IRON = 65 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true}];
-  ITEM_CARBOS = 66 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true}];
-  ITEM_CALCIUM = 67 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true}];
+  ITEM_HP_UP = 63 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true, effect: {ev_stat: STAT_HP, friendship: [5, 3, 2]}}];
+  ITEM_PROTEIN = 64 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true, effect: {ev_stat: STAT_ATTACK, friendship: [5, 3, 2]}}];
+  ITEM_IRON = 65 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true, effect: {ev_stat: STAT_DEFENSE, friendship: [5, 3, 2]}}];
+  ITEM_CARBOS = 66 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true, effect: {ev_stat: STAT_SPEED, friendship: [5, 3, 2]}}];
+  ITEM_CALCIUM = 67 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true, effect: {ev_stat: STAT_SP_ATTACK, friendship: [5, 3, 2]}}];
   ITEM_RARE_CANDY = 68 [(info) = {pocket: POCKET_ITEMS, price: 4800, field_use: FIELD_USE_RARE_CANDY, party: true}];
-  ITEM_PP_UP = 69 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_PP_UP, party: true}];
-  ITEM_ZINC = 70 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true}];
-  ITEM_PP_MAX = 71 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_PP_UP, party: true}];
+  ITEM_PP_UP = 69 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_PP_UP, party: true, effect: {pp_up: true, friendship: [5, 3, 2]}}];
+  ITEM_ZINC = 70 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_MEDICINE, party: true, effect: {ev_stat: STAT_SP_DEFENSE, friendship: [5, 3, 2]}}];
+  ITEM_PP_MAX = 71 [(info) = {pocket: POCKET_ITEMS, price: 9800, field_use: FIELD_USE_PP_UP, party: true, effect: {pp_max_up: true, friendship: [5, 3, 2]}}];
   ITEM_GUARD_SPEC = 73 [(info) = {pocket: POCKET_ITEMS, price: 700, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_SELF}];
   ITEM_DIRE_HIT = 74 [(info) = {pocket: POCKET_ITEMS, price: 650, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_SELF}];
   ITEM_X_ATTACK = 75 [(info) = {pocket: POCKET_ITEMS, price: 500, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_SELF}];

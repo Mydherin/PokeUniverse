@@ -10,9 +10,10 @@
 
 import type { ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
-import { BattleUse, FieldUse, Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
+import { BattleUse, FieldUse, Item, Pocket, type ItemEffect } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { Gender as MonGender, Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
+import { Stat } from "@pokeuniverse/contracts/pokemon/v1/stats";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
@@ -42,6 +43,8 @@ export interface PartyHost {
   readonly nationalDex: boolean;
   /** The bag GIVE opens. */
   readonly bag: BagHost;
+  /** A bag item is used on a Pokémon (`moveSlot`: the move, for items that ask). */
+  useItem(item: Item, slot: number, moveSlot: number): Promise<ItemResult>;
   /** A Pokémon holds the item, from the bag or the PC (`pc`). */
   give(item: Item, slot: number, pc: boolean): Promise<ItemResult>;
   take(slot: number): Promise<ItemResult>;
@@ -52,14 +55,15 @@ export interface PartyHost {
 }
 
 /**
- * Why the menu is open: from the START menu, to give an item (from the bag or the PC), or in
- * battle (PARTY_MENU_TYPE_IN_BATTLE: the battle's party, the one in battle first). In battle
+ * Why the menu is open: from the START menu, to give an item (from the bag or the PC), to use
+ * one (phase-6 M1), or in battle (PARTY_MENU_TYPE_IN_BATTLE: the battle's party, the one in battle first). In battle
  * SHIFT (or A, with a bag item to use) calls `choose` with the slot; `forced` (a Pokémon fainted)
  * can't be cancelled.
  */
 export type PartyMenuMode =
   | { kind: "field" }
   | { kind: "give"; item: Item; pc: boolean }
+  | { kind: "use"; item: Item }
   | {
       kind: "battle";
       forced: boolean;
@@ -97,6 +101,39 @@ const enum Action {
   Switch,
   Switching,
   Give,
+}
+
+/** gText_ItemEffect_*: what a vitamin raises. */
+const EV_STAT_TEXTS: Partial<Record<Stat, TextId>> = {
+  [Stat.HP]: "gText_ItemEffect_HP",
+  [Stat.ATTACK]: "gText_ItemEffect_Attack",
+  [Stat.DEFENSE]: "gText_ItemEffect_Defense",
+  [Stat.SPEED]: "gText_ItemEffect_Speed",
+  [Stat.SP_ATTACK]: "gText_ItemEffect_SpAtk",
+  [Stat.SP_DEFENSE]: "gText_ItemEffect_SpDef",
+};
+
+/** GetMedicineItemEffectMessage, from the item's catalog entry. */
+function medicineTextId(e: ItemEffect): TextId {
+  if (e.evStat) return "gText_PkmnBaseVar2StatIncreased";
+  if (e.ppUp || e.ppMaxUp) return "gText_MovesPPIncreased";
+  if (e.pp || e.ppMax) return "gText_PPWasRestored";
+  if (e.cures.length > 2) return "gText_PkmnBecameHealthy";
+  switch (e.cures[0]) {
+    case Status.POISON:
+    case Status.TOXIC:
+      return "gText_PkmnCuredOfPoison";
+    case Status.SLEEP:
+      return "gText_PkmnWokeUp2";
+    case Status.BURN:
+      return "gText_PkmnBurnHealed";
+    case Status.FREEZE:
+      return "gText_PkmnThawedOut";
+    case Status.PARALYSIS:
+      return "gText_PkmnCuredOfParalysis";
+    default:
+      return "gText_WontHaveEffect";
+  }
 }
 
 /** sPartyBoxInfoRects: where each part of a box goes, in pixels. */
@@ -234,6 +271,8 @@ const enum Message {
   DoWhatWithMon,
   DoWhatWithItem,
   RestoreWhichMove,
+  BoostPpWhichMove,
+  UseOnWhichMon,
 }
 
 const HELD_ITEM_TEMPLATE: SpriteTemplate = {
@@ -423,7 +462,8 @@ class PartyMenu {
     cancel.copyToVram();
 
     gba.tasks.create(() => this.step(), 0);
-    if (!resume) this.showStdMessage(mode.kind === "give" ? Message.GiveToWhichMon : Message.ChooseMon);
+    if (mode.kind === "use" && itemInfo(mode.item)?.effect?.allParty) this.step = () => this.useOnWholeParty(mode.item);
+    else if (!resume) this.showStdMessage(this.chooseMessage);
     else if (resume.then === "selection") {
       this.showStdMessage(Message.DoWhatWithMon);
       this.openSelection();
@@ -501,7 +541,7 @@ class PartyMenu {
   }
 
   /** DisplayPartyPokemonData: the box, name, level (unless it has an ailment), gender, HP and its bar. */
-  private displayData(slot: number): void {
+  private displayData(slot: number, shownHp?: number): void {
     const { flow } = this;
     const { assets } = flow;
     const mon = this.mon(slot)!;
@@ -521,9 +561,10 @@ class PartyMenu {
       win.print(small, r.gender[0], r.gender[1], COLORS_GENDER, assets.text(male ? "gText_MaleSymbol" : "gText_FemaleSymbol"));
     }
     const maxHp = mon.stats?.hp ?? 0;
-    win.print(small, r.hp[0], r.hp[1], COLORS_DEFAULT, joinText(decimalText(mon.hp, NumberMode.RightAlign, 3), assets.text("gText_Slash")));
+    const hp = shownHp ?? mon.hp;
+    win.print(small, r.hp[0], r.hp[1], COLORS_DEFAULT, joinText(decimalText(hp, NumberMode.RightAlign, 3), assets.text("gText_Slash")));
     win.print(small, r.maxHp[0], r.maxHp[1], COLORS_DEFAULT, joinText(assets.text("gText_Slash"), decimalText(maxHp, NumberMode.RightAlign, 3)));
-    this.displayHpBar(slot, mon.hp, maxHp);
+    this.displayHpBar(slot, hp, maxHp);
   }
 
   /** DisplayPartyPokemonHPBar: green, yellow or red, the rest of its 48 pixels empty. */
@@ -609,7 +650,7 @@ class PartyMenu {
     if (message === Message.None) return;
     const { flow } = this;
     const template =
-      message === Message.DoWhatWithMon ? DO_WHAT_WITH_MON_WINDOW : message === Message.DoWhatWithItem ? DO_WHAT_WITH_ITEM_WINDOW : message === Message.RestoreWhichMove ? WHICH_MOVE_WINDOW : STD_MESSAGE_WINDOW;
+      message === Message.DoWhatWithMon ? DO_WHAT_WITH_MON_WINDOW : message === Message.DoWhatWithItem ? DO_WHAT_WITH_ITEM_WINDOW : message === Message.RestoreWhichMove || message === Message.BoostPpWhichMove ? WHICH_MOVE_WINDOW : STD_MESSAGE_WINDOW;
     const id: TextId =
       message === Message.ChooseMon
         ? this.shouldUseChooseMonText()
@@ -623,11 +664,20 @@ class PartyMenu {
               ? "gText_DoWhatWithPokemon"
               : message === Message.RestoreWhichMove
                 ? "gText_RestoreWhichMove"
-                : "gText_DoWhatWithItem";
+                : message === Message.BoostPpWhichMove
+                  ? "gText_BoostPp"
+                  : message === Message.UseOnWhichMon
+                    ? "gText_UseOnWhichPokemon"
+                    : "gText_DoWhatWithItem";
     const win = new Window(this.bg2, template);
     drawStdFrame(win, STD_FRAME_TILE, STD_FRAME_PALETTE);
     printDefault(flow, win, FontId.Normal, flow.assets.text(id), 0, 2);
     this.stdMessage = win;
+  }
+
+  /** What the menu asks while a Pokémon is chosen. */
+  private get chooseMessage(): Message {
+    return this.mode.kind === "give" ? Message.GiveToWhichMon : this.mode.kind === "use" ? Message.UseOnWhichMon : Message.ChooseMon;
   }
 
   /** ShouldUseChooseMonText: more than one Pokémon still able to battle. */
@@ -662,7 +712,7 @@ class PartyMenu {
   /** Task_ReturnToChooseMonAfterText. */
   private returnToChooseMon(): void {
     this.clearMessage();
-    this.showStdMessage(Message.ChooseMon);
+    this.showStdMessage(this.chooseMessage);
     this.step = () => this.chooseMonInput();
   }
 
@@ -739,6 +789,7 @@ class PartyMenu {
   private chooseMonSelection(): void {
     this.flow.play("se_select");
     if (this.mode.kind === "battle" && this.mode.item) return this.chooseInBattle();
+    if (this.mode.kind === "use") return this.chooseToUse(this.mode.item);
     if (this.action === Action.Give) return this.tryGive();
     if (this.action === Action.Switch) return this.switchSelected();
     this.openSelection();
@@ -834,7 +885,15 @@ class PartyMenu {
         const text = expandPlaceholders(this.flow.assets.text(refusal), { [PLACEHOLDER_STR_VAR_1]: monName(this.flow, mon) });
         return this.showMessage(text, false, () => this.returnToChooseMon());
       }
-    } else if (itemInfo(this.mode.item)?.battleUse === BattleUse.MOVE && mon.hp > 0) return this.chooseMoveForItem(mon);
+    } else if (itemInfo(this.mode.item)?.battleUse === BattleUse.MOVE && mon.hp > 0) {
+      const { mode } = this;
+      const item = mode.item!;
+      return this.chooseMoveForItem(mon, Message.RestoreWhichMove, (moveSlot) => {
+        if (!itemWorksOn(item, mon, mode.inBattle(this.slotId), moveSlot)) return this.wontHaveEffect(() => this.returnToChooseMon());
+        mode.choose(this.slotId, moveSlot);
+        this.close();
+      });
+    }
     else if (!itemWorksOn(this.mode.item, mon, this.mode.inBattle(slot))) return this.wontHaveEffect(() => this.returnToChooseMon());
     this.mode.choose(slot);
     this.close();
@@ -846,12 +905,12 @@ class PartyMenu {
   }
 
   /** ShowMoveSelectWindow: an Ether's move. B goes back to the Pokémon. */
-  private chooseMoveForItem(mon: Pokemon): void {
+  private chooseMoveForItem(mon: Pokemon, message: Message, chosen: (moveSlot: number) => void): void {
     const { flow } = this;
     const font = flow.fonts[FontId.Normal];
     const n = mon.moves.length;
     // First: clearing the wider message before it would erase the part of this window over it.
-    this.showStdMessage(Message.RestoreWhichMove);
+    this.showStdMessage(message);
     const win = new Window(this.bg2, MOVE_SELECT_WINDOW);
     drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
     mon.moves.forEach((m, i) => win.print(font, 8, i * 16 + 2, COLORS_ACTIONS, flow.assets.moveName(m.move), font.letterSpacing, 0));
@@ -862,12 +921,103 @@ class PartyMenu {
       if (input === MENU_NOTHING_CHOSEN) return;
       this.flow.play("se_select");
       this.removeSelection();
-      if (this.mode.kind !== "battle") return;
       if (input === MENU_B_PRESSED) return this.returnToChooseMon();
-      if (!itemWorksOn(this.mode.item!, mon, this.mode.inBattle(this.slotId), input)) return this.wontHaveEffect(() => this.returnToChooseMon());
-      this.mode.choose(this.slotId, input);
-      this.close();
+      chosen(input);
     };
+  }
+
+  // Using an item
+
+  /** gItemUseCB: the items that act on one move ask which, then mic-core decides. */
+  private chooseToUse(item: Item): void {
+    const slot = this.slotId;
+    const mon = this.mon(slot);
+    if (!mon) return;
+    const info = itemInfo(item);
+    const asksMove = info?.fieldUse === FieldUse.PP_UP ? Message.BoostPpWhichMove : info?.fieldUse === FieldUse.ETHER && !info.effect?.allMoves ? Message.RestoreWhichMove : null;
+    if (asksMove === null) return this.useItem(item, slot, 0);
+    this.chooseMoveForItem(mon, asksMove, (moveSlot) => this.useItem(item, slot, moveSlot));
+  }
+
+  /**
+   * ItemUseCB_Medicine, ItemUseCB_TryRestorePP: mic-core applies it and saves; here its sound, HP
+   * rising and message, from what the party showed before. FireRed's item scene (StartUseItemAnim_Normal)
+   * comes before this: phase-6 M1b.
+   */
+  private useItem(item: Item, slot: number, moveSlot: number): void {
+    this.removeStdMessage();
+    const hp = this.party[slot]?.hp ?? 0;
+    this.ask(this.host.useItem(item, slot, moveSlot), (r) => {
+      if (r.outcome !== ItemOutcome.USED_ON_POKEMON) return this.showMessage(this.flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
+      this.playUsed(item);
+      this.showRecovered(slot, hp, () => this.usedMessage(item, slot, moveSlot, hp), () => this.close());
+    });
+  }
+
+  /** ItemUseCB_SacredAsh: every Pokémon it brought back in turn, or "It won't have any effect." */
+  private useOnWholeParty(item: Item): void {
+    if (this.flow.gba.palettes.fadeActive) return;
+    const before = this.party.map((p) => p.hp);
+    this.ask(this.host.useItem(item, 0, 0), (r) => {
+      if (r.outcome !== ItemOutcome.USED_ON_POKEMON) return this.showMessage(this.flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
+      const next = (slot: number): void => {
+        if (slot >= before.length) return this.close();
+        if (this.party[slot]?.hp === before[slot]) return next(slot + 1);
+        this.playUsed(item);
+        this.animateSlot(this.slotId, 0);
+        this.slotId = slot;
+        this.animateSlot(slot, 1);
+        this.showRecovered(slot, before[slot], () => this.hpRestoredText(slot, before[slot]), () => next(slot + 1));
+      };
+      next(0);
+    });
+  }
+
+  private playUsed(item: Item): void {
+    this.flow.play(itemInfo(item)?.effect?.reusable ? "se_glass_flute" : "se_use_item");
+  }
+
+  /** PartyMenuModifyHP: the box's HP rises a point a frame from `from`, its ailment already gone; then the message and `then`. */
+  private showRecovered(slot: number, from: number, text: () => Text, then: () => void): void {
+    const mon = this.mon(slot);
+    const box = this.sprites[slot];
+    if (!mon || !box) return then();
+    this.showAilment(box, ailmentOf(mon));
+    this.displayData(slot);
+    let shown = from;
+    if (shown < mon.hp) this.displayData(slot, shown);
+    this.animateSlot(slot, 1);
+    this.step = () => {
+      if (shown < mon.hp) {
+        shown++;
+        this.displayData(slot, shown);
+        if (shown === mon.hp) this.animateSlot(slot, 1);
+        return;
+      }
+      this.showMessage(text(), true, then);
+    };
+  }
+
+  private hpRestoredText(slot: number, from: number): Text {
+    const { flow } = this;
+    const mon = this.mon(slot)!;
+    return expandPlaceholders(flow.assets.text("gText_PkmnHPRestoredByVar2"), {
+      [PLACEHOLDER_STR_VAR_1]: monName(flow, mon),
+      [PLACEHOLDER_STR_VAR_2]: decimalText(mon.hp - from, NumberMode.LeftAlign, 3),
+    });
+  }
+
+  /** Task_DisplayHPRestoredMessage, GetMedicineItemEffectMessage: HP restored, or what else the item did. */
+  private usedMessage(item: Item, slot: number, moveSlot: number, from: number): Text {
+    const { flow } = this;
+    const mon = this.mon(slot)!;
+    if (mon.hp > from && !itemInfo(item)?.effect?.evStat) return this.hpRestoredText(slot, from);
+    const effect = itemInfo(item)?.effect;
+    const vars = {
+      [PLACEHOLDER_STR_VAR_1]: effect?.ppUp || effect?.ppMaxUp ? flow.assets.moveName(mon.moves[moveSlot]?.move ?? 0) : monName(flow, mon),
+      [PLACEHOLDER_STR_VAR_2]: effect?.evStat ? flow.assets.text(EV_STAT_TEXTS[effect.evStat] ?? "gText_WontHaveEffect") : [],
+    };
+    return expandPlaceholders(flow.assets.text(effect ? medicineTextId(effect) : "gText_WontHaveEffect"), vars);
   }
 
   /** CursorCB_Summary: the menu fades out into the summary, and comes back on the Pokémon last shown. */

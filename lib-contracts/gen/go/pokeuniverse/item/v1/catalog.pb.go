@@ -1547,9 +1547,20 @@ type ItemEffect struct {
 	// Only on a fainted Pokémon, which it brings back with `hp_percent`.
 	Revive bool `protobuf:"varint,6,opt,name=revive,proto3" json:"revive,omitempty"`
 	// PP restored: a fixed amount or all of it, on the move chosen or on all of them.
-	Pp            uint32 `protobuf:"varint,7,opt,name=pp,proto3" json:"pp,omitempty"`
-	PpMax         bool   `protobuf:"varint,8,opt,name=pp_max,json=ppMax,proto3" json:"pp_max,omitempty"`
-	AllMoves      bool   `protobuf:"varint,9,opt,name=all_moves,json=allMoves,proto3" json:"all_moves,omitempty"`
+	Pp       uint32 `protobuf:"varint,7,opt,name=pp,proto3" json:"pp,omitempty"`
+	PpMax    bool   `protobuf:"varint,8,opt,name=pp_max,json=ppMax,proto3" json:"pp_max,omitempty"`
+	AllMoves bool   `protobuf:"varint,9,opt,name=all_moves,json=allMoves,proto3" json:"all_moves,omitempty"`
+	// Vitamins: 10 EVs in this stat, up to 100 from items.
+	EvStat v1.Stat `protobuf:"varint,10,opt,name=ev_stat,json=evStat,proto3,enum=pokeuniverse.pokemon.v1.Stat" json:"ev_stat,omitempty"`
+	// PP UP: the chosen move's PP up by a fifth of its base, three times at most; PP MAX: all three.
+	PpUp    bool `protobuf:"varint,11,opt,name=pp_up,json=ppUp,proto3" json:"pp_up,omitempty"`
+	PpMaxUp bool `protobuf:"varint,12,opt,name=pp_max_up,json=ppMaxUp,proto3" json:"pp_max_up,omitempty"`
+	// SACRED ASH: on every Pokémon of the party it can work on.
+	AllParty bool `protobuf:"varint,13,opt,name=all_party,json=allParty,proto3" json:"all_party,omitempty"`
+	// Friendship change when it works: below 100, below 200, from 200 (ITEM5_FRIENDSHIP_*).
+	Friendship []int32 `protobuf:"zigzag32,14,rep,packed,name=friendship,proto3" json:"friendship,omitempty"`
+	// Not spent (the BLUE FLUTE outside battle).
+	Reusable      bool `protobuf:"varint,15,opt,name=reusable,proto3" json:"reusable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1643,6 +1654,48 @@ func (x *ItemEffect) GetPpMax() bool {
 func (x *ItemEffect) GetAllMoves() bool {
 	if x != nil {
 		return x.AllMoves
+	}
+	return false
+}
+
+func (x *ItemEffect) GetEvStat() v1.Stat {
+	if x != nil {
+		return x.EvStat
+	}
+	return v1.Stat(0)
+}
+
+func (x *ItemEffect) GetPpUp() bool {
+	if x != nil {
+		return x.PpUp
+	}
+	return false
+}
+
+func (x *ItemEffect) GetPpMaxUp() bool {
+	if x != nil {
+		return x.PpMaxUp
+	}
+	return false
+}
+
+func (x *ItemEffect) GetAllParty() bool {
+	if x != nil {
+		return x.AllParty
+	}
+	return false
+}
+
+func (x *ItemEffect) GetFriendship() []int32 {
+	if x != nil {
+		return x.Friendship
+	}
+	return nil
+}
+
+func (x *ItemEffect) GetReusable() bool {
+	if x != nil {
+		return x.Reusable
 	}
 	return false
 }
@@ -1791,7 +1844,7 @@ var File_pokeuniverse_item_v1_catalog_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"\"pokeuniverse/item/v1/catalog.proto\x12\x14pokeuniverse.item.v1\x1a google/protobuf/descriptor.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\"\x8e\x02\n" +
+	"\"pokeuniverse/item/v1/catalog.proto\x12\x14pokeuniverse.item.v1\x1a google/protobuf/descriptor.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\"\xd0\x03\n" +
 	"\n" +
 	"ItemEffect\x12\x0e\n" +
 	"\x02hp\x18\x01 \x01(\rR\x02hp\x12\x1d\n" +
@@ -1803,7 +1856,16 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x06revive\x18\x06 \x01(\bR\x06revive\x12\x0e\n" +
 	"\x02pp\x18\a \x01(\rR\x02pp\x12\x15\n" +
 	"\x06pp_max\x18\b \x01(\bR\x05ppMax\x12\x1b\n" +
-	"\tall_moves\x18\t \x01(\bR\ballMoves\"\xa9\x03\n" +
+	"\tall_moves\x18\t \x01(\bR\ballMoves\x126\n" +
+	"\aev_stat\x18\n" +
+	" \x01(\x0e2\x1d.pokeuniverse.pokemon.v1.StatR\x06evStat\x12\x13\n" +
+	"\x05pp_up\x18\v \x01(\bR\x04ppUp\x12\x1a\n" +
+	"\tpp_max_up\x18\f \x01(\bR\appMaxUp\x12\x1b\n" +
+	"\tall_party\x18\r \x01(\bR\ballParty\x12\x1e\n" +
+	"\n" +
+	"friendship\x18\x0e \x03(\x11R\n" +
+	"friendship\x12\x1a\n" +
+	"\breusable\x18\x0f \x01(\bR\breusable\"\xa9\x03\n" +
 	"\bItemInfo\x124\n" +
 	"\x06pocket\x18\x01 \x01(\x0e2\x1c.pokeuniverse.item.v1.PocketR\x06pocket\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\rR\x05price\x12\x1c\n" +
@@ -1857,7 +1919,7 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x10BATTLE_USE_PARTY\x10\x01\x12\x13\n" +
 	"\x0fBATTLE_USE_MOVE\x10\x02\x12\x13\n" +
 	"\x0fBATTLE_USE_SELF\x10\x03\x12\x13\n" +
-	"\x0fBATTLE_USE_BALL\x10\x04*\x89p\n" +
+	"\x0fBATTLE_USE_BALL\x10\x04*\xefp\n" +
 	"\x04Item\x12\x14\n" +
 	"\x10ITEM_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x10ITEM_MASTER_BALL\x10\x01\x1a\b\x82\xb5\x18\x04\b\x03H\x04\x12 \n" +
@@ -1890,12 +1952,11 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x10ITEM_FRESH_WATER\x10\x1a\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xc8\x01(\x020\x01H\x01R\x02\b2\x12&\n" +
 	"\rITEM_SODA_POP\x10\x1b\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xac\x02(\x020\x01H\x01R\x02\b<\x12&\n" +
 	"\rITEM_LEMONADE\x10\x1c\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xde\x02(\x020\x01H\x01R\x02\bP\x12)\n" +
-	"\x10ITEM_MOOMOO_MILK\x10\x1d\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xf4\x03(\x020\x01H\x01R\x02\bd\x12+\n" +
-	"\x12ITEM_ENERGY_POWDER\x10\x1e\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xf4\x03(\x020\x01H\x01R\x02\b2\x12*\n" +
-	"\x10ITEM_ENERGY_ROOT\x10\x1f\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xa0\x06(\x020\x01H\x01R\x03\b\xc8\x01\x121\n" +
-	"\x10ITEM_HEAL_POWDER\x10 \x1a\x1b\x82\xb5\x18\x17\b\x01\x10\xc2\x03(\x020\x01H\x01R\n" +
-	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12,\n" +
-	"\x11ITEM_REVIVAL_HERB\x10!\x1a\x15\x82\xb5\x18\x11\b\x01\x10\xf0\x15(\x020\x01H\x01R\x04\x10d0\x01\x12#\n" +
+	"\x10ITEM_MOOMOO_MILK\x10\x1d\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xf4\x03(\x020\x01H\x01R\x02\bd\x120\n" +
+	"\x12ITEM_ENERGY_POWDER\x10\x1e\x1a\x18\x82\xb5\x18\x14\b\x01\x10\xf4\x03(\x020\x01H\x01R\a\b2r\x03\t\t\x13\x12/\n" +
+	"\x10ITEM_ENERGY_ROOT\x10\x1f\x1a\x19\x82\xb5\x18\x15\b\x01\x10\xa0\x06(\x020\x01H\x01R\b\b\xc8\x01r\x03\x13\x13\x1d\x126\n" +
+	"\x10ITEM_HEAL_POWDER\x10 \x1a \x82\xb5\x18\x1c\b\x01\x10\xc2\x03(\x020\x01H\x01R\x0f\x1a\x06\x01\x02\x06\x03\x04\x05 \x01r\x03\t\t\x13\x121\n" +
+	"\x11ITEM_REVIVAL_HERB\x10!\x1a\x1a\x82\xb5\x18\x16\b\x01\x10\xf0\x15(\x020\x01H\x01R\t\x10d0\x01r\x03\x1d\x1d'\x12#\n" +
 	"\n" +
 	"ITEM_ETHER\x10\"\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xb0\t(\x030\x01H\x02R\x028\n" +
 	"\x12'\n" +
@@ -1904,14 +1965,14 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"H\x01\x12*\n" +
 	"\x0fITEM_MAX_ELIXIR\x10%\x1a\x15\x82\xb5\x18\x11\b\x01\x10\x94#(\x030\x01H\x01R\x04@\x01H\x01\x121\n" +
 	"\x10ITEM_LAVA_COOKIE\x10&\x1a\x1b\x82\xb5\x18\x17\b\x01\x10\xc8\x01(\x020\x01H\x01R\n" +
-	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12(\n" +
-	"\x0fITEM_BLUE_FLUTE\x10'\x1a\x13\x82\xb5\x18\x0f\b\x01\x10d(\x020\x01H\x01R\x03\x1a\x01\x01\x12*\n" +
+	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12*\n" +
+	"\x0fITEM_BLUE_FLUTE\x10'\x1a\x15\x82\xb5\x18\x11\b\x01\x10d(\x020\x01H\x01R\x05\x1a\x01\x01x\x01\x12*\n" +
 	"\x11ITEM_YELLOW_FLUTE\x10(\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xc8\x01(\x010\x01H\x01R\x02 \x01\x12'\n" +
 	"\x0eITEM_RED_FLUTE\x10)\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xac\x02(\x010\x01H\x01R\x02(\x01\x12#\n" +
 	"\x10ITEM_BLACK_FLUTE\x10*\x1a\r\x82\xb5\x18\t\b\x01\x10\x90\x03(\x110\x01\x12#\n" +
 	"\x10ITEM_WHITE_FLUTE\x10+\x1a\r\x82\xb5\x18\t\b\x01\x10\xf4\x03(\x110\x01\x12(\n" +
-	"\x10ITEM_BERRY_JUICE\x10,\x1a\x12\x82\xb5\x18\x0e\b\x01\x10d(\x020\x01H\x01R\x02\b\x14\x12\"\n" +
-	"\x0fITEM_SACRED_ASH\x10-\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8\x01(\a0\x01\x12\x1f\n" +
+	"\x10ITEM_BERRY_JUICE\x10,\x1a\x12\x82\xb5\x18\x0e\b\x01\x10d(\x020\x01H\x01R\x02\b\x14\x12*\n" +
+	"\x0fITEM_SACRED_ASH\x10-\x1a\x15\x82\xb5\x18\x11\b\x01\x10\xc8\x01(\a0\x01R\x06\x10d0\x01h\x01\x12\x1f\n" +
 	"\x0fITEM_SHOAL_SALT\x10.\x1a\n" +
 	"\x82\xb5\x18\x06\b\x01\x10\x14(\x01\x12 \n" +
 	"\x10ITEM_SHOAL_SHELL\x10/\x1a\n" +
@@ -1919,18 +1980,26 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x0eITEM_RED_SHARD\x100\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
 	"\x0fITEM_BLUE_SHARD\x101\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\"\n" +
 	"\x11ITEM_YELLOW_SHARD\x102\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12!\n" +
-	"\x10ITEM_GREEN_SHARD\x103\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\x1d\n" +
+	"\x10ITEM_GREEN_SHARD\x103\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12&\n" +
 	"\n" +
-	"ITEM_HP_UP\x10?\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1f\n" +
-	"\fITEM_PROTEIN\x10@\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1c\n" +
-	"\tITEM_IRON\x10A\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1e\n" +
-	"\vITEM_CARBOS\x10B\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1f\n" +
-	"\fITEM_CALCIUM\x10C\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\"\n" +
-	"\x0fITEM_RARE_CANDY\x10D\x1a\r\x82\xb5\x18\t\b\x01\x10\xc0%(\x050\x01\x12\x1d\n" +
+	"ITEM_HP_UP\x10?\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x01r\x03\n" +
+	"\x06\x04\x12(\n" +
+	"\fITEM_PROTEIN\x10@\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x02r\x03\n" +
+	"\x06\x04\x12%\n" +
+	"\tITEM_IRON\x10A\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x03r\x03\n" +
+	"\x06\x04\x12'\n" +
+	"\vITEM_CARBOS\x10B\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x04r\x03\n" +
+	"\x06\x04\x12(\n" +
+	"\fITEM_CALCIUM\x10C\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x05r\x03\n" +
+	"\x06\x04\x12\"\n" +
+	"\x0fITEM_RARE_CANDY\x10D\x1a\r\x82\xb5\x18\t\b\x01\x10\xc0%(\x050\x01\x12&\n" +
 	"\n" +
-	"ITEM_PP_UP\x10E\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x040\x01\x12\x1c\n" +
-	"\tITEM_ZINC\x10F\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1e\n" +
-	"\vITEM_PP_MAX\x10G\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x040\x01\x12\"\n" +
+	"ITEM_PP_UP\x10E\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x040\x01R\aX\x01r\x03\n" +
+	"\x06\x04\x12%\n" +
+	"\tITEM_ZINC\x10F\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x06r\x03\n" +
+	"\x06\x04\x12'\n" +
+	"\vITEM_PP_MAX\x10G\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x040\x01R\a`\x01r\x03\n" +
+	"\x06\x04\x12\"\n" +
 	"\x0fITEM_GUARD_SPEC\x10I\x1a\r\x82\xb5\x18\t\b\x01\x10\xbc\x05(\x01H\x03\x12 \n" +
 	"\rITEM_DIRE_HIT\x10J\x1a\r\x82\xb5\x18\t\b\x01\x10\x8a\x05(\x01H\x03\x12 \n" +
 	"\rITEM_X_ATTACK\x10K\x1a\r\x82\xb5\x18\t\b\x01\x10\xf4\x03(\x01H\x03\x12 \n" +
@@ -2465,23 +2534,25 @@ var file_pokeuniverse_item_v1_catalog_proto_goTypes = []any{
 	(*ItemEffect)(nil),                    // 4: pokeuniverse.item.v1.ItemEffect
 	(*ItemInfo)(nil),                      // 5: pokeuniverse.item.v1.ItemInfo
 	(v1.Status)(0),                        // 6: pokeuniverse.pokemon.v1.Status
-	(v11.Move)(0),                         // 7: pokeuniverse.move.v1.Move
-	(*descriptorpb.EnumValueOptions)(nil), // 8: google.protobuf.EnumValueOptions
+	(v1.Stat)(0),                          // 7: pokeuniverse.pokemon.v1.Stat
+	(v11.Move)(0),                         // 8: pokeuniverse.move.v1.Move
+	(*descriptorpb.EnumValueOptions)(nil), // 9: google.protobuf.EnumValueOptions
 }
 var file_pokeuniverse_item_v1_catalog_proto_depIdxs = []int32{
 	6, // 0: pokeuniverse.item.v1.ItemEffect.cures:type_name -> pokeuniverse.pokemon.v1.Status
-	0, // 1: pokeuniverse.item.v1.ItemInfo.pocket:type_name -> pokeuniverse.item.v1.Pocket
-	1, // 2: pokeuniverse.item.v1.ItemInfo.field_use:type_name -> pokeuniverse.item.v1.FieldUse
-	7, // 3: pokeuniverse.item.v1.ItemInfo.move:type_name -> pokeuniverse.move.v1.Move
-	2, // 4: pokeuniverse.item.v1.ItemInfo.battle_use:type_name -> pokeuniverse.item.v1.BattleUse
-	4, // 5: pokeuniverse.item.v1.ItemInfo.effect:type_name -> pokeuniverse.item.v1.ItemEffect
-	8, // 6: pokeuniverse.item.v1.info:extendee -> google.protobuf.EnumValueOptions
-	5, // 7: pokeuniverse.item.v1.info:type_name -> pokeuniverse.item.v1.ItemInfo
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	7, // [7:8] is the sub-list for extension type_name
-	6, // [6:7] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	7, // 1: pokeuniverse.item.v1.ItemEffect.ev_stat:type_name -> pokeuniverse.pokemon.v1.Stat
+	0, // 2: pokeuniverse.item.v1.ItemInfo.pocket:type_name -> pokeuniverse.item.v1.Pocket
+	1, // 3: pokeuniverse.item.v1.ItemInfo.field_use:type_name -> pokeuniverse.item.v1.FieldUse
+	8, // 4: pokeuniverse.item.v1.ItemInfo.move:type_name -> pokeuniverse.move.v1.Move
+	2, // 5: pokeuniverse.item.v1.ItemInfo.battle_use:type_name -> pokeuniverse.item.v1.BattleUse
+	4, // 6: pokeuniverse.item.v1.ItemInfo.effect:type_name -> pokeuniverse.item.v1.ItemEffect
+	9, // 7: pokeuniverse.item.v1.info:extendee -> google.protobuf.EnumValueOptions
+	5, // 8: pokeuniverse.item.v1.info:type_name -> pokeuniverse.item.v1.ItemInfo
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	8, // [8:9] is the sub-list for extension type_name
+	7, // [7:8] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_item_v1_catalog_proto_init() }

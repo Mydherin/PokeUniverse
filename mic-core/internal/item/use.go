@@ -167,6 +167,33 @@ func Use(s *State, id itemv1.Item, f Field) Result {
 	return effect(s, id, info, f)
 }
 
+// PokemonEffect is what a bag item does when used on a party Pokémon, or nil when it isn't in the
+// bag or isn't used that way. An ENIGMA BERRY has no effect (no e-Reader data): it's used, in vain.
+func PokemonEffect(s *State, id itemv1.Item) (effect *itemv1.ItemEffect, ok bool) {
+	info, found := Info(id)
+	if !found || s.Bag.Quantity(id) == 0 {
+		return nil, false
+	}
+	switch info.FieldUse {
+	case itemv1.FieldUse_FIELD_USE_MEDICINE, itemv1.FieldUse_FIELD_USE_ETHER, itemv1.FieldUse_FIELD_USE_PP_UP,
+		itemv1.FieldUse_FIELD_USE_SACRED_ASH, itemv1.FieldUse_FIELD_USE_ENIGMA_BERRY:
+		return info.Effect, true
+	}
+	return nil, false
+}
+
+// SpendOnPokemon is the cost of an item that worked on a Pokémon: one, unless it's reusable.
+func SpendOnPokemon(s *State, id itemv1.Item) Result {
+	res := outcome(itemv1.ItemOutcome_ITEM_OUTCOME_USED_ON_POKEMON)
+	info, ok := Info(id)
+	if !ok || info.GetEffect().GetReusable() {
+		return res
+	}
+	s.Bag.Remove(id, 1)
+	res.Changed = Changed{Pockets: []itemv1.Pocket{info.Pocket}, State: true}
+	return res
+}
+
 // Give is GIVE (Task_ItemMenuAction_Give): important items can't be held; others need a Pokémon.
 func Give(s *State, id itemv1.Item, f Field) Result {
 	info, ok := Info(id)

@@ -114,6 +114,11 @@ export function giveToParty(flow: Flow, host: PartyHost, item: Item, pc: boolean
   startPartyMenu(flow, host, { kind: "give", item, pc }, back);
 }
 
+/** CB2_ShowPartyMenuForItemUse: the party menu to use the item on a Pokémon, then `back` (the screen it was chosen in). */
+export function useOnParty(flow: Flow, host: PartyHost, item: Item, back: () => void): void {
+  startPartyMenu(flow, host, { kind: "use", item }, back);
+}
+
 const WINDOWS = {
   list: { left: 11, top: 1, width: 18, height: 12, palette: 15, baseBlock: 0x08a },
   description: { left: 5, top: 14, width: 25, height: 6, palette: 15, baseBlock: 0x162 },
@@ -645,6 +650,10 @@ class Bag {
    */
   private onResult(r: ItemResult): void {
     if (r.outcome === ItemOutcome.NO_RESPONSE || r.outcome === ItemOutcome.ON_FIELD) return this.close(false, { field: r });
+    if (r.outcome === ItemOutcome.PARTY_MENU) {
+      const { flow, gender, host, done } = this;
+      return this.close(false, null, () => useOnParty(flow, host.party, r.item, () => startBag(flow, gender, host, done)));
+    }
     if (r.outcome === ItemOutcome.OPEN) {
       const { flow, gender, host, done } = this;
       return this.close(false, null, () => {

@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** start [M1](milestones/m01-party-item-use.md) at its **Resume Here**. Nothing is built yet beyond the Done list below.
+**Next step:** [M1](milestones/m01-party-item-use.md#resume-here): its code is committed and builds, but was never played. Rebuild, play it, close it; then M1b.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -14,8 +14,9 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 
 | # | Milestone | Status | Needs | In short |
 |---|---|---|---|---|
-| M1 | [Items on a Pokémon: medicine and PP](milestones/m01-party-item-use.md) | ⬜ | | The party menu's USE mode and `UsePartyItem`; potions, status cures, revives, vitamins, Sacred Ash, PP items |
-| M2 | [Rare Candy and evolution stones](milestones/m02-growth-items.md) | ⬜ | M1 | Level up, learning and evolution outside battle, reusing Phase 5 M11 |
+| M1 | [Items on a Pokémon: medicine and PP](milestones/m01-party-item-use.md) | 🚧 | | The party menu's USE mode and `UsePartyItem`; potions, status cures, revives, vitamins, Sacred Ash, PP items |
+| M1b | [FireRed's item-use scene](milestones/m01b-item-use-scene.md) | ⬜ | M1 | The Pokémon and item scene before an item's effect; M2 and M3 add its other variants |
+| M2 | [Rare Candy and evolution stones](milestones/m02-growth-items.md) | ⬜ | M1b | Level up, learning and evolution outside battle, reusing Phase 5 M11 |
 | M3 | [TM/HM teaching](milestones/m03-tm-hm-teaching.md) | ⬜ | M2 | TM and tutor learnsets in the catalog; the TM CASE's USE; ABLE / NOT ABLE |
 | M4 | [Exp. Share and held items](milestones/m04-exp-share-held-items.md) | ⬜ | | Exp. Share's split in `mic-battles`; held items' effects outside battle |
 | M5 | [Field moves on the party screen](milestones/m05-field-moves.md) | ⬜ | M1 | Field moves in the party menu; Milk Drink and Softboiled work, the rest refuse until their maps |
@@ -24,7 +25,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M8 | [Following Pokémon: art and walking](milestones/m08-following-walk.md) | ⬜ | | Overworld sprites in the build; the lead walks behind the player, decided by the server |
 | M9 | [Following Pokémon: edge cases, phase check](milestones/m09-following-check.md) | ⬜ | M7, M8 | Warps, lead changes, battles, reloads; the whole phase played once |
 
-M1 → M2 → M3 and M6 → M7 → M9 are chains. M4, M5 and M8 can go in any order after what they need.
+M1 → M1b → M2 → M3 and M6 → M7 → M9 are chains. M4, M5 and M8 can go in any order after what they need.
 
 ## Done
 

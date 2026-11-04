@@ -548,6 +548,7 @@ export class BattleScreen implements PlaybackHost {
       gender: host.gender,
       nationalDex: host.nationalDex,
       bag: host.bag,
+      useItem: none,
       give: none,
       take: none,
       swap: () => {},

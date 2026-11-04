@@ -41,6 +41,14 @@ var testBag = []item.Slot{
 	{Item: itemv1.Item_ITEM_LUM_BERRY, Quantity: 3},
 	{Item: itemv1.Item_ITEM_LEPPA_BERRY, Quantity: 3},
 	{Item: itemv1.Item_ITEM_PERSIM_BERRY, Quantity: 3},
+	// Test content (phase-6): removed in Phase 10. Items used on a Pokémon outside battle (M1).
+	{Item: itemv1.Item_ITEM_BLUE_FLUTE, Quantity: 1},
+	{Item: itemv1.Item_ITEM_ENERGY_POWDER, Quantity: 3},
+	{Item: itemv1.Item_ITEM_SACRED_ASH, Quantity: 2},
+	{Item: itemv1.Item_ITEM_HP_UP, Quantity: 3},
+	{Item: itemv1.Item_ITEM_PROTEIN, Quantity: 12},
+	{Item: itemv1.Item_ITEM_PP_UP, Quantity: 4},
+	{Item: itemv1.Item_ITEM_PP_MAX, Quantity: 1},
 }
 
 // giveTestBag adds the test bag to the items, and says which pockets changed.

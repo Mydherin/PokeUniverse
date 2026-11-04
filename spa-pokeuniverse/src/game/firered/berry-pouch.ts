@@ -375,7 +375,7 @@ class BerryPouch {
     this.hidePrompt();
   }
 
-  /** Task_BerryPouch_Use: mic-core decides (no Pokémon, "not the time", the party menu to come). */
+  /** Task_BerryPouch_Use: mic-core decides (no Pokémon, "not the time", the party menu). */
   private useAction(): void {
     this.hideContextMenu();
     this.list.putTilemap();
@@ -419,10 +419,14 @@ class BerryPouch {
   }
 
   /**
-   * DisplayItemMessageInBerryPouch: the answer's message, then the list built again. USE's
-   * PARTY_MENU (a berry used on a Pokémon) comes with items' effects on Pokémon; until then, back to the list.
+   * DisplayItemMessageInBerryPouch: the answer's message, then the list built again; USE's
+   * PARTY_MENU: the party menu to use the berry on a Pokémon, then back here.
    */
   private onResult(r: ItemResult): void {
+    if (r.outcome === ItemOutcome.PARTY_MENU) {
+      const { flow, gender, host, fromField, done, pick } = this;
+      return this.close(undefined, () => startPartyMenu(flow, host.party, { kind: "use", item: r.item }, () => startBerryPouch(flow, gender, host, fromField, done, pick)));
+    }
     const msg = itemMessage(this.flow, r, this.host.playerName);
     if (!msg) return this.refreshList();
     const player = new ItemMessagePlayer(

@@ -590,6 +590,70 @@ func (x *TakePartyItem) GetSlot() uint32 {
 	return 0
 }
 
+// Client -> server: USE a bag item on a party Pokémon (the item's own rules are in its catalog
+// entry). Answered with PartyChanged and BagChanged (what changed), then an ItemResult:
+// USED_ON_POKEMON or NO_EFFECT.
+type UsePartyItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Item  v12.Item               `protobuf:"varint,1,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
+	Slot  uint32                 `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
+	// The move it acts on (from 0), for the items that ask (Ether, PP UP).
+	MoveSlot      uint32 `protobuf:"varint,3,opt,name=move_slot,json=moveSlot,proto3" json:"move_slot,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsePartyItem) Reset() {
+	*x = UsePartyItem{}
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsePartyItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsePartyItem) ProtoMessage() {}
+
+func (x *UsePartyItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsePartyItem.ProtoReflect.Descriptor instead.
+func (*UsePartyItem) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UsePartyItem) GetItem() v12.Item {
+	if x != nil {
+		return x.Item
+	}
+	return v12.Item(0)
+}
+
+func (x *UsePartyItem) GetSlot() uint32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *UsePartyItem) GetMoveSlot() uint32 {
+	if x != nil {
+		return x.MoveSlot
+	}
+	return 0
+}
+
 // A party Pokémon that evolves after a battle (BattleEnded), once its scene isn't stopped.
 type PendingEvolution struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -601,7 +665,7 @@ type PendingEvolution struct {
 
 func (x *PendingEvolution) Reset() {
 	*x = PendingEvolution{}
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[7]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -613,7 +677,7 @@ func (x *PendingEvolution) String() string {
 func (*PendingEvolution) ProtoMessage() {}
 
 func (x *PendingEvolution) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[7]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -626,7 +690,7 @@ func (x *PendingEvolution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PendingEvolution.ProtoReflect.Descriptor instead.
 func (*PendingEvolution) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{7}
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *PendingEvolution) GetSlot() uint32 {
@@ -653,7 +717,7 @@ type EvolvePokemon struct {
 
 func (x *EvolvePokemon) Reset() {
 	*x = EvolvePokemon{}
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[8]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -665,7 +729,7 @@ func (x *EvolvePokemon) String() string {
 func (*EvolvePokemon) ProtoMessage() {}
 
 func (x *EvolvePokemon) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[8]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +742,7 @@ func (x *EvolvePokemon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvolvePokemon.ProtoReflect.Descriptor instead.
 func (*EvolvePokemon) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{8}
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *EvolvePokemon) GetSlot() uint32 {
@@ -704,7 +768,7 @@ type PokemonEvolved struct {
 
 func (x *PokemonEvolved) Reset() {
 	*x = PokemonEvolved{}
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[9]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +780,7 @@ func (x *PokemonEvolved) String() string {
 func (*PokemonEvolved) ProtoMessage() {}
 
 func (x *PokemonEvolved) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[9]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +793,7 @@ func (x *PokemonEvolved) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PokemonEvolved.ProtoReflect.Descriptor instead.
 func (*PokemonEvolved) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{9}
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PokemonEvolved) GetSlot() uint32 {
@@ -772,7 +836,7 @@ type LearnMove struct {
 
 func (x *LearnMove) Reset() {
 	*x = LearnMove{}
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[10]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -784,7 +848,7 @@ func (x *LearnMove) String() string {
 func (*LearnMove) ProtoMessage() {}
 
 func (x *LearnMove) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[10]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -797,7 +861,7 @@ func (x *LearnMove) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LearnMove.ProtoReflect.Descriptor instead.
 func (*LearnMove) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{10}
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *LearnMove) GetSlot() uint32 {
@@ -832,7 +896,7 @@ type PartyChanged struct {
 
 func (x *PartyChanged) Reset() {
 	*x = PartyChanged{}
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[11]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -844,7 +908,7 @@ func (x *PartyChanged) String() string {
 func (*PartyChanged) ProtoMessage() {}
 
 func (x *PartyChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[11]
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -857,7 +921,7 @@ func (x *PartyChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PartyChanged.ProtoReflect.Descriptor instead.
 func (*PartyChanged) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{11}
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PartyChanged) GetParty() *Party {
@@ -914,7 +978,11 @@ const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
 	"\x04slot\x18\x02 \x01(\rR\x04slot\x12\x0e\n" +
 	"\x02pc\x18\x03 \x01(\bR\x02pc\"#\n" +
 	"\rTakePartyItem\x12\x12\n" +
-	"\x04slot\x18\x01 \x01(\rR\x04slot\"b\n" +
+	"\x04slot\x18\x01 \x01(\rR\x04slot\"o\n" +
+	"\fUsePartyItem\x12.\n" +
+	"\x04item\x18\x01 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\x12\x12\n" +
+	"\x04slot\x18\x02 \x01(\rR\x04slot\x12\x1b\n" +
+	"\tmove_slot\x18\x03 \x01(\rR\bmoveSlot\"b\n" +
 	"\x10PendingEvolution\x12\x12\n" +
 	"\x04slot\x18\x01 \x01(\rR\x04slot\x12:\n" +
 	"\aspecies\x18\x02 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\aspecies\"#\n" +
@@ -945,7 +1013,7 @@ func file_pokeuniverse_party_v1_party_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_party_v1_party_proto_rawDescData
 }
 
-var file_pokeuniverse_party_v1_party_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_pokeuniverse_party_v1_party_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_pokeuniverse_party_v1_party_proto_goTypes = []any{
 	(*Pokemon)(nil),          // 0: pokeuniverse.party.v1.Pokemon
 	(*Move)(nil),             // 1: pokeuniverse.party.v1.Move
@@ -954,45 +1022,47 @@ var file_pokeuniverse_party_v1_party_proto_goTypes = []any{
 	(*SwapPokemonMoves)(nil), // 4: pokeuniverse.party.v1.SwapPokemonMoves
 	(*GivePartyItem)(nil),    // 5: pokeuniverse.party.v1.GivePartyItem
 	(*TakePartyItem)(nil),    // 6: pokeuniverse.party.v1.TakePartyItem
-	(*PendingEvolution)(nil), // 7: pokeuniverse.party.v1.PendingEvolution
-	(*EvolvePokemon)(nil),    // 8: pokeuniverse.party.v1.EvolvePokemon
-	(*PokemonEvolved)(nil),   // 9: pokeuniverse.party.v1.PokemonEvolved
-	(*LearnMove)(nil),        // 10: pokeuniverse.party.v1.LearnMove
-	(*PartyChanged)(nil),     // 11: pokeuniverse.party.v1.PartyChanged
-	(v1.Species)(0),          // 12: pokeuniverse.species.v1.Species
-	(*v11.Stats)(nil),        // 13: pokeuniverse.pokemon.v1.Stats
-	(v11.Status)(0),          // 14: pokeuniverse.pokemon.v1.Status
-	(v12.Item)(0),            // 15: pokeuniverse.item.v1.Item
-	(v13.Ability)(0),         // 16: pokeuniverse.ability.v1.Ability
-	(v11.Nature)(0),          // 17: pokeuniverse.pokemon.v1.Nature
-	(v11.Gender)(0),          // 18: pokeuniverse.pokemon.v1.Gender
-	(v14.Gender)(0),          // 19: pokeuniverse.trainer.v1.Gender
-	(v15.Move)(0),            // 20: pokeuniverse.move.v1.Move
+	(*UsePartyItem)(nil),     // 7: pokeuniverse.party.v1.UsePartyItem
+	(*PendingEvolution)(nil), // 8: pokeuniverse.party.v1.PendingEvolution
+	(*EvolvePokemon)(nil),    // 9: pokeuniverse.party.v1.EvolvePokemon
+	(*PokemonEvolved)(nil),   // 10: pokeuniverse.party.v1.PokemonEvolved
+	(*LearnMove)(nil),        // 11: pokeuniverse.party.v1.LearnMove
+	(*PartyChanged)(nil),     // 12: pokeuniverse.party.v1.PartyChanged
+	(v1.Species)(0),          // 13: pokeuniverse.species.v1.Species
+	(*v11.Stats)(nil),        // 14: pokeuniverse.pokemon.v1.Stats
+	(v11.Status)(0),          // 15: pokeuniverse.pokemon.v1.Status
+	(v12.Item)(0),            // 16: pokeuniverse.item.v1.Item
+	(v13.Ability)(0),         // 17: pokeuniverse.ability.v1.Ability
+	(v11.Nature)(0),          // 18: pokeuniverse.pokemon.v1.Nature
+	(v11.Gender)(0),          // 19: pokeuniverse.pokemon.v1.Gender
+	(v14.Gender)(0),          // 20: pokeuniverse.trainer.v1.Gender
+	(v15.Move)(0),            // 21: pokeuniverse.move.v1.Move
 }
 var file_pokeuniverse_party_v1_party_proto_depIdxs = []int32{
-	12, // 0: pokeuniverse.party.v1.Pokemon.species:type_name -> pokeuniverse.species.v1.Species
-	13, // 1: pokeuniverse.party.v1.Pokemon.stats:type_name -> pokeuniverse.pokemon.v1.Stats
+	13, // 0: pokeuniverse.party.v1.Pokemon.species:type_name -> pokeuniverse.species.v1.Species
+	14, // 1: pokeuniverse.party.v1.Pokemon.stats:type_name -> pokeuniverse.pokemon.v1.Stats
 	1,  // 2: pokeuniverse.party.v1.Pokemon.moves:type_name -> pokeuniverse.party.v1.Move
-	14, // 3: pokeuniverse.party.v1.Pokemon.status:type_name -> pokeuniverse.pokemon.v1.Status
-	15, // 4: pokeuniverse.party.v1.Pokemon.held_item:type_name -> pokeuniverse.item.v1.Item
-	16, // 5: pokeuniverse.party.v1.Pokemon.ability:type_name -> pokeuniverse.ability.v1.Ability
-	17, // 6: pokeuniverse.party.v1.Pokemon.nature:type_name -> pokeuniverse.pokemon.v1.Nature
-	18, // 7: pokeuniverse.party.v1.Pokemon.gender:type_name -> pokeuniverse.pokemon.v1.Gender
-	15, // 8: pokeuniverse.party.v1.Pokemon.ball:type_name -> pokeuniverse.item.v1.Item
-	19, // 9: pokeuniverse.party.v1.Pokemon.ot_gender:type_name -> pokeuniverse.trainer.v1.Gender
-	20, // 10: pokeuniverse.party.v1.Move.move:type_name -> pokeuniverse.move.v1.Move
+	15, // 3: pokeuniverse.party.v1.Pokemon.status:type_name -> pokeuniverse.pokemon.v1.Status
+	16, // 4: pokeuniverse.party.v1.Pokemon.held_item:type_name -> pokeuniverse.item.v1.Item
+	17, // 5: pokeuniverse.party.v1.Pokemon.ability:type_name -> pokeuniverse.ability.v1.Ability
+	18, // 6: pokeuniverse.party.v1.Pokemon.nature:type_name -> pokeuniverse.pokemon.v1.Nature
+	19, // 7: pokeuniverse.party.v1.Pokemon.gender:type_name -> pokeuniverse.pokemon.v1.Gender
+	16, // 8: pokeuniverse.party.v1.Pokemon.ball:type_name -> pokeuniverse.item.v1.Item
+	20, // 9: pokeuniverse.party.v1.Pokemon.ot_gender:type_name -> pokeuniverse.trainer.v1.Gender
+	21, // 10: pokeuniverse.party.v1.Move.move:type_name -> pokeuniverse.move.v1.Move
 	0,  // 11: pokeuniverse.party.v1.Party.pokemon:type_name -> pokeuniverse.party.v1.Pokemon
-	15, // 12: pokeuniverse.party.v1.GivePartyItem.item:type_name -> pokeuniverse.item.v1.Item
-	12, // 13: pokeuniverse.party.v1.PendingEvolution.species:type_name -> pokeuniverse.species.v1.Species
-	20, // 14: pokeuniverse.party.v1.PokemonEvolved.learned:type_name -> pokeuniverse.move.v1.Move
-	20, // 15: pokeuniverse.party.v1.PokemonEvolved.to_learn:type_name -> pokeuniverse.move.v1.Move
-	20, // 16: pokeuniverse.party.v1.LearnMove.move:type_name -> pokeuniverse.move.v1.Move
-	2,  // 17: pokeuniverse.party.v1.PartyChanged.party:type_name -> pokeuniverse.party.v1.Party
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	16, // 12: pokeuniverse.party.v1.GivePartyItem.item:type_name -> pokeuniverse.item.v1.Item
+	16, // 13: pokeuniverse.party.v1.UsePartyItem.item:type_name -> pokeuniverse.item.v1.Item
+	13, // 14: pokeuniverse.party.v1.PendingEvolution.species:type_name -> pokeuniverse.species.v1.Species
+	21, // 15: pokeuniverse.party.v1.PokemonEvolved.learned:type_name -> pokeuniverse.move.v1.Move
+	21, // 16: pokeuniverse.party.v1.PokemonEvolved.to_learn:type_name -> pokeuniverse.move.v1.Move
+	21, // 17: pokeuniverse.party.v1.LearnMove.move:type_name -> pokeuniverse.move.v1.Move
+	2,  // 18: pokeuniverse.party.v1.PartyChanged.party:type_name -> pokeuniverse.party.v1.Party
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_party_v1_party_proto_init() }
@@ -1006,7 +1076,7 @@ func file_pokeuniverse_party_v1_party_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_party_v1_party_proto_rawDesc), len(file_pokeuniverse_party_v1_party_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

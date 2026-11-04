@@ -41,6 +41,7 @@ message ClientMessage {
     pokeuniverse.party.v1.EvolvePokemon evolve_pokemon = 23;
     pokeuniverse.party.v1.LearnMove learn_move = 24;
     pokeuniverse.world.v1.UseWarp use_warp = 25;
+    pokeuniverse.party.v1.UsePartyItem use_party_item = 26;
   }
 }
 

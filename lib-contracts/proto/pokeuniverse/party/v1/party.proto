@@ -99,6 +99,16 @@ message TakePartyItem {
   uint32 slot = 1;
 }
 
+// Client -> server: USE a bag item on a party Pokémon (the item's own rules are in its catalog
+// entry). Answered with PartyChanged and BagChanged (what changed), then an ItemResult:
+// USED_ON_POKEMON or NO_EFFECT.
+message UsePartyItem {
+  pokeuniverse.item.v1.Item item = 1;
+  uint32 slot = 2;
+  // The move it acts on (from 0), for the items that ask (Ether, PP UP).
+  uint32 move_slot = 3;
+}
+
 // A party Pokémon that evolves after a battle (BattleEnded), once its scene isn't stopped.
 message PendingEvolution {
   uint32 slot = 1;
