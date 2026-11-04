@@ -32,8 +32,40 @@ func (p *Player) GiveItem(m *itemv1.GiveItem) {
 // TossItem throws items away.
 func (p *Player) TossItem(m *itemv1.TossItem) {
 	p.zone.do(func() {
+		if p.battle != nil {
+			p.zone.tossInBattle(p, m.GetItem(), int(m.GetQuantity()))
+			return
+		}
 		p.zone.itemAction(p, m.GetItem(), false, func(s *item.State, _ item.Field) item.Result { return item.Toss(s, m.GetItem(), int(m.GetQuantity())) })
 	})
+}
+
+// tossInBattle is the BERRY POUCH's TOSS, the only one the BAG has in battle (BERRYPOUCH_FROMBATTLE).
+// The berries go like items used in battle: out of the bag in memory, saved with the outcome, back
+// if the player leaves. Saving the pocket now would also save what the battle has spent so far.
+func (z *zone) tossInBattle(p *Player, id itemv1.Item, n int) {
+	if _, ok := z.players[p]; !ok {
+		return
+	}
+	var res item.Result
+	if info, _ := item.Info(id); info.GetPocket() == itemv1.Pocket_POCKET_BERRY_POUCH {
+		res = item.Toss(p.items, id, n)
+	}
+	if res.Any() {
+		for i := 0; i < n; i++ {
+			p.battle.Spent = append(p.battle.Spent, int32(id))
+		}
+		z.keepSpent(p)
+	}
+	z.sendChanged(p, res.Changed)
+	sendItemResult(p, id, res)
+}
+
+// sendItemResult answers an action the client waits for.
+func sendItemResult(p *Player, id itemv1.Item, res item.Result) {
+	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_ItemResult{ItemResult: &itemv1.ItemResult{
+		Outcome: res.Outcome, Item: id, Value: uint32(res.Value),
+	}}})
 }
 
 // RegisterItem registers (or deselects) SELECT's item; the client already shows it.
@@ -100,9 +132,7 @@ func (z *zone) itemAction(p *Player, id itemv1.Item, atPC bool, act func(*item.S
 		}
 	}
 	z.sendChanged(p, res.Changed)
-	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_ItemResult{ItemResult: &itemv1.ItemResult{
-		Outcome: res.Outcome, Item: id, Value: uint32(res.Value),
-	}}})
+	sendItemResult(p, id, res)
 }
 
 // itemChange runs a change the client predicted: saved when done, corrected (what it would have

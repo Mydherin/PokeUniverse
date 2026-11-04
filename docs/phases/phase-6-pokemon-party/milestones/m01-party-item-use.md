@@ -23,7 +23,7 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md),
 
 - **Sounds:** the browser pane plays nothing we can hear (Blue Flute's flute, `se_use_item`).
 - **Ether in battle:** the move list opened, the move was taken and the turn played; the message went by unseen.
-- **The battle BAG's fixes below and battle friendship:** built, not played. To play them: A, then USE or CANCEL; B in the party; an X item at +6; POKé FLUTE with and without a sleeper; TOSS in the battle pouch; friendship after a battle.
+- **The battle BAG's fixes below:** played in [M1b](m01b-item-use-scene.md#play-it), all fine. Left: friendship after a battle, and an X item at +6 (not played; Dire Hit's second use, the same path, says "It won't have any effect.").
 
 ## Battle BAG, Fixed After Playing
 

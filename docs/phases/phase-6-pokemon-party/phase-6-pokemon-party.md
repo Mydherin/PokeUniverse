@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M1b](milestones/m01b-item-use-scene.md#resume-here): built and committed, the Potion played. Left: the rest of its Play It list, the regression check and M1's [battle BAG fixes](milestones/m01-party-item-use.md#battle-bag-fixed-after-playing), all in the containers as they are. Then M2.
+**Next step:** [M1b](milestones/m01b-item-use-scene.md#resume-here): the scene and M1's battle BAG fixes played. Left: a whole battle won, PC, walk and SAVE, one look at the original. Then M2.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 

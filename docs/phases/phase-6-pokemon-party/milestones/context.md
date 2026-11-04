@@ -6,7 +6,7 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Open only the section a step nee
 
 The user asked for this phase to be tested in the game (2026-11-04), so **a milestone closes only once played**. Nothing left from a test is committed, except test content marked as below.
 
-1. **Build:** `make contracts` and `make breaking` if a contract changed; `mic-core` build + vet; SPA typecheck and bundle; `mic-battles` build if touched ([commands](../../phase-5-battle-system/milestones/context.md#commands)). Then a Docker rebuild of what changed.
+1. **Build:** `make contracts` and `make breaking` if a contract changed; `mic-core` build + vet; SPA typecheck and bundle; `mic-battles` build if touched ([commands](../../phase-5-battle-system/milestones/context.md#commands)). Then a Docker rebuild of what changed; when in doubt `docker compose up -d --build mic-battles mic-core spa-pokeuniverse` (seconds if nothing changed): an old image looks like a bug.
 2. **Play** the milestone's **Play it** list in the game, with the browser pane. Write what passed and what didn't in its file.
 3. **Regression check**, about 5 minutes, after every milestone:
    - POKéMON: SWITCH, GIVE, TAKE, SUMMARY with move SWITCH.

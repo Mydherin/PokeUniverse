@@ -256,6 +256,15 @@ func (z *zone) refuseChoice(p *Player) {
 	}}})
 }
 
+// keepSpent records what the battle took from the bag: a restart resumes it with them still gone.
+func (z *zone) keepSpent(p *Player) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := z.w.active.SetActive(ctx, p.accountID, p.battle.Active); err != nil {
+		z.w.log.Error("save battle", "account_id", p.accountID, "err", err)
+	}
+}
+
 // played shows a step mic-battles played: a bag item is spent first (D12: mic-core owns the
 // bag; saved with the outcome, so leaving rolls it back), then the events and the next
 // request, then the end if it's over.
@@ -275,12 +284,7 @@ func (z *zone) played(p *Player, u *battlev1.BattleUpdate, step uint32, used []*
 		}
 	}
 	if removed {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		// A restart resumes the battle with the item still spent.
-		if err := z.w.active.SetActive(ctx, p.accountID, p.battle.Active); err != nil {
-			z.w.log.Error("save battle", "account_id", p.accountID, "err", err)
-		}
-		cancel()
+		z.keepSpent(p)
 		z.sendChanged(p, spentChanges(p.battle.Spent))
 	}
 	p.battle.request = side.GetRequest()

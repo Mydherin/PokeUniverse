@@ -6,43 +6,47 @@ Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M1. Found while build
 
 ## Resume Here
 
-Built, committed and running in the containers. The Potion played; only playing is left. **Next step:** the unchecked [Play It](#play-it) items, then the regression check and M1's battle BAG list, then close: mark ✅ here and in the phase file, point **Now** in `AGENTS.md` at M2, cut this file down. No code needs reading first. Fix only what fails.
+The scene is played and fine; only the end of the regression check is left. **Next step:** the unchecked items under [Play It](#play-it), in that order, then close: mark ✅ here and in the phase file, point **Now** in `AGENTS.md` at M2, cut this file down. No code needs reading first. Fix only what fails.
 
-**To play it:** assets and containers are up to date. Account 2's bag has Potions, cures, Revive, Ether, PP UP, HP UP and berries; its team is healthy again. [Playing fast](context.md#playing-a-milestone) has the keys and the steps.
+**State:** everything is committed and the containers run it. Account 2's save is back as it was before playing: team healthy at level 50, bag as in the backup. The player stands at (9,5), under the trainer.
 
-- **Hurting a Pokémon** (game closed, on `/`): `docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "update trainer_pokemon set hp=5 where account_id=2 and slot=0"'`. Full HP: slot 0 Garchomp 171, slot 1 Pikachu 100. Friendship is 70 (closeness 0); set a slot to 255 for closeness 3 and back to 70. Potion is `item=13`, 4 at the start.
-- **Keys in order:** in the BAG, A, A (USE), wait about 2 s, the slot, A. In the party, Right goes from Garchomp to the first box on the right. Screenshot before pressing: a run of blind presses after a message once ended on GIVE (harmless, B).
-- **Timing:** about 2.3 s after A shows the sparkles, 3.5 s more the message.
+**The fast way through what's left:**
 
-## Tasks
+1. Game closed (on `/`, 3 s): back up the save ([context.md](context.md#playing-a-milestone)), then give the team enough to win (the pouch already has Leppa and Oran to toss):
+   `update trainer_pokemon set level=90, exp=911250 where account_id=2 and slot=0` (Garchomp); `exp=729000` for slot 1 (Pikachu); `exp=762160` for slots 2 and 3 (Charizard, Lucario). Two at level 90 lost at the third foe.
+2. **Battle:** Up, A, A, A (YES), A, A, A; about 25 s to the menu. In it: BAG, Right to KEY ITEMS, BERRY POUCH, OPEN, a berry, TOSS, A, A, A. B, B back to the battle.
+3. **Win:** Garchomp's Earthquake does nothing to Gengar (Levitate): pick Dragon Claw (A, Right, A; the cursor stays on it after). Then one call per turn: `KeyZ`, `KeyZ`, about 10 × `KeyX` 1.5 s apart. B moves messages on and answers NO to "Will AA change POKéMON?". If a Pokémon faints: A, Right or Down to the next, A, A.
+4. **After the win:** the tossed berry is one fewer in `trainer_items` (saved with the outcome), `friendship` of the team changed by the battle's rule, exp and money saved. Then the rest of the list, and restore the levels.
 
-- [x] **Scene:** `firered/use-item-scene.ts`, Normal variant. The level up, machine (TM/HM) and can't-evolve variants belong to M2 and M3, on the same file.
-- [x] **Flow:** mic-core answers first (a refusal plays nothing), the menu closes, the scene plays, the menu reopens (`Resume` `then: "used"`, `showUsed` in `party-menu.ts`) with the box as it was, then sound, HP rising and message.
-- [x] **Closeness:** `ItemResult.value` on `USED_ON_POKEMON` carries 0-3, from the friendship before the item (`Party.ItemSceneCloseness`). Friendship itself stays on the server ([Phase 5 D16](../../phase-5-battle-system/milestones/context.md#decisions)).
-- [x] **Assets:** `make pokemon` adds `itemScene` to `species.json` (`sMonPosAttributes` from `src/menu2.c`: machine x, machine y, y offset, item x, item y; 387-493 get FireRed's fallback, 32 for all). `make text` has `gText_WasUsedOn`, `gText_Period`; `make audio` has `se_ball_tray_exit`. Graphics were already copied.
-- [ ] **Play it,** then the [regression check](context.md#playing-a-milestone).
+**Playing:** `/play` now takes about 55 s, then A presses until the map (screenshot between them, the count varies). Hold a walking key 200 ms per step (280 ms took two). A hidden pane cuts a call at 45 s: keep each under 35 s.
 
 ## Play It
 
-- [x] Potion, closeness 0 (Garchomp) and 3 (Pikachu): background, picture at the right size, item, sparkles, message, zoom back, A, then the menu with HP rising from the old value (5 → 25), its message, back to the bag with one Potion fewer. One console error: "An unknown error occurred when fetching the script", probably the service worker after the rebuild; not looked into, check it's gone.
-- [ ] Cure (the status icon stays until the menu is back), Revive (FNT stays until then), Ether, vitamin.
-- [ ] A or B held before the message: black at once, the menu, the effect all the same.
-- [ ] No effect: no scene. Sacred Ash: none (`ItemUseCB_SacredAsh` skips `Task_DoUseItemAnim`).
-- [ ] A Gen 4 species' item position looks fine with the fallback (Garchomp looked fine on the Potion, item centered).
+- [x] Potion, closeness 0 and 3: background, picture, item, sparkles, message, zoom back, A, the menu with HP rising, its message, one fewer in the bag. The console's "An unknown error occurred when fetching the script" is the browser pane refusing the service worker: `/sw.js` answers 200 as JavaScript, and registering it by hand fails the same way there. Not ours.
+- [x] Cure, Revive, Ether, vitamin: scene, then the effect and its message.
+- [x] A or B before the message: black at once, the menu, the effect all the same.
+- [x] No effect: no scene. Sacred Ash: none, every fainted Pokémon restored in turn.
+- [x] A Gen 4 species' item position with the fallback (Garchomp on the Potion, item centered).
+- [x] **M1's battle BAG fixes:** USE / CANCEL, OPEN / CANCEL, only CANCEL for Light Ball; "Use on which POKéMON?"; B in the party back to the BAG, or the BERRY POUCH for a berry; a berry with no battle use gets OAK's words; POKé FLUTE with nobody asleep (catchy tune) and with a sleeper (wakes, SLP gone); Dire Hit's second use says "It won't have any effect."; TOSS in the battle pouch.
+- [x] **Regression, passed:** POKéMON (SWITCH, GIVE, TAKE, SUMMARY with move SWITCH); BAG (USE, TOSS, not for now); in battle a Potion (+20) and exp on a knockout; `docker compose restart mic-core` resumes it, with the toss still gone; leaving drops it with Razz Berry, Potion and Dire Hit back in the bag.
+- [ ] **Regression, left:** a whole win (toss saved, exp, friendship); PC WITHDRAW and DEPOSIT; walk, stairs, SAVE, and a reload shows the same state.
 - [ ] A look at the Potion against the original (`make emulator`), once.
-- [ ] **M1's battle BAG fixes,** with the regression check's battle: the list under [Not Checked](m01-party-item-use.md#not-checked).
 
-**Can't be checked here:** the browser pane plays no sound we can hear, so the scene's sounds and the cry at closeness 3 are unheard.
+**Can't be checked here:** the browser pane plays no sound we can hear, so the scene's sounds, the flute's fanfare and the cry at closeness 3 are unheard.
+
+## Found While Playing
+
+- **`mic-battles` was running an old image** (built 14:41, the BAG fixes committed 15:57): a Dire Hit with no effect made the choice bounce silently. Nothing wrong in the code; all three services rebuilt. See [Playing a Milestone](context.md#playing-a-milestone), step 1.
+- **TOSS in the battle pouch did nothing:** `mic-core` refused every item action during a battle. `tossInBattle` (`world/items.go`) now allows it, berries only. Built, played; the save at the outcome isn't checked yet.
 
 ## Differences
 
 - **Effect saved before the scene,** not after as in FireRed: the MMO saves first, so a refusal plays nothing and a reload can't lose it. The player sees FireRed's order.
 - **Cancelling** stops the scene at once instead of letting its tasks run under the black screen: nothing to see differs.
+- **A berry tossed in battle comes back if the player leaves it:** saving the pocket then would also save what the battle has spent, and leaving must roll that back ([Phase 5 D22](../../phase-5-battle-system/milestones/context.md#decisions)).
 
 ## Files
 
-`spa-pokeuniverse/src/game/firered/use-item-scene.ts` (new), `party-menu.ts`, `manifest.ts`, `sounds.json`, `texts.json`; `infra/pokemon/build.mjs`, `sources.mjs`; `lib-contracts/proto/pokeuniverse/item/v1/bag.proto` (a comment, generated code); `mic-core/internal/pokemon/item.go`, `world/party.go`.
+`spa-pokeuniverse/src/game/firered/use-item-scene.ts` (new), `party-menu.ts`, `manifest.ts`, `sounds.json`, `texts.json`; `infra/pokemon/build.mjs`, `sources.mjs`; `lib-contracts/proto/pokeuniverse/item/v1/bag.proto` (a comment, generated code); `mic-core/internal/pokemon/item.go`, `world/party.go`, `world/items.go`, `world/battle.go`.
 
-The same commit adds `references/pokeheartgold` (`.gitmodules`, `AGENTS.md`, `docs/tech-stack.md`, `docs/vision.md`, [M8](m08-following-walk.md#whats-known)).
-
-**Build state:** typecheck, `mic-core` build + vet, `make contracts`, `make breaking` pass; SPA built by the Docker rebuild.
+**Build state:** `mic-core` build + vet pass with the toss fix; the Docker images are up to date. Typecheck, contracts and `make breaking` passed before it and nothing they cover changed.
