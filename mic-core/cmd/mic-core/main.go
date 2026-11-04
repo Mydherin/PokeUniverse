@@ -155,7 +155,8 @@ func run(log *slog.Logger) error {
 	log.Info("shutting down")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	// Players leave first (saving where they are), then the zones stop, then HTTP.
+	// Players leave first (saving where they are, keeping their battles), then the zones stop, then HTTP.
+	game.Drain()
 	ws.Shutdown(shutdownCtx)
 	game.Close()
 	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {

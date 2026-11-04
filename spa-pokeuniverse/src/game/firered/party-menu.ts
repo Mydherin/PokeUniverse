@@ -850,13 +850,13 @@ class PartyMenu {
     const { flow } = this;
     const font = flow.fonts[FontId.Normal];
     const n = mon.moves.length;
+    // First: clearing the wider message before it would erase the part of this window over it.
+    this.showStdMessage(Message.RestoreWhichMove);
     const win = new Window(this.bg2, MOVE_SELECT_WINDOW);
     drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
     mon.moves.forEach((m, i) => win.print(font, 8, i * 16 + 2, COLORS_ACTIONS, flow.assets.moveName(m.move), font.letterSpacing, 0));
     this.selection = new CursorMenu(flow, win, FontId.Normal, 0, 2, 16, n, 0);
     win.copyToVram();
-    this.removeStdMessage();
-    this.showStdMessage(Message.RestoreWhichMove);
     this.step = () => {
       const input = this.selection!.processInput(false);
       if (input === MENU_NOTHING_CHOSEN) return;

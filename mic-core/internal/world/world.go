@@ -62,10 +62,11 @@ type World struct {
 	log     *slog.Logger
 	stop    chan struct{}
 
-	mu      sync.Mutex
-	zones   map[string]*zone
-	players map[int64]*Player // Online on this replica, by account.
-	closed  bool
+	mu       sync.Mutex
+	zones    map[string]*zone
+	players  map[int64]*Player // Online on this replica, by account.
+	closed   bool
+	draining bool // The server is stopping: players leaving keep their battles.
 }
 
 func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
@@ -194,10 +195,10 @@ func (w *World) place(pos live.Position) (*Map, Point, mapv1.Direction) {
 // (rollback), unless the server is shutting down (it resumes after the restart).
 func (w *World) Leave(p *Player) {
 	w.mu.Lock()
-	closing := w.closed
+	draining := w.draining
 	w.mu.Unlock()
 	p.zone.call(func() {
-		if !closing {
+		if !draining {
 			p.zone.abandonBattle(p)
 		}
 		p.zone.remove(p)
@@ -263,6 +264,14 @@ func (w *World) keepAlive() {
 func (p *Player) owner(now time.Time) live.Owner {
 	last := p.counted.Swap(now.UnixNano())
 	return live.Owner{AccountID: p.accountID, Conn: p.conn, Played: max(0, time.Duration(now.UnixNano()-last))}
+}
+
+// Drain says the server is stopping, before its connections close: the players about to leave
+// keep their battles, which resume after the restart (D22).
+func (w *World) Drain() {
+	w.mu.Lock()
+	w.draining = true
+	w.mu.Unlock()
 }
 
 // Close saves every zone's last changes and stops them. Call it once connections have left.

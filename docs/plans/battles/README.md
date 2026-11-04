@@ -2,14 +2,14 @@
 
 The whole battle system: Pokémon data, party, battle engine, NPC AI, battle screen, sprites, animations and sounds, tracked across chats.
 
-- **Status:** 🚧 In progress, part of [Phase 4](../../phases/phase-4-players-room.md) (moved there from Phases 8 and 9 by the user, 2026-11-01).
+- **Status:** ✅ Done, part of [Phase 4](../../phases/phase-4-players-room.md) (moved there from Phases 8 and 9 by the user, 2026-11-01). Frame rate on a real phone is left for the user.
 - **Goal:** in the player's room, the trainer has a team of six (POKéMON in the START menu, party screen and summary). A trainer NPC stands in the room, and talking to them starts a **FireRed-style trainer battle with Gen 4 rules**: FireRed's screen, sprites, animations, sounds and texts, resolved by Showdown in `mic-battles`, with a FireRed-style AI adapted to Gen 4.
 - **Stays in later phases:** wild encounters and catching ([Phase 9](../../phases/phase-9-battles.md)), the rival battle in Oak's lab (Phase 9), following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 8](../../phases/phase-8-pokemon-party.md)), PvP ([Phase 11](../../phases/phase-11-social.md)).
 
 ## Resume Here
 
-- **Next:** [M14](m14-phase-4-battle-check.md), the last milestone: its **Resume Here**, then its unticked tasks, then its **Clean Up**.
-- **Last state:** singles win, level up, learning, evolution, reload, all bag and held items, party after a battle, send-out and recall played and working. All fixes committed; Mist's line and Ether's picker not seen yet; temporary test files in the tree, never to commit (M14 lists them). Left: learning give-up, Pokédex seen, singles loss, restart-resume, mobile.
+- **Next:** [M14's Resume Here](m14-phase-4-battle-check.md#resume-here): commit when the user asks, then the user checks a real phone. No code left; read nothing else.
+- **Last state:** every milestone played and passing, temporary test files removed, last two fixes and the docs uncommitted. Minor open items are in [M14](m14-phase-4-battle-check.md#open-minor-not-fixed).
 
 ## Cold Start (every new session)
 
@@ -30,7 +30,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M3 | [Party screen and summary](m03-party-screen.md) | ✅ | FireRed's party menu and summary, GIVE from bag/TM CASE/BERRY POUCH/PC, move SWITCH |
 | M4 | [Battle engine in `mic-battles`](m04-battle-engine.md) | ✅ | Contracts, Redis store with step check, Showdown wrapper, log → events per side, handlers, Gen 4 exp, random AI |
 | M5 | [NPC battle AI](m05-npc-ai.md) | ✅ | FireRed's AI flags with Gen 4 knowledge, switching, trainer items |
-| M6 | [Battles in `mic-core` and the room trainer](m06-mic-core-battles.md) | 🚧 | NPCs in maps, the test trainer, battle script steps, active battle, outcome transaction, whiteout, resume |
+| M6 | [Battles in `mic-core` and the room trainer](m06-mic-core-battles.md) | ✅ | NPCs in maps, the test trainer, battle script steps, active battle, outcome transaction, whiteout, resume |
 | M7 | [The battle screen](m07-battle-screen.md) | ✅ | Transition, intro, healthboxes, menus, event playback, party/bag in battle, ending, music |
 | M8 | [Animation engine](m08-animation-engine.md) | ✅ | Scripts → JSON, interpreter, behaviors, generic fallbacks, status/weather, two-turn moves |
 | M9 | [FireRed move animations](m09-firered-move-animations.md) | ✅ | Moves 1-354, general animations, full sweep in the game |
@@ -38,7 +38,7 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | M11 | [Exp, level up, moves, evolution](m11-exp-level-up-evolution.md) | ✅ | Exp bar, level up window, learning moves, evolution, Pokédex seen (not played yet: M14) |
 | M12 | [Held and bag items](m12-held-and-bag-items.md) | ✅ | Gen 4 battle items, bag items in battle, item messages (not played yet: M14) |
 | M13 | [Options, doubles, polish](m13-options-doubles-polish.md) | ✅ | SHIFT, doubles, double prize, partner animations, field texts, multi-hit replay; played |
-| M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | 🚧 | Manual full check, only when the user asks |
+| M14 | [Phase 4 battle check](m14-phase-4-battle-check.md) | ✅ | Manual full check; real phone's frame rate left for the user |
 
 ## Log
 
@@ -81,3 +81,4 @@ Order = dependencies. M7 can start once M4's contracts exist (with fake events),
 | 2026-11-04 | M13 close | User closed M13 without seeing a win's last screens; M13 file cut down; how to run it moved to M14 | M14 | Committed |
 | 2026-11-04 | M14 session 1 | Singles win, level up, learning, HM refusal, evolution, its cancel, Potion, reload pass; fixed SURF's wave (per-line BLDALPHA), the party balls' palette, battle's prompt arrow; temporary `infra/playtest/scenario.sh` and `zz_playtest.go` | M14's unticked tasks, then its Clean Up | Fixes not committed; the user put Rare Candy, field items and Exp. Share in Phase 8 |
 | 2026-11-04 | M14 session 2 | Send-out and recall now FireRed's battle routines (were Oak's and the trade's), committed. Items and party after a battle pass; fixed Dire Hit freezing the battle, the missing "getting pumped" and Mist lines, Ether's picker windows; test battle no longer heals | M14's five unticked tasks, then its Clean Up | Committed; Mist's line and Ether's picker not seen |
+| 2026-11-04 | M14 close | Learning give-up, Pokédex seen, singles loss, restart-resume, phone preset, Mist's line, Ether's picker pass; fixed a restart dropping the battle (`World.Drain`) and Ether's covered list; M6's last check done; Clean Up done | Plan done | Fixes uncommitted; real phone's frame rate left for the user |
