@@ -33,7 +33,7 @@ No code left to write but the minor open items below, and nothing to read first.
 - **Mobile (phone preset):** D-pad, A, B show at their sizes and work through the battle menus, bag and party. START has no use in a battle, so it wasn't pressed.
 - **Already played in M13 (desktop):** moves, switch, faint, replacement, SHIFT, doubles, a doubles loss, a doubles win with its prize.
 
-**Not tested, not built, all in [Phase 6](../../phase-6-pokemon-party.md) (the user, 2026-11-04):** TM/HM teaching, items used on a Pokémon outside battle (Rare Candy, potions, stones), Exp. Share's effect.
+**Not tested, not built, all in [Phase 6](../../phase-6-pokemon-party/phase-6-pokemon-party.md) (the user, 2026-11-04):** TM/HM teaching, items used on a Pokémon outside battle (Rare Candy, potions, stones), Exp. Share's effect.
 
 ## Bugs Fixed
 

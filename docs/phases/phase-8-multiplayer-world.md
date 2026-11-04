@@ -5,7 +5,7 @@
 ## Scope
 
 - Zones with snapshot on enter, then deltas only. Tried on the player's house, the maps there are so far.
-- Other players visible and moving, with their following Pokémon ([Phase 6](phase-6-pokemon-party.md)).
+- Other players visible and moving, with their following Pokémon ([Phase 6](phase-6-pokemon-party/phase-6-pokemon-party.md)).
 - Chat.
 - Batching per tick and rate limiting.
 - Reconnect with fresh snapshot.

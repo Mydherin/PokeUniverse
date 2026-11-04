@@ -43,7 +43,7 @@ The phase file is the source of its goal, scope, technical details and progress,
 | 3 | [New Game with Oak](phase-3-new-game.md) ✅ | A new player finishes Oak's speech and their trainer is saved |
 | 4 | [Player's Room](phase-4-players-room.md) ✅ | Walk in your room, server-authoritative; START menu and PC like FireRed; maps edited as text. |
 | 5 | [Battle System](phase-5-battle-system/phase-5-battle-system.md) ✅ | A Gen 4 battle against a test trainer plays to the end like FireRed ([milestones](phase-5-battle-system/phase-5-battle-system.md#milestones)) |
-| 6 | [Pokémon and Party](phase-6-pokemon-party.md) 🚧 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you. Done: data, party menu, summary, growing in battle |
+| 6 | [Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md) 🚧 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you ([milestones](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones)). Done: data, party menu, summary, growing in battle |
 | 7 | [Wild Battles and Catching](phase-7-wild-battles-catching.md) | Wild battles and catching work, on a test encounter |
 | 8 | [Multiplayer World](phase-8-multiplayer-world.md) | Many players move together smoothly, with chat |
 | 9 | [Social](phase-9-social.md) | Players use the social menus, trade and battle each other |
