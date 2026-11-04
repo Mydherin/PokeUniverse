@@ -30,6 +30,13 @@ Not started. First step: the art in `make pokemon`, and a check of the sheet's f
 - Client: `firered/overworld.ts` (937 lines), `player-sprite.ts`, `npc-sprite.ts`, `world/avatar.ts`, `world/rules.ts`. Server: `world/player.go`, `world/warp.go`, `world/zone.go`. Contracts in `world/v1`: `Avatar` (`Move`, `Warped`, `Correction`, `WorldSnapshot`).
 - Sprite palettes are limited to 16 slots with `loadSpritePalette(tag, colors)`: one more for the follower; Phase 8 will need more, with many players on screen.
 
+**How HGSS does it** (`references/pokeheartgold/`, behavior only; art stays the expansion's, its `files/data/mmodel` are DS 3D textures):
+
+- `src/map_object_follow.c:344` `FollowPlayerMovement_StartFollowMonStep`: it steps to the **player's previous tile** (`PlayerAvatar_GetPreviousXCoord`), facing that way, with **the player's own movement speed** (`GetMovementForDirection(direction, playerMovement)`); already there, it stays put.
+- `src/player_avatar_movement.c:586`, `:720` `FollowMon_QueuePlayerStep`: every player step queues the follower's. Same model as our D8.
+- `src/follow_mon.c:1804` `FollowMon_GetPermissionBySpeciesAndMap`: each map allows, forbids or limits it by size (big species stay in their ball indoors). Worth a look on the outdoor maps, not needed in the room.
+- Later, if asked (D9): recall into the ball (`FollowMon_StartRecall`), mood (`FollowMonMood_*`), hops over ledges (`FollowMon_SetPendingHop`).
+
 ## Files
 
 `infra/pokemon/build.mjs`, `Makefile`, `lib-contracts/proto/pokeuniverse/world/v1/`, `mic-core/internal/world/`, `spa-pokeuniverse/src/game/firered/overworld.ts`, `firered/follower-sprite.ts` (new), `firered/manifest.ts`, `AGENTS.md`.

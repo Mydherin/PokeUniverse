@@ -32,6 +32,7 @@ import { clearStdWindowAndFrameToTransparent, copyTiles, CursorMenu, drawStdFram
 import { iconAnimForHp, MonIcon } from "./mon-icon";
 import { textSpeedDelay } from "./options";
 import { startSummary } from "./summary";
+import { startUseItemScene } from "./use-item-scene";
 
 /** The trainer's Pokémon and what the party menu asks mic-core; the overworld answers. */
 export interface PartyHost {
@@ -76,7 +77,11 @@ export type PartyMenuMode =
     };
 
 /** What the field menu does once it shows again after a screen it opened (summary, bag). */
-type Resume = { slot: number; then: "selection" } | { slot: number; then: "give"; item: Item };
+type Resume =
+  | { slot: number; then: "selection" }
+  | { slot: number; then: "give"; item: Item }
+  /** Back from the item scene: the effect, already saved, shown from the box as it was. */
+  | { slot: number; then: "used"; item: Item; moveSlot: number; hp: number; ailment: Ailment };
 
 /**
  * Loads the party set and every party Pokémon's art on the black screen, then shows the party
@@ -467,7 +472,8 @@ class PartyMenu {
     else if (resume.then === "selection") {
       this.showStdMessage(Message.DoWhatWithMon);
       this.openSelection();
-    } else this.step = () => this.giveFromField(resume.item);
+    } else if (resume.then === "used") this.showUsed(resume);
+    else this.step = () => this.giveFromField(resume.item);
 
     palettes.blendPalettes(PALETTES_ALL, 16, RGB_BLACK);
     palettes.beginFade(PALETTES_ALL, -2, 16, 0, RGB_BLACK);
@@ -541,7 +547,7 @@ class PartyMenu {
   }
 
   /** DisplayPartyPokemonData: the box, name, level (unless it has an ailment), gender, HP and its bar. */
-  private displayData(slot: number, shownHp?: number): void {
+  private displayData(slot: number, shownHp?: number, shownAilment?: Ailment): void {
     const { flow } = this;
     const { assets } = flow;
     const mon = this.mon(slot)!;
@@ -551,7 +557,7 @@ class PartyMenu {
     this.blitBox(win, r.tiles, r.width, r.width, r.height);
     const name = monName(flow, mon);
     win.print(small, r.nickname[0], r.nickname[1], COLORS_DEFAULT, name);
-    const ailment = ailmentOf(mon);
+    const ailment = shownAilment ?? ailmentOf(mon);
     if (ailment === Ailment.None || ailment === Ailment.Pokerus)
       win.print(small, r.level[0], r.level[1], COLORS_DEFAULT, joinText(assets.text("gText_Lv"), decimalText(mon.level, NumberMode.LeftAlign, 3)));
     const gender = shownGender(mon);
@@ -941,18 +947,33 @@ class PartyMenu {
   }
 
   /**
-   * ItemUseCB_Medicine, ItemUseCB_TryRestorePP: mic-core applies it and saves; here its sound, HP
-   * rising and message, from what the party showed before. FireRed's item scene (StartUseItemAnim_Normal)
-   * comes before this: phase-6 M1b.
+   * Task_DoUseItemAnim, CB2_UseItem: mic-core applies it and saves (a refusal plays no scene, phase-6
+   * M1b); the menu closes for the item scene and reopens to show the effect from the box as it was.
    */
   private useItem(item: Item, slot: number, moveSlot: number): void {
     this.removeStdMessage();
-    const hp = this.party[slot]?.hp ?? 0;
+    const before = this.mon(slot);
+    const hp = before?.hp ?? 0;
+    const ailment = before ? ailmentOf(before) : Ailment.None;
     this.ask(this.host.useItem(item, slot, moveSlot), (r) => {
-      if (r.outcome !== ItemOutcome.USED_ON_POKEMON) return this.showMessage(this.flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
+      const { flow, host, mode, done } = this;
+      const mon = this.mon(slot);
+      if (r.outcome !== ItemOutcome.USED_ON_POKEMON || !mon) return this.showMessage(flow.assets.text("gText_WontHaveEffect"), true, () => this.close());
+      const scene = { species: mon.species, shiny: mon.shiny, name: monName(flow, mon), item, closeness: r.value };
+      this.exitTo(() => startUseItemScene(flow, scene, () => startPartyMenu(flow, host, mode, done, { slot, then: "used", item, moveSlot, hp, ailment })));
+    });
+  }
+
+  /** Task_SetSacredAshCB, ItemUseCB_Medicine, ItemUseCB_TryRestorePP: once the menu is back, its sound, HP rising and message. */
+  private showUsed({ slot, item, moveSlot, hp, ailment }: { slot: number; item: Item; moveSlot: number; hp: number; ailment: Ailment }): void {
+    const box = this.sprites[slot];
+    if (box) this.showAilment(box, ailment);
+    this.displayData(slot, hp, ailment);
+    this.step = () => {
+      if (this.flow.gba.palettes.fadeActive) return;
       this.playUsed(item);
       this.showRecovered(slot, hp, () => this.usedMessage(item, slot, moveSlot, hp), () => this.close());
-    });
+    };
   }
 
   /** ItemUseCB_SacredAsh: every Pokémon it brought back in turn, or "It won't have any effect." */

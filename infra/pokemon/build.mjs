@@ -10,6 +10,7 @@
 // - species.json: { "<n>": { name, category, description: FireRed-encoded bytes ending 0xFF,
 //   scale: [pokemonScale, pokemonOffset, trainerScale, trainerOffset],
 //   coords: [front y offset, back y offset, enemy elevation] (where the battle draws the pictures),
+//   itemScene: [machine x, machine y, y offset, item x, item y] (FireRed's item scene: firered/use-item-scene.ts),
 //   noFlip: true when the summary shows the front picture unmirrored (else left out) } }.
 // - cries.json: what `make audio` renders for each cry: { "<nnn>": { cry: FireRed cry number } | { wav: repo path } }.
 //
@@ -34,6 +35,9 @@ const { reflow: fit, widest } = makeReflow(firered, encode, MAX_LINES);
 const maxWidth = widest([...species.values()].filter((s) => s.source === "firered").map((s) => s.description));
 const reflow = (text, label) => fit(text, maxWidth, label);
 const fireRed = fireRedStyle([...species.values()].map((s) => s.name));
+
+// Menu2_GetMonPosAttribute's answer for a species its table doesn't have (387-493).
+const ITEM_SCENE_DEFAULT = [32, 32, 32, 32, 32];
 
 const encoded = (text, label) => [...encode(text, label), 0xff];
 const pad = (n) => String(n).padStart(3, "0");
@@ -60,6 +64,7 @@ for (const s of species.values()) {
     description: encoded(gen4 ? reflow(fireRed(s.description), label) : s.description, label),
     scale: s.scale,
     coords: [s.coords.front, s.coords.back, s.coords.elevation],
+    itemScene: s.itemScene ?? ITEM_SCENE_DEFAULT,
     ...(s.noFlip && { noFlip: true }),
   };
   cries[pad(s.nat)] = "firered" in s.cry ? { cry: s.cry.firered } : { wav: relative(repo, join(expansion, s.cry.wav)) };

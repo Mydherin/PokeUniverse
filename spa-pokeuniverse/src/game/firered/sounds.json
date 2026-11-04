@@ -28,6 +28,7 @@
   "se_glass_flute": { "song": "se_glass_flute" },
   "se_use_item": { "song": "se_use_item" },
   "se_ball_tray_enter": { "song": "se_ball_tray_enter" },
+  "se_ball_tray_exit": { "song": "se_ball_tray_exit" },
   "cry_nidorino_doubles": { "cry": 32, "length": 20, "release": 225, "pan": 63 },
   "cry_charizard": { "cry": 5 },
   "cry_nidoran_f": { "cry": 28 },

@@ -264,7 +264,8 @@ export type ItemResult = Message<"pokeuniverse.item.v1.ItemResult"> & {
 
   /**
    * TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount; SWAPPED:
-   * the item taken back (`item` is the one given).
+   * the item taken back (`item` is the one given); USED_ON_POKEMON: how close the item scene shows
+   * the Pokémon, 0-3 (friendship stays on the server).
    *
    * @generated from field: uint32 value = 3;
    */

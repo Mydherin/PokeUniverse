@@ -7,6 +7,7 @@
 // { nat, constant (NATIONAL_DEX_ suffix), name, category, description, types: [t1, t2], height, weight, scale: [pokemonScale,
 //   pokemonOffset, trainerScale, trainerOffset], front, palette, back, shinyPalette, footprint, icon, iconPalette,
 //   coords: { front: y offset, back: y offset, elevation } (where the battle draws its pictures),
+//   itemScene: FireRed's only (sMonPosAttributes): [machine x, machine y, y offset, item x, item y],
 //   noFlip (the summary shows its picture unmirrored), battle: { catchRate, expYield, evYield: [hp, atk, def, spe, spa, spd], growthRate (GROWTH_ name), genderRatio (0-255), friendship },
 //   cry: { firered: number } | { wav: path }, source: "firered" | "expansion" }.
 // Text is plain (FireRed's escapes such as \n kept); paths are relative to their reference.
@@ -83,6 +84,7 @@ function readFireRed(src) {
   const yOffsets = (file) => new Map(speciesBlocks(read(file)).map(([k, b]) => [k, Number(/\.y_offset\s*=\s*(\d+)/.exec(b)[1])]));
   const frontY = yOffsets("src/data/pokemon_graphics/front_pic_coordinates.h");
   const backY = yOffsets("src/data/pokemon_graphics/back_pic_coordinates.h");
+  const itemScene = new Map([...read("src/menu2.c").matchAll(/\[(SPECIES_\w+)\s*-\s*1\]\s*=\s*\{\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\s*\}/g)].map((m) => [m[1], m.slice(2).map(Number)]));
   const elevation = new Map([...read("src/data/pokemon_graphics/enemy_mon_elevation.h").matchAll(/\[(SPECIES_\w+)\]\s*=\s*(\d+)/g)].map((m) => [m[1], Number(m[2])]));
   const footprints = table("src/data/pokemon_graphics/footprint_table.h", /\[SPECIES_(\w+)\]\s*=\s*(\w+)/g);
   const icon = read("src/pokemon_icon.c");
@@ -123,6 +125,7 @@ function readFireRed(src) {
       back: formDir(path(backs, "back pic")),
       shinyPalette: formDir(path(shinyPalettes, "shiny palette")),
       coords: { front: frontY.get(key), back: backY.get(key), elevation: elevation.get(key) ?? 0 },
+      itemScene: itemScene.get(key),
       noFlip: /\.noFlip\s*=\s*TRUE/.test(si),
       battle: battleFacts(si),
       footprint: path(footprints, "footprint"),

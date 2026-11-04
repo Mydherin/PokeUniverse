@@ -70,8 +70,10 @@ func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
 	id := m.GetItem()
 	if effect, ok := item.PokemonEffect(p.items, id); ok && !p.busy() {
 		items, party := p.items.Clone(), p.party.Clone()
+		closeness := p.party.ItemSceneCloseness(int(m.GetSlot()))
 		if p.party.UseItem(effect, int(m.GetSlot()), int(m.GetMoveSlot()), z.m.ID) {
 			res = item.SpendOnPokemon(p.items, id)
+			res.Value = closeness
 			if z.saveTrainer(p, res.Changed, true) {
 				z.sendParty(p)
 			} else {
@@ -81,7 +83,7 @@ func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
 	}
 	z.sendChanged(p, res.Changed)
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_ItemResult{ItemResult: &itemv1.ItemResult{
-		Outcome: res.Outcome, Item: id,
+		Outcome: res.Outcome, Item: id, Value: uint32(res.Value),
 	}}})
 }
 

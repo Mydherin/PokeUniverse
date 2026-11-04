@@ -660,7 +660,8 @@ type ItemResult struct {
 	Outcome ItemOutcome            `protobuf:"varint,1,opt,name=outcome,proto3,enum=pokeuniverse.item.v1.ItemOutcome" json:"outcome,omitempty"`
 	Item    Item                   `protobuf:"varint,2,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
 	// TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount; SWAPPED:
-	// the item taken back (`item` is the one given).
+	// the item taken back (`item` is the one given); USED_ON_POKEMON: how close the item scene shows
+	// the Pokémon, 0-3 (friendship stays on the server).
 	Value         uint32 `protobuf:"varint,3,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

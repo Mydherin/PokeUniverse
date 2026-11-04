@@ -240,6 +240,9 @@ const POKEDEX_GRAPHICS = {
  */
 const PARTY_GRAPHICS = {
   partyBg: { png: "party_menu/bg.png", bin: "party_menu/bg.bin", bpp4: true },
+  // The item scene (pokemon_special_anim_scene.c), opened from the party menu.
+  useItemBg: { png: "pokemon_special_anim/bg.png", pal: "pokemon_special_anim/bg.pal", bin: "pokemon_special_anim/bg.bin", bpp4: true },
+  useItemDots: { png: "pokemon_special_anim/outward_spiral_dots.png", bpp4: true },
   // The slots' layouts: tile numbers in the background's tiles (sSlotTilemap_*)
   partySlotMain: { bytes: "party_menu/slot_main.bin" },
   partySlotWide: { bytes: "party_menu/slot_wide.bin" },
@@ -372,6 +375,11 @@ export const NEW_GAME_SOUNDS = [
   "se_repel",
   "se_glass_flute",
   "se_use_item",
+  // The item scene (use-item-scene.ts)
+  "se_ball_tray_exit",
+  "se_m_swagger2",
+  "se_m_milk_drink",
+  "se_m_reversal",
   "se_ball_tray_enter",
   "se_save",
   "se_exit",
@@ -542,6 +550,8 @@ export interface SpeciesText {
   noFlip?: boolean;
   /** Where the battle draws it: front pic y offset, back pic y offset, enemy elevation. */
   coords?: [number, number, number];
+  /** Where the item scene draws it (sMonPosAttributes): machine x, machine y, y offset, item x, item y. */
+  itemScene: [number, number, number, number, number];
 }
 
 /**
@@ -697,7 +707,7 @@ export class Assets {
 
   /** A species' text (loadPokedex or loadParty first); EOS strings for an unknown one. */
   species(n: number): SpeciesText {
-    return this.speciesTexts[n] ?? { name: [0xff], category: [0xff], description: [0xff], scale: [256, 0, 256, 0] };
+    return this.speciesTexts[n] ?? { name: [0xff], category: [0xff], description: [0xff], scale: [256, 0, 256, 0], itemScene: [32, 32, 32, 32, 32] };
   }
 
   /** A species' pictures, loaded the first time they're asked for. */

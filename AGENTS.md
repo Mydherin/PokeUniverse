@@ -18,7 +18,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M1b: FireRed's item-use scene](docs/phases/phase-6-pokemon-party/milestones/m01b-item-use-scene.md#resume-here) is next, not started; M1's battle BAG fixes are built, not played ([phase file](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md#resume-here)). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M1b: FireRed's item-use scene](docs/phases/phase-6-pokemon-party/milestones/m01b-item-use-scene.md#resume-here) is built, committed and the Potion played; finish playing it, then M2. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
@@ -35,6 +35,7 @@ Git submodules in `references/`, read only. Empty? Run `git submodule update --i
 |---|---|---|---|
 | `references/pokefirered/` | [pret/pokefirered](https://github.com/pret/pokefirered) | FireRed decompilation (C). `src/`: game logic (movement, overworld, menus, battle). `data/maps/`, `data/layouts/`: maps, events, warps, connections. `data/tilesets/`, `graphics/`: art. `data/scripts/`, `data/text/`: events and dialogue. `src/data/`: species, trainers, wild encounters. `include/constants/`: IDs and flags | How a FireRed behavior, map, event or formula works |
 | `references/pokeemerald-expansion/` | [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) (tag `expansion/1.17.2`) | Emerald decompilation with every later species in Gen 3 style. `graphics/pokemon/<name>/`: front pics, icons, footprints, overworld sprites. `src/data/pokemon/species_info/gen_4_families.h`: Gen 4 species' Pokédex data and types. `sound/direct_sound_samples/cries/`: cries | Species 387-493 (art, Pokédex text, cries) |
+| `references/pokeheartgold/` | [ctrl-cheeb-del/pokeheartgold](https://github.com/ctrl-cheeb-del/pokeheartgold) | HeartGold and SoulSilver decompilation (C and asm, DS). `src/follow_mon.c`, `src/map_object_follow.c`, `include/field/field_follow_mon.h`: the Pokémon that follows you. `src/`: Gen 4 field and menu logic | How the following Pokémon or a Gen 4 feature FireRed doesn't have behaves. Behavior only: its art and code are never used |
 | `references/pokemon-showdown/` | [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown) | Battle engine (TypeScript). `sim/`: battle flow, actions, Pokémon state. `data/`: moves, abilities, items, species, learnsets, conditions. `data/mods/gen4/`: Gen 4 overrides | How a Gen 4 battle rule or edge case works |
 
 Rules:
@@ -50,7 +51,7 @@ Rules:
 
 - **Match FireRed whenever possible:** screens, menus, flows, input, messages, sounds, animations and how the world behaves. Check `references/pokefirered/` first; don't simplify or invent.
 - **Battle and Pokémon rules are Gen 4:** battle mechanics, moves, abilities, what items do in battle, stats, natures, growth, learning and evolution, from `references/pokemon-showdown/` and `@pkmn/sim`'s Gen 4 data.
-- **Where they meet:** the rule is Gen 4, FireRed's way of showing it stays. A Gen 4 feature FireRed doesn't have is presented as FireRed would.
+- **Where they meet:** the rule is Gen 4, FireRed's way of showing it stays. A Gen 4 feature FireRed doesn't have is presented as FireRed would; how it behaves comes from `references/pokeheartgold/` (the following Pokémon, for one).
 - **Unless it conflicts with the MMO:** keep FireRed's behavior wherever the MMO approach (server authority, many players, always saved) allows it. Where it can't work, keep as much of it as possible: SAVE behaves exactly like FireRed's dialog, though the MMO saves everything all the time.
 - **A difference needs a reason:** a Gen 4 rule, the MMO or the user's request. Write it in the milestone file; anything else is a bug to fix.
 

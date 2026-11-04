@@ -47,6 +47,7 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 
 - **Required feature:** the player's Pokémon walks behind them in the overworld.
 - Overworld sprites for **every Pokémon up to Gen 4**, in **HGSS** style.
+- **How it behaves** comes from HeartGold and SoulSilver's decompilation (`references/pokeheartgold/`), the games that have it; FireRed has nothing to match. Behavior only, like every reference.
 
 ## Art Direction
 

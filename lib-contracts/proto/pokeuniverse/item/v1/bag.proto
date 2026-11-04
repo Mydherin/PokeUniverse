@@ -76,7 +76,8 @@ message ItemResult {
   ItemOutcome outcome = 1;
   Item item = 2;
   // TOSSED, WITHDRAWN, DEPOSITED: the quantity; COINS and BERRY_POWDER: the amount; SWAPPED:
-  // the item taken back (`item` is the one given).
+  // the item taken back (`item` is the one given); USED_ON_POKEMON: how close the item scene shows
+  // the Pokémon, 0-3 (friendship stays on the server).
   uint32 value = 3;
 }
 

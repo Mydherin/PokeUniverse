@@ -30,6 +30,21 @@ func (pt Party) UseItem(e *itemv1.ItemEffect, slot, moveSlot int, mapID string) 
 	return p != nil && p.useItem(e, moveSlot, mapID)
 }
 
+// ItemSceneCloseness is how close FireRed's item scene shows the Pokémon in `slot`, from its friendship
+// before the item (GetClosenessFromFriendship): 0 to 3.
+func (pt Party) ItemSceneCloseness(slot int) int {
+	p := pt.At(slot)
+	switch {
+	case p == nil || p.Friendship <= 100:
+		return 0
+	case p.Friendship <= 150:
+		return 1
+	case p.Friendship <= 200:
+		return 2
+	}
+	return 3
+}
+
 // ChangeFriendshipByItem is a bag item's friendship change, for one used in battle.
 func (pt Party) ChangeFriendshipByItem(e *itemv1.ItemEffect, slot int, mapID string) {
 	if p := pt.At(slot); p != nil {

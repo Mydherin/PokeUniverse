@@ -13,6 +13,7 @@
 |---|---|
 | [pret/pokefirered](https://github.com/pret/pokefirered) | FireRed decompilation: **reference only** for game behavior; source for the one-time map conversion |
 | [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) | Gen 3-style art (pictures, icons, footprints, cries) and Gen 4 Pokédex data for species **387-493**, in the decompilation's formats; pinned at tag `expansion/1.17.2` |
+| [ctrl-cheeb-del/pokeheartgold](https://github.com/ctrl-cheeb-del/pokeheartgold) | HeartGold and SoulSilver decompilation: **reference only** for how the following Pokémon and other Gen 4 features FireRed lacks behave. Nothing from it is built or copied |
 | [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown) | Showdown battle engine: reference for battle rules |
 | [pkmn/ps](https://github.com/pkmn/ps) | Source of `@pkmn/sim`, `@pkmn/data`, `@pkmn/dex`: **used as dependencies** in `mic-battles` (installed via npm, not cloned) |
 
