@@ -596,7 +596,10 @@ class PartyMenu {
       this.loadBoxColors(slot, male ? PALS.male : PALS.female, GENDER_PAL_OFFSETS);
       win.print(small, r.gender[0], r.gender[1], COLORS_GENDER, assets.text(male ? "gText_MaleSymbol" : "gText_FemaleSymbol"));
     }
-    if (description) return win.print(flow.fonts[FontId.NormalCopy1], r.description[0], r.description[1], COLORS_DEFAULT, assets.text(description));
+    if (description) {
+      win.print(flow.fonts[FontId.NormalCopy1], r.description[0], r.description[1], COLORS_DEFAULT, assets.text(description));
+      return win.copyToVram();
+    }
     const maxHp = mon.stats?.hp ?? 0;
     const hp = shownHp ?? mon.hp;
     win.print(small, r.hp[0], r.hp[1], COLORS_DEFAULT, joinText(decimalText(hp, NumberMode.RightAlign, 3), assets.text("gText_Slash")));

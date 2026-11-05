@@ -283,10 +283,10 @@ class TmCase {
     win.blitRect(this.flow.assets.get("tmCaseHm").image!, 0, 0, x, y, 16, 12);
   }
 
-  /** PrintDescription: the item's, or what CLOSE does. */
+  /** PrintDescription: the move's (four short lines, what the original shows, not the item's), or what CLOSE does. */
   private printDescription(item: Item | null): void {
     const { assets, fonts } = this.flow;
-    const text = item === null ? assets.text("gText_TMCaseWillBePutAway") : assets.itemDescription(item);
+    const text = item === null ? assets.text("gText_TMCaseWillBePutAway") : assets.moveDescription(tmMove(item));
     this.description.fill(0);
     this.description.print(fonts[FontId.Normal], 2, 3, COLORS_LIGHT, text, 1, 0);
     this.description.copyToVram();

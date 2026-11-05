@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M3: TM/HM teaching](milestones/m03-tm-hm-teaching.md): code written, building and committed; render the audio, play it, then the regression check.
+**Next step:** [M3: TM/HM teaching](milestones/m03-tm-hm-teaching.md): played with the regression check; two small items left, NO USE in the slots and the scene compared with the original.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
