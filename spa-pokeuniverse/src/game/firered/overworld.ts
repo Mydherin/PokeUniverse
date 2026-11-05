@@ -25,6 +25,7 @@ import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
+import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import { FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
@@ -51,6 +52,7 @@ import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-message
 import { startItemPc, type ItemPcHost } from "./item-pc";
 import { beginPcScreenFlicker, PC_SCREEN_TILES, pcScreenOffset, PcChoice, PlayersPcMenu, StorageEntry } from "./players-pc";
 import { startOptionMenu } from "./option-menu";
+import { startStorage, type StorageHost } from "./storage/storage";
 import { startPartyMenu, type PartyHost } from "./party-menu";
 import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
@@ -113,6 +115,7 @@ export function startOverworld(flow: Flow): void {
     pokemonEvolved: (p) => overworld?.pokemonEvolved(p),
     learnMoveResult: (r) => overworld?.learnMoveResult(r),
     fieldMoveResult: (r) => overworld?.fieldMoveResult(r),
+    boxView: (v) => overworld?.boxView(v),
     pokedexChanged: (p) => overworld?.pokedexChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
@@ -236,6 +239,8 @@ class Overworld {
   private learnAnswer: ((r: LearnMoveResult) => void) | null = null;
   /** Who waits for mic-core's FieldMoveResult. */
   private fieldMoveAnswer: ((r: FieldMoveResult) => void) | null = null;
+  /** Who waits for mic-core's BoxView. */
+  private boxAnswer: ((v: BoxView) => void) | null = null;
   /** The trainer's Pokémon, as mic-core last said. */
   private party: PartyState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
@@ -372,6 +377,11 @@ class Overworld {
     this.fieldMoveAnswer = null;
   }
 
+  boxView(v: BoxView): void {
+    this.boxAnswer?.(v);
+    this.boxAnswer = null;
+  }
+
   pokedexChanged(p: PokedexChanged): void {
     this.pokedex = new PokedexState(p.pokedex);
   }
@@ -505,6 +515,16 @@ class Overworld {
     });
   }
 
+  /** OpenBox: boxes live on mic-core; offline it's a refusal (box 0), as there is nothing to show. */
+  private askBox(box: number): Promise<BoxView> {
+    const { link } = this.flow;
+    if (!link.inWorld) return Promise.resolve(create(BoxViewSchema));
+    return new Promise((resolve) => {
+      this.boxAnswer = resolve;
+      link.openBox(box);
+    });
+  }
+
   private askLearnMove(slot: number, move: number, forget: number): Promise<LearnMoveResult> {
     const { link } = this.flow;
     if (!link.inWorld) return Promise.resolve(create(LearnMoveResultSchema, { slot }));
@@ -512,6 +532,11 @@ class Overworld {
       this.learnAnswer = resolve;
       link.learnMove(slot, move, forget);
     });
+  }
+
+  /** The box screen's way to the boxes, and to the party it shows beside them. */
+  private storageHost(): StorageHost {
+    return { partyHost: this.partyHost(), askBox: (box) => this.askBox(box) };
   }
 
   /** The party menu's way to the trainer's Pokémon (and to the bag, for GIVE). */
@@ -966,6 +991,9 @@ class Overworld {
         break;
       case PcChoice.Deposit:
         this.openPcScreen(() => pc.menu.resumeStorage(StorageEntry.Deposit), (back) => startBag(flow, flow.trainer!.gender, this.bagHost(), () => back(), BagLocation.ItemPc));
+        break;
+      case PcChoice.Boxes:
+        this.openPcScreen(() => pc.menu.resumeBills(), (back) => startStorage(flow, this.storageHost(), pc.menu.billsEntry, back));
         break;
     }
     return false;

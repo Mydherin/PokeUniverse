@@ -60,6 +60,8 @@ export interface PartyHost {
   swap(a: number, b: number): void;
   /** The summary's SWITCH of two moves: shown at once, like `swap`. */
   swapMoves(slot: number, a: number, b: number): void;
+  /** The summary can't switch moves: a box Pokémon's, until phase-6 M7. */
+  readonly movesLocked?: boolean;
   /** A field move, then again with its `target` if it asks for one; the field's only. */
   useFieldMove?(slot: number, move: Move, target?: number): Promise<FieldMoveResult>;
 }

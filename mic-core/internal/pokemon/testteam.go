@@ -58,12 +58,32 @@ func GiveTestTeam(ctx context.Context, pool *pgxpool.Pool, accountID int64, save
 			return err
 		}
 		party = newTestTeam(ot)
-		return insert(ctx, q, accountID, party)
+		if err := insert(ctx, q, accountID, party); err != nil {
+			return err
+		}
+		return insertTestBoxes(ctx, q, accountID, ot)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("give test team: %w", err)
 	}
 	return party, nil
+}
+
+// Test content (phase-6 M6): a few Pokémon in boxes 1 and 2, with gaps and in the corners. Removed
+// in Phase 7, when catching fills the boxes.
+var testBoxSlots = []struct{ box, slot, set int }{
+	{1, 0, 0}, {1, 1, 1}, {1, 7, 2}, {1, 29, 3},
+	{2, 0, 4}, {2, 14, 5},
+}
+
+func insertTestBoxes(ctx context.Context, q *db.Queries, accountID int64, ot Trainer) error {
+	for i, s := range testBoxSlots {
+		p := testTeam[s.set].Create(testLevel, ot, uint64(ot.ID)+uint64(i)+1)
+		if err := q.InsertTrainerPokemon(ctx, toRow(accountID, s.box, s.slot, p)); err != nil {
+			return fmt.Errorf("add to test box: %w", err)
+		}
+	}
+	return nil
 }
 
 func newTestTeam(ot Trainer) Party {

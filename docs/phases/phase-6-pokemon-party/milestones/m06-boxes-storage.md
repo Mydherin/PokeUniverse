@@ -6,11 +6,36 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md),
 
 ## Resume Here
 
-**State:** server and contracts done; BILL'S PC menu written; box screen not started. All committed. `mic-core` build + vet and SPA `tsc` pass. Never run: the migration, `AddCaught`, `make text`, anything in the game.
+**State:** all code written, tasks 1 to 4 done, **nothing since `ec53f83` committed**. SPA `tsc` passes; `mic-core` compiles in its Docker build (no `go` on this machine, so `go vet` hasn't run). `make graphics`, `make text` and the migration ran, and the running containers have this code. Task 5 has barely started; see [Play Progress](#play-progress).
 
-**Next step:** task 1 below, the client link and asset wiring. Then write the screen from [Box Screen Lookups](#box-screen-lookups-firered): don't re-read what's there, and read only the functions listed under [Still To Look Up](#still-to-look-up), in the step that needs them.
+**Next step:** fix the wallpaper bug (first item in [Play Progress](#play-progress)), then go through the rest of that list. Don't re-read `storage/` as a whole: read only the file a failure points at.
 
-**Commands:** start with `cd /Users/mydherin/projects/mydherin/PokeUniverse &&`. The shell's folder can stay where an earlier command left it, and a `make` that lands in `references/pokefirered` runs FireRed's Makefile and builds there (happened once, cleaned up: the submodule is clean).
+**Commands:** start with `cd /Users/mydherin/projects/mydherin/PokeUniverse &&`. The shell's folder can stay where an earlier command left it, and a `make` that lands in `references/pokefirered` runs FireRed's Makefile and builds there (happened once, cleaned up: the submodule is clean). `npx tsc --noEmit` from `spa-pokeuniverse/`. After a client change: `docker compose up -d --build spa-pokeuniverse`.
+
+## Play Progress
+
+**Save state (dev database, account 2):** the party is untouched, and its six Pokémon are also copied into boxes for the test: box 1 slots 0, 1, 7, 29 (Garchomp, Pikachu, Charizard, Lucario) and box 2 slots 0, 14 (Gardevoir, Snorlax). The copies hold no item. They aren't from `testteam.go`, which only fills a trainer with no Pokémon. **Undo when done:** `delete from trainer_pokemon where account_id=2 and box>0`, and `update trainers set current_box=1 where account_id=2` (playing changed it; check the column's default first). A full backup from before the seed is at `/private/tmp/claude-501/-Users-mydherin--claude-spares-spare-BzRipJ/67bb7fb1-6e30-4474-b657-222a365e7699/scratchpad/backup-m6.sql`, which may be gone by then; the migration also ran after it was taken.
+
+**Reaching the screen:** in the bedroom the player stands right under the PC, facing it, as left. Field: A, A (boots), A until "Accessed BILL's PC", A, A, Down, Down, A (MOVE POKéMON). WITHDRAW refuses with a full party, as it should.
+
+**Key helper**, defined once per page load with `javascript_tool`: `window.__k = async (seq, gap=350) => { for (const code of seq) { window.dispatchEvent(new KeyboardEvent('keydown',{code})); await new Promise(r=>setTimeout(r,50)); window.dispatchEvent(new KeyboardEvent('keyup',{code})); await new Promise(r=>setTimeout(r,gap)); } }`
+
+Passed, seen once each:
+
+- [x] PC boots, BILL'S PC menu, descriptions, WITHDRAW's full party refusal.
+- [x] Box screen opens with the migration's data: wallpaper, BOX1 title, icons in the right slots with gaps and the last corner, pic, name, /SPECIES, gender, level; PKMN DATA dims with no Pokémon.
+- [x] Hand: Up to the title. Title: Right slides to BOX2, with the right title and icons, and the side panel clears.
+
+To do, in order:
+
+1. [ ] **Bug: box 2 shows forest, should be city.** Every box should cycle forest, city, desert, savanna. `LoadBoxes` (`box.go` line 38) and the `BoxInfo` copy (`ViewBox`) look right, so check first what the client receives: log `view.boxes` in `loadBoxArt` (`box-view.ts`), then `assets.wallpaper` in `manifest.ts`, and `select * from trainer_boxes where account_id=2`. Then check `drawWallpaper`'s tile bank and palette when it's really city.
+2. [ ] The hand over every position, each wrap (left and right edges, top row to title, bottom row to buttons and back), the side panel following it; the flip.
+3. [ ] Scrolling: Left too, past box 14 and box 1, arrows sliding and bouncing, repeat when held. L/R only in the LR button mode. A slide with a full box: never tried with more than four icons.
+4. [ ] A on a Pokémon: message, SUMMARY/CANCEL menu. An empty slot does nothing. SUMMARY pages through the box, moves can't be switched, back keeps box and hand. Check the fade back in.
+5. [ ] PARTY POKéMON: panel slides, slots, icons, hand; Left/Right/Up/Down; A on a Pokémon, CLOSE BOX, B, the hide. DEPOSIT opens with the panel shown.
+6. [ ] CLOSE BOX and B prompts: both start on NO; screen off; back on the entry chosen. SEE YA! returns, and earlier PC entries still work.
+7. [ ] Mobile layout ([ui.md](../../../ui.md)). New Game empties boxes, then `testteam.go` fills the test ones: try it last, it replaces the save.
+8. [ ] Regression check ([context.md](context.md#playing-a-milestone)). The top menu's cursor now starts on BILL'S PC: the PC steps need one more Down. Party icons changed too (shared palettes), so look at them in the party menu and the summary.
 
 ## Tasks
 
@@ -21,24 +46,17 @@ Done:
 - [x] **Contracts:** `party/v1/box.proto`: `OpenBox` (box 0 = current; any other becomes current), `BoxView` (box 0 = refused; all 14 `BoxInfo`, one box's `BoxPokemon`). Realtime fields: client 28 `open_box`, server 20 `box_view`. `make breaking` passes.
 - [x] **PC menu** in `players-pc.ts`: BILL'S PC as the first top entry (window height 8), `accessStorage` (SE_PC_LOGIN, two messages waiting for a press), BILL'S menu with descriptions and refusals, `PcChoice.Boxes`, `billsEntry`, `resumeBills`. Constructor takes `partyCount`. `overworld.ts`: `openPcScreen(resume, open)` now takes a function. `texts.json`: the menu's strings.
 
+- [x] **Link and assets:** `openBox` and `boxView` in `connection.ts`; `askBox`, `storageHost` and `case PcChoice.Boxes` in `overworld.ts`; `pokemon_storage` in the `Makefile`; `STORAGE_GRAPHICS`, `loadStorage()` and `wallpaper(n)` (each loaded when first shown) in `manifest.ts`; the strings in `texts.json`.
+- [x] **`firered/storage/`:** `storage.ts` (setup, state machine, input, prompts), `box-view.ts` (`BoxArea`, wallpaper, icons, title, arrows, slide), `cursor.ts`, `display-mon.ts`, `party-panel.ts`.
+- [x] **SUMMARY from a box:** a `PartyHost` over the box's Pokémon without gaps, slots mapped both ways; `movesLocked` in `PartyHost` and `summary.ts`; back through `startStorage`'s `Resume`, keeping the `BoxView` already known. Written, not played.
+- [x] **Test content:** `insertTestBoxes` in `pokemon/testteam.go`. Fills only a new trainer's boxes. Not run yet.
+- [x] **`MonIcon`:** tags its sprite palette by its colors (`ICON_STILL` added), as one palette per species runs out of the 16 slots in a full box.
+
 To do, in order:
 
-1. [ ] **Link and assets:**
-   - `realtime/connection.ts`: `openBox(box)` (send like `useFieldMove`, line 270), `boxView` in the world interface and the switch (like `fieldMoveResult`, lines 48 and 324).
-   - `overworld.ts`: `askBox(box): Promise<BoxView>` like `askFieldMove` (line 499); `case PcChoice.Boxes` in `runPc`: `this.openPcScreen(() => pc.menu.resumeBills(), (back) => startStorage(flow, host, pc.menu.billsEntry, back))`. Until this exists the menu's entries do nothing.
-   - `Makefile` `FIRERED_GFX` (line 17): add `pokemon_storage`.
-   - `manifest.ts`: a `STORAGE_GRAPHICS` set beside `PARTY_GRAPHICS` (line 241), loaded with a `loadStorage()` like `loadParty()` (line 655), id union at line 346. Tiles `{ png, bin, bpp4: true }`; wallpapers `wallpapers/<name>/tiles.png` and `tilemap.bin`.
-   - `texts.json`: `gText_ExitFromBox`, `gText_ContinueBoxOperations`, `gPCText_Summary`, the selection message (`MSG_IS_SELECTED` in `sMessages`, `_tasks.c` line 276 on), CANCEL. Then `make text` and `make graphics`.
-2. [ ] **`firered/storage/`,** split by concern, `party-menu.ts` as the shape (`startStorage` awaits `assets.loadStorage()`, the box and its art, then builds the class; `gba.reset()`, `initBg`, `copyTiles`, `gba.setVBlank(gba.standardVBlank)`, `gba.setMain(() => flow.runFrame())`, `gba.tasks.create(step)`; `beginPcScreenTurnOn(gba)` as in `item-pc.ts` line 197, off as in line 591):
-   - `storage.ts`: setup, the state machine, input.
-   - `box-view.ts`: wallpaper, icons, title, arrows, scrolling. The next box's answer and art are awaited **before** the scroll starts (FireRed has them at once).
-   - `cursor.ts`: the hand, its shadow and its movement.
-   - `display-mon.ts`: pic and text on the left.
-   - `party-panel.ts`: the slide, slots, party icons.
-3. [ ] **SUMMARY from a box:** `startSummary(flow, host, slot, done)` reads `host.party.pokemon[slot]`, so pass a `PartyHost` whose `party` is `new PartyState({ pokemon: the box's Pokémon })`, without the gaps, and map slots both ways. Add a `movesLocked` flag to `PartyHost`, checked in `summary.ts` at `if (!this.swapping)` (about line 1023): FireRed lets a box Pokémon's moves be switched, read-only forbids it until M7. Back from the summary: start the screen again with box, area and cursor kept, like `Resume` in `party-menu.ts`.
-4. [ ] **Test content:** a few Pokémon in boxes 1 and 2, in `pokemon/testteam.go`, with the comment from [context.md](context.md#playing-a-milestone).
-5. [ ] **Build and play:** [Playing a Milestone](context.md#playing-a-milestone) (rebuild `mic-core`, which applies the migration, and `spa-pokeuniverse`), the list below, then the regression check. The top menu's cursor now starts on BILL'S PC: the regression's PC steps need one more Down.
-6. [ ] **Close:** cut this file down, set ✅ and the next milestone in the phase file and in `AGENTS.md`, add `firered/storage/` and `party/v1/box.proto` to [tech-stack.md](../../../tech-stack.md) line 114's list.
+1. [ ] **Play and fix:** [Play Progress](#play-progress).
+2. [ ] **Commit** when the user asks.
+3. [ ] **Close:** cut this file down, set ✅ and the next milestone in the phase file and in `AGENTS.md`, add `firered/storage/` and `party/v1/box.proto` to [tech-stack.md](../../../tech-stack.md) line 114's list.
 
 ## Decisions and Differences
 
@@ -72,7 +90,7 @@ Files: `src/pokemon_storage_system_{tasks,graphics,data,misc}.c`.
 | 2 | 2 | Wallpaper, 512x256. Two tile banks: `256 * offset` |
 | 3 | 3 | `scrolling_bg.png` + `.bin`; each frame X and Y move 128/256 of a pixel, that is half a pixel |
 
-**Palettes (BG):** 0 `interface.pal`; 1 `party_menu.pal`; 2 `interface_no_display_mon.pal`; 3 `scrolling_bg` palette; 4 + 2*offset a wallpaper's two palettes (32 colors, from its PNG); 15 `item_info_frame.pal`. Sprites: `misc2.pal` for cursor and arrows.
+**Palettes (BG):** 0 `interface.pal`; 1 `party_menu.pal`; 2 `interface_no_display_mon.pal`; 3 `scrolling_bg` palette; 4 + 2*offset a wallpaper's two palettes (32 colors, from its PNG); 15 `item_info_frame.png`'s palette. Sprites: `misc2.pal` for cursor and arrows.
 
 **Windows:** 0 on BG 1: (0,11), 9x7, palette 3, baseBlock 0xC0. 1 on BG 0: (11,17), 18x2, palette 13, baseBlock 0x14: message, `FONT_NORMAL_COPY_1` at (0,2) with the outer frame. `sYesNoWindowTemplate` for yes/no: look it up.
 
@@ -112,13 +130,21 @@ Files: `src/pokemon_storage_system_{tasks,graphics,data,misc}.c`.
 
 **Party panel:** `party_menu.bin` is 12x22, drawn at x 10; hidden, only source rows 20-21 at y 0-1. Show: SE_WIN_OPEN. Hide: SE_SELECT, 20 frames: one row per frame, the emptied row filled with 0x100 at `y = 22 - frames` (x 10, 12 wide), sprites -8 per frame; then the cursor returns to the saved box position. `close_box_button.bin` is 9x4 at x 21, top half (source rows 0-1) when hidden. Slots 1-5: `party_slot_filled.bin` or `party_slot_empty.bin`, 4x3 written into the 12-wide buffer at index `12*(3*(pos-1)+1) + 7`. Party icons (shown): slot 0 (104,64), others (152, `24*(i-1) + 16`), priority 1, subpriority 12; hidden they're 160 higher and invisible.
 
-### Still To Look Up
+**Show panel:** 20 frames: source rows `20 - t` to 21 drawn from y 0, sprites +8 per frame. Party panel and close button at x 10 and 21, y 0.
 
-Only these, each when its step starts:
+**Yes/no:** `sYesNoWindowTemplate` BG 0, (24,11), 5x4, palette 15, baseBlock 0x5C; `CreateYesNoMenu(font NORMAL_COPY_1, left 0, top 2, frame tile 11, palette 14, initial 1)`. BG 0 starts blank.
 
-- `_tasks.c`: `SetUpShowPartyMenu`, `ShowPartyMenu`, `UpdateCloseBoxButtonTilemap`, `InitPokeStorageBg0`, `sYesNoWindowTemplate`, the Pokémon data tilemap when no Pokémon shows (`TILEMAP_PKMN_DATA`, `sPkmnData_Tilemap`), `CreateWaveformSprites` and `UpdateWaveformAnimation`, `StartDisplayMonMosaic` with `SpriteCB_DisplayMonMosaic`.
-- `_graphics.c`: `InitBoxMonIconScroll` and `UpdateBoxMonIconScroll` (column timing), `StartBoxScrollArrowsSlide` on, `SpriteCB_BoxScrollArrow`, `AnimateBoxScrollArrows`, arrow anims and `sOamData_BoxTitle`.
-- `_data.c`: `SetSelectionAfterSummaryScreen`, `SetCursorInParty`, `SetSelectionMenuTexts` (message and order), `SpriteCB_CursorShadow`.
+**Pokémon data:** `pkmn_data.bin` 8x4 at (1,0) on BG 1: source rows 0-1 with a Pokémon, 2-3 without. **Waveform:** `waveform.png`, 16x8 sprites at `(i*63 + 8, 9)`, subpriority 2, palette misc2. Anims by `i*2` off, `i*2 + 1` on: left off tile 0; left on 2, 4, 6 at 8 frames looping; right off 8; right on 10, 4, 12 at 8 looping. The mosaic only follows a Pokémon being moved: M7.
+
+**Arrows:** 8x16, priority 2; anim 0 left tile 0, anim 1 right tile 2. Bounce (`speed` -1 left, 1 right): every 4th frame `x2 += speed`, after 6 moves back to 0. Runs on entering the title or after any scroll, stops on leaving it or on A there. Slide: going right timers 5 (left arrow) and 29 (right), jump x 248; going left 29 and 5, jump 72. Each frame `x -= scrollSpeed`, invisible at x <= 72 or >= 248; when its timer ends, x = the jump, visible, and it goes on moving. Scroll end: back in place, visible.
+
+**Box icons scrolling:** old ones move at `-6*direction` and stop at x <= 68 or >= 252; columns leave and arrive one by one, built as FireRed's, because moving both boxes as a block passes the 64 sprites.
+
+**Cursor shadow:** cursor's x, y + 20. **After SUMMARY:** the cursor goes on the last Pokémon viewed. **Selection message:** `gText_PkmnIsSelected` with `{DYNAMIC 0}` = name (`expandDynamic`), SUMMARY then CANCEL for this milestone.
+
+**Close button flash:** only while holding a Pokémon going to the party (`_tasks.c` line 811): M7.
+
+Sprites center on (x, y) as FireRed's. `FontId.NormalCopy1`.
 
 ### Client API
 
@@ -131,4 +157,4 @@ Only these, each when its step starts:
 
 ## Files
 
-Touched: everything listed under Done, plus `mic-core/internal/realtime/realtime.go` and the generated `lib-contracts/gen/` and `mic-core/internal/db/`. Next: `realtime/connection.ts`, `firered/overworld.ts`, `firered/manifest.ts`, `firered/texts.json`, `firered/summary.ts`, `firered/party-menu.ts` (`PartyHost`), `firered/storage/` (new), `Makefile`, `mic-core/internal/pokemon/testteam.go`.
+Committed: the first PC, server and contract work, plus `mic-core/internal/realtime/realtime.go` and the generated `lib-contracts/gen/` and `mic-core/internal/db/`. Uncommitted: `realtime/connection.ts`, `firered/overworld.ts`, `firered/manifest.ts`, `firered/mon-icon.ts`, `firered/texts.json`, `firered/summary.ts`, `firered/party-menu.ts`, `firered/storage/` (new), `Makefile`, `mic-core/internal/pokemon/testteam.go`, this file and the phase file.

@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M6: Boxes: storage and viewing](milestones/m06-boxes-storage.md), in progress: server, contracts and BILL'S PC menu written and committed; next is the client link, assets and the box screen. M5 is played and closed.
+**Next step:** [M6: Boxes: storage and viewing](milestones/m06-boxes-storage.md), in progress: all code written, the box screen opens and slides in the game, not committed. Next: fix the wallpaper bug, finish its Play Progress list, then close. M5 is played and closed.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 

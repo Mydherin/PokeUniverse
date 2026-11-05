@@ -12,6 +12,7 @@ import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
+import type { BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
@@ -46,6 +47,7 @@ export interface WorldEvents {
   pokemonEvolved(p: PokemonEvolved): void;
   learnMoveResult(r: LearnMoveResult): void;
   fieldMoveResult(r: FieldMoveResult): void;
+  boxView(v: BoxView): void;
   pokedexChanged(p: PokedexChanged): void;
   /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
@@ -94,6 +96,8 @@ export interface WorldLink {
   /** A bag item used on a party Pokémon (`moveSlot`: the move, for items that ask); answered with an ItemResult. */
   usePartyItem(item: Item, slot: number, moveSlot: number): void;
   useFieldMove(slot: number, move: number, target?: number): void;
+  /** Shows a box, which becomes the current one (0: the current box); answered with a BoxView. */
+  openBox(box: number): void;
   /** A party Pokémon's held item into the bag; answered with an ItemResult. */
   takePartyItem(slot: number): void;
   /** SWITCH on the summary's move page (slots and moves from 0); shown at once, corrected like swapPartySlots. */
@@ -271,6 +275,10 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "useFieldMove", value: { slot, move, target } });
   }
 
+  openBox(box: number): void {
+    if (this.inWorld) this.send({ case: "openBox", value: { box } });
+  }
+
   learnMove(slot: number, move: number, forgetSlot: number): void {
     if (this.inWorld) this.send({ case: "learnMove", value: { slot, move, forgetSlot } });
   }
@@ -323,6 +331,9 @@ export class Connection implements WorldLink {
         break;
       case "fieldMoveResult":
         this.world?.fieldMoveResult(msg.payload.value);
+        break;
+      case "boxView":
+        this.world?.boxView(msg.payload.value);
         break;
       case "pokedexChanged":
         this.world?.pokedexChanged(msg.payload.value);

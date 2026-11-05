@@ -33,6 +33,8 @@ export function iconAnimForHp(level: HpBarLevel): number {
 }
 
 const TILES_PER_FRAME = 16;
+/** The animation that doesn't move, for `setAnim`. */
+export const ICON_STILL = 4;
 
 export class MonIcon {
   readonly sprite: Sprite;
@@ -46,8 +48,11 @@ export class MonIcon {
     const art = assets.loadedPokemonArt(species);
     const tag = `monIcon${species}`;
     gba.sprites.loadSheet(tag, art ? toTiles(art.icon) : new Uint8Array(0));
-    gba.palettes.loadSpritePalette(tag, art?.iconPalette ?? new Uint16Array(16));
-    const template: SpriteTemplate = { sheet: tag, palette: tag, width: 32, height: 32, priority };
+    // Tagged by its colors: species share a few palettes (gMonIconPalettes), and a full box would run out of the 16 slots otherwise.
+    const colors = art?.iconPalette ?? new Uint16Array(16);
+    const palette = `monIconPal${colors.join()}`;
+    gba.palettes.loadSpritePalette(palette, colors);
+    const template: SpriteTemplate = { sheet: tag, palette, width: 32, height: 32, priority };
     this.sprite = gba.sprites.create(template, x, y, subpriority)!;
     this.sprite.animPaused = true;
     this.sprite.callback = () => this.update();

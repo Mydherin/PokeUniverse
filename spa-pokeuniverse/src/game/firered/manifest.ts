@@ -339,7 +339,31 @@ export const BALL_ICONS = [
   "ballPremier",
 ] as const satisfies readonly (keyof typeof PARTY_GRAPHICS)[];
 
+/** The box screen (pokemon_storage_system_*.c); the wallpapers load one by one (`wallpaper`). */
+const STORAGE_GRAPHICS = {
+  storageMenu: { png: "pokemon_storage/menu.png", bin: "pokemon_storage/menu.bin", bpp4: true },
+  storageScrollingBg: { png: "pokemon_storage/scrolling_bg.png", bin: "pokemon_storage/scrolling_bg.bin", bpp4: true },
+  storageInterfacePal: { pal: "pokemon_storage/interface.pal" },
+  storageNoDisplayMonPal: { pal: "pokemon_storage/interface_no_display_mon.pal" },
+  storagePartyPal: { pal: "pokemon_storage/party_menu.pal" },
+  storageMiscPal: { pal: "pokemon_storage/misc2.pal" },
+  storageItemFrame: { png: "pokemon_storage/item_info_frame.png" },
+  storagePkmnData: { bin: "pokemon_storage/pkmn_data.bin" },
+  storagePartyMenu: { bin: "pokemon_storage/party_menu.bin" },
+  storageCloseBox: { bin: "pokemon_storage/close_box_button.bin" },
+  storageSlotFilled: { bin: "pokemon_storage/party_slot_filled.bin" },
+  storageSlotEmpty: { bin: "pokemon_storage/party_slot_empty.bin" },
+  storageCursor: { png: "pokemon_storage/cursor.png", bpp4: true },
+  storageCursorShadow: { png: "pokemon_storage/cursor_shadow.png", bpp4: true },
+  storageArrow: { png: "pokemon_storage/box_scroll_arrow.png", bpp4: true },
+  storageWaveform: { png: "pokemon_storage/waveform.png", bpp4: true },
+};
+
+/** FireRed's wallpapers, by number. */
+const WALLPAPERS = ["forest", "city", "desert", "savanna", "crag", "volcano", "snow", "cave", "beach", "seafloor", "river", "sky", "stars", "pokecenter", "tiles", "simple"];
+
 export type GraphicId =
+  | keyof typeof STORAGE_GRAPHICS
   | keyof typeof BOOT_GRAPHICS
   | keyof typeof NEW_GAME_GRAPHICS
   | keyof typeof POKEDEX_GRAPHICS
@@ -591,6 +615,8 @@ export class Assets {
   private readonly itemIcons = new Map<number, Promise<ItemIcon>>();
   private pokedex: Promise<void> | null = null;
   private party: Promise<void> | null = null;
+  private storage: Promise<void> | null = null;
+  private readonly wallpapers = new Map<number, Promise<Graphic>>();
   private speciesSet: Promise<void> | null = null;
   private speciesTexts: Record<string, SpeciesText> = {};
   private abilityTexts: Record<string, NamedText> = {};
@@ -665,6 +691,27 @@ export class Assets {
     });
     this.party.catch(() => (this.party = null));
     return this.party;
+  }
+
+  /** The box screen's set, with the party set (its SUMMARY); loaded once. */
+  loadStorage(): Promise<void> {
+    this.storage ??= Promise.all([loadGraphics(STORAGE_GRAPHICS), this.loadParty()]).then(([entries]) => {
+      for (const [id, g] of entries) this.graphics.set(id, g);
+    });
+    this.storage.catch(() => (this.storage = null));
+    return this.storage;
+  }
+
+  /** A wallpaper's tiles, tilemap and 32 colors, by FireRed's number; each loaded once, when a box first shows it. */
+  wallpaper(n: number): Promise<Graphic> {
+    let wallpaper = this.wallpapers.get(n);
+    if (!wallpaper) {
+      const dir = `pokemon_storage/wallpapers/${WALLPAPERS[n] ?? WALLPAPERS[0]}`;
+      wallpaper = loadGraphics({ wallpaper: { png: `${dir}/tiles.png`, bin: `${dir}/tilemap.bin`, bpp4: true } }).then(([[, g]]) => g);
+      wallpaper.catch(() => this.wallpapers.delete(n));
+      this.wallpapers.set(n, wallpaper);
+    }
+    return wallpaper;
   }
 
   /** The battle set, with the party set (the party menu and summary open in battle); loaded once. */

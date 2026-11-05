@@ -1019,6 +1019,7 @@ class Summary {
     } else if (input.isPressed(Button.A)) {
       flow.play("se_select");
       if (this.cursor === CANCEL_ROW) return this.leaveMoveDetails();
+      if (this.host.movesLocked) return;
       if (!this.swapping) {
         this.swapCursor = this.cursor;
         this.swapping = true;
