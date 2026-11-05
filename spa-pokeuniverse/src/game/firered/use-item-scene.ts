@@ -48,7 +48,10 @@ const DOT_TEMPLATE: SpriteTemplate = {
   width: 8,
   height: 8,
   priority: 0,
-  anims: [[{ image: 1, duration: 4 }, { image: 0, duration: 4 }, "end"]],
+  anims: [
+    [{ image: 0, duration: 16 }, { image: 1, duration: 8 }, { image: 2, duration: 4 }, "end"],
+    [{ image: 1, duration: 4 }, { image: 0, duration: 4 }, "end"],
+  ],
 };
 
 const STAR_TEMPLATE: SpriteTemplate = { sheet: "useItemStar", palette: "useItemStar", width: 16, height: 16, priority: 1 };
@@ -198,7 +201,8 @@ class Scene {
     this.mon.x -= 3;
     if (icon) icon.x -= 3;
 
-    // PSA_UseTM_RunZoomOutAnim.
+    // Task_MachineSet's states 4 to 6, then PSA_UseTM_RunZoomOutAnim.
+    yield* this.wait(3);
     yield* this.zoomTo(0);
     yield* this.wait(21);
     let wiggle = 0;
@@ -385,6 +389,8 @@ class Scene {
     if (closeness === this.shownCloseness) return;
     const delta = closeness > this.shownCloseness ? 1 : -1;
     for (let at = this.shownCloseness + delta; ; at += delta) {
+      // Task_ZoomAnim: states 0 and 1, then its delay: 9 frames a step.
+      yield;
       yield;
       this.flow.play("se_ball_tray_exit");
       this.placeMon(at);
@@ -460,6 +466,7 @@ class Scene {
     for (let i = 0; i < SPARKLE_DOTS; i++) {
       const dot = sprites.create(DOT_TEMPLATE, x, y, 0);
       if (!dot) continue;
+      dot.startAnim(1);
       palettes.blendPalettes(1 << (16 + dot.paletteNum), 16, RGB_WHITE);
       let frames = 0;
       let angle = i << 4;

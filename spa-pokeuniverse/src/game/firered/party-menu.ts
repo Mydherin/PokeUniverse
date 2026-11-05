@@ -22,7 +22,7 @@ import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import { decimalText, expandPlaceholders, FontId, joinText, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
 import { RGB_BLACK, type Background } from "../gba/video";
 import { itemInfo, itemWorksOn } from "../world/items";
-import { MachineAnswer, machineAnswer, tmMove } from "../world/moves";
+import { itemEvolves, MachineAnswer, machineAnswer, tmMove } from "../world/moves";
 import type { PartyState } from "../world/party";
 import { BagLocation, startBag, type BagExit, type BagHost } from "./bag";
 import { fillBgRect, initBg } from "./common";
@@ -607,9 +607,11 @@ class PartyMenu {
     this.displayHpBar(slot, hp, maxHp);
   }
 
-  /** DisplayPartyPokemonDataToTeachMove: what replaces a Pokémon's HP while a TM or HM is chosen for. */
+  /** DisplayPartyPokemonDataToTeachMove and PARTYBOX_DESC_NO_USE: what replaces a Pokémon's HP while a TM, an HM or an evolution item is chosen for. */
   private description(mon: Pokemon): TextId | null {
-    if (this.machine === null || this.resumed) return null;
+    if (this.mode.kind !== "use" || this.resumed) return null;
+    if (itemInfo(this.mode.item)?.fieldUse === FieldUse.EVOLUTION_ITEM) return itemEvolves(mon, this.mode.item) ? null : "gText_NoUse";
+    if (this.machine === null) return null;
     const answer = machineAnswer(mon, tmMove(this.machine));
     return answer === MachineAnswer.NotAble ? "gText_NotAble2" : answer === MachineAnswer.Known ? "gText_Learned" : "gText_Able3";
   }

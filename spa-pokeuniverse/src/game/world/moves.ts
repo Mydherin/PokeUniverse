@@ -4,6 +4,8 @@ import { create, getOption } from "@bufbuild/protobuf";
 import { info, Move, MoveInfoSchema, MoveSchema, type MoveInfo } from "@pokeuniverse/contracts/move/v1/catalog";
 import type { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
+import { Gender } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
+import { EvolutionMethod } from "@pokeuniverse/contracts/species/v1/catalog";
 import { itemInfo } from "./items";
 import { speciesInfo } from "./pokedex";
 
@@ -31,6 +33,11 @@ export const enum MachineAnswer {
 export function machineAnswer(mon: Pokemon, move: Move): MachineAnswer {
   if (!speciesInfo(mon.species).machineMoves.includes(move)) return MachineAnswer.NotAble;
   return mon.moves.some((m) => m.move === move) ? MachineAnswer.Known : MachineAnswer.Able;
+}
+
+/** EVO_MODE_ITEM_CHECK: whether the item evolves this Pokémon. mic-core decides; this picks the slot's word. */
+export function itemEvolves(mon: Pokemon, item: Item): boolean {
+  return speciesInfo(mon.species).evolutions.some((e) => e.method === EvolutionMethod.ITEM && e.item === item && (e.gender === Gender.UNSPECIFIED || e.gender === mon.gender));
 }
 
 /** sHMMoves: moves that can't be forgotten (mic-core refuses them too). */
