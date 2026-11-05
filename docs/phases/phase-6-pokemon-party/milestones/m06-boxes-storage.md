@@ -6,7 +6,7 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md),
 
 ## Resume Here
 
-**State:** all code written, tasks 1 to 4 done, **nothing since `ec53f83` committed**. SPA `tsc` passes; `mic-core` compiles in its Docker build (no `go` on this machine, so `go vet` hasn't run). `make graphics`, `make text` and the migration ran, and the running containers have this code. Task 5 has barely started; see [Play Progress](#play-progress).
+**State:** all code written, all committed (`097ddbb`). SPA `tsc` passes; `mic-core` compiles in its Docker build (no `go` on this machine, so `go vet` hasn't run). `make graphics`, `make text` and the migration ran, and the running containers have this code. Playing has barely started; see [Play Progress](#play-progress).
 
 **Next step:** fix the wallpaper bug (first item in [Play Progress](#play-progress)), then go through the rest of that list. Don't re-read `storage/` as a whole: read only the file a failure points at.
 
@@ -55,8 +55,7 @@ Done:
 To do, in order:
 
 1. [ ] **Play and fix:** [Play Progress](#play-progress).
-2. [ ] **Commit** when the user asks.
-3. [ ] **Close:** cut this file down, set ✅ and the next milestone in the phase file and in `AGENTS.md`, add `firered/storage/` and `party/v1/box.proto` to [tech-stack.md](../../../tech-stack.md) line 114's list.
+2. [ ] **Close:** cut this file down, set ✅ and the next milestone in the phase file and in `AGENTS.md`, add `firered/storage/` and `party/v1/box.proto` to [tech-stack.md](../../../tech-stack.md) line 114's list.
 
 ## Decisions and Differences
 
@@ -157,4 +156,4 @@ Sprites center on (x, y) as FireRed's. `FontId.NormalCopy1`.
 
 ## Files
 
-Committed: the first PC, server and contract work, plus `mic-core/internal/realtime/realtime.go` and the generated `lib-contracts/gen/` and `mic-core/internal/db/`. Uncommitted: `realtime/connection.ts`, `firered/overworld.ts`, `firered/manifest.ts`, `firered/mon-icon.ts`, `firered/texts.json`, `firered/summary.ts`, `firered/party-menu.ts`, `firered/storage/` (new), `Makefile`, `mic-core/internal/pokemon/testteam.go`, this file and the phase file.
+All committed. The server and contract work, plus `mic-core/internal/realtime/realtime.go` and the generated `lib-contracts/gen/` and `mic-core/internal/db/`; then `realtime/connection.ts`, `firered/overworld.ts`, `firered/manifest.ts`, `firered/mon-icon.ts`, `firered/texts.json`, `firered/summary.ts`, `firered/party-menu.ts`, `firered/storage/` (new), `Makefile`, `mic-core/internal/pokemon/testteam.go`, this file and the phase file.
