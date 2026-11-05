@@ -18,7 +18,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M6: Boxes: storage and viewing](docs/phases/phase-6-pokemon-party/milestones/m06-boxes-storage.md): not started. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M6: Boxes: storage and viewing](docs/phases/phase-6-pokemon-party/milestones/m06-boxes-storage.md): in progress, read its Resume Here. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

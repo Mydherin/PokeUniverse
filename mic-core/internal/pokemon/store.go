@@ -44,10 +44,13 @@ func Write(ctx context.Context, q *db.Queries, accountID int64, save time.Time, 
 	return insert(ctx, q, accountID, party)
 }
 
-// Reset empties a New Game's party, inside New Game's transaction.
+// Reset empties a New Game's party and boxes, inside New Game's transaction.
 func Reset(ctx context.Context, q *db.Queries, accountID int64) error {
-	if err := q.DeleteTrainerPokemon(ctx, accountID); err != nil {
+	if err := q.ResetTrainerPokemon(ctx, accountID); err != nil {
 		return fmt.Errorf("reset party: %w", err)
+	}
+	if err := q.ResetTrainerBoxes(ctx, accountID); err != nil {
+		return fmt.Errorf("reset boxes: %w", err)
 	}
 	return nil
 }
@@ -66,20 +69,20 @@ func lock(ctx context.Context, q *db.Queries, accountID int64, save time.Time) e
 
 func insert(ctx context.Context, q *db.Queries, accountID int64, party Party) error {
 	for slot, p := range party {
-		if err := q.InsertTrainerPokemon(ctx, toRow(accountID, slot, p)); err != nil {
+		if err := q.InsertTrainerPokemon(ctx, toRow(accountID, 0, slot, p)); err != nil {
 			return fmt.Errorf("save party: %w", err)
 		}
 	}
 	return nil
 }
 
-func toRow(accountID int64, slot int, p *Pokemon) db.InsertTrainerPokemonParams {
+func toRow(accountID int64, box, slot int, p *Pokemon) db.InsertTrainerPokemonParams {
 	moves, pp, ppUps := make([]int16, len(p.Moves)), make([]int16, len(p.Moves)), make([]int16, len(p.Moves))
 	for i, m := range p.Moves {
 		moves[i], pp[i], ppUps[i] = int16(m.ID), int16(m.PP), int16(m.PPUps)
 	}
 	return db.InsertTrainerPokemonParams{
-		AccountID: accountID, Slot: int16(slot), Species: int16(p.Species), Nickname: p.Nickname,
+		AccountID: accountID, Box: int16(box), Slot: int16(slot), Species: int16(p.Species), Nickname: p.Nickname,
 		Level: int16(p.Level), Exp: int32(p.Exp), Personality: int64(p.Personality),
 		Ivs: statsColumn(p.IVs), Evs: statsColumn(p.EVs), AbilitySlot: int16(p.AbilitySlot), HeldItem: int16(p.HeldItem),
 		Moves: moves, Pp: pp, PpUps: ppUps, Hp: int16(p.HP), Status: int16(p.Status), Friendship: int16(p.Friendship),

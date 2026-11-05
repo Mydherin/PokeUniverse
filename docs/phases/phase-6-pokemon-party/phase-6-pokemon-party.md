@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M6: Boxes: storage and viewing](milestones/m06-boxes-storage.md), not started. M5 is played and closed.
+**Next step:** [M6: Boxes: storage and viewing](milestones/m06-boxes-storage.md), in progress: server, contracts and BILL'S PC menu written, uncommitted; next is the client link, assets and the box screen. M5 is played and closed.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -20,7 +20,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M3 | [TM/HM teaching](milestones/m03-tm-hm-teaching.md) | ✅ | M2 | TM and tutor learnsets in the catalog; the TM CASE's USE; ABLE / NOT ABLE |
 | M4 | [Exp. Share and held items](milestones/m04-exp-share-held-items.md) | ✅ | | Exp. Share's split in `mic-battles`; held items' effects outside battle |
 | M5 | [Field moves on the party screen](milestones/m05-field-moves.md) | ✅ | M1 | Field moves in the party menu; Milk Drink and Softboiled work, the rest refuse until their maps |
-| M6 | [Boxes: storage and viewing](milestones/m06-boxes-storage.md) | ⬜ | | Box storage in `mic-core`, BILL'S PC in the PC menu, the box screen to look through |
+| M6 | [Boxes: storage and viewing](milestones/m06-boxes-storage.md) | 🚧 | | Box storage in `mic-core`, BILL'S PC in the PC menu, the box screen to look through |
 | M7 | [Boxes: managing Pokémon](milestones/m07-boxes-actions.md) | ⬜ | M6 | WITHDRAW, DEPOSIT, MOVE, RELEASE, held items, box options |
 | M8 | [Following Pokémon: art and walking](milestones/m08-following-walk.md) | ⬜ | | Overworld sprites in the build; the lead walks behind the player, decided by the server |
 | M9 | [Following Pokémon: edge cases, phase check](milestones/m09-following-check.md) | ⬜ | M7, M8 | Warps, lead changes, battles, reloads; the whole phase played once |

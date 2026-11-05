@@ -83,6 +83,20 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 	return i, err
 }
 
+const getTrainerCurrentBox = `-- name: GetTrainerCurrentBox :one
+SELECT current_box
+FROM trainers
+WHERE account_id = $1
+`
+
+// The box the storage screen opens on.
+func (q *Queries) GetTrainerCurrentBox(ctx context.Context, accountID int64) (int16, error) {
+	row := q.db.QueryRow(ctx, getTrainerCurrentBox, accountID)
+	var current_box int16
+	err := row.Scan(&current_box)
+	return current_box, err
+}
+
 const lockTrainerSave = `-- name: LockTrainerSave :one
 SELECT account_id
 FROM trainers
@@ -127,6 +141,7 @@ SET name = EXCLUDED.name,
     registered_item = DEFAULT,
     repel_steps = DEFAULT,
     friendship_steps = DEFAULT,
+    current_box = DEFAULT,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
@@ -227,6 +242,23 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.PokedexCaught,
 	)
 	return i, err
+}
+
+const updateTrainerCurrentBox = `-- name: UpdateTrainerCurrentBox :exec
+UPDATE trainers
+SET current_box = $2
+WHERE account_id = $1 AND created_at = $3
+`
+
+type UpdateTrainerCurrentBoxParams struct {
+	AccountID  int64
+	CurrentBox int16
+	CreatedAt  time.Time
+}
+
+func (q *Queries) UpdateTrainerCurrentBox(ctx context.Context, arg UpdateTrainerCurrentBoxParams) error {
+	_, err := q.db.Exec(ctx, updateTrainerCurrentBox, arg.AccountID, arg.CurrentBox, arg.CreatedAt)
+	return err
 }
 
 const updateTrainerFriendshipSteps = `-- name: UpdateTrainerFriendshipSteps :exec

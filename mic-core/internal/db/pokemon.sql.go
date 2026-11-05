@@ -9,25 +9,59 @@ import (
 	"context"
 )
 
-const deleteTrainerPokemon = `-- name: DeleteTrainerPokemon :exec
-DELETE FROM trainer_pokemon
-WHERE account_id = $1
+const countBoxPokemon = `-- name: CountBoxPokemon :many
+SELECT box, count(*) AS count
+FROM trainer_pokemon
+WHERE account_id = $1 AND box <> 0
+GROUP BY box
 `
 
-// The party emptied: before it's written again, and by New Game.
+type CountBoxPokemonRow struct {
+	Box   int16
+	Count int64
+}
+
+// How many Pokémon each box holds; an empty box has no row.
+func (q *Queries) CountBoxPokemon(ctx context.Context, accountID int64) ([]CountBoxPokemonRow, error) {
+	rows, err := q.db.Query(ctx, countBoxPokemon, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CountBoxPokemonRow{}
+	for rows.Next() {
+		var i CountBoxPokemonRow
+		if err := rows.Scan(&i.Box, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const deleteTrainerPokemon = `-- name: DeleteTrainerPokemon :exec
+DELETE FROM trainer_pokemon
+WHERE account_id = $1 AND box = 0
+`
+
+// The party emptied, before it's written again. The boxes stay.
 func (q *Queries) DeleteTrainerPokemon(ctx context.Context, accountID int64) error {
 	_, err := q.db.Exec(ctx, deleteTrainerPokemon, accountID)
 	return err
 }
 
 const insertTrainerPokemon = `-- name: InsertTrainerPokemon :exec
-INSERT INTO trainer_pokemon (account_id, slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
+INSERT INTO trainer_pokemon (account_id, box, slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
                              moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
 `
 
 type InsertTrainerPokemonParams struct {
 	AccountID   int64
+	Box         int16
 	Slot        int16
 	Species     int16
 	Nickname    string
@@ -55,6 +89,7 @@ type InsertTrainerPokemonParams struct {
 func (q *Queries) InsertTrainerPokemon(ctx context.Context, arg InsertTrainerPokemonParams) error {
 	_, err := q.db.Exec(ctx, insertTrainerPokemon,
 		arg.AccountID,
+		arg.Box,
 		arg.Slot,
 		arg.Species,
 		arg.Nickname,
@@ -81,11 +116,159 @@ func (q *Queries) InsertTrainerPokemon(ctx context.Context, arg InsertTrainerPok
 	return err
 }
 
+const listBoxPokemon = `-- name: ListBoxPokemon :many
+SELECT slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
+       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map
+FROM trainer_pokemon
+WHERE account_id = $1 AND box = $2
+ORDER BY slot
+`
+
+type ListBoxPokemonParams struct {
+	AccountID int64
+	Box       int16
+}
+
+type ListBoxPokemonRow struct {
+	Slot        int16
+	Species     int16
+	Nickname    string
+	Level       int16
+	Exp         int32
+	Personality int64
+	Ivs         []int16
+	Evs         []int16
+	AbilitySlot int16
+	HeldItem    int16
+	Moves       []int16
+	Pp          []int16
+	PpUps       []int16
+	Hp          int16
+	Status      int16
+	Friendship  int16
+	Ball        int16
+	OtName      string
+	OtID        int64
+	OtGender    string
+	MetLevel    int16
+	MetMap      string
+}
+
+// One box, by slot; it can have gaps.
+func (q *Queries) ListBoxPokemon(ctx context.Context, arg ListBoxPokemonParams) ([]ListBoxPokemonRow, error) {
+	rows, err := q.db.Query(ctx, listBoxPokemon, arg.AccountID, arg.Box)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListBoxPokemonRow{}
+	for rows.Next() {
+		var i ListBoxPokemonRow
+		if err := rows.Scan(
+			&i.Slot,
+			&i.Species,
+			&i.Nickname,
+			&i.Level,
+			&i.Exp,
+			&i.Personality,
+			&i.Ivs,
+			&i.Evs,
+			&i.AbilitySlot,
+			&i.HeldItem,
+			&i.Moves,
+			&i.Pp,
+			&i.PpUps,
+			&i.Hp,
+			&i.Status,
+			&i.Friendship,
+			&i.Ball,
+			&i.OtName,
+			&i.OtID,
+			&i.OtGender,
+			&i.MetLevel,
+			&i.MetMap,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBoxSlots = `-- name: ListBoxSlots :many
+SELECT box, slot
+FROM trainer_pokemon
+WHERE account_id = $1 AND box <> 0
+ORDER BY box, slot
+`
+
+type ListBoxSlotsRow struct {
+	Box  int16
+	Slot int16
+}
+
+// The taken slots of every box, to find a free one.
+func (q *Queries) ListBoxSlots(ctx context.Context, accountID int64) ([]ListBoxSlotsRow, error) {
+	rows, err := q.db.Query(ctx, listBoxSlots, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListBoxSlotsRow{}
+	for rows.Next() {
+		var i ListBoxSlotsRow
+		if err := rows.Scan(&i.Box, &i.Slot); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTrainerBoxes = `-- name: ListTrainerBoxes :many
+SELECT box, name, wallpaper
+FROM trainer_boxes
+WHERE account_id = $1
+`
+
+type ListTrainerBoxesRow struct {
+	Box       int16
+	Name      string
+	Wallpaper int16
+}
+
+// The boxes whose name or wallpaper changed.
+func (q *Queries) ListTrainerBoxes(ctx context.Context, accountID int64) ([]ListTrainerBoxesRow, error) {
+	rows, err := q.db.Query(ctx, listTrainerBoxes, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTrainerBoxesRow{}
+	for rows.Next() {
+		var i ListTrainerBoxesRow
+		if err := rows.Scan(&i.Box, &i.Name, &i.Wallpaper); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTrainerPokemon = `-- name: ListTrainerPokemon :many
 SELECT slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
        moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map
 FROM trainer_pokemon
-WHERE account_id = $1
+WHERE account_id = $1 AND box = 0
 ORDER BY slot
 `
 
@@ -156,4 +339,26 @@ func (q *Queries) ListTrainerPokemon(ctx context.Context, accountID int64) ([]Li
 		return nil, err
 	}
 	return items, nil
+}
+
+const resetTrainerBoxes = `-- name: ResetTrainerBoxes :exec
+DELETE FROM trainer_boxes
+WHERE account_id = $1
+`
+
+// New Game: the boxes' names and wallpapers back to FireRed's.
+func (q *Queries) ResetTrainerBoxes(ctx context.Context, accountID int64) error {
+	_, err := q.db.Exec(ctx, resetTrainerBoxes, accountID)
+	return err
+}
+
+const resetTrainerPokemon = `-- name: ResetTrainerPokemon :exec
+DELETE FROM trainer_pokemon
+WHERE account_id = $1
+`
+
+// New Game: the party and every box.
+func (q *Queries) ResetTrainerPokemon(ctx context.Context, accountID int64) error {
+	_, err := q.db.Exec(ctx, resetTrainerPokemon, accountID)
+	return err
 }

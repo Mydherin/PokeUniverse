@@ -7,6 +7,7 @@ package pokeuniverse.realtime.v1;
 import "pokeuniverse/battle/v1/view.proto";
 import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/item/v1/pc.proto";
+import "pokeuniverse/party/v1/box.proto";
 import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/pokedex/v1/pokedex.proto";
 import "pokeuniverse/world/v1/world.proto";
@@ -43,6 +44,7 @@ message ClientMessage {
     pokeuniverse.world.v1.UseWarp use_warp = 25;
     pokeuniverse.party.v1.UsePartyItem use_party_item = 26;
     pokeuniverse.party.v1.UseFieldMove use_field_move = 27;
+    pokeuniverse.party.v1.OpenBox open_box = 28;
   }
 }
 
@@ -68,6 +70,7 @@ message ServerMessage {
     pokeuniverse.world.v1.Warped warped = 17;
     pokeuniverse.party.v1.LearnMoveResult learn_move_result = 18;
     pokeuniverse.party.v1.FieldMoveResult field_move_result = 19;
+    pokeuniverse.party.v1.BoxView box_view = 20;
   }
 }
 

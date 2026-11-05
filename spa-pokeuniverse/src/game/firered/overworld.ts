@@ -952,7 +952,7 @@ class Overworld {
     const { flow } = this;
     if (!this.pc) {
       const stored = new StoredItems(players.items);
-      this.pc = { stored, menu: new PlayersPcMenu(flow, () => this.message, () => stored.slots.length) };
+      this.pc = { stored, menu: new PlayersPcMenu(flow, () => this.message, () => stored.slots.length, () => this.party.count) };
     }
     const pc = this.pc;
     // Task_ReturnToItemStorageSubmenu: input waits for the world to be back.
@@ -962,23 +962,25 @@ class Overworld {
         this.pc = null;
         return true;
       case PcChoice.Withdraw:
-        this.openPcScreen(StorageEntry.Withdraw, (back) => startItemPc(flow, this.pcHost(pc), back));
+        this.openPcScreen(() => pc.menu.resumeStorage(StorageEntry.Withdraw), (back) => startItemPc(flow, this.pcHost(pc), back));
         break;
       case PcChoice.Deposit:
-        this.openPcScreen(StorageEntry.Deposit, (back) => startBag(flow, flow.trainer!.gender, this.bagHost(), () => back(), BagLocation.ItemPc));
+        this.openPcScreen(() => pc.menu.resumeStorage(StorageEntry.Deposit), (back) => startBag(flow, flow.trainer!.gender, this.bagHost(), () => back(), BagLocation.ItemPc));
         break;
     }
     return false;
   }
 
-  /** FadeScreen to black, the screen, then back to ITEM STORAGE with the cursor on what was chosen. */
-  private openPcScreen(cursor: StorageEntry, open: (back: () => void) => void): void {
+  /** FadeScreen to black, the screen, then back to the PC's menu with the cursor on what was chosen. */
+  private openPcScreen(resume: () => void, open: (back: () => void) => void): void {
     this.flow.gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     this.fieldOpening = () => {
       this.away = true;
       open(() => {
         this.away = false;
-        this.enter(false, () => this.pc?.menu.resumeStorage(cursor));
+        this.enter(false, () => {
+          if (this.pc) resume();
+        });
       });
     };
   }

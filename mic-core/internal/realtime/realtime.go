@@ -289,6 +289,9 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_UseFieldMove:
 		c.player.UseFieldMove(p.UseFieldMove)
 		return true
+	case *realtimev1.ClientMessage_OpenBox:
+		c.player.OpenBox(p.OpenBox)
+		return true
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
 		return true

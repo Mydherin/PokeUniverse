@@ -76,6 +76,14 @@ type Trainer struct {
 	PokedexSeen     []byte
 	PokedexCaught   []byte
 	FriendshipSteps int16
+	CurrentBox      int16
+}
+
+type TrainerBox struct {
+	AccountID int64
+	Box       int16
+	Name      string
+	Wallpaper int16
 }
 
 type TrainerItem struct {
@@ -117,4 +125,5 @@ type TrainerPokemon struct {
 	OtGender    string
 	MetLevel    int16
 	MetMap      string
+	Box         int16
 }

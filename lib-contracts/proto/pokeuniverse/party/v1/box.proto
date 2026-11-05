@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package pokeuniverse.party.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1;partyv1";
+
+import "pokeuniverse/party/v1/party.proto";
+
+// Client -> server: show a box, which becomes the current one. Answered by BoxView.
+message OpenBox {
+  // 1 to 14; 0: the current box (the screen just opened).
+  uint32 box = 1;
+}
+
+// A box without its Pokémon.
+message BoxInfo {
+  string name = 1;
+  // FireRed's wallpaper order, 0 to 15.
+  uint32 wallpaper = 2;
+  // 0 to 30.
+  uint32 count = 3;
+}
+
+message BoxPokemon {
+  // 0 to 29; a box can have gaps.
+  uint32 slot = 1;
+  Pokemon pokemon = 2;
+}
+
+// One box's Pokémon, plus what the screen shows of every box.
+message BoxView {
+  // 1 to 14; 0: refused (the player isn't at a PC, or it couldn't be read), nothing else is set.
+  uint32 box = 1;
+  // All 14, in order: boxes[0] is box 1.
+  repeated BoxInfo boxes = 2;
+  repeated BoxPokemon pokemon = 3;
+}

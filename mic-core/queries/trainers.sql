@@ -33,6 +33,7 @@ SET name = EXCLUDED.name,
     registered_item = DEFAULT,
     repel_steps = DEFAULT,
     friendship_steps = DEFAULT,
+    current_box = DEFAULT,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
@@ -61,6 +62,17 @@ UPDATE trainers SET friendship_steps = $2 WHERE account_id = $1 AND created_at =
 UPDATE trainers
 SET text_speed = $2, battle_scene = $3, battle_style = $4, sound = $5, button_mode = $6, frame = $7
 WHERE account_id = $1;
+
+-- name: GetTrainerCurrentBox :one
+-- The box the storage screen opens on.
+SELECT current_box
+FROM trainers
+WHERE account_id = $1;
+
+-- name: UpdateTrainerCurrentBox :exec
+UPDATE trainers
+SET current_box = $2
+WHERE account_id = $1 AND created_at = $3;
 
 -- name: LockTrainerSave :one
 -- Inside a transaction: the trainer's row locked, only while it's still the save `created_at`
