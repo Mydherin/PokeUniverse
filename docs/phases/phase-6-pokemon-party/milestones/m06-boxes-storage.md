@@ -6,7 +6,7 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md),
 
 ## Resume Here
 
-**State:** server and contracts done; BILL'S PC menu written; box screen not started. Uncommitted in the working tree. `mic-core` build + vet and SPA `tsc` pass. Never run: the migration, `AddCaught`, `make text`, anything in the game.
+**State:** server and contracts done; BILL'S PC menu written; box screen not started. All committed. `mic-core` build + vet and SPA `tsc` pass. Never run: the migration, `AddCaught`, `make text`, anything in the game.
 
 **Next step:** task 1 below, the client link and asset wiring. Then write the screen from [Box Screen Lookups](#box-screen-lookups-firered): don't re-read what's there, and read only the functions listed under [Still To Look Up](#still-to-look-up), in the step that needs them.
 
