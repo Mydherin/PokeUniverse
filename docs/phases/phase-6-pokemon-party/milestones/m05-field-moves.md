@@ -1,33 +1,19 @@
-# M5 Field Moves on the Party Screen ⬜
+# M5 Field Moves on the Party Screen ✅
 
-Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M1's HP animation. Rules: [context.md](context.md), D3.
+Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md), D3.
 
-**Done when:** a Pokémon's field moves show in its party menu options like FireRed; Milk Drink and Softboiled work; the others answer "can't use that here" until [Phase 12](../../phase-12-world-content.md) gives them maps.
+**Done when:** a Pokémon's field moves show in its party menu options like FireRed; Milk Drink and Softboiled work; the others answer FireRed's refusal until [Phase 12](../../phase-12-world-content.md) gives them maps. Played 2026-11-05, with the regression check.
 
-## Resume Here
+## What Later Work Uses
 
-Not started; no M5 code exists. Don't re-check M4: it's played, closed and committed. Docker runs the M4 images and account 2's save is restored.
+- **Contract:** `party.v1` `UseFieldMove` (slot, move, optional target), answered by `FieldMoveResult` with a `FieldMoveOutcome`.
+- **`mic-core`:** the table `fieldMoves` in `pokemon/fieldmove.go`, one rule per move; `zone.useFieldMove` in `world/party.go` saves HP that moved. Phase 12 fills the `refuses(...)` entries (a rule then also needs the map and the tile in front).
+- **Client:** `party-menu.ts`: `FIELD_MOVES`, `useFieldMove`, `refuseFieldMove`, `chooseWhoToHeal`, `shareHp`, `animateHp`. `FIELD_MOVES` only decides what's listed.
 
-First step: read the field move list in `party_menu.c` (line 2972, `sFieldMoves`), then do [Tasks](#tasks) in order.
+## Decisions
 
-## Tasks
-
-- [ ] **Contract:** a `party.v1` intent for using a field move (slot, move, target when it has one), with a refusal outcome.
-- [ ] **`mic-core`:** a table by move, each answering "can it be used here"; every move refuses for now but Milk Drink and Softboiled, which move HP between party Pokémon (D3). Phase 12 fills the entries, without changing the flow.
-- [ ] **Client:** field move options above SUMMARY, in the moves' order, in `field` mode only; refusal message; Milk Drink's "Use on which POKéMON?" with two HP bars.
-- [ ] **Play it,** then the [regression check](context.md#playing-a-milestone).
-
-## Play It
-
-- A test Pokémon with Cut, Fly, Surf: options listed, each refuses in the room, the menu comes back.
-- Milk Drink / Softboiled: HP moves from one to the other; refused when the user is under 1/5 of its HP or the target is full or fainted (check FireRed).
-- A Pokémon with none: the menu is as before. In battle and in GIVE mode no field move shows.
-
-## What's Known
-
-- The map effects (cutting, flying, surfing…) aren't here, and the bag's field items have the same pattern (`onFieldIf` in `item/use.go`).
-- `party-menu.ts:760` sets the battle's options; the `field` ones are set next to it.
-
-## Files
-
-`lib-contracts/proto/pokeuniverse/party/v1/`, `mic-core/internal/pokemon/`, `mic-core/internal/world/party.go`, `spa-pokeuniverse/src/game/firered/party-menu.ts`.
+- **SUMMARY first, not field moves above it:** `SetPartyMonFieldSelectionActions` adds SUMMARY first.
+- **Each move's own refusal,** as `sFieldMoveCursorCallbacks`, not one "can't use that here" for all.
+- **Difference, the MMO's content order:** FireRed asks HMs for a badge first (`gText_CantUseUntilNewBadge`) and refuses in link rooms. There are no badges yet: Phase 12 adds that check to the table.
+- **A move asks mic-core twice:** without a target ("can it be used?", also Softboiled's 1/5 check) and with it. No rule lives in the client.
+- **The user pays max HP / 5 even when the target needs less,** as FireRed. It's refused at HP ≤ max / 5, not only under it.

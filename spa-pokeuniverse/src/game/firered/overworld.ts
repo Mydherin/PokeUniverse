@@ -25,7 +25,7 @@ import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
-import { LearnMoveResultSchema, PokemonEvolvedSchema, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import { FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
@@ -112,6 +112,7 @@ export function startOverworld(flow: Flow): void {
     partyChanged: (p) => overworld?.partyChanged(p),
     pokemonEvolved: (p) => overworld?.pokemonEvolved(p),
     learnMoveResult: (r) => overworld?.learnMoveResult(r),
+    fieldMoveResult: (r) => overworld?.fieldMoveResult(r),
     pokedexChanged: (p) => overworld?.pokedexChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
@@ -233,6 +234,8 @@ class Overworld {
   private evolveAnswer: ((p: PokemonEvolved) => void) | null = null;
   /** Who waits for mic-core's LearnMoveResult. */
   private learnAnswer: ((r: LearnMoveResult) => void) | null = null;
+  /** Who waits for mic-core's FieldMoveResult. */
+  private fieldMoveAnswer: ((r: FieldMoveResult) => void) | null = null;
   /** The trainer's Pokémon, as mic-core last said. */
   private party: PartyState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
@@ -364,6 +367,11 @@ class Overworld {
     this.learnAnswer = null;
   }
 
+  fieldMoveResult(r: FieldMoveResult): void {
+    this.fieldMoveAnswer?.(r);
+    this.fieldMoveAnswer = null;
+  }
+
   pokedexChanged(p: PokedexChanged): void {
     this.pokedex = new PokedexState(p.pokedex);
   }
@@ -488,6 +496,15 @@ class Overworld {
   }
 
   /** LearnMove: mic-core saves it, then answers; offline nothing can evolve anyway. */
+  private askFieldMove(slot: number, move: number, target?: number): Promise<FieldMoveResult> {
+    const { link } = this.flow;
+    if (!link.inWorld) return Promise.resolve(create(FieldMoveResultSchema));
+    return new Promise((resolve) => {
+      this.fieldMoveAnswer = resolve;
+      link.useFieldMove(slot, move, target);
+    });
+  }
+
   private askLearnMove(slot: number, move: number, forget: number): Promise<LearnMoveResult> {
     const { link } = this.flow;
     if (!link.inWorld) return Promise.resolve(create(LearnMoveResultSchema, { slot }));
@@ -512,6 +529,7 @@ class Overworld {
         return self.bagHost();
       },
       useItem: (item, slot, moveSlot) => this.askItem(() => link.usePartyItem(item, slot, moveSlot)),
+      useFieldMove: (slot, move, target) => this.askFieldMove(slot, move, target),
       growth: {
         evolve: (slot) => this.askEvolve(slot),
         learnMove: (slot, move, forget) => this.askLearnMove(slot, move, forget),

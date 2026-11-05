@@ -8,8 +8,8 @@
 // Its own package: it uses the species, move, item and ability catalogs, and species/v1 already
 // imports pokemon/v1 (buf forbids package cycles).
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Ability } from "../../ability/v1/catalog_pb";
 import { file_pokeuniverse_ability_v1_catalog } from "../../ability/v1/catalog_pb";
 import type { Item } from "../../item/v1/catalog_pb";
@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/party/v1/party.proto.
  */
 export const file_pokeuniverse_party_v1_party: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iWQoMVXNlUGFydHlJdGVtEigKBGl0ZW0YASABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEgwKBHNsb3QYAiABKA0SEQoJbW92ZV9zbG90GAMgASgNIlMKEFBlbmRpbmdFdm9sdXRpb24SDAoEc2xvdBgBIAEoDRIxCgdzcGVjaWVzGAIgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcyIdCg1Fdm9sdmVQb2tlbW9uEgwKBHNsb3QYASABKA0iiQEKDlBva2Vtb25Fdm9sdmVkEgwKBHNsb3QYASABKA0SKwoHbGVhcm5lZBgCIAMoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSLAoIdG9fbGVhcm4YAyADKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEg4KBmZhaWxlZBgEIAEoCCJYCglMZWFybk1vdmUSDAoEc2xvdBgBIAEoDRIoCgRtb3ZlGAIgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRITCgtmb3JnZXRfc2xvdBgDIAEoDSJVCg9MZWFybk1vdmVSZXN1bHQSDAoEc2xvdBgBIAEoDRI0Cgpldm9sdmVzX3RvGAIgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcyI7CgxQYXJ0eUNoYW5nZWQSKwoFcGFydHkYASABKAsyHC5wb2tldW5pdmVyc2UucGFydHkudjEuUGFydHlCQVo/cG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9wYXJ0eS92MTtwYXJ0eXYxYgZwcm90bzM", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2UvcGFydHkvdjEvcGFydHkucHJvdG8SFXBva2V1bml2ZXJzZS5wYXJ0eS52MSK6BQoHUG9rZW1vbhIxCgdzcGVjaWVzGAEgASgOMiAucG9rZXVuaXZlcnNlLnNwZWNpZXMudjEuU3BlY2llcxIQCghuaWNrbmFtZRgCIAEoCRINCgVsZXZlbBgDIAEoDRILCgNleHAYBCABKA0SEQoJbGV2ZWxfZXhwGAUgASgNEhYKDm5leHRfbGV2ZWxfZXhwGAYgASgNEgoKAmhwGAcgASgNEi0KBXN0YXRzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIvCgZzdGF0dXMYCiABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLQoJaGVsZF9pdGVtGAsgASgOMhoucG9rZXVuaXZlcnNlLml0ZW0udjEuSXRlbRIxCgdhYmlsaXR5GAwgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIvCgZuYXR1cmUYDSABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5OYXR1cmUSLwoGZ2VuZGVyGA4gASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA8gASgIEhMKC3BlcnNvbmFsaXR5GBAgASgNEigKBGJhbGwYESABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEg8KB290X25hbWUYEiABKAkSEAoIb3RfaWRfbm8YEyABKA0SMgoJb3RfZ2VuZGVyGBQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEhEKCW1ldF9sZXZlbBgVIAEoDRIPCgdtZXRfbWFwGBYgASgJIkwKBE1vdmUSKAoEbW92ZRgBIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSCgoCcHAYAiABKA0SDgoGbWF4X3BwGAMgASgNIjgKBVBhcnR5Ei8KB3Bva2Vtb24YASADKAsyHi5wb2tldW5pdmVyc2UucGFydHkudjEuUG9rZW1vbiIqCg5Td2FwUGFydHlTbG90cxIMCgRmcm9tGAEgASgNEgoKAnRvGAIgASgNIjoKEFN3YXBQb2tlbW9uTW92ZXMSDAoEc2xvdBgBIAEoDRIMCgRmcm9tGAIgASgNEgoKAnRvGAMgASgNIlMKDUdpdmVQYXJ0eUl0ZW0SKAoEaXRlbRgBIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SDAoEc2xvdBgCIAEoDRIKCgJwYxgDIAEoCCIdCg1UYWtlUGFydHlJdGVtEgwKBHNsb3QYASABKA0iWQoMVXNlUGFydHlJdGVtEigKBGl0ZW0YASABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEgwKBHNsb3QYAiABKA0SEQoJbW92ZV9zbG90GAMgASgNImYKDFVzZUZpZWxkTW92ZRIMCgRzbG90GAEgASgNEigKBG1vdmUYAiABKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEhMKBnRhcmdldBgDIAEoDUgAiAEBQgkKB190YXJnZXQiSwoPRmllbGRNb3ZlUmVzdWx0EjgKB291dGNvbWUYASABKA4yJy5wb2tldW5pdmVyc2UucGFydHkudjEuRmllbGRNb3ZlT3V0Y29tZSJTChBQZW5kaW5nRXZvbHV0aW9uEgwKBHNsb3QYASABKA0SMQoHc3BlY2llcxgCIAEoDjIgLnBva2V1bml2ZXJzZS5zcGVjaWVzLnYxLlNwZWNpZXMiHQoNRXZvbHZlUG9rZW1vbhIMCgRzbG90GAEgASgNIokBCg5Qb2tlbW9uRXZvbHZlZBIMCgRzbG90GAEgASgNEisKB2xlYXJuZWQYAiADKA4yGi5wb2tldW5pdmVyc2UubW92ZS52MS5Nb3ZlEiwKCHRvX2xlYXJuGAMgAygOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRIOCgZmYWlsZWQYBCABKAgiWAoJTGVhcm5Nb3ZlEgwKBHNsb3QYASABKA0SKAoEbW92ZRgCIAEoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSEwoLZm9yZ2V0X3Nsb3QYAyABKA0iVQoPTGVhcm5Nb3ZlUmVzdWx0EgwKBHNsb3QYASABKA0SNAoKZXZvbHZlc190bxgCIAEoDjIgLnBva2V1bml2ZXJzZS5zcGVjaWVzLnYxLlNwZWNpZXMiOwoMUGFydHlDaGFuZ2VkEisKBXBhcnR5GAEgASgLMhwucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlBhcnR5KsgCChBGaWVsZE1vdmVPdXRjb21lEiIKHkZJRUxEX01PVkVfT1VUQ09NRV9VTlNQRUNJRklFRBAAEiQKIEZJRUxEX01PVkVfT1VUQ09NRV9DQU5UX1VTRV9IRVJFEAESJQohRklFTERfTU9WRV9PVVRDT01FX05PVEhJTkdfVE9fQ1VUEAISJQohRklFTERfTU9WRV9PVVRDT01FX0NBTlRfU1VSRl9IRVJFEAMSJAogRklFTERfTU9WRV9PVVRDT01FX05PVF9FTk9VR0hfSFAQBBIkCiBGSUVMRF9NT1ZFX09VVENPTUVfQ0hPT1NFX1RBUkdFVBAFEi4KKkZJRUxEX01PVkVfT1VUQ09NRV9DQU5UX0JFX1VTRURfT05fUE9LRU1PThAGEiAKHEZJRUxEX01PVkVfT1VUQ09NRV9IUF9TSEFSRUQQB0JBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3BhcnR5L3YxO3BhcnR5djFiBnByb3RvMw", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * One of the trainer's Pokémon, as its trainer sees it (the summary). IVs, EVs and friendship
@@ -371,6 +371,58 @@ export const UsePartyItemSchema: GenMessage<UsePartyItem> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_party_v1_party, 7);
 
 /**
+ * Client -> server: a field move from a party Pokémon's menu. First without a target; a move
+ * that asks for one (Milk Drink, Softboiled) answers CHOOSE_TARGET and is sent again with it.
+ * Answered with PartyChanged when it changed something, then FieldMoveResult.
+ *
+ * @generated from message pokeuniverse.party.v1.UseFieldMove
+ */
+export type UseFieldMove = Message<"pokeuniverse.party.v1.UseFieldMove"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+
+  /**
+   * @generated from field: pokeuniverse.move.v1.Move move = 2;
+   */
+  move: Move$1;
+
+  /**
+   * The party Pokémon it acts on.
+   *
+   * @generated from field: optional uint32 target = 3;
+   */
+  target?: number | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.UseFieldMove.
+ * Use `create(UseFieldMoveSchema)` to create a new message.
+ */
+export const UseFieldMoveSchema: GenMessage<UseFieldMove> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 8);
+
+/**
+ * Server -> client: the answer to UseFieldMove.
+ *
+ * @generated from message pokeuniverse.party.v1.FieldMoveResult
+ */
+export type FieldMoveResult = Message<"pokeuniverse.party.v1.FieldMoveResult"> & {
+  /**
+   * @generated from field: pokeuniverse.party.v1.FieldMoveOutcome outcome = 1;
+   */
+  outcome: FieldMoveOutcome;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.FieldMoveResult.
+ * Use `create(FieldMoveResultSchema)` to create a new message.
+ */
+export const FieldMoveResultSchema: GenMessage<FieldMoveResult> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_party, 9);
+
+/**
  * A party Pokémon that evolves after a battle (BattleEnded), once its scene isn't stopped.
  *
  * @generated from message pokeuniverse.party.v1.PendingEvolution
@@ -392,7 +444,7 @@ export type PendingEvolution = Message<"pokeuniverse.party.v1.PendingEvolution">
  * Use `create(PendingEvolutionSchema)` to create a new message.
  */
 export const PendingEvolutionSchema: GenMessage<PendingEvolution> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 8);
+  messageDesc(file_pokeuniverse_party_v1_party, 10);
 
 /**
  * Client -> server: the scene wasn't stopped. Answered with PartyChanged, then PokemonEvolved.
@@ -411,7 +463,7 @@ export type EvolvePokemon = Message<"pokeuniverse.party.v1.EvolvePokemon"> & {
  * Use `create(EvolvePokemonSchema)` to create a new message.
  */
 export const EvolvePokemonSchema: GenMessage<EvolvePokemon> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 9);
+  messageDesc(file_pokeuniverse_party_v1_party, 11);
 
 /**
  * Server -> client: it evolved, and it was saved.
@@ -451,7 +503,7 @@ export type PokemonEvolved = Message<"pokeuniverse.party.v1.PokemonEvolved"> & {
  * Use `create(PokemonEvolvedSchema)` to create a new message.
  */
 export const PokemonEvolvedSchema: GenMessage<PokemonEvolved> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 10);
+  messageDesc(file_pokeuniverse_party_v1_party, 12);
 
 /**
  * Client -> server: one of PokemonEvolved.to_learn or ItemGrowth.to_learn replaces a move. Answered with PartyChanged, then LearnMoveResult.
@@ -480,7 +532,7 @@ export type LearnMove = Message<"pokeuniverse.party.v1.LearnMove"> & {
  * Use `create(LearnMoveSchema)` to create a new message.
  */
 export const LearnMoveSchema: GenMessage<LearnMove> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 11);
+  messageDesc(file_pokeuniverse_party_v1_party, 13);
 
 /**
  * Server -> client: the answer to LearnMove, refused or not.
@@ -507,7 +559,7 @@ export type LearnMoveResult = Message<"pokeuniverse.party.v1.LearnMoveResult"> &
  * Use `create(LearnMoveResultSchema)` to create a new message.
  */
 export const LearnMoveResultSchema: GenMessage<LearnMoveResult> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 12);
+  messageDesc(file_pokeuniverse_party_v1_party, 14);
 
 /**
  * Server -> client: the whole party, after a change. Sent before the ItemResult that changed it,
@@ -527,5 +579,72 @@ export type PartyChanged = Message<"pokeuniverse.party.v1.PartyChanged"> & {
  * Use `create(PartyChangedSchema)` to create a new message.
  */
 export const PartyChangedSchema: GenMessage<PartyChanged> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_party, 13);
+  messageDesc(file_pokeuniverse_party_v1_party, 15);
+
+/**
+ * What a field move did, or why it didn't.
+ *
+ * @generated from enum pokeuniverse.party.v1.FieldMoveOutcome
+ */
+export enum FieldMoveOutcome {
+  /**
+   * @generated from enum value: FIELD_MOVE_OUTCOME_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Not here (gText_CantUseHere).
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_CANT_USE_HERE = 1;
+   */
+  CANT_USE_HERE = 1,
+
+  /**
+   * Cut, with no tree in front (gText_NothingToCut).
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_NOTHING_TO_CUT = 2;
+   */
+  NOTHING_TO_CUT = 2,
+
+  /**
+   * Surf, with no water in front (gText_CantSurfHere).
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_CANT_SURF_HERE = 3;
+   */
+  CANT_SURF_HERE = 3,
+
+  /**
+   * The user has 1/5 of its HP or less (gText_NotEnoughHp).
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_NOT_ENOUGH_HP = 4;
+   */
+  NOT_ENOUGH_HP = 4,
+
+  /**
+   * It can be used: ask which Pokémon, and send the move again.
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_CHOOSE_TARGET = 5;
+   */
+  CHOOSE_TARGET = 5,
+
+  /**
+   * The target is the user, fainted or at full HP (gText_CantBeUsedOnPkmn).
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON = 6;
+   */
+  CANT_BE_USED_ON_POKEMON = 6,
+
+  /**
+   * HP moved from the user to the target, and it was saved.
+   *
+   * @generated from enum value: FIELD_MOVE_OUTCOME_HP_SHARED = 7;
+   */
+  HP_SHARED = 7,
+}
+
+/**
+ * Describes the enum pokeuniverse.party.v1.FieldMoveOutcome.
+ */
+export const FieldMoveOutcomeSchema: GenEnum<FieldMoveOutcome> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_party_v1_party, 0);
 

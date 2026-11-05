@@ -110,6 +110,40 @@ message UsePartyItem {
   uint32 move_slot = 3;
 }
 
+// Client -> server: a field move from a party Pokémon's menu. First without a target; a move
+// that asks for one (Milk Drink, Softboiled) answers CHOOSE_TARGET and is sent again with it.
+// Answered with PartyChanged when it changed something, then FieldMoveResult.
+message UseFieldMove {
+  uint32 slot = 1;
+  pokeuniverse.move.v1.Move move = 2;
+  // The party Pokémon it acts on.
+  optional uint32 target = 3;
+}
+
+// What a field move did, or why it didn't.
+enum FieldMoveOutcome {
+  FIELD_MOVE_OUTCOME_UNSPECIFIED = 0;
+  // Not here (gText_CantUseHere).
+  FIELD_MOVE_OUTCOME_CANT_USE_HERE = 1;
+  // Cut, with no tree in front (gText_NothingToCut).
+  FIELD_MOVE_OUTCOME_NOTHING_TO_CUT = 2;
+  // Surf, with no water in front (gText_CantSurfHere).
+  FIELD_MOVE_OUTCOME_CANT_SURF_HERE = 3;
+  // The user has 1/5 of its HP or less (gText_NotEnoughHp).
+  FIELD_MOVE_OUTCOME_NOT_ENOUGH_HP = 4;
+  // It can be used: ask which Pokémon, and send the move again.
+  FIELD_MOVE_OUTCOME_CHOOSE_TARGET = 5;
+  // The target is the user, fainted or at full HP (gText_CantBeUsedOnPkmn).
+  FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON = 6;
+  // HP moved from the user to the target, and it was saved.
+  FIELD_MOVE_OUTCOME_HP_SHARED = 7;
+}
+
+// Server -> client: the answer to UseFieldMove.
+message FieldMoveResult {
+  FieldMoveOutcome outcome = 1;
+}
+
 // A party Pokémon that evolves after a battle (BattleEnded), once its scene isn't stopped.
 message PendingEvolution {
   uint32 slot = 1;

@@ -12,7 +12,8 @@ import { create } from "@bufbuild/protobuf";
 import type { ItemGrowth, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { ItemGrowthSchema, ItemOutcome } from "@pokeuniverse/contracts/item/v1/bag";
 import { BattleUse, FieldUse, Item, Pocket, type ItemEffect } from "@pokeuniverse/contracts/item/v1/catalog";
-import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
+import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
+import { FieldMoveOutcome, type FieldMoveResult, type Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { Gender as MonGender, Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { Stat, type Stats } from "@pokeuniverse/contracts/pokemon/v1/stats";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
@@ -59,6 +60,8 @@ export interface PartyHost {
   swap(a: number, b: number): void;
   /** The summary's SWITCH of two moves: shown at once, like `swap`. */
   swapMoves(slot: number, a: number, b: number): void;
+  /** A field move, then again with its `target` if it asks for one; the field's only. */
+  useFieldMove?(slot: number, move: Move, target?: number): Promise<FieldMoveResult>;
 }
 
 /**
@@ -119,6 +122,8 @@ const enum Action {
   Switch,
   Switching,
   Give,
+  /** PARTY_ACTION_SOFTBOILED: choosing who Milk Drink or Softboiled heals. */
+  ShareHp,
 }
 
 /** gText_ItemEffect_*: what a vitamin raises. */
@@ -277,8 +282,10 @@ const enum Option {
   Give,
   Take,
   Cancel2,
+  /** CURSOR_OPTION_FIELD_MOVES: from here, this plus the move. */
+  FieldMoves,
 }
-const OPTION_TEXTS: Record<Option, TextId> = {
+const OPTION_TEXTS: Partial<Record<Option, TextId>> = {
   [Option.Shift]: "gText_Shift",
   [Option.Summary]: "gText_Summary5",
   [Option.Switch]: "gText_Switch2",
@@ -288,6 +295,24 @@ const OPTION_TEXTS: Record<Option, TextId> = {
   [Option.Take]: "gText_Take",
   [Option.Cancel2]: "gFameCheckerText_Cancel",
 };
+
+/** sFieldMoves: the moves a party Pokémon's menu lists. */
+const FIELD_MOVES: ReadonlySet<Move> = new Set([
+  Move.FLASH,
+  Move.CUT,
+  Move.FLY,
+  Move.STRENGTH,
+  Move.SURF,
+  Move.ROCK_SMASH,
+  Move.WATERFALL,
+  Move.TELEPORT,
+  Move.DIG,
+  Move.MILK_DRINK,
+  Move.SOFT_BOILED,
+  Move.SWEET_SCENT,
+]);
+/** sFontColorTable's field moves: the options in blue. */
+const COLORS_FIELD_MOVES = [1, 8, 9] as const;
 
 /** The std messages (sActionStringTable) and their windows. */
 const enum Message {
@@ -301,7 +326,33 @@ const enum Message {
   BoostPpWhichMove,
   UseOnWhichMon,
   TeachWhichMon,
+  CantUseHere,
+  NothingToCut,
+  CantSurfHere,
+  NotEnoughHp,
 }
+
+const STD_MESSAGE_TEXTS: Partial<Record<Message, TextId>> = {
+  [Message.MoveToWhere]: "gText_MoveToWhere",
+  [Message.GiveToWhichMon]: "gText_GiveToWhichPokemon",
+  [Message.DoWhatWithMon]: "gText_DoWhatWithPokemon",
+  [Message.DoWhatWithItem]: "gText_DoWhatWithItem",
+  [Message.RestoreWhichMove]: "gText_RestoreWhichMove",
+  [Message.BoostPpWhichMove]: "gText_BoostPp",
+  [Message.UseOnWhichMon]: "gText_UseOnWhichPokemon",
+  [Message.TeachWhichMon]: "gText_TeachWhichPokemon",
+  [Message.CantUseHere]: "gText_CantUseHere",
+  [Message.NothingToCut]: "gText_NothingToCut",
+  [Message.CantSurfHere]: "gText_CantSurfHere",
+  [Message.NotEnoughHp]: "gText_NotEnoughHp",
+};
+
+/** What a field move's refusal says (sFieldMoveCursorCallbacks' msgId). */
+const FIELD_MOVE_REFUSALS: Partial<Record<FieldMoveOutcome, Message>> = {
+  [FieldMoveOutcome.NOTHING_TO_CUT]: Message.NothingToCut,
+  [FieldMoveOutcome.CANT_SURF_HERE]: Message.CantSurfHere,
+  [FieldMoveOutcome.NOT_ENOUGH_HP]: Message.NotEnoughHp,
+};
 
 const HELD_ITEM_TEMPLATE: SpriteTemplate = {
   sheet: "partyHeldItem",
@@ -413,6 +464,8 @@ class PartyMenu {
   /** windowId[0]: the selection window; windowId[1]: the std message. */
   private selection: CursorMenu | null = null;
   private options: Option[] = [];
+  /** The move being used while choosing its target (Action.ShareHp). */
+  private sharing: Move = Move.UNSPECIFIED;
   private stdMessage: Window | null = null;
   private message: Window;
   private yesNo: YesNoMenu | null = null;
@@ -651,7 +704,7 @@ class PartyMenu {
       this.loadBoxColors(slot, a, BOX_PAL_OFFSETS_1);
       this.loadBoxColors(slot, b, BOX_PAL_OFFSETS_2);
     };
-    const toSwitch = this.action === Action.Switch && (slot === this.slotId || slot === this.slotId2);
+    const toSwitch = (this.action === Action.Switch && (slot === this.slotId || slot === this.slotId2)) || (this.action === Action.ShareHp && slot === this.slotId);
     if (this.action === Action.Switching) set(PALS.action1, PALS.action2);
     else if (toSwitch) set(PALS.action1, selected ? PALS.current2 : PALS.action2);
     else if (mon.hp === 0) set(selected ? PALS.currentFainted : PALS.fainted1, selected ? PALS.current2 : PALS.fainted2);
@@ -705,26 +758,7 @@ class PartyMenu {
     const { flow } = this;
     const template =
       message === Message.DoWhatWithMon ? DO_WHAT_WITH_MON_WINDOW : message === Message.DoWhatWithItem ? DO_WHAT_WITH_ITEM_WINDOW : message === Message.RestoreWhichMove || message === Message.BoostPpWhichMove ? WHICH_MOVE_WINDOW : STD_MESSAGE_WINDOW;
-    const id: TextId =
-      message === Message.ChooseMon
-        ? this.shouldUseChooseMonText()
-          ? "gText_ChoosePokemon"
-          : "gText_ChoosePokemonCancel"
-        : message === Message.MoveToWhere
-          ? "gText_MoveToWhere"
-          : message === Message.GiveToWhichMon
-            ? "gText_GiveToWhichPokemon"
-            : message === Message.DoWhatWithMon
-              ? "gText_DoWhatWithPokemon"
-              : message === Message.RestoreWhichMove
-                ? "gText_RestoreWhichMove"
-                : message === Message.BoostPpWhichMove
-                  ? "gText_BoostPp"
-                  : message === Message.UseOnWhichMon
-                    ? "gText_UseOnWhichPokemon"
-                    : message === Message.TeachWhichMon
-                      ? "gText_TeachWhichPokemon"
-                      : "gText_DoWhatWithItem";
+    const id = message === Message.ChooseMon ? (this.shouldUseChooseMonText() ? "gText_ChoosePokemon" : "gText_ChoosePokemonCancel") : STD_MESSAGE_TEXTS[message]!;
     const win = new Window(this.bg2, template);
     drawStdFrame(win, STD_FRAME_TILE, STD_FRAME_PALETTE);
     printDefault(flow, win, FontId.Normal, flow.assets.text(id), 0, 2);
@@ -786,11 +820,11 @@ class PartyMenu {
 
   /** The slot moving now: the second one while picking where to SWITCH (GetCurrentPartySlotPtr). */
   private get current(): number {
-    return this.action === Action.Switch ? this.slotId2 : this.slotId;
+    return this.action === Action.Switch || this.action === Action.ShareHp ? this.slotId2 : this.slotId;
   }
 
   private set current(slot: number) {
-    if (this.action === Action.Switch) this.slotId2 = slot;
+    if (this.action === Action.Switch || this.action === Action.ShareHp) this.slotId2 = slot;
     else this.slotId = slot;
   }
 
@@ -850,6 +884,7 @@ class PartyMenu {
     if (this.mode.kind === "use") return this.chooseToUse(this.mode.item);
     if (this.action === Action.Give) return this.tryGive();
     if (this.action === Action.Switch) return this.switchSelected();
+    if (this.action === Action.ShareHp) return this.shareHp();
     this.openSelection();
   }
 
@@ -857,18 +892,19 @@ class PartyMenu {
   private chooseMonCancel(): void {
     if (this.mode.kind === "battle" && this.mode.forced) return;
     this.flow.play("se_select");
-    if (this.action === Action.Switch) return this.finishSwitch();
+    if (this.action === Action.Switch || this.action === Action.ShareHp) return this.finishTwoMonAction();
     this.slotId = SLOT_CANCEL;
     this.close();
   }
 
   // The selection window
 
-  /** CreateSelectionWindow (Task_TryCreateSelectionWindow): SUMMARY, SWITCH (with two Pokémon or more), ITEM, CANCEL. */
+  /** CreateSelectionWindow (SetPartyMonFieldSelectionActions): SUMMARY, the field moves it knows, SWITCH (with two Pokémon or more), ITEM, CANCEL. */
   private openSelection(): void {
     if (this.mode.kind === "battle") this.options = [Option.Shift, Option.Summary, Option.Cancel1];
     else {
-      this.options = [Option.Summary];
+      const moves = this.mon(this.slotId)?.moves ?? [];
+      this.options = [Option.Summary, ...moves.filter((m) => FIELD_MOVES.has(m.move)).map((m): Option => Option.FieldMoves + m.move)];
       if (this.party[1]) this.options.push(Option.Switch);
       this.options.push(Option.Item, Option.Cancel1);
     }
@@ -884,7 +920,11 @@ class PartyMenu {
     const win = new Window(this.bg2, template);
     drawStdFrame(win, USER_FRAME_TILE, USER_FRAME_PALETTE);
     const font = flow.fonts[FontId.Normal];
-    this.options.forEach((o, i) => win.print(font, 8, i * 16 + 2, COLORS_ACTIONS, flow.assets.text(OPTION_TEXTS[o]), font.letterSpacing, 0));
+    this.options.forEach((o, i) => {
+      const fieldMove = o >= Option.FieldMoves;
+      const text = fieldMove ? flow.assets.moveName(o - Option.FieldMoves) : flow.assets.text(OPTION_TEXTS[o]!);
+      win.print(font, 8, i * 16 + 2, fieldMove ? COLORS_FIELD_MOVES : COLORS_ACTIONS, text, font.letterSpacing, 0);
+    });
     this.selection = new CursorMenu(flow, win, FontId.Normal, 0, 2, 16, this.options.length, 0);
     win.copyToVram();
     this.step = () => this.selectionInput();
@@ -898,6 +938,7 @@ class PartyMenu {
     if (input === MENU_B_PRESSED) this.flow.play("se_select");
     const option = this.options[input === MENU_B_PRESSED ? this.options.length - 1 : input];
     this.flow.play("se_select");
+    if (option >= Option.FieldMoves) return this.useFieldMove(option - Option.FieldMoves);
     switch (option) {
       case Option.Shift:
         this.removeSelection();
@@ -1246,17 +1287,21 @@ class PartyMenu {
     if (!mon || !box) return then();
     this.showAilment(box, ailmentOf(mon));
     this.displayData(slot);
+    this.animateHp(slot, from, () => this.showMessage(text(), true, then));
+  }
+
+  /** Task_PartyMenuModifyHP: the box's HP moves a point a frame from `from` to what it is now. */
+  private animateHp(slot: number, from: number, then: () => void): void {
+    const mon = this.mon(slot);
+    if (!mon) return then();
     let shown = from;
-    if (shown < mon.hp) this.displayData(slot, shown);
+    if (shown !== mon.hp) this.displayData(slot, shown);
     this.animateSlot(slot, 1);
     this.step = () => {
-      if (shown < mon.hp) {
-        shown++;
-        this.displayData(slot, shown);
-        if (shown === mon.hp) this.animateSlot(slot, 1);
-        return;
-      }
-      this.showMessage(text(), true, then);
+      if (shown === mon.hp) return then();
+      shown += shown < mon.hp ? 1 : -1;
+      this.displayData(slot, shown);
+      if (shown === mon.hp) this.animateSlot(slot, 1);
     };
   }
 
@@ -1425,6 +1470,68 @@ class PartyMenu {
     });
   }
 
+  // Field moves
+
+  /** CursorCB_FieldMove: mic-core says whether it can be used here. */
+  private useFieldMove(move: Move): void {
+    this.removeSelection();
+    const answer = this.host.useFieldMove?.(this.slotId, move);
+    if (!answer) return this.refuseFieldMove(FieldMoveOutcome.CANT_USE_HERE);
+    this.ask(answer, ({ outcome }) => {
+      if (outcome !== FieldMoveOutcome.CHOOSE_TARGET) return this.refuseFieldMove(outcome);
+      this.sharing = move;
+      this.chooseWhoToHeal();
+    });
+  }
+
+  /** The move's message, then Task_CancelAfterAorBPress: A or B goes back to choosing. */
+  private refuseFieldMove(outcome: FieldMoveOutcome): void {
+    this.showStdMessage(FIELD_MOVE_REFUSALS[outcome] ?? Message.CantUseHere);
+    this.step = () => {
+      if (!(this.flow.gba.input.pressed & (Button.A | Button.B))) return;
+      this.flow.play("se_select");
+      this.showStdMessage(Message.ChooseMon);
+      this.step = () => this.chooseMonInput();
+    };
+  }
+
+  /** ChooseMonForSoftboiled: "Use on which POKéMON?", the cursor picks the second one. */
+  private chooseWhoToHeal(): void {
+    this.action = Action.ShareHp;
+    this.slotId2 = this.slotId;
+    this.animateSlot(this.slotId, 1);
+    this.showStdMessage(Message.UseOnWhichMon);
+    this.step = () => this.chooseMonInput();
+  }
+
+  /** Task_TryUseSoftboiledOnPartyMon: the user's HP falls, then the other's rises and its message. */
+  private shareHp(): void {
+    const { slotId: user, slotId2: target, sharing: move } = this;
+    const fromUser = this.mon(user)?.hp ?? 0;
+    const fromTarget = this.mon(target)?.hp ?? 0;
+    this.removeStdMessage();
+    const answer = this.host.useFieldMove?.(user, move, target);
+    if (!answer) return this.finishTwoMonAction();
+    this.ask(answer, ({ outcome }) => {
+      if (outcome !== FieldMoveOutcome.HP_SHARED) {
+        this.flow.play("se_select");
+        return this.showMessage(this.flow.assets.text("gText_CantBeUsedOnPkmn"), false, () => {
+          this.showStdMessage(Message.UseOnWhichMon);
+          this.step = () => this.chooseMonInput();
+        });
+      }
+      this.displayData(target, fromTarget);
+      this.flow.play("se_use_item");
+      this.animateHp(user, fromUser, () => {
+        this.flow.play("se_use_item");
+        this.showRecovered(target, fromTarget, () => this.hpRestoredText(target, fromTarget), () => {
+          this.clearMessage();
+          this.finishTwoMonAction();
+        });
+      });
+    });
+  }
+
   // SWITCH
 
   /** CursorCB_Switch: "Move to where?", the cursor picks the second Pokémon. */
@@ -1439,7 +1546,7 @@ class PartyMenu {
 
   /** SwitchSelectedMons: the same one changes nothing; two different ones slide out of the screen. */
   private switchSelected(): void {
-    if (this.slotId2 === this.slotId) return this.finishSwitch();
+    if (this.slotId2 === this.slotId) return this.finishTwoMonAction();
     this.slides = [this.slotId, this.slotId2].map((slot) => {
       const { left, top, width, height } = BOX_WINDOWS[slot];
       const slide: Slide = { slot, left, top, width, height, offset: 0, dir: width === 10 ? -1 : 1, map: new Uint16Array(width * height) };
@@ -1508,7 +1615,7 @@ class PartyMenu {
     if (this.slides.every((s) => s.dir === 0)) {
       for (const s of this.slides) this.boxes[s.slot].putTilemap();
       this.slides = [];
-      return this.finishSwitch();
+      return this.finishTwoMonAction();
     }
     for (const s of this.slides) {
       s.offset += s.dir;
@@ -1530,7 +1637,7 @@ class PartyMenu {
   }
 
   /** FinishTwoMonAction: the cursor on where the Pokémon went, back to choosing. */
-  private finishSwitch(): void {
+  private finishTwoMonAction(): void {
     this.removeStdMessage();
     this.action = Action.ChooseMon;
     this.animateSlot(this.slotId, 0);

@@ -286,6 +286,9 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_UsePartyItem:
 		c.player.UsePartyItem(p.UsePartyItem)
 		return true
+	case *realtimev1.ClientMessage_UseFieldMove:
+		c.player.UseFieldMove(p.UseFieldMove)
+		return true
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
 		return true

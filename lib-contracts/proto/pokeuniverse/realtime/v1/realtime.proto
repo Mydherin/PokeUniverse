@@ -42,6 +42,7 @@ message ClientMessage {
     pokeuniverse.party.v1.LearnMove learn_move = 24;
     pokeuniverse.world.v1.UseWarp use_warp = 25;
     pokeuniverse.party.v1.UsePartyItem use_party_item = 26;
+    pokeuniverse.party.v1.UseFieldMove use_field_move = 27;
   }
 }
 
@@ -66,6 +67,7 @@ message ServerMessage {
     pokeuniverse.pokedex.v1.PokedexChanged pokedex_changed = 16;
     pokeuniverse.world.v1.Warped warped = 17;
     pokeuniverse.party.v1.LearnMoveResult learn_move_result = 18;
+    pokeuniverse.party.v1.FieldMoveResult field_move_result = 19;
   }
 }
 

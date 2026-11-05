@@ -118,6 +118,33 @@ func (z *zone) usePartyItem(p *Player, m *partyv1.UsePartyItem) {
 	}}})
 }
 
+// UseFieldMove is a field move from a party Pokémon's menu.
+func (p *Player) UseFieldMove(m *partyv1.UseFieldMove) {
+	p.zone.do(func() { p.zone.useFieldMove(p, m) })
+}
+
+// useFieldMove answers whether the move can be used; HP it moves is saved before it's shown
+// (phase-6 D3). The client waits for the answer.
+func (z *zone) useFieldMove(p *Player, m *partyv1.UseFieldMove) {
+	if _, ok := z.players[p]; !ok {
+		return
+	}
+	outcome := partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_CANT_USE_HERE
+	if !p.busy() {
+		before := p.party.Clone()
+		outcome = p.party.UseFieldMove(int(m.GetSlot()), m.GetMove(), m.Target)
+		if outcome == partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_HP_SHARED {
+			if z.saveTrainer(p, item.Changed{}, true) {
+				z.sendParty(p)
+			} else {
+				p.party = before
+				outcome = partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_CANT_USE_HERE
+			}
+		}
+	}
+	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_FieldMoveResult{FieldMoveResult: &partyv1.FieldMoveResult{Outcome: outcome}}})
+}
+
 // useRareCandy raises the level; what to learn and who it may evolve into come with the answer.
 func (z *zone) useRareCandy(p *Player, slot int) (bool, *itemv1.ItemGrowth, *speciesv1.Evolution) {
 	learned, toLearn, ok := p.party.RareCandy(slot, z.m.ID)
