@@ -26,6 +26,12 @@ export type Evs = [number, number, number, number, number, number];
 /** Gen 4's EV caps: per stat and in all. */
 const MAX_STAT_EV = 255;
 const MAX_TOTAL_EV = 510;
+/** Gen 4's Power items: the stat each adds to, in the EV order below, and by how much. */
+const POWER_ITEMS: Record<string, number> = { powerweight: 0, powerbracer: 1, powerbelt: 2, poweranklet: 3, powerlens: 4, powerband: 5 };
+const POWER_ITEM_EVS = 4;
+const DOUBLE_PRIZE_ITEMS = new Set(["amuletcoin", "luckincense"]);
+/** How many levels above it a foe must be for fainting to cost more friendship (UpdateFriendshipFainted). */
+const HEAVY_FAINT_LEVELS = 30;
 
 /** A move waiting for the player's answer (RequestKind.LEARN_MOVE). */
 export type PendingMove = { slot: number; move: number };
@@ -37,9 +43,11 @@ export type ExpState = {
   /** "side:slot" of a Pokémon → the other side's party slots that faced it. */
   faced: Record<string, number[]>;
   /** By side and party slot. */
-  gains: { exp: number; evs: Evs }[][];
+  gains: { exp: number; evs: Evs; faints?: boolean[] }[][];
   /** Moves waiting for the player's answer, in the order they came. */
   pending: PendingMove[];
+  /** An AMULET COIN or LUCK INCENSE came out, on either side (prizeMoneyValue). */
+  doublePrize?: boolean;
 };
 
 export function newExpState(start: StartBattle): ExpState {
@@ -117,6 +125,7 @@ export class ExpTracker {
     const { active, faced } = this.state;
     const other = 1 - id.side;
     active[id.side][id.position] = id.slot;
+    if (DOUBLE_PRIZE_ITEMS.has(pokemonAt(this.battle, id.side, id.slot).item)) this.state.doublePrize = true;
     const facing = active[other].filter((s): s is number => s !== null);
     faced[key(id.side, id.slot)] = [...facing];
     for (const foe of facing) {
@@ -136,15 +145,31 @@ export class ExpTracker {
     for (const [k, list] of Object.entries(state.faced)) {
       if (k.startsWith(`${other}:`)) state.faced[k] = list.filter((s) => s !== slot);
     }
+    if (gainsExp(start, side)) {
+      // Against the higher level foe on the field, whoever landed the blow.
+      const foeLevel = Math.max(...battle.sides[other].active.map((foe) => foe?.level ?? 0));
+      (state.gains[side][slot].faints ??= []).push(foeLevel - fainted.level >= HEAVY_FAINT_LEVELS);
+    }
     if (!gainsExp(start, other)) return;
-    const participants = (state.faced[key(side, slot)] ?? []).filter((s) => pokemonAt(battle, other, s).hp > 0);
+    const standing = (s: number) => pokemonAt(battle, other, s).hp > 0;
+    const participants = (state.faced[key(side, slot)] ?? []).filter(standing);
+    const party = start.sides[other].pokemon.map((_, s) => s);
+    const holders = party.filter((s) => standing(s) && pokemonAt(battle, other, s).item === "expshare");
+    const { baseExp } = INFOS[start.sides[side].pokemon[slot].species];
+    const total = Math.floor((baseExp * start.sides[side].pokemon[slot].level) / 7);
+    // Participants and holders split half each; with no holder, participants split it all. Party order.
+    const forParticipant = Math.max(Math.floor((holders.length ? Math.floor(total / 2) : total) / Math.max(participants.length, 1)), 1);
+    const forHolder = holders.length ? Math.max(Math.floor(Math.floor(total / 2) / holders.length), 1) : 0;
     const events: BattleEvent[] = [];
-    for (const s of participants) events.push(...this.award(other, s, side, slot, participants.length));
+    for (const s of party) {
+      const base = (participants.includes(s) ? forParticipant : 0) + (holders.includes(s) ? forHolder : 0);
+      if (base > 0) events.push(...this.award(other, s, side, slot, base));
+    }
     this.awards.set(key(side, slot), events);
   }
 
-  /** Gen 4: ⌊⌊base exp × level ÷ 7⌋ ÷ participants⌋, × 1.5 traded, × 1.5 trainer, × 1.5 Lucky Egg. */
-  private award(side: number, slot: number, foeSide: number, foeSlot: number, participants: number): BattleEvent[] {
+  /** Gen 4: its share, × 1.5 traded, × 1.5 trainer, × 1.5 Lucky Egg; EVs with Macho Brace and Power items. */
+  private award(side: number, slot: number, foeSide: number, foeSlot: number, share: number): BattleEvent[] {
     const { battle, start, state } = this;
     const foe = start.sides[foeSide].pokemon[foeSlot];
     const mon = start.sides[side].pokemon[slot];
@@ -153,22 +178,22 @@ export class ExpTracker {
     const species = INFOS[foe.species];
     const gain = state.gains[side][slot];
 
+    // At level 100: no experience, no EVs, no message (MonGainEVs runs only for one that gains).
+    if (pokemon.level >= MAX_LEVEL) return [];
     const y = species.evYield;
     const factor = item === "machobrace" ? 2 : 1;
     const startEvs = mon.evs;
     const evs = [startEvs?.hp, startEvs?.attack, startEvs?.defense, startEvs?.speed, startEvs?.spAttack, startEvs?.spDefense].map((v) => v ?? 0);
     let total = evs.reduce((a, b) => a + b, 0) + gain.evs.reduce((a, b) => a + b, 0);
     [y?.hp, y?.attack, y?.defense, y?.speed, y?.spAttack, y?.spDefense].forEach((v, i) => {
-      const add = Math.min((v ?? 0) * factor, MAX_STAT_EV - evs[i] - gain.evs[i], MAX_TOTAL_EV - total);
+      const add = Math.min(((v ?? 0) + (POWER_ITEMS[item] === i ? POWER_ITEM_EVS : 0)) * factor, MAX_STAT_EV - evs[i] - gain.evs[i], MAX_TOTAL_EV - total);
       if (add > 0) {
         gain.evs[i] += add;
         total += add;
       }
     });
 
-    // FireRed gives a Pokémon at level 100 no experience, and no message.
-    if (pokemon.level >= MAX_LEVEL) return [];
-    let exp = Math.floor(Math.floor((species.baseExp * foe.level) / 7) / participants);
+    let exp = share;
     if (mon.traded) exp = Math.floor(exp * 1.5);
     if (start.kind === BattleKind.TRAINER) exp = Math.floor(exp * 1.5);
     if (item === "luckyegg") exp = Math.floor(exp * 1.5);

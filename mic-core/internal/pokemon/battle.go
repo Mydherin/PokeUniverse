@@ -1,7 +1,8 @@
 package pokemon
 
 import (
-	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	"math/rand/v2"
+
 	movev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
 	pokemonv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
 )
@@ -14,6 +15,18 @@ const (
 
 // MaxFriendship is FireRed's most friendship.
 const MaxFriendship = 255
+
+// WalkingFriendshipSteps is how often walking can raise friendship (VAR_HAPPINESS_STEP_COUNTER).
+const WalkingFriendshipSteps = 128
+
+// FRIENDSHIP_EVENT_GROW_LEVEL and _WALKING, by how friendly it is now.
+var (
+	growLevelFriendship  = []int32{5, 3, 2}
+	walkingFriendship    = []int32{1, 1, 1}
+	leagueFriendship     = []int32{3, 2, 1}
+	faintFriendship      = []int32{-1, -1, -1}
+	heavyFaintFriendship = []int32{-5, -5, -10}
+)
 
 // Heal is HealPlayerParty for one Pokémon: full HP and PP, no status.
 func (p *Pokemon) Heal() {
@@ -79,29 +92,8 @@ func (p *Pokemon) Gain(exp int, evs Stats, mapID string) {
 	rate := p.info().GetGrowthRate()
 	p.Exp = min(p.Exp+exp, ExpAt(rate, MaxLevel))
 	for level := LevelAt(rate, p.Exp); p.Level < level; p.Level++ {
-		p.growFriendship(mapID)
+		p.changeFriendship(growLevelFriendship, mapID)
 	}
-}
-
-// growFriendship is FRIENDSHIP_EVENT_GROW_LEVEL: +5 below 100, +3 below 200, +2 from there, half
-// as much again with a SOOTHE BELL, +1 from a LUXURY BALL first, +1 on the map where it was met.
-func (p *Pokemon) growFriendship(mapID string) {
-	delta := 5
-	if p.Friendship >= 200 {
-		delta = 2
-	} else if p.Friendship >= 100 {
-		delta = 3
-	}
-	if p.Ball == itemv1.Item_ITEM_LUXURY_BALL {
-		delta++
-	}
-	if p.HeldItem == itemv1.Item_ITEM_SOOTHE_BELL {
-		delta = delta * 150 / 100
-	}
-	if p.metOn(mapID) {
-		delta++
-	}
-	p.Friendship = min(p.Friendship+delta, MaxFriendship)
 }
 
 // ApplyMoves sets its moves as a battle left them, by position: a different one is a new move
@@ -145,4 +137,39 @@ func (p *Pokemon) learnsByLevel(id movev1.Move) bool {
 // sections, which our maps don't have yet.
 func (p *Pokemon) metOn(mapID string) bool {
 	return p.MetMap != "" && p.MetMap == mapID
+}
+
+// WalkingFriendship is FRIENDSHIP_EVENT_WALKING, every WalkingFriendshipSteps steps: each Pokémon
+// has a 50% chance. False when none changed, so there's nothing to save.
+func (pt Party) WalkingFriendship(mapID string) bool {
+	changed := false
+	for _, p := range pt {
+		if rand.IntN(2) == 0 {
+			continue
+		}
+		was := p.Friendship
+		p.changeFriendship(walkingFriendship, mapID)
+		changed = changed || p.Friendship != was
+	}
+	return changed
+}
+
+// LeagueFriendship is FRIENDSHIP_EVENT_LEAGUE_BATTLE: the whole party, facing a gym leader, one of
+// the Elite Four or the Champion.
+func (pt Party) LeagueFriendship(mapID string) {
+	for _, p := range pt {
+		p.changeFriendship(leagueFriendship, mapID)
+	}
+}
+
+// FaintFriendship is UpdateFriendshipFainted for each time it fainted in a battle; heavy against a
+// foe far above it.
+func (p *Pokemon) FaintFriendship(faints []bool, mapID string) {
+	for _, heavy := range faints {
+		if heavy {
+			p.changeFriendship(heavyFaintFriendship, mapID)
+		} else {
+			p.changeFriendship(faintFriendship, mapID)
+		}
+	}
 }

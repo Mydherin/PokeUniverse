@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M4: Exp. Share and held items](milestones/m04-exp-share-held-items.md): not started, follow its **Resume Here**. M3 is closed; if `git status` still shows its last changes, commit them first.
+**Next step:** [M5: Field moves on the party screen](milestones/m05-field-moves.md), not started. M4 is played and closed.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -18,7 +18,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M1b | [FireRed's item-use scene](milestones/m01b-item-use-scene.md) | ✅ | M1 | The Pokémon and item scene before an item's effect; M2 and M3 add its other variants |
 | M2 | [Rare Candy and evolution stones](milestones/m02-growth-items.md) | ✅ | M1b | Level up, learning and evolution outside battle, reusing Phase 5 M11 |
 | M3 | [TM/HM teaching](milestones/m03-tm-hm-teaching.md) | ✅ | M2 | TM and tutor learnsets in the catalog; the TM CASE's USE; ABLE / NOT ABLE |
-| M4 | [Exp. Share and held items](milestones/m04-exp-share-held-items.md) | ⬜ | | Exp. Share's split in `mic-battles`; held items' effects outside battle |
+| M4 | [Exp. Share and held items](milestones/m04-exp-share-held-items.md) | ✅ | | Exp. Share's split in `mic-battles`; held items' effects outside battle |
 | M5 | [Field moves on the party screen](milestones/m05-field-moves.md) | ⬜ | M1 | Field moves in the party menu; Milk Drink and Softboiled work, the rest refuse until their maps |
 | M6 | [Boxes: storage and viewing](milestones/m06-boxes-storage.md) | ⬜ | | Box storage in `mic-core`, BILL'S PC in the PC menu, the box screen to look through |
 | M7 | [Boxes: managing Pokémon](milestones/m07-boxes-actions.md) | ⬜ | M6 | WITHDRAW, DEPOSIT, MOVE, RELEASE, held items, box options |

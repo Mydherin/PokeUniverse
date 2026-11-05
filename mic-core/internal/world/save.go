@@ -52,3 +52,12 @@ func savePokedex(ctx context.Context, q *db.Queries, p *Player, save time.Time) 
 	}
 	return err
 }
+
+// saveFriendshipSteps keeps the walking friendship counter for the next session.
+func (z *zone) saveFriendshipSteps(p *Player) {
+	z.transact(p, func(ctx context.Context, q *db.Queries, save time.Time) error {
+		return q.UpdateTrainerFriendshipSteps(ctx, db.UpdateTrainerFriendshipStepsParams{
+			AccountID: p.accountID, FriendshipSteps: int16(p.friendshipSteps), CreatedAt: save,
+		})
+	})
+}

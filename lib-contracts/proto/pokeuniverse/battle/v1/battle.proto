@@ -149,6 +149,8 @@ message MonOutcome {
   pokeuniverse.pokemon.v1.Stats evs = 6;
   // Its moves at the end, in the same order as pp: level ups can bring new ones.
   repeated pokeuniverse.move.v1.Move moves = 7;
+  // Each time it fainted, in order: true against a foe 30 or more levels above it.
+  repeated bool faints = 8;
 }
 
 message SideOutcome {
@@ -162,6 +164,8 @@ message SideOutcome {
 message BattleOutcome {
   // By side.
   repeated SideOutcome sides = 1;
+  // An AMULET COIN or LUCK INCENSE came out on either side: the prize money doubles.
+  bool double_prize = 2;
 }
 
 // Reply to battles.start, battles.turn and battles.forfeit.

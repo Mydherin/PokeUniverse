@@ -2,7 +2,7 @@
 -- created_at identifies the save: a New Game replaces it, so live positions of the old save are ignored.
 SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
        text_speed, battle_scene, battle_style, sound, button_mode, frame,
-       registered_item, repel_steps, flute, coins, berry_powder,
+       registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
        pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 FROM trainers
 WHERE account_id = $1;
@@ -32,6 +32,7 @@ SET name = EXCLUDED.name,
     frame = DEFAULT,
     registered_item = DEFAULT,
     repel_steps = DEFAULT,
+    friendship_steps = DEFAULT,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
@@ -42,7 +43,7 @@ SET name = EXCLUDED.name,
     created_at = now()
 RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
           text_speed, battle_scene, battle_style, sound, button_mode, frame,
-          registered_item, repel_steps, flute, coins, berry_powder,
+          registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
           pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught;
 
 -- name: UpdateTrainerLive :execrows
@@ -50,6 +51,10 @@ RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, mon
 UPDATE trainers
 SET map_id = $2, x = $3, y = $4, facing = $5, play_time_seconds = $6
 WHERE account_id = $1 AND created_at = $7;
+
+-- name: UpdateTrainerFriendshipSteps :exec
+-- The walking friendship counter, saved on leaving; only into the save it belongs to.
+UPDATE trainers SET friendship_steps = $2 WHERE account_id = $1 AND created_at = $3;
 
 -- name: UpdateTrainerOptions :execrows
 -- The OPTION menu's choices, saved as the menu closes.

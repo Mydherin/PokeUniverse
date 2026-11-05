@@ -75,6 +75,7 @@ type Trainer struct {
 	PokedexNational bool
 	PokedexSeen     []byte
 	PokedexCaught   []byte
+	FriendshipSteps int16
 }
 
 type TrainerItem struct {

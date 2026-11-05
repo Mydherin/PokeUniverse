@@ -52,6 +52,8 @@ type Player struct {
 	items *item.State
 	// The trainer's Pokémon; saved to PostgreSQL on every change.
 	party pokemon.Party
+	// Steps toward the next walking friendship; saved on leaving, not every step.
+	friendshipSteps int
 	// What a won battle left to do while its script goes on (memory only: leaving loses it, as a
 	// reset does).
 	evolving evolving

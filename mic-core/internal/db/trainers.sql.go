@@ -13,7 +13,7 @@ import (
 const getTrainer = `-- name: GetTrainer :one
 SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
        text_speed, battle_scene, battle_style, sound, button_mode, frame,
-       registered_item, repel_steps, flute, coins, berry_powder,
+       registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
        pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 FROM trainers
 WHERE account_id = $1
@@ -41,6 +41,7 @@ type GetTrainerRow struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	FriendshipSteps int16
 	PokedexObtained bool
 	PokedexNational bool
 	PokedexSeen     []byte
@@ -73,6 +74,7 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.Flute,
 		&i.Coins,
 		&i.BerryPowder,
+		&i.FriendshipSteps,
 		&i.PokedexObtained,
 		&i.PokedexNational,
 		&i.PokedexSeen,
@@ -124,6 +126,7 @@ SET name = EXCLUDED.name,
     frame = DEFAULT,
     registered_item = DEFAULT,
     repel_steps = DEFAULT,
+    friendship_steps = DEFAULT,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
@@ -134,7 +137,7 @@ SET name = EXCLUDED.name,
     created_at = now()
 RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
           text_speed, battle_scene, battle_style, sound, button_mode, frame,
-          registered_item, repel_steps, flute, coins, berry_powder,
+          registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
           pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 `
 
@@ -172,6 +175,7 @@ type PutTrainerRow struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	FriendshipSteps int16
 	PokedexObtained bool
 	PokedexNational bool
 	PokedexSeen     []byte
@@ -216,12 +220,29 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.Flute,
 		&i.Coins,
 		&i.BerryPowder,
+		&i.FriendshipSteps,
 		&i.PokedexObtained,
 		&i.PokedexNational,
 		&i.PokedexSeen,
 		&i.PokedexCaught,
 	)
 	return i, err
+}
+
+const updateTrainerFriendshipSteps = `-- name: UpdateTrainerFriendshipSteps :exec
+UPDATE trainers SET friendship_steps = $2 WHERE account_id = $1 AND created_at = $3
+`
+
+type UpdateTrainerFriendshipStepsParams struct {
+	AccountID       int64
+	FriendshipSteps int16
+	CreatedAt       time.Time
+}
+
+// The walking friendship counter, saved on leaving; only into the save it belongs to.
+func (q *Queries) UpdateTrainerFriendshipSteps(ctx context.Context, arg UpdateTrainerFriendshipStepsParams) error {
+	_, err := q.db.Exec(ctx, updateTrainerFriendshipSteps, arg.AccountID, arg.FriendshipSteps, arg.CreatedAt)
+	return err
 }
 
 const updateTrainerLive = `-- name: UpdateTrainerLive :execrows

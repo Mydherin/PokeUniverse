@@ -8,7 +8,9 @@ import (
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
+	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/pokemon"
 )
 
 // Tick is how often a zone saves what changed and sends it (tech-stack.md#efficient-event-model).
@@ -158,6 +160,19 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 	to := p.pos.Step(m.Direction)
 	p.elevation = ElevationAfter(z.m, p.elevation, p.pos, to)
 	p.pos, p.dirty, p.corrected = to, true, false
+	z.countFriendshipStep(p)
+}
+
+// countFriendshipStep is UpdateFriendshipStepCounter. A failed save undoes the change.
+func (z *zone) countFriendshipStep(p *Player) {
+	p.friendshipSteps = (p.friendshipSteps + 1) % pokemon.WalkingFriendshipSteps
+	if p.friendshipSteps != 0 {
+		return
+	}
+	party := p.party.Clone()
+	if p.party.WalkingFriendship(z.m.ID) && !z.saveTrainer(p, item.Changed{}, true) {
+		p.party = party
+	}
 }
 
 func (z *zone) turn(p *Player, d mapv1.Direction) {

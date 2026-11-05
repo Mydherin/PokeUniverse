@@ -6,7 +6,9 @@ Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M1's HP animation. Ru
 
 ## Resume Here
 
-Not started. First step: read the field move list in `party_menu.c` (line 2972, `sFieldMoves`).
+Not started; no M5 code exists. Don't re-check M4: it's played, closed and committed. Docker runs the M4 images and account 2's save is restored.
+
+First step: read the field move list in `party_menu.c` (line 2972, `sFieldMoves`), then do [Tasks](#tasks) in order.
 
 ## Tasks
 

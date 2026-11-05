@@ -102,6 +102,7 @@ function ball(p: Pokemon): PartyBall {
 /** What each side keeps after the battle (D14), once it has ended. */
 export function outcome(battle: Battle, start: StartBattle, exp: ExpState, forfeit?: number): MessageInitShape<typeof BattleOutcomeSchema> {
   return {
+    doublePrize: exp.doublePrize ?? false,
     sides: start.sides.map((team, side) => ({
       result: result(battle, side, forfeit),
       seen: seenBy(start, exp, side),
@@ -115,6 +116,7 @@ export function outcome(battle: Battle, start: StartBattle, exp: ExpState, forfe
           pp: p.baseMoveSlots.map((m) => m.pp),
           heldItem: itemNumber(p.item),
           exp: gain.exp,
+          faints: gain.faints ?? [],
           evs: { hp, attack, defense, speed, spAttack, spDefense },
           moves: p.baseMoveSlots.map((m) => moveNumber(m.id)),
         };

@@ -33,6 +33,7 @@ func Apply(party pokemon.Party, o *battlev1.SideOutcome, mapID string) {
 		ev := out.GetEvs()
 		p.Gain(int(out.GetExp()), pokemon.Stats{int(ev.GetHp()), int(ev.GetAttack()), int(ev.GetDefense()),
 			int(ev.GetSpeed()), int(ev.GetSpAttack()), int(ev.GetSpDefense())}, mapID)
+		p.FaintFriendship(out.GetFaints(), mapID)
 		p.HP = min(int(out.GetHp()), p.Stats()[0])
 		p.Status = out.GetStatus()
 		if p.Status == pokemonv1.Status_STATUS_TOXIC {

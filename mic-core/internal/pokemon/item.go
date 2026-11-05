@@ -61,7 +61,7 @@ func (pt Party) TeachMachineMove(slot int, id movev1.Move, forget int, e *itemv1
 	} else if !p.Replace(forget, id) {
 		return false
 	}
-	p.changeFriendshipByItem(e.GetFriendship(), mapID)
+	p.changeFriendship(e.GetFriendship(), mapID)
 	return true
 }
 
@@ -83,7 +83,7 @@ func (pt Party) ItemSceneCloseness(slot int) int {
 // ChangeFriendshipByItem is a bag item's friendship change, for one used in battle.
 func (pt Party) ChangeFriendshipByItem(e *itemv1.ItemEffect, slot int, mapID string) {
 	if p := pt.At(slot); p != nil {
-		p.changeFriendshipByItem(e.GetFriendship(), mapID)
+		p.changeFriendship(e.GetFriendship(), mapID)
 	}
 }
 
@@ -96,7 +96,7 @@ func (p *Pokemon) useItem(e *itemv1.ItemEffect, moveSlot int, mapID string) bool
 	worked = p.useOnPP(e, moveSlot) || worked
 	worked = p.useOnEVs(e) || worked
 	if worked {
-		p.changeFriendshipByItem(e.GetFriendship(), mapID)
+		p.changeFriendship(e.GetFriendship(), mapID)
 	}
 	return worked
 }
@@ -204,9 +204,9 @@ func (p *Pokemon) useOnEVs(e *itemv1.ItemEffect) bool {
 	return true
 }
 
-// changeFriendshipByItem is UPDATE_FRIENDSHIP_FROM_ITEM: the change by how friendly it is now; a rise
-// half as much again with a SOOTHE BELL, +1 from a LUXURY BALL, +1 on the map where it was met.
-func (p *Pokemon) changeFriendshipByItem(changes []int32, mapID string) {
+// changeFriendship is Gen 4's MonApplyFriendshipMod: the change by how friendly it is now; a rise
+// gets +1 from a LUXURY BALL, +1 on the map where it was met, then half as much again with a SOOTHE BELL.
+func (p *Pokemon) changeFriendship(changes []int32, mapID string) {
 	if len(changes) != 3 {
 		return
 	}
@@ -218,14 +218,14 @@ func (p *Pokemon) changeFriendshipByItem(changes []int32, mapID string) {
 	}
 	change := int(changes[band])
 	if change > 0 {
-		if p.HeldItem == itemv1.Item_ITEM_SOOTHE_BELL {
-			change = change * 150 / 100
-		}
 		if p.Ball == itemv1.Item_ITEM_LUXURY_BALL {
 			change++
 		}
 		if p.metOn(mapID) {
 			change++
+		}
+		if p.HeldItem == itemv1.Item_ITEM_SOOTHE_BELL {
+			change = change * 150 / 100
 		}
 	}
 	p.Friendship = max(min(p.Friendship+change, MaxFriendship), 0)

@@ -49,6 +49,11 @@ func (t *Trainer) Party(id string) pokemon.Party {
 	return party
 }
 
+// League is whether facing them raises friendship (Battle_IsLeagueTrainerClass).
+func (t *Trainer) League() bool {
+	return t.Class == "leader" || t.Class == "elite four" || t.Class == "champion"
+}
+
 // Prize is the money for beating them (GetTrainerMoneyToGive): 4 × the last Pokémon's level × the
 // class' rate, twice that in doubles.
 func (t *Trainer) Prize() int {

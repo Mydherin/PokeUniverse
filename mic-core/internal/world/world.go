@@ -122,7 +122,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 
 	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party, pokedex: pokedex.Load(row),
-		gender: gender, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle,
+		gender: gender, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle, friendshipSteps: int(row.FriendshipSteps),
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -208,6 +208,7 @@ func (w *World) Leave(p *Player) {
 			p.zone.abandonBattle(p)
 		}
 		p.zone.remove(p)
+		p.zone.saveFriendshipSteps(p)
 	})
 	w.mu.Lock()
 	if w.players[p.accountID] == p {

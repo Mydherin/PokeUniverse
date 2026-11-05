@@ -325,6 +325,9 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	b := p.battle
 	result := o.GetSides()[battle.PlayerSide].GetResult()
 	party, money, dex := p.party.Clone(), p.money, p.pokedex
+	if t := battle.Trainers[b.Trainer]; t != nil && t.League() {
+		p.party.LeagueFriendship(z.m.ID)
+	}
 	battle.Apply(p.party, o.GetSides()[battle.PlayerSide], z.m.ID)
 	for _, f := range b.Friendship {
 		info, _ := item.Info(itemv1.Item(f.Item))
@@ -334,7 +337,11 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	delta := 0
 	if won {
 		if t := battle.Trainers[b.Trainer]; t != nil {
-			delta = min(t.Prize(), battle.MaxMoney-p.money)
+			prize := t.Prize()
+			if o.GetDoublePrize() {
+				prize *= 2
+			}
+			delta = min(prize, battle.MaxMoney-p.money)
 		}
 	} else {
 		delta = -battle.WhiteOutLoss(p.party, p.money)

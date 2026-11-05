@@ -848,7 +848,9 @@ type MonOutcome struct {
 	Exp uint32     `protobuf:"varint,5,opt,name=exp,proto3" json:"exp,omitempty"`
 	Evs *v11.Stats `protobuf:"bytes,6,opt,name=evs,proto3" json:"evs,omitempty"`
 	// Its moves at the end, in the same order as pp: level ups can bring new ones.
-	Moves         []v15.Move `protobuf:"varint,7,rep,packed,name=moves,proto3,enum=pokeuniverse.move.v1.Move" json:"moves,omitempty"`
+	Moves []v15.Move `protobuf:"varint,7,rep,packed,name=moves,proto3,enum=pokeuniverse.move.v1.Move" json:"moves,omitempty"`
+	// Each time it fainted, in order: true against a foe 30 or more levels above it.
+	Faints        []bool `protobuf:"varint,8,rep,packed,name=faints,proto3" json:"faints,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -932,6 +934,13 @@ func (x *MonOutcome) GetMoves() []v15.Move {
 	return nil
 }
 
+func (x *MonOutcome) GetFaints() []bool {
+	if x != nil {
+		return x.Faints
+	}
+	return nil
+}
+
 type SideOutcome struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Result BattleResult           `protobuf:"varint,1,opt,name=result,proto3,enum=pokeuniverse.battle.v1.BattleResult" json:"result,omitempty"`
@@ -997,7 +1006,9 @@ func (x *SideOutcome) GetSeen() []v1.Species {
 type BattleOutcome struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// By side.
-	Sides         []*SideOutcome `protobuf:"bytes,1,rep,name=sides,proto3" json:"sides,omitempty"`
+	Sides []*SideOutcome `protobuf:"bytes,1,rep,name=sides,proto3" json:"sides,omitempty"`
+	// An AMULET COIN or LUCK INCENSE came out on either side: the prize money doubles.
+	DoublePrize   bool `protobuf:"varint,2,opt,name=double_prize,json=doublePrize,proto3" json:"double_prize,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1037,6 +1048,13 @@ func (x *BattleOutcome) GetSides() []*SideOutcome {
 		return x.Sides
 	}
 	return nil
+}
+
+func (x *BattleOutcome) GetDoublePrize() bool {
+	if x != nil {
+		return x.DoublePrize
+	}
+	return false
 }
 
 // Reply to battles.start, battles.turn and battles.forfeit.
@@ -1166,7 +1184,7 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"SideUpdate\x12;\n" +
 	"\x06events\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\x12?\n" +
 	"\arequest\x18\x02 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\x126\n" +
-	"\x04view\x18\x03 \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x04view\"\x94\x02\n" +
+	"\x04view\x18\x03 \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x04view\"\xac\x02\n" +
 	"\n" +
 	"MonOutcome\x12\x0e\n" +
 	"\x02hp\x18\x01 \x01(\rR\x02hp\x127\n" +
@@ -1175,13 +1193,15 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"\theld_item\x18\x04 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\bheldItem\x12\x10\n" +
 	"\x03exp\x18\x05 \x01(\rR\x03exp\x120\n" +
 	"\x03evs\x18\x06 \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03evs\x120\n" +
-	"\x05moves\x18\a \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x05moves\"\xbf\x01\n" +
+	"\x05moves\x18\a \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x05moves\x12\x16\n" +
+	"\x06faints\x18\b \x03(\bR\x06faints\"\xbf\x01\n" +
 	"\vSideOutcome\x12<\n" +
 	"\x06result\x18\x01 \x01(\x0e2$.pokeuniverse.battle.v1.BattleResultR\x06result\x12<\n" +
 	"\apokemon\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.MonOutcomeR\apokemon\x124\n" +
-	"\x04seen\x18\x03 \x03(\x0e2 .pokeuniverse.species.v1.SpeciesR\x04seen\"J\n" +
+	"\x04seen\x18\x03 \x03(\x0e2 .pokeuniverse.species.v1.SpeciesR\x04seen\"m\n" +
 	"\rBattleOutcome\x129\n" +
-	"\x05sides\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.SideOutcomeR\x05sides\"\xa6\x01\n" +
+	"\x05sides\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.SideOutcomeR\x05sides\x12!\n" +
+	"\fdouble_prize\x18\x02 \x01(\bR\vdoublePrize\"\xa6\x01\n" +
 	"\fBattleUpdate\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x128\n" +
 	"\x05sides\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.SideUpdateR\x05sides\x12?\n" +
