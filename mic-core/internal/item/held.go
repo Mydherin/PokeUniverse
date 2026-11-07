@@ -17,7 +17,7 @@ func Hold(s *State, id itemv1.Item, fromPC bool, held itemv1.Item) (Result, item
 		return Result{}, held
 	case info.Important:
 		return outcome(itemv1.ItemOutcome_ITEM_OUTCOME_CANT_BE_HELD), held
-	case isMail(held):
+	case IsMail(held):
 		return outcome(itemv1.ItemOutcome_ITEM_OUTCOME_REMOVE_MAIL), held
 	}
 	// Changed on a copy: a held item the bag can't take back changes nothing.
@@ -56,9 +56,9 @@ func TakeHeld(s *State, held itemv1.Item) (Result, itemv1.Item) {
 	return Result{Outcome: itemv1.ItemOutcome_ITEM_OUTCOME_TAKEN, Changed: Changed{Pockets: []itemv1.Pocket{info.Pocket}}}, none
 }
 
-// isMail is ItemIsMail. Writing and reading mail come with the mail screens; until then MAIL is
+// IsMail is ItemIsMail. Writing and reading mail come with the mail screens; until then MAIL is
 // held like any item, but must be taken before another is given.
-func isMail(id itemv1.Item) bool {
+func IsMail(id itemv1.Item) bool {
 	info, ok := Info(id)
 	return ok && info.FieldUse == itemv1.FieldUse_FIELD_USE_MAIL
 }

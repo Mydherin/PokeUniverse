@@ -42,6 +42,23 @@ func (q *Queries) CountBoxPokemon(ctx context.Context, accountID int64) ([]Count
 	return items, nil
 }
 
+const deleteBoxPokemon = `-- name: DeleteBoxPokemon :exec
+DELETE FROM trainer_pokemon
+WHERE account_id = $1 AND box = $2 AND slot = $3
+`
+
+type DeleteBoxPokemonParams struct {
+	AccountID int64
+	Box       int16
+	Slot      int16
+}
+
+// One box slot emptied (moved out or released).
+func (q *Queries) DeleteBoxPokemon(ctx context.Context, arg DeleteBoxPokemonParams) error {
+	_, err := q.db.Exec(ctx, deleteBoxPokemon, arg.AccountID, arg.Box, arg.Slot)
+	return err
+}
+
 const deleteTrainerPokemon = `-- name: DeleteTrainerPokemon :exec
 DELETE FROM trainer_pokemon
 WHERE account_id = $1 AND box = 0
@@ -360,5 +377,29 @@ WHERE account_id = $1
 // New Game: the party and every box.
 func (q *Queries) ResetTrainerPokemon(ctx context.Context, accountID int64) error {
 	_, err := q.db.Exec(ctx, resetTrainerPokemon, accountID)
+	return err
+}
+
+const upsertTrainerBox = `-- name: UpsertTrainerBox :exec
+INSERT INTO trainer_boxes (account_id, box, name, wallpaper)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (account_id, box) DO UPDATE SET name = EXCLUDED.name, wallpaper = EXCLUDED.wallpaper
+`
+
+type UpsertTrainerBoxParams struct {
+	AccountID int64
+	Box       int16
+	Name      string
+	Wallpaper int16
+}
+
+// A box's name or wallpaper changed; the row keeps both.
+func (q *Queries) UpsertTrainerBox(ctx context.Context, arg UpsertTrainerBoxParams) error {
+	_, err := q.db.Exec(ctx, upsertTrainerBox,
+		arg.AccountID,
+		arg.Box,
+		arg.Name,
+		arg.Wallpaper,
+	)
 	return err
 }

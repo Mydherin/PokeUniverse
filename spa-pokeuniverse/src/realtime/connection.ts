@@ -13,6 +13,7 @@ import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import type { BoxView } from "@pokeuniverse/contracts/party/v1/box";
+import type { BoxAction } from "./box-action";
 import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
@@ -98,6 +99,9 @@ export interface WorldLink {
   useFieldMove(slot: number, move: number, target?: number): void;
   /** Shows a box, which becomes the current one (0: the current box); answered with a BoxView. */
   openBox(box: number): void;
+  /** MovePokemon, ReleasePokemon, RenameBox or SetBoxWallpaper; shown at once, answered with a
+   *  BoxView (plus PartyChanged when it touched the party or was refused). */
+  boxAction(action: BoxAction): void;
   /** A party Pokémon's held item into the bag; answered with an ItemResult. */
   takePartyItem(slot: number): void;
   /** SWITCH on the summary's move page (slots and moves from 0); shown at once, corrected like swapPartySlots. */
@@ -277,6 +281,10 @@ export class Connection implements WorldLink {
 
   openBox(box: number): void {
     if (this.inWorld) this.send({ case: "openBox", value: { box } });
+  }
+
+  boxAction(action: BoxAction): void {
+    if (this.inWorld) this.send(action);
   }
 
   learnMove(slot: number, move: number, forgetSlot: number): void {

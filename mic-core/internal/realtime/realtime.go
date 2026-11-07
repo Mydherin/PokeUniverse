@@ -292,6 +292,18 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_OpenBox:
 		c.player.OpenBox(p.OpenBox)
 		return true
+	case *realtimev1.ClientMessage_MovePokemon:
+		c.player.MovePokemon(p.MovePokemon)
+		return true
+	case *realtimev1.ClientMessage_ReleasePokemon:
+		c.player.ReleasePokemon(p.ReleasePokemon)
+		return true
+	case *realtimev1.ClientMessage_RenameBox:
+		c.player.RenameBox(p.RenameBox)
+		return true
+	case *realtimev1.ClientMessage_SetBoxWallpaper:
+		c.player.SetBoxWallpaper(p.SetBoxWallpaper)
+		return true
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
 		return true

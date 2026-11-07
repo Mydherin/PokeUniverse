@@ -1,4 +1,4 @@
-# M7 Boxes: Managing Pokémon ⬜
+# M7 Boxes: Managing Pokémon 🚧
 
 Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M6. Rules: [context.md](context.md), D3, D6.
 
@@ -6,7 +6,7 @@ Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M6. Rules: [context.m
 
 ## Resume Here
 
-Not started. First step: rules and intents in `mic-core`, written from `pokemon_storage_system_data.c`.
+The server task is done and builds; the client's way to it is in (`npx tsc` clean). Nothing committed or played. **Next step:** Client, moving: in `storage/storage.ts`, the pick-up hand (cursor frames 32 open, 48 fist; [M6 lookups](m06-boxes-storage.md#box-screen-lookups-firered) "Cursor" lines) and MOVE mode placing, calling `host.boxAction({ case: "movePokemon", value: { from: { box, slot }, to: { box, slot } } })` after showing the change; then WITHDRAW and DEPOSIT. Read in FireRed `_tasks.c` only the move/place tasks (grep `Task_MoveMon\|Task_PlaceMon\|Task_WithdrawMon\|Task_DepositMenu`) and `_data.c` `SetMovingMonData`/`SetPlacedMonData` (around line 625).
 
 **Before playing:** the dev database (account 2) still has M6's test copies in boxes 1-3, and its party is a full six, so WITHDRAW refuses. Clear them or reuse them: `delete from trainer_pokemon where account_id=2 and box>0` and `update trainers set current_box=default where account_id=2`, through `docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'` (the user runs the delete: auto mode blocked it).
 
@@ -16,7 +16,7 @@ Not started. First step: rules and intents in `mic-core`, written from `pokemon_
 
 ## Tasks
 
-- [ ] **`mic-core`, intents and rules:** withdraw, deposit, move or swap (party or box), release, box name, wallpaper. One transaction each (D3). Rules: a party of six is full; the last Pokémon able to battle can't leave the party; holding mail can't be deposited; placing a Pokémon in a box restores HP, status and PP.
+- [x] **`mic-core`, intents and rules:** withdraw, deposit, move or swap (party or box), release, box name, wallpaper. One transaction each (D3). Rules: a party of six is full; the last Pokémon able to battle can't leave the party; holding mail can't be deposited; placing a Pokémon in a box restores HP, status and PP.
 - [ ] **Client, moving:** the pick-up hand, its animation and Shift swapping; WITHDRAW and DEPOSIT flows, with a box to choose; MOVE mode.
 - [ ] **Client, menus:** the Pokémon's menu (MOVE, SUMMARY, WITHDRAW/STORE, MARK, ITEM, RELEASE) with the release confirmation and its sound; markings saved (add to the row).
 - [ ] **Client, ITEM mode:** GIVE, TAKE, SWITCH between boxes' Pokémon.
@@ -33,6 +33,16 @@ Not started. First step: rules and intents in `mic-core`, written from `pokemon_
 
 ## What's Known
 
+**Server (done this milestone):**
+
+- Contract (`party/v1/box.proto`, realtime ids 29-32): `BoxPlace{box, slot}` (box 0 = party; party slot `len(party)` = WITHDRAW to the end), `MovePokemon{from,to}` (taken `to` = SHIFT), `ReleasePokemon{place}`, `RenameBox{box,name}`, `SetBoxWallpaper{box,wallpaper}`.
+- Answer to each: a `BoxView` of the box shown (`to`'s box, else `from`'s, else current; it becomes current), plus `PartyChanged` whenever the action touches the party (sent on refusal too, to correct). Refused = nothing written; the client predicts, then trusts the answer. No separate result message: the client checks FireRed's refusals itself first (messages), the server re-checks.
+- Rules in `pokemon/storage.go` (`MovePokemon`, `ReleasePokemon`, `SetBox`, `ErrRefused`): party ≤ 6; party must keep `Able() ≥ 1`; MAIL never ends in a box nor is released (`item.IsMail`, now exported); a Pokémon placed in a box is a healed copy (HP, status, PP); release drops the held item; name 1-8 runes, wallpaper 0-15. FireRed sources: `CanMovePartyMon`/`CanShiftMon` (`_data.c:941`), mail and release checks (`_tasks.c:667,723,999-1018`: release also refuses eggs, no eggs yet).
+- `world/box.go`: `boxAction(p, shown, touchesParty, act)` runs act + `ViewBox` in one transaction, only at a PC; `viewBox` helper (also used by `OpenBox`). Queries `DeleteBoxPokemon`, `UpsertTrainerBox`. Regenerate with `make contracts sqlc`.
+- Client plumbing (done): `realtime/box-action.ts` `BoxAction` (union of the four messages), `connection.boxAction(action)`, `StorageHost.boxAction(action): Promise<BoxView>` (overworld waits on the same `boxAnswer` as `askBox`; offline answers box 0). `PartyChanged` arrives before the `BoxView`, and the overworld already applies it to the party, so the screen re-reads `partyHost` and the view when the promise resolves.
+- Not yet on the server: markings (add a column with the menus task), ITEM mode's box held items (GIVE/TAKE/SWITCH on box slots: add an intent with that task, reuse `item.Hold`/`item.TakeHeld`).
+
+
 **From M6** (its file's [Box Screen Lookups](m06-boxes-storage.md#box-screen-lookups-firered) has FireRed's positions, timings and input per area; read only the part at hand):
 
 - Server: `pokemon/box.go` (`LoadBoxes`, `LoadBox`, `ViewBox`, `AddCaught` for Phase 7), `world/box.go` (`OpenBox`, only at a PC). `trainer_boxes` keeps only changed names and wallpapers; `trainers.current_box`.
@@ -47,4 +57,4 @@ Not started. First step: rules and intents in `mic-core`, written from `pokemon_
 
 ## Files
 
-`mic-core/internal/pokemon/`, `mic-core/internal/world/`, `mic-core/queries/pokemon.sql`, `lib-contracts/proto/pokeuniverse/`, `spa-pokeuniverse/src/game/firered/storage/`.
+`mic-core/internal/pokemon/` (`storage.go`), `mic-core/internal/world/box.go`, `mic-core/internal/realtime/realtime.go`, `mic-core/internal/world/`, `mic-core/queries/pokemon.sql`, `lib-contracts/proto/pokeuniverse/`, `spa-pokeuniverse/src/game/firered/storage/`, `spa-pokeuniverse/src/realtime/` (`box-action.ts`, `connection.ts`), `overworld.ts` (`boxAction`, `storageHost`).

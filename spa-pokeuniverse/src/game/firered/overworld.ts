@@ -53,6 +53,7 @@ import { startItemPc, type ItemPcHost } from "./item-pc";
 import { beginPcScreenFlicker, PC_SCREEN_TILES, pcScreenOffset, PcChoice, PlayersPcMenu, StorageEntry } from "./players-pc";
 import { startOptionMenu } from "./option-menu";
 import { startStorage, type StorageHost } from "./storage/storage";
+import type { BoxAction } from "../../realtime/box-action";
 import { startPartyMenu, type PartyHost } from "./party-menu";
 import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
@@ -525,6 +526,17 @@ class Overworld {
     });
   }
 
+  /** A box action, shown at once by the box screen; the BoxView answer is what mic-core kept
+   *  (offline: a refusal, box 0). */
+  private boxAction(action: BoxAction): Promise<BoxView> {
+    const { link } = this.flow;
+    if (!link.inWorld) return Promise.resolve(create(BoxViewSchema));
+    return new Promise((resolve) => {
+      this.boxAnswer = resolve;
+      link.boxAction(action);
+    });
+  }
+
   private askLearnMove(slot: number, move: number, forget: number): Promise<LearnMoveResult> {
     const { link } = this.flow;
     if (!link.inWorld) return Promise.resolve(create(LearnMoveResultSchema, { slot }));
@@ -536,7 +548,7 @@ class Overworld {
 
   /** The box screen's way to the boxes, and to the party it shows beside them. */
   private storageHost(): StorageHost {
-    return { partyHost: this.partyHost(), askBox: (box) => this.askBox(box) };
+    return { partyHost: this.partyHost(), askBox: (box) => this.askBox(box), boxAction: (a) => this.boxAction(a) };
   }
 
   /** The party menu's way to the trainer's Pokémon (and to the bag, for GIVE). */

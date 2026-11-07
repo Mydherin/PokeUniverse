@@ -3,6 +3,7 @@
 
 import { create } from "@bufbuild/protobuf";
 import type { BoxView } from "@pokeuniverse/contracts/party/v1/box";
+import type { BoxAction } from "../../../realtime/box-action";
 import { PartySchema, type Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../../gba/input";
@@ -46,6 +47,8 @@ export interface StorageHost {
   readonly partyHost: PartyHost;
   /** OpenBox; `box` 0 is the current one, and a refusal comes back with box 0. */
   askBox(box: number): Promise<BoxView>;
+  /** Saves a change the screen already shows; the answer is the box as mic-core kept it. */
+  boxAction(action: BoxAction): Promise<BoxView>;
 }
 
 /** Back from the summary: the box already known, the hand where it was. */

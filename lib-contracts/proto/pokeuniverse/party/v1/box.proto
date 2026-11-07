@@ -35,3 +35,40 @@ message BoxView {
   repeated BoxInfo boxes = 2;
   repeated BoxPokemon pokemon = 3;
 }
+
+// Where a Pokémon is in BILL'S PC's screen.
+message BoxPlace {
+  // 0: the party; 1 to 14: a box.
+  uint32 box = 1;
+  // The party: 0 to 5, no gaps (one past the last places it at the end: WITHDRAW). A box: 0 to 29.
+  uint32 slot = 2;
+}
+
+// Client -> server: WITHDRAW, DEPOSIT (STORE), or placing the Pokémon MOVE holds. An occupied
+// `to` swaps the two (SHIFT). Refused, changing nothing, when the party would be over six or
+// left with no Pokémon able to battle, or when a Pokémon holding MAIL would go into a box. A
+// Pokémon placed in a box gets its HP, status and PP back. The client shows it at once; answered
+// with the BoxView of the box shown (`to`'s, else `from`'s, else the current one), plus
+// PartyChanged when the party changed or the move was refused.
+message MovePokemon {
+  BoxPlace from = 1;
+  BoxPlace to = 2;
+}
+
+// Client -> server: RELEASE, after YES. Refused like MovePokemon when it would leave no Pokémon
+// able to battle or it holds MAIL; its held item goes with it. Answered like MovePokemon.
+message ReleasePokemon {
+  BoxPlace place = 1;
+}
+
+// Client -> server: the box options' NAME. 1 to 8 characters. Answered with the box's BoxView.
+message RenameBox {
+  uint32 box = 1;
+  string name = 2;
+}
+
+// Client -> server: the box options' WALLPAPER, 0 to 15. Answered with the box's BoxView.
+message SetBoxWallpaper {
+  uint32 box = 1;
+  uint32 wallpaper = 2;
+}

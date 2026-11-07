@@ -45,6 +45,10 @@ message ClientMessage {
     pokeuniverse.party.v1.UsePartyItem use_party_item = 26;
     pokeuniverse.party.v1.UseFieldMove use_field_move = 27;
     pokeuniverse.party.v1.OpenBox open_box = 28;
+    pokeuniverse.party.v1.MovePokemon move_pokemon = 29;
+    pokeuniverse.party.v1.ReleasePokemon release_pokemon = 30;
+    pokeuniverse.party.v1.RenameBox rename_box = 31;
+    pokeuniverse.party.v1.SetBoxWallpaper set_box_wallpaper = 32;
   }
 }
 
