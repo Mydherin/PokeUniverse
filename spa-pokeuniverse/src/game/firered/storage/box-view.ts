@@ -152,7 +152,7 @@ export class BoxArea {
     const icons = this.updateIconScroll();
     if (this.scrollTimer === 0) return icons;
     this.bgX += this.scrollSpeed;
-    this.bg.x = this.bgX;
+    this.bg.x = this.bgX << 8;
     for (const s of this.oldTitles) s.x -= this.scrollSpeed;
     for (const s of this.titles) s.x -= this.scrollSpeed;
     if (--this.scrollTimer !== 0) return true;

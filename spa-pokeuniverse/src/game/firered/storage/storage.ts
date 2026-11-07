@@ -38,7 +38,8 @@ const SELECTION_BASE_BLOCK = 0x70;
 const YES = 0;
 const SUMMARY_ROW = 0;
 /** Half a pixel a frame, on both axes. */
-const BG3_SPEED = 0.5;
+/** Half a pixel a frame, in the background's 1/256 pixels. */
+const BG3_SPEED = 128;
 
 /** What the box screen asks the world for. */
 export interface StorageHost {
@@ -269,8 +270,9 @@ class Storage {
     } else if (input.isRepeated(Button.Left) || input.isRepeated(Button.Right)) {
       this.moveCursor({ area: Area.Buttons, pos: pos ^ 1 });
     } else if (input.isPressed(Button.A)) {
-      if (pos === 0) this.showParty();
-      else this.promptClose();
+      if (pos !== 0) this.promptClose();
+      else if (this.entry === BillsEntry.MovePokemon || this.entry === BillsEntry.MoveItems) this.showParty();
+      else this.tellWhichOne();
     } else if (input.isPressed(Button.B)) {
       this.promptContinue();
     }
@@ -291,6 +293,8 @@ class Storage {
       this.moveCursor({ area: Area.Party, pos: 0 });
     } else if (input.isRepeated(Button.Right)) {
       if (pos === 0) return this.moveCursor({ area: Area.Party, pos: this.prevPartyPos });
+      // Task_PokeStorageMain: DEPOSIT keeps the party shown.
+      if (deposit) return;
       this.savedBoxPos = 0;
       this.hideParty();
     } else if (input.isPressed(Button.A)) {
@@ -335,6 +339,18 @@ class Storage {
       if (this.panel.update()) return;
       this.prevPartyPos = 1;
       this.moveCursor({ area: Area.Party, pos: 0 });
+    };
+  }
+
+  /** The party's button outside MOVE POKéMON and MOVE ITEMS: a message until any press (Task_PokeStorageMain's state 3). */
+  private tellWhichOne(): void {
+    const { flow } = this;
+    const { input } = flow.gba;
+    this.showMessage(flow.assets.text("gText_WhichOneWillYouTake"));
+    this.step = () => {
+      if (![Button.A, Button.B, Button.Up, Button.Down, Button.Left, Button.Right].some((b) => input.isPressed(b))) return;
+      this.clearMessage();
+      this.step = () => this.main();
     };
   }
 

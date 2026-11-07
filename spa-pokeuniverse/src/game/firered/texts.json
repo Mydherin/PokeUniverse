@@ -43,7 +43,7 @@
   "gText_SoundStereo", "gText_ButtonTypeHelp", "gText_ButtonTypeLR", "gText_ButtonTypeLEqualsA", "gText_FrameType",
   "gText_PickSwitchCancel",
   "gText_BillSPc", "Text_AccessedBillsPC", "Text_OpenedPkmnStorage", "gText_WithdrawPokemon", "gText_DepositPokemon",
-  "gText_ExitFromBox", "gText_ContinueBoxOperations", "gText_PkmnIsSelected", "gPCText_Cancel", "gPCText_Summary",
+  "gText_ExitFromBox", "gText_ContinueBoxOperations", "gText_PkmnIsSelected", "gText_WhichOneWillYouTake", "gPCText_Cancel", "gPCText_Summary",
   "gText_MovePokemon", "gText_MoveItems", "gText_SeeYa", "gText_WithdrawMonDescription", "gText_DepositMonDescription",
   "gText_MoveMonDescription", "gText_MoveItemsDescription", "gText_SeeYaDescription", "gText_PartyFull", "gText_JustOnePkmn",
   "gText_WhatWouldYouLikeToDo", "gText_ItemStorage", "gText_Mailbox", "gText_TurnOff", "gText_WithdrawItem2",
