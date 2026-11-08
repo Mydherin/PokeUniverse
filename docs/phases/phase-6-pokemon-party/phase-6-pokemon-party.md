@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M9: Following Pokémon: edge cases, phase check](milestones/m09-following-check.md), in progress: edge cases all played (session 4); only step 7 is left: the phase check, regression, restore test data, close Phase 6 (its Resume Here). M7 and M8 closed 2026-11-08. Committed through step 6. **The following Pokémon (M8, M9) takes HeartGold as its main reference:** it behaves as the original HeartGold feature (`references/pokeheartgold/`, behavior only), shown in FireRed's style.
+**Next step:** [M9: Following Pokémon: edge cases, phase check](milestones/m09-following-check.md), in progress: edge cases all played (session 4); step 7's phase check played and passed (session 5, no bugs); left: one regression item (battle reload), restore test data, close Phase 6 (its Resume Here). M7 and M8 closed 2026-11-08. Committed through step 6. **The following Pokémon (M8, M9) takes HeartGold as its main reference:** it behaves as the original HeartGold feature (`references/pokeheartgold/`, behavior only), shown in FireRed's style.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 

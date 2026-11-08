@@ -8,11 +8,20 @@ Part of [Phase 6](../phase-6-pokemon-party.md). **Needs:** M7, M8, and every oth
 
 ## Resume Here
 
-State (2026-11-08, after session 4): everything up to step 6 committed (`Close Phase 6 M7 and M8, play M9's edge cases`). Stack rebuilt with every fix (mic-core last built after the `testteam.go` fix). **Account 2's test data is restored** to the pre-M9 backup (party Snorlax, Lucario, Charizard, Garchomp; boxes 1, 2, 3, 5).
+State (2026-11-08, after session 5): step 7 almost done, **no bugs found, no code changed**. Stack up and current. **Account 2 holds phase-check data** (restore it, step 7c).
 
-Steps 1-6 are done (see Tasks). **Next, the last step:**
+**Played and passed (session 5, one sitting, account 2):** SWITCH (Garchomp to lead, follower changes), item PC WITHDRAW (Potion) and DEPOSIT (Antidote), BILL'S PC WITHDRAW (Staryu, box 3), Potion from the bag (FireRed's special anim scene), GIVE Exp. Share, Rare Candy (Charizard 51), Water Stone (Staryu → Starmie), TM13 with forget-a-move, Blue Flute USE (party prompt, FireRed-correct), TOSS, Light Ball USE ("This isn't the time"), TAKE, SUMMARY move swap; double battle won (Garchomp, Lucario Lv99): Exp. Share messages for Starmie (Lv51), Potion in battle spent, `docker compose restart mic-core` mid-battle resumed it; DEPOSIT Snorlax; stairs down (follower hidden on arrival, out on first step); SAVE; reload: same tile, party, bag and PC items (checked in the DB), follower out on first step.
 
-7. **Phase check:** Phase 6's [Done When](../phase-6-pokemon-party.md#done-when) on account 2 (Play It's full session: Potion, TM, Rare Candy, stone evolution, Exp. Share in a battle, deposit, withdraw, follow, SAVE + reload), then the [regression check](context.md#playing-a-milestone). Then restore the test data again ([Test data](#test-data-account-2)). Close M9 and Phase 6: milestone ✅, phase table and Resume Here, phases README, `AGENTS.md` **Now** to the next phase. Ask the user before committing.
+- Follower hidden after that battle: caused by the mid-battle `mic-core` restart (re-join = map entry, `placeFollower`), not by the win. Not a bug.
+- Box 3's test Pokémon all carry Garchomp's moves and hp 171 (test data from the backup), not a code bug.
+
+**Next (exact):**
+
+a. **Last regression item:** on 2F start the trainer battle (PC (1,1); trainer (9,4): walk Down to row 5, Right to col 10, Left once to face it, A, A), get hurt, use a Potion from the BAG, then reload the page: the battle is dropped and the Potion is back (×4 before the battle). Then leave `/play`.
+b. If it passes, step 7 passes. Restore account 2 ([Test data](#test-data-account-2)).
+c. Close M9 and Phase 6: this file ✅ and cut to what later phases need, phase table and Resume Here, phases README, `AGENTS.md` **Now** to Phase 7's first file. Commit (don't push).
+
+Setup used (gone after the restore): items `(2,1,14,68,2),(2,1,15,97,1),(2,1,16,182,1)` + the context's test TMs; Lucario and Garchomp at Lv99. Key helper: see Playing tips; a zoom region `[134,200,670,562]` at scale 0.5 covers the game canvas.
 
 ## Tasks
 
@@ -22,7 +31,7 @@ Steps 1-6 are done (see Tasks). **Next, the last step:**
 - [x] **Scripts:** only what exists: both maps have static NPCs only, no sight trainers or walking NPCs yet (re-check the follower when they arrive, Phase 7+). NPCs block, the follower never overlaps them, talking with the follower beside works.
 - [x] **Empty cases:** all fainted: no follower, no error (**fixed**, below); Revive from there: the revived one appears hidden, out on the first step. Empty party: can't happen in play (last-Pokémon guards); on join the test team fills it (**fixed** a join loop, below).
 - [x] **Big sheets:** Snorlax (64×64) walks all four ways; Farfetch'd (083, asymmetric) faces right both ways.
-- [ ] **Phase check:** step 7.
+- [ ] **Phase check:** step 7: all played and passed except the battle-reload regression item (Resume Here a).
 
 ## Play It
 
