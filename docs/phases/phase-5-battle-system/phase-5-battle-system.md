@@ -6,7 +6,7 @@
 
 Done: every milestone was played and passes. Still open, none of it blocks the next phases:
 
-- The user's frame rate check on a real phone, and three minor fixes the user approved: [M14](milestones/m14-battle-check.md#resume-here).
+- The user's frame rate check on a real phone ([M14](milestones/m14-battle-check.md#resume-here)); the three minor fixes are done.
 - **Shared details,** for later phases building on this one: [context.md](milestones/context.md) (commands, client engine, decisions D1-D27, architecture, reference map) and [references.md](milestones/references.md). Open only the section a step needs; a milestone's file is enough to resume it. [Session log](milestones/log.md), for history only.
 
 ## Milestones
@@ -30,7 +30,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M13 | [Options, doubles, polish](milestones/m13-options-doubles-polish.md) | ✅ | SHIFT, doubles, double prize, partner animations, field texts, multi-hit replay; played |
 | M14 | [Battle check](milestones/m14-battle-check.md) | ✅ | Manual full check; real phone's frame rate left for the user |
 
-**Built in other phases:** following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 6](../phase-6-pokemon-party/phase-6-pokemon-party.md)), wild battles and catching ([Phase 7](../phase-7-wild-battles-catching.md)), PvP ([Phase 9](../phase-9-social.md)), the rival battle in Oak's lab ([Phase 10](../phase-10-pallet-town.md)).
+**Built in other phases:** following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 6](../phase-6-pokemon-party/phase-6-pokemon-party.md)), wild battles and catching ([Phase 7](../phase-7-wild-battles-catching/phase-7-wild-battles-catching.md)), PvP ([Phase 9](../phase-9-social.md)), the rival battle in Oak's lab ([Phase 10](../phase-10-pallet-town.md)).
 
 ## Done When
 

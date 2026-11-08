@@ -10,7 +10,7 @@
 - Oak stops the player at the edge of Route 1 and leads them to the lab.
 - Choosing a starter (Bulbasaur, Charmander or Squirtle); the rival takes the one strong against it.
 - The first rival battle in Oak's lab, on the [Battle System](phase-5-battle-system/phase-5-battle-system.md).
-- The starter is saved with the Pokémon data model from [Phase 5](phase-5-battle-system/phase-5-battle-system.md), and it replaces the test team; the test trainer and the test encounter ([Phase 7](phase-7-wild-battles-catching.md)) leave the room.
+- The starter is saved with the Pokémon data model from [Phase 5](phase-5-battle-system/phase-5-battle-system.md), and it replaces the test team; the test trainer and the test grass patch on 1F ([Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md)) leave the room.
 - Oak gives the POKéDEX (`FLAG_SYS_POKEDEX_GET`: the START menu shows it; the screen exists since [Phase 4](phase-4-players-room.md)), and the starters seen and caught are registered.
 - The START menu shows POKéMON once the starter is chosen, as in FireRed (the party screen and summary exist since [Phase 5](phase-5-battle-system/phase-5-battle-system.md)).
 - **Per-player story:** each player sees their own Oak, rival and events, in the shared world from [Phase 8](phase-8-multiplayer-world.md).
