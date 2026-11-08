@@ -1,10 +1,10 @@
-# Phase 6: Pokémon and Party
+# Phase 6: Pokémon and Party ✅
 
 **Goal:** every item and TM works on Pokémon, players manage their Pokémon, and their lead Pokémon follows them.
 
 ## Resume Here
 
-**Next step:** [M9: Following Pokémon: edge cases, phase check](milestones/m09-following-check.md), in progress: edge cases all played (session 4); step 7's phase check played and passed (session 5, no bugs); left: one regression item (battle reload), restore test data, close Phase 6 (its Resume Here). M7 and M8 closed 2026-11-08. Committed through step 6. **The following Pokémon (M8, M9) takes HeartGold as its main reference:** it behaves as the original HeartGold feature (`references/pokeheartgold/`, behavior only), shown in FireRed's style.
+Done (2026-11-08): every milestone was played and passes, and the whole phase was played once with the regression check (M9). The following Pokémon (M8, M9) takes HeartGold as its main reference (`references/pokeheartgold/`, behavior only), shown in FireRed's style. Still open, none of it blocks the next phases: whiteout respawn map, re-checking the follower with sight trainers and walking NPCs, other players' followers ([M9's follow-ups](milestones/m09-following-check.md#follow-ups-later-phases)).
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -23,7 +23,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M6 | [Boxes: storage and viewing](milestones/m06-boxes-storage.md) | ✅ | | Box storage in `mic-core`, BILL'S PC in the PC menu, the box screen to look through |
 | M7 | [Boxes: managing Pokémon](milestones/m07-boxes-actions.md) | ✅ | M6 | WITHDRAW, DEPOSIT, MOVE, RELEASE, held items, box options |
 | M8 | [Following Pokémon: art and walking](milestones/m08-following-walk.md) | ✅ | | Overworld sprites in the build; the lead walks behind the player, decided by the server |
-| M9 | [Following Pokémon: edge cases, phase check](milestones/m09-following-check.md) | 🚧 | M7, M8 | Warps, lead changes, battles, reloads; the whole phase played once |
+| M9 | [Following Pokémon: edge cases, phase check](milestones/m09-following-check.md) | ✅ | M7, M8 | Warps, lead changes, battles, reloads; the whole phase played once |
 
 M1 → M1b → M2 → M3 and M6 → M7 → M9 are chains. M4, M5 and M8 can go in any order after what they need.
 
@@ -44,7 +44,7 @@ Built for the [Battle System](../phase-5-battle-system/phase-5-battle-system.md)
 ## Done When
 
 - ✅ The team shows in POKéMON; SWITCH, held items and the summary work; battles level up and evolve it.
-- Items and TMs used from the bag work on the test team (M1-M3).
-- Exp. Share, held items outside battle and the party screen's field moves work (M4, M5).
-- A player manages their team and boxes, and their lead Pokémon follows them in the world (M6-M9).
-- Every milestone played in the game, with no regression in the regression check.
+- ✅ Items and TMs used from the bag work on the test team (M1-M3).
+- ✅ Exp. Share, held items outside battle and the party screen's field moves work (M4, M5).
+- ✅ A player manages their team and boxes, and their lead Pokémon follows them in the world (M6-M9).
+- ✅ Every milestone played in the game, with no regression in the regression check.

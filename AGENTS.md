@@ -18,7 +18,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 6: Pokémon and Party](docs/phases/phase-6-pokemon-party/phase-6-pokemon-party.md): [M9: Following Pokémon: edge cases, phase check](docs/phases/phase-6-pokemon-party/milestones/m09-following-check.md): in progress, phase check played and passed; next: the battle-reload regression item, restore test data, close Phase 6; read its Resume Here. The following Pokémon takes HeartGold (`references/pokeheartgold/`) as its main reference. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7: Wild Battles and Catching](docs/phases/phase-7-wild-battles-catching.md): not started; next: plan it into milestones; read its Resume Here. Phase 6 closed 2026-11-08. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
