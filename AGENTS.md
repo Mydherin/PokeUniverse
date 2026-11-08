@@ -10,7 +10,8 @@ Instructions for AI agents working on PokeUniverse.
 | UI / UX: design, responsive, input, mobile keyboard, platforms, PWA | [docs/ui.md](docs/ui.md) | Any UI, screen, layout or interaction work |
 | Maps: text format, tile catalog, tools, workflow | [docs/maps.md](docs/maps.md) | Any map creation, edit or map tooling work |
 | Audio: rendering FireRed's music, sound effects and cries; web formats, loops, playback | [docs/audio.md](docs/audio.md) | Any music, sound or audio tooling work |
-| Phases: MVP plan, order, scope, "done when"; the **phase index** (every phase's state and open items); progress and milestones per phase | [docs/phases/](docs/phases/README.md) | Planning work, or starting/finishing a phase; to resume, follow [Current Work](#current-work) |
+| Phases: MVP plan, principles, how a phase is tracked; progress and milestones per phase | [docs/phases/](docs/phases/README.md) | Planning work, or starting/finishing a phase; to resume, follow [Current Work](#current-work) |
+| Phases index: every phase's current state, milestone counts and open items | [docs/phases/index.md](docs/phases/index.md) | Checking where any phase stands, what's open or moved; whenever a phase's state or an open item changes |
 | Tech stack: structure, naming, languages, libraries, communication, auth, infrastructure, containers | [docs/tech-stack.md](docs/tech-stack.md) | Any technical decision or change |
 
 - Check the relevant doc **before** making any decision or change.
@@ -18,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7: Wild Battles and Catching](docs/phases/phase-7-wild-battles-catching/phase-7-wild-battles-catching.md): planned into M1-M8 (2026-11-08), nothing built; next: the user confirms the split, then [M1](docs/phases/phase-7-wild-battles-catching/milestones/m01-data-tables.md). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7 M1: Data, tables, wild items, test grass](docs/phases/phase-7-wild-battles-catching/milestones/m01-data-tables.md): not started; read its Resume Here. Phase 7 planned into M1-M8 (2026-11-08). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
@@ -26,7 +27,7 @@ Re-reading files wastes most of a new session, so the phase and milestone files 
 - **Budget:** a session starts at about 6% and the guard fires at 20%, so reading must stay small. Do the first step before reading anything about later ones, and make its first edit by about 8%. Read the lines a step changes (`grep -n`, then `sed -n` or `Read` with a range), not the whole file, and only the section of a `context.md` the step needs. Long deliberation costs as much as reading: decide, then write.
 - **Trust the file:** never re-check ✅ items, the status or its technical details in the code. Read another file only when the step at hand edits it or needs something the file doesn't have, and grep before reading a big one.
 - **Save progress:** at the end of a session, and whenever the user is about to compact the context, write into the milestone file, or the phase file if it has no milestones: tasks done, exact next step, files touched, build state, gotchas, the commands and decisions the next steps use, and whatever you looked up so nobody reads it twice. Then update the phase file (**Resume Here**, milestone status) and the **Now** line above. Replace stale text, don't pile it up.
-- **Phase index:** [docs/phases/README.md](docs/phases/README.md#phases) is the single place for every phase's state and open items. Update it in the same edit as the change that causes it: a phase's state changes, an item opens, reopens, closes or moves to another phase (also edit both phase files' lines about it). One line per item with a link to the file holding the details; never copy details there. Read only its tables when planning or starting a phase, to pick up the open items aimed at it.
+- **Phases index:** [docs/phases/index.md](docs/phases/index.md) is the single place for the state of every phase (0-13), the milestone counts and the open items. Update it in the same edit as the change that causes it: a phase's state changes, an item opens, reopens, closes or moves to another phase (also edit both phase files' lines about it). One line per item with a link to the file holding the details; never copy details there. Also keep its **Current** line and milestone counts in step with the **Now** line below. Read only its tables when planning or starting a phase, to pick up the open items aimed at it.
 - **Context guard:** the project mod [`context-wrap-up`](.claude/mods/context-wrap-up/hooks/register.ts) sends this request once the context passes 20%. Delete it when the user lifts this limit.
 
 ## Reference Repositories

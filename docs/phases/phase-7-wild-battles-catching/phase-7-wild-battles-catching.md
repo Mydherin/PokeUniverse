@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** M1, after the user confirms this split (planned 2026-11-08, nothing built). Read [M1](milestones/m01-data-tables.md) only, then the sections of [context.md](milestones/context.md) it names.
+**Next step:** start [M1](milestones/m01-data-tables.md) at its Resume Here; read only that file, then the [context.md](milestones/context.md) sections it names (D2, D4, D5, D7). Planned and committed 2026-11-08 (`f42b437`), nothing built; the open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 
