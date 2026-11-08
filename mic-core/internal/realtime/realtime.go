@@ -290,19 +290,31 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		c.player.UseFieldMove(p.UseFieldMove)
 		return true
 	case *realtimev1.ClientMessage_OpenBox:
-		c.player.OpenBox(p.OpenBox)
+		c.player.OpenBox(msg.GetSeq(), p.OpenBox)
 		return true
 	case *realtimev1.ClientMessage_MovePokemon:
-		c.player.MovePokemon(p.MovePokemon)
+		c.player.MovePokemon(msg.GetSeq(), p.MovePokemon)
 		return true
 	case *realtimev1.ClientMessage_ReleasePokemon:
-		c.player.ReleasePokemon(p.ReleasePokemon)
+		c.player.ReleasePokemon(msg.GetSeq(), p.ReleasePokemon)
+		return true
+	case *realtimev1.ClientMessage_SetMarkings:
+		c.player.SetMarkings(msg.GetSeq(), p.SetMarkings)
+		return true
+	case *realtimev1.ClientMessage_MoveHeldItem:
+		c.player.MoveHeldItem(msg.GetSeq(), p.MoveHeldItem)
+		return true
+	case *realtimev1.ClientMessage_StoreHeldItem:
+		c.player.StoreHeldItem(msg.GetSeq(), p.StoreHeldItem)
+		return true
+	case *realtimev1.ClientMessage_GiveHeldItem:
+		c.player.GiveHeldItem(msg.GetSeq(), p.GiveHeldItem)
 		return true
 	case *realtimev1.ClientMessage_RenameBox:
-		c.player.RenameBox(p.RenameBox)
+		c.player.RenameBox(msg.GetSeq(), p.RenameBox)
 		return true
 	case *realtimev1.ClientMessage_SetBoxWallpaper:
-		c.player.SetBoxWallpaper(p.SetBoxWallpaper)
+		c.player.SetBoxWallpaper(msg.GetSeq(), p.SetBoxWallpaper)
 		return true
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)

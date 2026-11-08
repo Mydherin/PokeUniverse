@@ -28,7 +28,7 @@ import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import { FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
-import type { Correction, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, Follower, FollowerChanged, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
 import type { Task } from "../gba/tasks";
@@ -45,6 +45,8 @@ import { NpcSprite } from "./npc-sprite";
 import type { Flow } from "./flow";
 import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
+import { FollowerSprite } from "./follower-sprite";
+import { FollowerModel } from "../world/follower";
 import { SaveDialog } from "./save-dialog";
 import { ArrivingStairs, LeavingStairs } from "./stair-warp";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
@@ -117,6 +119,7 @@ export function startOverworld(flow: Flow): void {
     learnMoveResult: (r) => overworld?.learnMoveResult(r),
     fieldMoveResult: (r) => overworld?.fieldMoveResult(r),
     boxView: (v) => overworld?.boxView(v),
+    followerChanged: (f) => overworld?.followerChanged(f),
     pokedexChanged: (p) => overworld?.pokedexChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
@@ -213,6 +216,9 @@ class Overworld {
   private map!: ClientMap;
   private avatar!: Avatar;
   private sprite!: PlayerSprite;
+  /** The party's lead walking behind the player (HeartGold's), as mic-core last said plus predicted steps. */
+  private follower!: FollowerModel;
+  private followerSprite!: FollowerSprite;
   private npcs!: NpcSprite[];
   private readonly gender: Gender;
   private warp: Warp | null = null;
@@ -240,8 +246,8 @@ class Overworld {
   private learnAnswer: ((r: LearnMoveResult) => void) | null = null;
   /** Who waits for mic-core's FieldMoveResult. */
   private fieldMoveAnswer: ((r: FieldMoveResult) => void) | null = null;
-  /** Who waits for mic-core's BoxView. */
-  private boxAnswer: ((v: BoxView) => void) | null = null;
+  /** Who waits for mic-core's BoxViews, by the seq of the message asking (BoxView.request). */
+  private readonly boxAnswers = new Map<number, (v: BoxView) => void>();
   /** The trainer's Pokémon, as mic-core last said. */
   private party: PartyState;
   /** Waiting for mic-core's ItemResults, in the order asked. */
@@ -268,7 +274,7 @@ class Overworld {
     this.bag = new BagState(snapshot.bag);
     this.pokedex = new PokedexState(snapshot.pokedex);
     this.party = new PartyState(snapshot.party);
-    this.place(map, p.x, p.y, p.facing, snapshot.canRun);
+    this.place(map, p.x, p.y, p.facing, snapshot.canRun, p.follower);
     this.battle = snapshot.battle?.battleId ?? null;
     if (map.music) gba.sound.playBgm(map.music);
     this.enter(false);
@@ -281,12 +287,15 @@ class Overworld {
   }
 
   /** The player and NPCs on a map that's already drawn. */
-  private place(map: ClientMap, x: number, y: number, facing: Direction, canRun: boolean): void {
+  private place(map: ClientMap, x: number, y: number, facing: Direction, canRun: boolean, follower: Follower | undefined): void {
     const { flow } = this;
     const { world, link } = flow;
     this.map = map;
     this.avatar = new Avatar(map, x, y, facing, canRun, {
-      move: (step, d, run, x, y) => link.move(step, d, run, x, y),
+      move: (step, d, run, x, y) => {
+        link.move(step, d, run, x, y);
+        this.follower.follow(x, y, run);
+      },
       turn: (d) => link.turn(d),
       warp: (d, x, y) => this.leaveByStairs(d, x, y),
       interact: (walkInto) => link.interact(walkInto),
@@ -295,6 +304,8 @@ class Overworld {
       bump: () => flow.play("se_wall_hit"),
     });
     this.sprite = new PlayerSprite(world, flow.assets, this.gender);
+    this.follower = new FollowerModel(follower);
+    this.followerSprite = new FollowerSprite(world, flow.assets);
     this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
   }
 
@@ -336,6 +347,7 @@ class Overworld {
     const p = s.player!;
     this.cancelWarp();
     this.avatar.snap(p.x, p.y, p.facing);
+    this.follower.set(p.follower);
     this.avatar.waiting = false;
     this.endScript(false);
     if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
@@ -343,6 +355,10 @@ class Overworld {
     this.flow.gba.tasks.destroy(this.pcFlicker);
     this.bag = new BagState(s.bag);
     this.party = new PartyState(s.party);
+    // Box answers lost with the old connection: refusals, so the box screen shows mic-core's state again.
+    const lost = [...this.boxAnswers.values()];
+    this.boxAnswers.clear();
+    for (const answer of lost) answer(create(BoxViewSchema));
     this.battle = s.battle?.battleId ?? null;
     // The battle as the server has it now, drawn again; none: back to the field.
     if (s.battle) this.showBattle(s.battle, [], false);
@@ -378,9 +394,17 @@ class Overworld {
     this.fieldMoveAnswer = null;
   }
 
+  /** An answer nobody waits for (unasked, or its request already given up after a reconnect) is
+   *  dropped: the box screen asked again on its own. */
+  /** The party changed its lead: another Pokémon follows, or none. */
+  followerChanged(f: FollowerChanged): void {
+    this.follower.set(f.follower);
+  }
+
   boxView(v: BoxView): void {
-    this.boxAnswer?.(v);
-    this.boxAnswer = null;
+    const answer = this.boxAnswers.get(v.request);
+    this.boxAnswers.delete(v.request);
+    answer?.(v);
   }
 
   pokedexChanged(p: PokedexChanged): void {
@@ -520,10 +544,7 @@ class Overworld {
   private askBox(box: number): Promise<BoxView> {
     const { link } = this.flow;
     if (!link.inWorld) return Promise.resolve(create(BoxViewSchema));
-    return new Promise((resolve) => {
-      this.boxAnswer = resolve;
-      link.openBox(box);
-    });
+    return this.awaitBox(link.openBox(box));
   }
 
   /** A box action, shown at once by the box screen; the BoxView answer is what mic-core kept
@@ -531,10 +552,13 @@ class Overworld {
   private boxAction(action: BoxAction): Promise<BoxView> {
     const { link } = this.flow;
     if (!link.inWorld) return Promise.resolve(create(BoxViewSchema));
-    return new Promise((resolve) => {
-      this.boxAnswer = resolve;
-      link.boxAction(action);
-    });
+    return this.awaitBox(link.boxAction(action));
+  }
+
+  /** The BoxView answering the message sent as `request`; not sent (0): a refusal. */
+  private awaitBox(request: number): Promise<BoxView> {
+    if (!request) return Promise.resolve(create(BoxViewSchema));
+    return new Promise((resolve) => this.boxAnswers.set(request, resolve));
   }
 
   private askLearnMove(slot: number, move: number, forget: number): Promise<LearnMoveResult> {
@@ -655,6 +679,7 @@ class Overworld {
   correct(c: Correction): void {
     this.cancelWarp();
     this.avatar.snap(c.x, c.y, c.facing);
+    this.follower.set(c.follower);
   }
 
   /** mic-core took the player through; a warp cancelled by an older correction fades out first. */
@@ -696,7 +721,7 @@ class Overworld {
         if (this.destroyed) return;
         const previousMusic = this.map.music;
         this.warp = null;
-        this.place(map, to.x, to.y, to.facing, to.canRun);
+        this.place(map, to.x, to.y, to.facing, to.canRun, to.follower);
         // The same song keeps playing (TryFadeOutOldMapMusic).
         if (map.music && map.music !== previousMusic) flow.gba.sound.playBgm(map.music);
         this.enter(false);
@@ -736,6 +761,7 @@ class Overworld {
 
   private destroySprites(): void {
     this.sprite.destroy();
+    this.followerSprite.destroy();
     for (const npc of this.npcs) npc.destroy();
   }
 
@@ -770,6 +796,7 @@ class Overworld {
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
     const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
+    this.follower.update();
     this.draw();
   }
 
@@ -856,6 +883,7 @@ class Overworld {
 
   private draw(): void {
     this.sprite.update(this.avatar);
+    this.followerSprite.update(this.follower, this.avatar.overTiles);
     this.flow.world.setCamera(this.avatar.pixelX - PLAYER_X, this.avatar.pixelY - PLAYER_Y);
   }
 

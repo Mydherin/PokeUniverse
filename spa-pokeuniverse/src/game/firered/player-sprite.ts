@@ -45,24 +45,29 @@ function playerSheet(assets: Assets, gender: Gender): CharacterSheet {
  * side in order, colored with a 16-color palette (index 0 transparent).
  */
 export function characterSheet(key: string, palette: Uint16Array, parts: [image: IndexedImage, from: number, count: number][]): CharacterSheet {
+  return sheetOf(key, palette, parts, FRAME_W, FRAME_H);
+}
+
+/** The same with frames of any size, e.g. a following Pokémon's 32×32 or 64×64. */
+export function sheetOf(key: string, palette: Uint16Array, parts: [image: IndexedImage, from: number, count: number][], w: number, h: number): CharacterSheet {
   const canvas = document.createElement("canvas");
-  canvas.width = parts.reduce((n, [, , count]) => n + count, 0) * FRAME_W;
-  canvas.height = FRAME_H;
+  canvas.width = parts.reduce((n, [, , count]) => n + count, 0) * w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   const out = ctx.createImageData(canvas.width, canvas.height);
   const pixels = new Uint32Array(out.data.buffer);
   let to = 0;
   for (const [image, from, count] of parts) {
     for (let f = 0; f < count; f++)
-      for (let y = 0; y < FRAME_H; y++)
-        for (let x = 0; x < FRAME_W; x++) {
-          const i = image.pixels[y * image.width + (from + f) * FRAME_W + x] & 15;
-          if (i) pixels[y * canvas.width + (to + f) * FRAME_W + x] = rgba(palette[i]);
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+          const i = image.pixels[y * image.width + (from + f) * w + x] & 15;
+          if (i) pixels[y * canvas.width + (to + f) * w + x] = rgba(palette[i]);
         }
     to += count;
   }
   ctx.putImageData(out, 0, 0);
-  return { key, image: canvas, frameWidth: FRAME_W, frameHeight: FRAME_H };
+  return { key, image: canvas, frameWidth: w, frameHeight: h };
 }
 
 /** BGR555 to the canvas' little-endian RGBA. */

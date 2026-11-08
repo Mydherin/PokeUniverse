@@ -6,7 +6,9 @@
 // Output, by national number (<nnn> = 001 to 493):
 // - <nnn>/front.png + front.pal: the Pokédex and battle picture (the expansion's has two frames: the first is shown),
 //   <nnn>/back.png (the player's side in battle), <nnn>/shiny.pal (both pictures' shiny colors),
-//   <nnn>/footprint.png, <nnn>/icon.png + icon.pal.
+//   <nnn>/footprint.png, <nnn>/icon.png + icon.pal,
+//   <nnn>/overworld.png + overworld.pal + overworld-shiny.pal: the following Pokémon's sheet (the expansion's for every
+//   species: 6 frames side by side, 32 or 64 px square; base form only, no female variants yet).
 // - species.json: { "<n>": { name, category, description: FireRed-encoded bytes ending 0xFF,
 //   scale: [pokemonScale, pokemonOffset, trainerScale, trainerOffset],
 //   coords: [front y offset, back y offset, enemy elevation] (where the battle draws the pictures),
@@ -56,6 +58,9 @@ for (const s of species.values()) {
   copyFileSync(join(root, s.footprint), join(dir, "footprint.png"));
   copyFileSync(join(root, s.icon), join(dir, "icon.png"));
   copyFileSync(join(root, s.iconPalette), join(dir, "icon.pal"));
+  copyFileSync(join(expansion, s.overworld.pic), join(dir, "overworld.png"));
+  copyFileSync(join(expansion, s.overworld.palette), join(dir, "overworld.pal"));
+  copyFileSync(join(expansion, s.overworld.shinyPalette), join(dir, "overworld-shiny.pal"));
   const label = `species ${s.nat}`;
   const gen4 = s.source === "expansion";
   data[s.nat] = {

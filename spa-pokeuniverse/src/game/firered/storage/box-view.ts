@@ -5,9 +5,9 @@
 import type { BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { toTiles } from "../../gba/assets";
-import type { AnimCmd, Sprite, SpriteTemplate } from "../../gba/sprites";
+import { ObjMode, type AnimCmd, type Sprite, type SpriteTemplate } from "../../gba/sprites";
 import { FontId, Window } from "../../gba/text";
-import type { Background } from "../../gba/video";
+import { RGB_WHITE, type Background } from "../../gba/video";
 import { copyTiles } from "../menu";
 import type { Flow } from "../flow";
 import type { Graphic } from "../manifest";
@@ -15,6 +15,8 @@ import { MonIcon, ICON_STILL } from "../mon-icon";
 import { BOX_COLUMNS, BOX_ROWS, BOX_SLOTS, STORAGE_SPRITE_PALETTE } from "./cursor";
 
 export const BOX_COUNT = 14;
+/** MovePokemon's `to` slot for DEPOSIT: mic-core picks the box's first free slot. */
+export const FIRST_FREE = BOX_SLOTS;
 const SCROLL_SPEED = 6;
 const SCROLL_FRAMES = 32;
 const WALLPAPER_WIDTH = 20;
@@ -36,7 +38,7 @@ const TITLE_ANIMS: AnimCmd[][] = [
   [{ image: 0, duration: 5 }, "end"],
   [{ image: 8, duration: 5 }, "end"],
 ];
-const ARROW_ANIMS: AnimCmd[][] = [
+export const ARROW_ANIMS: AnimCmd[][] = [
   [{ image: 0, duration: 5 }, "end"],
   [{ image: 2, duration: 5 }, "end"],
 ];
@@ -73,8 +75,23 @@ export async function loadBoxArt(flow: Flow, view: BoxView): Promise<Graphic> {
   return wallpaper;
 }
 
+/** A Pokémon's place on mic-core: box 0 is the party. */
+export interface Place {
+  box: number;
+  slot: number;
+}
+
+/** The same Pokémon: mic-core sends no ids, the personality tells them apart. */
+export function sameMon(a: Pokemon | null | undefined, b: Pokemon | null | undefined): boolean {
+  return a?.species === b?.species && a?.personality === b?.personality;
+}
+
 export class BoxArea {
   view: BoxView;
+  /** The held Pokémon's place on mic-core, which shows empty here (FireRed takes it out at once). */
+  hidden: Place | null;
+  /** MOVE ITEMS: an icon whose Pokémon holds nothing is see-through. */
+  itemMode = false;
   private readonly mons: (Pokemon | null)[] = [];
   private readonly icons: (BoxIcon | null)[] = new Array<BoxIcon | null>(BOX_SLOTS).fill(null);
   private readonly arrows: Arrow[] = [];
@@ -92,9 +109,11 @@ export class BoxArea {
     private readonly bg: Background,
     view: BoxView,
     wallpaper: Graphic,
+    hidden: Place | null,
   ) {
     const { gba } = flow;
     this.view = view;
+    this.hidden = hidden;
     this.setMons(view);
     const palette = new Uint16Array(16);
     palette[14] = 7 | (7 << 5) | (7 << 10);
@@ -125,6 +144,75 @@ export class BoxArea {
     return { slots, mons };
   }
 
+  /** SetMovingMonSprite, from the box: the slot empties and its icon goes to the hand. */
+  /** GetFirstFreeBoxSpot on the shown box (the held one's slot is free): -1 when full. */
+  firstFree(): number {
+    for (let slot = 0; slot < BOX_SLOTS; slot++) if (!this.mons[slot]) return slot;
+    return -1;
+  }
+
+  take(slot: number): MonIcon | null {
+    const icon = this.icons[slot]?.icon ?? null;
+    this.icons[slot] = null;
+    delete this.mons[slot];
+    return icon;
+  }
+
+  /** A held item changed on the screen only (FireRed sets it at once; mic-core saves it when put down). */
+  setItem(slot: number, item: number): void {
+    const mon = this.mons[slot];
+    if (!mon) return;
+    this.mons[slot] = { ...mon, heldItem: item };
+    this.blend(slot);
+  }
+
+  /** SetBoxMonIconObjMode, for every icon. */
+  refreshBlend(): void {
+    for (let slot = 0; slot < BOX_SLOTS; slot++) this.blend(slot);
+  }
+
+  private blend(slot: number): void {
+    const icon = this.icons[slot]?.icon;
+    if (icon) icon.sprite.mode = this.itemMode && !this.mons[slot]?.heldItem ? ObjMode.Blend : ObjMode.Normal;
+  }
+
+  /** SetPlacedMonSprite, into the box. */
+  put(slot: number, mon: Pokemon, icon: MonIcon): void {
+    const column = slot % BOX_COLUMNS;
+    const destX = 24 * column + 100;
+    this.mons[slot] = mon;
+    this.icons[slot] = { icon, speed: 0, incoming: false, distance: 0, destX };
+    const s = icon.sprite;
+    s.callback = () => {};
+    s.x = destX;
+    s.y = 24 * Math.trunc(slot / BOX_COLUMNS) + 44;
+    s.x2 = 0;
+    s.priority = 2;
+    s.subpriority = 19 - column;
+    this.blend(slot);
+  }
+
+  /** The box as mic-core answered: only the slots that differ change their icons. */
+  sync(view: BoxView): void {
+    if (view.box !== this.view.box) return;
+    this.view = view;
+    const old = [...this.mons];
+    this.setMons(view);
+    for (let slot = 0; slot < BOX_SLOTS; slot++) {
+      if (sameMon(old[slot], this.mons[slot])) continue;
+      const box = this.icons[slot];
+      if (box) this.flow.gba.sprites.destroy(box.icon.sprite);
+      this.icons[slot] = null;
+      const mon = this.mons[slot];
+      if (!mon) continue;
+      const column = slot % BOX_COLUMNS;
+      const icon = new MonIcon(this.flow, mon.species, 0, 0, 19 - column, 2);
+      icon.setAnim(ICON_STILL);
+      this.put(slot, mon, icon);
+    }
+    this.refreshBlend();
+  }
+
   /** AnimateBoxScrollArrows. */
   setArrowsBouncing(on: boolean): void {
     for (const a of this.arrows) {
@@ -147,6 +235,23 @@ export class BoxArea {
     this.startArrowSlide(direction);
   }
 
+  /** DoWallpaperGfxChange's first fade: the wallpaper and title go white. */
+  startWallpaperChange(): void {
+    this.flow.gba.palettes.beginFade(this.wallpaperPalettes(), 1, 0, 16, RGB_WHITE);
+  }
+
+  /** Once white: the box's wallpaper as `view` has it, then back from white. */
+  endWallpaperChange(view: BoxView, wallpaper: Graphic): void {
+    this.view = view;
+    this.drawWallpaper(wallpaper, 0);
+    this.flow.gba.palettes.beginFade(this.wallpaperPalettes(), 1, 16, 0, RGB_WHITE);
+  }
+
+  /** wallpaperPalBits: BG palettes 4-9 and the title's. */
+  private wallpaperPalettes(): number {
+    return 0x3f0 | ((1 << 16) << this.flow.gba.palettes.spritePaletteSlot(TITLE_PALETTE));
+  }
+
   /** ScrollToBox's last state, each frame; false once it's over. */
   update(): boolean {
     const icons = this.updateIconScroll();
@@ -165,7 +270,8 @@ export class BoxArea {
 
   private setMons(view: BoxView): void {
     this.mons.length = 0;
-    for (const p of view.pokemon) if (p.pokemon) this.mons[p.slot] = p.pokemon;
+    const { hidden } = this;
+    for (const p of view.pokemon) if (p.pokemon && !(hidden?.box === view.box && hidden.slot === p.slot)) this.mons[p.slot] = p.pokemon;
   }
 
   /** LoadWallpaperGfx, DrawWallpaper: the other tile bank and palettes, beside the shown one. */
@@ -224,6 +330,7 @@ export class BoxArea {
       icon.setAnim(ICON_STILL);
       if (speed === 0) icon.sprite.x = destX;
       this.icons[slot] = { icon, speed, incoming: speed !== 0, distance, destX };
+      this.blend(slot);
       count++;
     }
     return count;

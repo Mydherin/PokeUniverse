@@ -278,6 +278,7 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
       }
       if (effect?.case !== "move") return [];
       if (effect.value === Move.ATTRACT) return msg("sText_PkmnInLove", { atk: battler, scr: source });
+      if (effect.value === Move.DESTINY_BOND) return msg("sText_PkmnTookFoe", { def: battler, atk: source ?? recent.mover });
       if (effect.value === Move.SPITE) return msg("sText_PkmnReducedPP", { def: battler, buff1: texts.moveName(k.value.move), buff2: num(k.value.amount) });
       const entry = ACTIVATE[effect.value];
       return entry ? msg(entry[0], { [entry[1]]: battler }) : [];

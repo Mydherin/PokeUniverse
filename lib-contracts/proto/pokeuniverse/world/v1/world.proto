@@ -87,6 +87,26 @@ message Avatar {
   uint32 y = 2;
   pokeuniverse.map.v1.Direction facing = 3;
   pokeuniverse.trainer.v1.Gender gender = 4;
+  // The Pokémon walking behind the trainer; unset when there is none.
+  Follower follower = 5;
+}
+
+// The Pokémon that follows the trainer, as in HeartGold and SoulSilver: the first party Pokémon that
+// isn't fainted (the first one if all are). It steps onto the tile the player left, at the player's speed.
+message Follower {
+  // National Pokédex number.
+  uint32 species = 1;
+  bool shiny = 2;
+  uint32 x = 3;
+  uint32 y = 4;
+  pokeuniverse.map.v1.Direction facing = 5;
+  // On the player's own tile (entering the world, after a warp): not drawn until the player's next step.
+  bool hidden = 6;
+}
+
+// Server -> client: the follower changed (the party changed): another Pokémon, or none (unset).
+message FollowerChanged {
+  Follower follower = 1;
 }
 
 // The server refused a predicted step: where the player really is. The client goes back there;
@@ -100,6 +120,8 @@ message Warped {
   uint32 y = 3;
   pokeuniverse.map.v1.Direction facing = 4;
   bool can_run = 5;
+  // On the player's tile, hidden; unset when there is none.
+  Follower follower = 6;
 }
 
 message Correction {
@@ -108,6 +130,8 @@ message Correction {
   uint32 x = 2;
   uint32 y = 3;
   pokeuniverse.map.v1.Direction facing = 4;
+  // Where the follower really is; unset when there is none.
+  Follower follower = 5;
 }
 
 // What an interaction runs, step by step. When it has steps, the player can't move until the

@@ -4,6 +4,8 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Item } from "../../item/v1/catalog_pb";
+import { file_pokeuniverse_item_v1_catalog } from "../../item/v1/catalog_pb";
 import type { Pokemon } from "./party_pb";
 import { file_pokeuniverse_party_v1_party } from "./party_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -12,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/party/v1/box.proto.
  */
 export const file_pokeuniverse_party_v1_box: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wb2tldW5pdmVyc2UvcGFydHkvdjEvYm94LnByb3RvEhVwb2tldW5pdmVyc2UucGFydHkudjEiFgoHT3BlbkJveBILCgNib3gYASABKA0iOQoHQm94SW5mbxIMCgRuYW1lGAEgASgJEhEKCXdhbGxwYXBlchgCIAEoDRINCgVjb3VudBgDIAEoDSJLCgpCb3hQb2tlbW9uEgwKBHNsb3QYASABKA0SLwoHcG9rZW1vbhgCIAEoCzIeLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Qb2tlbW9uInkKB0JveFZpZXcSCwoDYm94GAEgASgNEi0KBWJveGVzGAIgAygLMh4ucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkJveEluZm8SMgoHcG9rZW1vbhgDIAMoCzIhLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Cb3hQb2tlbW9uIiUKCEJveFBsYWNlEgsKA2JveBgBIAEoDRIMCgRzbG90GAIgASgNImkKC01vdmVQb2tlbW9uEi0KBGZyb20YASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2USKwoCdG8YAiABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2UiQAoOUmVsZWFzZVBva2Vtb24SLgoFcGxhY2UYASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2UiJgoJUmVuYW1lQm94EgsKA2JveBgBIAEoDRIMCgRuYW1lGAIgASgJIjEKD1NldEJveFdhbGxwYXBlchILCgNib3gYASABKA0SEQoJd2FsbHBhcGVyGAIgASgNQkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcGFydHkvdjE7cGFydHl2MWIGcHJvdG8z", [file_pokeuniverse_party_v1_party]);
+  fileDesc("Ch9wb2tldW5pdmVyc2UvcGFydHkvdjEvYm94LnByb3RvEhVwb2tldW5pdmVyc2UucGFydHkudjEiFgoHT3BlbkJveBILCgNib3gYASABKA0iOQoHQm94SW5mbxIMCgRuYW1lGAEgASgJEhEKCXdhbGxwYXBlchgCIAEoDRINCgVjb3VudBgDIAEoDSJLCgpCb3hQb2tlbW9uEgwKBHNsb3QYASABKA0SLwoHcG9rZW1vbhgCIAEoCzIeLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Qb2tlbW9uIooBCgdCb3hWaWV3EgsKA2JveBgBIAEoDRItCgVib3hlcxgCIAMoCzIeLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Cb3hJbmZvEjIKB3Bva2Vtb24YAyADKAsyIS5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UG9rZW1vbhIPCgdyZXF1ZXN0GAQgASgNIiUKCEJveFBsYWNlEgsKA2JveBgBIAEoDRIMCgRzbG90GAIgASgNImkKC01vdmVQb2tlbW9uEi0KBGZyb20YASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2USKwoCdG8YAiABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2UiQAoOUmVsZWFzZVBva2Vtb24SLgoFcGxhY2UYASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2UiTwoLU2V0TWFya2luZ3MSLgoFcGxhY2UYASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2USEAoIbWFya2luZ3MYAiABKA0iagoMTW92ZUhlbGRJdGVtEi0KBGZyb20YASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2USKwoCdG8YAiABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2UiPwoNU3RvcmVIZWxkSXRlbRIuCgVwbGFjZRgBIAEoCzIfLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Cb3hQbGFjZSJoCgxHaXZlSGVsZEl0ZW0SLgoFcGxhY2UYASABKAsyHy5wb2tldW5pdmVyc2UucGFydHkudjEuQm94UGxhY2USKAoEaXRlbRgCIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iJgoJUmVuYW1lQm94EgsKA2JveBgBIAEoDRIMCgRuYW1lGAIgASgJIjEKD1NldEJveFdhbGxwYXBlchILCgNib3gYASABKA0SEQoJd2FsbHBhcGVyGAIgASgNQkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcGFydHkvdjE7cGFydHl2MWIGcHJvdG8z", [file_pokeuniverse_item_v1_catalog, file_pokeuniverse_party_v1_party]);
 
 /**
  * Client -> server: show a box, which becomes the current one. Answered by BoxView.
@@ -116,6 +118,14 @@ export type BoxView = Message<"pokeuniverse.party.v1.BoxView"> & {
    * @generated from field: repeated pokeuniverse.party.v1.BoxPokemon pokemon = 3;
    */
   pokemon: BoxPokemon[];
+
+  /**
+   * The seq of the ClientMessage this answers (OpenBox or a box action), so a client pairs answers
+   * with its requests across reconnects.
+   *
+   * @generated from field: uint32 request = 4;
+   */
+  request: number;
 };
 
 /**
@@ -139,7 +149,8 @@ export type BoxPlace = Message<"pokeuniverse.party.v1.BoxPlace"> & {
   box: number;
 
   /**
-   * The party: 0 to 5, no gaps (one past the last places it at the end: WITHDRAW). A box: 0 to 29.
+   * The party: 0 to 5, no gaps (one past the last places it at the end: WITHDRAW). A box: 0 to 29, or 30 as
+   * MovePokemon's `to`: the box's first free slot (DEPOSIT).
    *
    * @generated from field: uint32 slot = 2;
    */
@@ -158,7 +169,8 @@ export const BoxPlaceSchema: GenMessage<BoxPlace> = /*@__PURE__*/
  * `to` swaps the two (SHIFT). Refused, changing nothing, when the party would be over six or
  * left with no Pokémon able to battle, or when a Pokémon holding MAIL would go into a box. A
  * Pokémon placed in a box gets its HP, status and PP back. The client shows it at once; answered
- * with the BoxView of the box shown (`to`'s, else `from`'s, else the current one), plus
+ * with the BoxView of the box shown (`to`'s, else `from`'s, else the current one; DEPOSIT keeps
+ * the current one), plus
  * PartyChanged when the party changed or the move was refused.
  *
  * @generated from message pokeuniverse.party.v1.MovePokemon
@@ -203,6 +215,104 @@ export const ReleasePokemonSchema: GenMessage<ReleasePokemon> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_party_v1_box, 6);
 
 /**
+ * Client -> server: MARK, the marks chosen (0 to 15, one bit each as Pokemon.markings).
+ * Answered like ReleasePokemon.
+ *
+ * @generated from message pokeuniverse.party.v1.SetMarkings
+ */
+export type SetMarkings = Message<"pokeuniverse.party.v1.SetMarkings"> & {
+  /**
+   * @generated from field: pokeuniverse.party.v1.BoxPlace place = 1;
+   */
+  place?: BoxPlace | undefined;
+
+  /**
+   * @generated from field: uint32 markings = 2;
+   */
+  markings: number;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.SetMarkings.
+ * Use `create(SetMarkingsSchema)` to create a new message.
+ */
+export const SetMarkingsSchema: GenMessage<SetMarkings> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_box, 7);
+
+/**
+ * Client -> server: ITEM mode's GIVE or SWITCH. The hand's item stays on `from` until put down:
+ * `from`'s held item goes to `to`, swapping with the one `to` holds (SWITCH: the hand then holds
+ * that one, still at `from`). Refused when `from` holds nothing or either holds MAIL. Answered
+ * like MovePokemon.
+ *
+ * @generated from message pokeuniverse.party.v1.MoveHeldItem
+ */
+export type MoveHeldItem = Message<"pokeuniverse.party.v1.MoveHeldItem"> & {
+  /**
+   * @generated from field: pokeuniverse.party.v1.BoxPlace from = 1;
+   */
+  from?: BoxPlace | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.party.v1.BoxPlace to = 2;
+   */
+  to?: BoxPlace | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.MoveHeldItem.
+ * Use `create(MoveHeldItemSchema)` to create a new message.
+ */
+export const MoveHeldItemSchema: GenMessage<MoveHeldItem> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_box, 8);
+
+/**
+ * Client -> server: ITEM mode's BAG, or YES to CLOSE BOX while holding an item: the item held at
+ * `place` into the bag. Refused (nothing changes) when the bag is full or it's MAIL. Answered
+ * like MovePokemon, with BagChanged first.
+ *
+ * @generated from message pokeuniverse.party.v1.StoreHeldItem
+ */
+export type StoreHeldItem = Message<"pokeuniverse.party.v1.StoreHeldItem"> & {
+  /**
+   * @generated from field: pokeuniverse.party.v1.BoxPlace place = 1;
+   */
+  place?: BoxPlace | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.StoreHeldItem.
+ * Use `create(StoreHeldItemSchema)` to create a new message.
+ */
+export const StoreHeldItemSchema: GenMessage<StoreHeldItem> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_box, 9);
+
+/**
+ * Client -> server: ITEM mode's GIVE from the bag, for a Pokémon holding nothing. Refused like
+ * the party menu's GIVE. Answered like StoreHeldItem.
+ *
+ * @generated from message pokeuniverse.party.v1.GiveHeldItem
+ */
+export type GiveHeldItem = Message<"pokeuniverse.party.v1.GiveHeldItem"> & {
+  /**
+   * @generated from field: pokeuniverse.party.v1.BoxPlace place = 1;
+   */
+  place?: BoxPlace | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.item.v1.Item item = 2;
+   */
+  item: Item;
+};
+
+/**
+ * Describes the message pokeuniverse.party.v1.GiveHeldItem.
+ * Use `create(GiveHeldItemSchema)` to create a new message.
+ */
+export const GiveHeldItemSchema: GenMessage<GiveHeldItem> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_party_v1_box, 10);
+
+/**
  * Client -> server: the box options' NAME. 1 to 8 characters. Answered with the box's BoxView.
  *
  * @generated from message pokeuniverse.party.v1.RenameBox
@@ -224,7 +334,7 @@ export type RenameBox = Message<"pokeuniverse.party.v1.RenameBox"> & {
  * Use `create(RenameBoxSchema)` to create a new message.
  */
 export const RenameBoxSchema: GenMessage<RenameBox> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_box, 7);
+  messageDesc(file_pokeuniverse_party_v1_box, 11);
 
 /**
  * Client -> server: the box options' WALLPAPER, 0 to 15. Answered with the box's BoxView.
@@ -248,5 +358,5 @@ export type SetBoxWallpaper = Message<"pokeuniverse.party.v1.SetBoxWallpaper"> &
  * Use `create(SetBoxWallpaperSchema)` to create a new message.
  */
 export const SetBoxWallpaperSchema: GenMessage<SetBoxWallpaper> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_party_v1_box, 8);
+  messageDesc(file_pokeuniverse_party_v1_box, 12);
 

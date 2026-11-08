@@ -55,3 +55,14 @@ func (pt Party) Proto() *partyv1.Party {
 	}
 	return out
 }
+
+// Lead is the Pokémon that walks behind the trainer (HeartGold's FollowMon_InitMapObject): the first
+// that isn't fainted; nil when none can fight (FollowMon_IsActive) or the party is empty.
+func (pt Party) Lead() *Pokemon {
+	for _, p := range pt {
+		if p.HP > 0 {
+			return p
+		}
+	}
+	return nil
+}

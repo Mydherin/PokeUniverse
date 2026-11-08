@@ -386,6 +386,7 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 		p.script, p.pcScript = 0, 0
 		p.pos, p.facing = Point{Start.X, Start.Y}, Start.Facing
 		p.elevation, p.dirty = z.m.Elevation(p.pos), true
+		p.placeFollower() // A whiteout is a map entry for the follower (FollowMon_RecreateForMap).
 		z.correct(p, 0)
 	}
 }

@@ -87,7 +87,7 @@ func toRow(accountID int64, box, slot int, p *Pokemon) db.InsertTrainerPokemonPa
 		Ivs: statsColumn(p.IVs), Evs: statsColumn(p.EVs), AbilitySlot: int16(p.AbilitySlot), HeldItem: int16(p.HeldItem),
 		Moves: moves, Pp: pp, PpUps: ppUps, Hp: int16(p.HP), Status: int16(p.Status), Friendship: int16(p.Friendship),
 		Ball: int16(p.Ball), OtName: p.OT.Name, OtID: int64(p.OT.ID), OtGender: genderColumn(p.OT.Gender),
-		MetLevel: int16(p.MetLevel), MetMap: p.MetMap,
+		MetLevel: int16(p.MetLevel), MetMap: p.MetMap, Markings: int16(p.Markings),
 	}
 }
 
@@ -102,7 +102,7 @@ func fromRow(r db.ListTrainerPokemonRow) *Pokemon {
 		HeldItem: itemv1.Item(r.HeldItem), Moves: moves, HP: int(r.Hp), Status: pokemonv1.Status(r.Status),
 		Friendship: int(r.Friendship), Ball: itemv1.Item(r.Ball),
 		OT:       Trainer{Name: r.OtName, ID: uint32(r.OtID), Gender: genderOf(r.OtGender)},
-		MetLevel: int(r.MetLevel), MetMap: r.MetMap,
+		MetLevel: int(r.MetLevel), MetMap: r.MetMap, Markings: int(r.Markings),
 	}
 }
 

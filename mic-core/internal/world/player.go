@@ -29,6 +29,8 @@ type Player struct {
 	conn      string
 	gen       int64
 	sink      Sink
+	// The client page (one per load): a reconnect from the same page keeps its open PC.
+	instance string
 	zone      *zone
 	// When its play time was last counted (Unix nanoseconds); swapped by keep-alive and Leave.
 	counted atomic.Int64
@@ -52,6 +54,8 @@ type Player struct {
 	items *item.State
 	// The trainer's Pokémon; saved to PostgreSQL on every change.
 	party pokemon.Party
+	// The lead walking behind the player (follower.go).
+	follower follower
 	// Steps toward the next walking friendship; saved on leaving, not every step.
 	friendshipSteps int
 	// What a won battle left to do while its script goes on (memory only: leaving loses it, as a

@@ -80,6 +80,8 @@ export const enum BagLocation {
   Party,
   /** BAG in battle: an item is chosen to use (phase-5 M12). */
   Battle,
+  /** The box screen's GIVE (ITEMMENULOCATION_PCBOX): like the party menu's, MAIL refused. */
+  PcBox,
 }
 
 /** How the bag closed: back (null), to the field where an item works, or with the item to give (from the party menu). */
@@ -353,7 +355,7 @@ class Bag {
     this.selected = { item: slot.item, index: chosen, quantity: slot.quantity };
     this.setMessageBoxPalette(1);
     if (this.location === BagLocation.ItemPc) this.depositAction();
-    else if (this.location === BagLocation.Party) this.chooseToGive();
+    else if (this.location === BagLocation.Party || this.location === BagLocation.PcBox) this.chooseToGive();
     else this.openContextMenu();
   }
 
@@ -614,10 +616,12 @@ class Bag {
    * BERRY POUCH open to choose in them; key items and other important ones can't be held.
    */
   private chooseToGive(): void {
-    const { flow, gender, host, done } = this;
+    const { flow, gender, host, done, location } = this;
     const { item } = this.selected!;
+    // Task_ItemContext_PcBoxGive: no MAIL from the box screen.
+    if (location === BagLocation.PcBox && itemInfo(item)?.fieldUse === FieldUse.MAIL) return this.sayThenBack("gText_CantWriteMailHere");
     if (item === Item.TM_CASE || item === Item.BERRY_POUCH) {
-      const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Party));
+      const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, location));
       return this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true));
     }
     if (state.pocket !== Pocket.KeyItems && !itemInfo(item)?.important) return this.close(true, { chosen: item });
@@ -675,6 +679,17 @@ class Bag {
     );
     this.step = () => {
       if (player.update()) this.returnFromContext();
+    };
+  }
+
+  /** Task_WaitAButtonAndCloseContextMenu: a message until A, then back to the list. */
+  private sayThenBack(id: TextId): void {
+    const { flow } = this;
+    this.showMessage(flow.assets.text(id), FontId.Normal);
+    this.step = () => {
+      if (flow.text.isActive(this.message!) || !flow.gba.input.isPressed(Button.A)) return;
+      flow.play("se_select");
+      this.returnFromContext();
     };
   }
 

@@ -5,8 +5,8 @@
 // bar, ability) and KNOWN MOVES (each move's type and PP). RIGHT slides the top page away, LEFT
 // slides it back; UP and DOWN show the party's other Pokémon. A on KNOWN MOVES slides in the
 // move details (type, power, accuracy, the Gen 4 category icon (phase-5 D10) and
-// description), where A then A again SWITCHes two moves (mic-core saves it). Eggs, Pokérus and
-// markings come with breeding and the PC.
+// description), where A then A again SWITCHes two moves (mic-core saves it). The marks set at the
+// PC show under the picture. Eggs and Pokérus come with breeding.
 
 import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 import { Nature } from "@pokeuniverse/contracts/pokemon/v1/nature";
@@ -17,7 +17,7 @@ import { ButtonMode } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { toTiles } from "../gba/assets";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
-import type { Sprite, SpriteTemplate } from "../gba/sprites";
+import type { AnimCmd, Sprite, SpriteTemplate } from "../gba/sprites";
 import type { Task } from "../gba/tasks";
 import { decimalText, expandDynamic, FontId, joinText, NumberMode, Window, type Text, type WindowTemplate } from "../gba/text";
 import { Layer, RGB_BLACK, type Background } from "../gba/video";
@@ -167,6 +167,15 @@ const STATUS_TEMPLATE: SpriteTemplate = {
   priority: 0,
   anims: [0, 4, 8, 12, 16, 20, 24, 28].map((image) => [{ image, duration: 20 }, { jump: 0 }]),
 };
+/** The marks (CreateMonMarkingAllCombosSprite): one 32×8 image per combination, anim = markings. */
+const MARKS_TEMPLATE: SpriteTemplate = {
+  sheet: "summaryMarks",
+  palette: "summaryMarks",
+  width: 32,
+  height: 8,
+  priority: 0,
+  anims: Array.from({ length: 16 }, (_, i) => [{ image: 4 * i, duration: 5 }, "end"] as AnimCmd[]),
+};
 const STAR_TEMPLATE: SpriteTemplate = { sheet: "summaryStar", palette: "summaryStar", width: 8, height: 8, priority: 0, anims: [[{ image: 1, duration: 20 }, { jump: 0 }]] };
 const CURSOR_TEMPLATE = (sheet: string): SpriteTemplate => ({
   sheet,
@@ -243,6 +252,7 @@ class Summary {
   private readonly cursors: Sprite[] = [];
   private readonly status: Sprite;
   private readonly star: Sprite;
+  private readonly marks: Sprite;
   private readonly category: Sprite;
   /** The move details' cursors (and category icon) show. */
   private detailsShown = false;
@@ -298,6 +308,9 @@ class Summary {
     };
     load("summaryStar", "summaryShinyStar");
     this.star = sprites.create(STAR_TEMPLATE, 106, 40, 0)!;
+    // PokeSum_CreateMonMarkingsSprite: the box screen's marks sheet, with the summary's palette.
+    load("summaryMarks", "markingCombo", assets.get("summaryMarkingPal").palette);
+    this.marks = sprites.create(MARKS_TEMPLATE, 20, 91, 0)!;
     sprites.loadSheet("summaryCursorLeft", assets.get("summaryCursorLeft").tiles);
     sprites.loadSheet("summaryCursorRight", assets.get("summaryCursorRight").tiles);
     palettes.loadSpritePalette("summaryCursor", assets.get("summaryCursorPal").palette);
@@ -360,6 +373,7 @@ class Summary {
       this.ball!.invisible = false;
       this.showBars(false);
     }
+    this.showMarks(forget !== undefined);
     this.showStatus(false);
     this.showStar(false);
 
@@ -801,6 +815,13 @@ class Summary {
     [this.star.x, this.star.y] = this.page === Page.MovesInfo ? [8, 24] : [106, 40];
   }
 
+  /** PokeSum_ShowOrHideMonMarkingsSprite (and PokeSum_UpdateMonMarkingsAnim): never shown without marks. */
+  private showMarks(invisible: boolean): void {
+    const markings = this.mon.markings;
+    this.marks.startAnim(markings);
+    this.marks.invisible = markings === 0 || invisible;
+  }
+
   /** ShoworHideMoveSelectionCursor, with the category icon. */
   private showCursors(visible: boolean): void {
     for (const c of this.cursors) c.invisible = !visible;
@@ -843,6 +864,7 @@ class Summary {
       case Page.Moves:
         if (this.dir === RIGHT) {
           this.pic!.invisible = true;
+          this.showMarks(true);
           this.ball!.invisible = true;
           this.showStatus(true);
           this.showStar(true);
@@ -873,6 +895,7 @@ class Summary {
         break;
       case Page.MovesInfo:
         this.pic!.invisible = false;
+        this.showMarks(false);
         this.ball!.invisible = false;
         this.showStatus(false);
         this.showStar(false);
@@ -1510,6 +1533,7 @@ class Summary {
         this.createMonSprites();
         this.ball!.invisible = false;
         this.pic!.invisible = false;
+        this.showMarks(false);
         this.updateHpBars();
         this.updateExpBars();
         this.showStatus(false);

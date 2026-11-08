@@ -70,8 +70,9 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     const sprite = this.add.sprite(0, 0, sheet.key, 0).setOrigin(0);
     this.characters.add(sprite);
     let layer = DEPTH_CHARACTERS;
-    // Within a layer, the lower on the map is in front (FireRed's subpriority by y).
-    const sort = () => sprite.setDepth(layer + (sprite.y + Y_SORT_OFFSET) / Y_SORT_SCALE);
+    // Within a layer, the lower on the map is in front (FireRed's subpriority by y): by the feet, as
+    // frames of different heights (a 64×64 follower beside a 16×32 trainer) stand on their cells.
+    const sort = () => sprite.setDepth(layer + (sprite.y + sheet.frameHeight + Y_SORT_OFFSET) / Y_SORT_SCALE);
     sort();
     return {
       setPosition: (x, y) => {
@@ -83,6 +84,7 @@ export class WorldScene extends Phaser.Scene implements WorldView {
         layer = over ? DEPTH_CHARACTERS_OVER : DEPTH_CHARACTERS;
         sort();
       },
+      setVisible: (visible) => sprite.setVisible(visible),
       destroy: () => {
         this.characters.delete(sprite);
         sprite.destroy();

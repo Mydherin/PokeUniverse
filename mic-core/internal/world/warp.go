@@ -86,8 +86,9 @@ func (z *zone) arrive(p *Player, at Point) {
 	p.canRun = z.m.AllowRunning && hasRunningShoes
 	p.dirty, p.corrected = true, false
 	z.add(p)
+	p.placeFollower()
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Warped{Warped: &worldv1.Warped{
-		Map: z.m.ID, X: uint32(at.X), Y: uint32(at.Y), Facing: p.facing, CanRun: p.canRun,
+		Map: z.m.ID, X: uint32(at.X), Y: uint32(at.Y), Facing: p.facing, CanRun: p.canRun, Follower: p.follower.proto(),
 	}}})
 }
 

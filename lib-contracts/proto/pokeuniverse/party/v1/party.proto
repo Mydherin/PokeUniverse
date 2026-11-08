@@ -53,6 +53,8 @@ message Pokemon {
   uint32 met_level = 21;
   // Where it was met: a lib-maps map; empty: a fateful encounter.
   string met_map = 22;
+  // MARK's marks, one bit each from bit 0: ●, ■, ▲, ♥.
+  uint32 markings = 23;
 }
 
 message Move {

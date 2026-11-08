@@ -7,8 +7,8 @@ import { behaviorAt, elevationAt, TILE, warpAt } from "./map";
 import { checkStep, Collision, DELTAS, elevationAfter } from "./rules";
 
 /** Frames per action at 59.73 fps: a step walking (1 px a frame) or running (2), turning in place, bumping. */
-const WALK_FRAMES = 16;
-const RUN_FRAMES = 8;
+export const WALK_FRAMES = 16;
+export const RUN_FRAMES = 8;
 const TURN_FRAMES = 8;
 const BUMP_FRAMES = 32;
 

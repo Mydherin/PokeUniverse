@@ -92,7 +92,13 @@ export class Sound {
 
   /** IsFanfareTaskInactive's opposite: a fanfare is still playing. */
   get fanfarePlaying(): boolean {
-    return this.others.has("fanfare");
+    return this.isPlaying("fanfare");
+  }
+
+  /** A suspended or interrupted context (no unlock, iOS lock screen) plays nothing: a sound waited on
+   *  would never end, so it counts as finished and the game goes on. */
+  private get audible(): boolean {
+    return this.ctx.state === "running";
   }
 
   /** Moves what a player plays to another pan (SE12PanpotControl). */
@@ -109,7 +115,7 @@ export class Sound {
 
   /** True while a sound plays on that player (IsCryFinished is !isPlaying("cry")). */
   isPlaying(player: string): boolean {
-    return this.others.has(player);
+    return this.audible && this.others.has(player);
   }
 
   stopBgm(): void {

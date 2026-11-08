@@ -65,6 +65,7 @@ type World struct {
 	mu       sync.Mutex
 	zones    map[string]*zone
 	players  map[int64]*Player // Online on this replica, by account.
+	openPCs  map[int64]openPC  // PCs left open by dropped connections, by account (reopenPC).
 	closed   bool
 	draining bool // The server is stopping: players leaving keep their battles.
 }
@@ -74,7 +75,7 @@ func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, b *battles.C
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
 	w := &World{maps: maps, live: store, bus: bus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
-		zones: map[string]*zone{}, players: map[int64]*Player{}}
+		zones: map[string]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}}
 	go w.keepAlive()
 	return w, nil
 }
@@ -120,7 +121,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}
 	m, at, facing := w.place(pos)
 
-	p := &Player{accountID: accountID, conn: s.Conn, gen: saved.Gen, sink: sink,
+	p := &Player{accountID: accountID, conn: s.Conn, instance: s.Instance, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party, pokedex: pokedex.Load(row),
 		gender: gender, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle, friendshipSteps: int(row.FriendshipSteps),
 		// Saved on the first tick, which also fixes a location that no longer exists.
@@ -134,6 +135,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	}
 	old := w.players[accountID]
 	w.players[accountID] = p
+	w.reopenPC(p, m.ID, time.Now())
 	z := w.zoneOf(m)
 	p.zone = z
 	w.mu.Unlock()
@@ -143,7 +145,10 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if previous != "" && (old == nil || old.conn != previous) {
 		w.bus.SessionTaken(accountID, previous) // Played from another replica.
 	}
+	var follower *worldv1.Follower
 	z.call(func() {
+		p.placeFollower()
+		follower = p.follower.proto()
 		z.add(p)
 		if p.battle != nil && p.battle.request == nil {
 			z.resumeBattle(p) // mic-battles didn't answer in time, or the battle was over.
@@ -152,7 +157,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 
 	return p, &worldv1.WorldSnapshot{
 		Map:    m.ID,
-		Player: &worldv1.Avatar{X: uint32(at.X), Y: uint32(at.Y), Facing: facing, Gender: gender},
+		Player: &worldv1.Avatar{X: uint32(at.X), Y: uint32(at.Y), Facing: facing, Gender: gender, Follower: follower},
 		CanRun: p.canRun,
 		// The client counts on from here; each Join sends the server's count again.
 		PlayTimeSeconds: uint32(pos.Played / time.Second),
@@ -203,16 +208,22 @@ func (w *World) Leave(p *Player) {
 	w.mu.Lock()
 	draining := w.draining
 	w.mu.Unlock()
+	var pc openPC
+	keptPC := false
 	p.zone.call(func() {
 		if !draining {
 			p.zone.abandonBattle(p)
 		}
+		pc, keptPC = p.leftPC(time.Now())
 		p.zone.remove(p)
 		p.zone.saveFriendshipSteps(p)
 	})
 	w.mu.Lock()
 	if w.players[p.accountID] == p {
 		delete(w.players, p.accountID)
+		if keptPC {
+			w.openPCs[p.accountID] = pc
+		}
 	}
 	w.mu.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

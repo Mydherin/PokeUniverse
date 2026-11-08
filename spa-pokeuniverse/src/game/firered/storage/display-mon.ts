@@ -15,6 +15,15 @@ import { putMapRect } from "./party-panel";
 const PIC_X = 40;
 const PIC_Y = 48;
 const PIC_TEMPLATE: SpriteTemplate = { sheet: "storagePic", palette: "storagePic", width: 64, height: 64, priority: 0 };
+/** The shown one's marks (CreateMonMarkingComboSprite): one 32×8 image per combination. */
+const MARKS_TEMPLATE: SpriteTemplate = {
+  sheet: "markingCombo",
+  palette: "markingCombo",
+  width: 32,
+  height: 8,
+  priority: 1,
+  anims: Array.from({ length: 16 }, (_, i) => [{ image: 4 * i, duration: 5 }, "end"] as AnimCmd[]),
+};
 const DATA_WIDTH = 8;
 const DATA_X = 1;
 const COLORS = [1, 2, 3] as const;
@@ -31,7 +40,10 @@ const WAVE_ANIMS: AnimCmd[][] = [
 
 export class DisplayMon {
   private readonly text: Window;
+  /** MOVE ITEMS: PrintDisplayMonInfo puts the item on top. */
+  itemMode = false;
   private readonly waves: Sprite[];
+  private readonly marks: Sprite;
   private pic: Sprite | null = null;
   private showing = false;
 
@@ -44,6 +56,10 @@ export class DisplayMon {
     this.text = new Window(bg, { left: 0, top: 11, width: 9, height: 7, palette: 3, baseBlock });
     gba.palettes.loadSpritePalette("storagePic", new Uint16Array(16));
     gba.sprites.loadSheet("storageWaveform", assets.get("storageWaveform").tiles);
+    const combo = assets.get("markingCombo");
+    gba.sprites.loadSheet("markingCombo", combo.tiles);
+    gba.palettes.loadSpritePalette("markingCombo", combo.palette);
+    this.marks = gba.sprites.create(MARKS_TEMPLATE, 40, 150, 1)!;
     this.waves = [0, 1].map((i) => gba.sprites.create({ ...WAVE_TEMPLATE, anims: WAVE_ANIMS }, i * 63 + 8, 9, 2)!);
     this.text.putTilemap();
     this.show(null);
@@ -66,6 +82,8 @@ export class DisplayMon {
       }
     }
     this.text.copyToVram();
+    this.marks.invisible = !mon;
+    if (mon) this.marks.startAnim(mon.markings & 0xf);
     // UpdateWaveformAnimation: restarts only when the waveform turns on or off.
     const on = mon !== null;
     putMapRect(bg, assets.get("storagePkmnData").map!, DATA_WIDTH, on ? 0 : 2, DATA_WIDTH, 2, DATA_X, 0);
@@ -78,14 +96,17 @@ export class DisplayMon {
     const { flow, text } = this;
     const { assets } = flow;
     const font = flow.fonts[FontId.Normal];
-    text.print(font, 6, 0, COLORS, monName(flow, mon));
-    text.print(font, 6, 14, COLORS, joinText(assets.text("gText_Slash"), assets.species(mon.species).name));
+    // MOVE ITEMS: the item first, the rest 15 pixels lower.
+    const top = this.itemMode ? 15 : 0;
+    const itemY = this.itemMode ? 0 : 44;
+    text.print(font, 6, top, COLORS, monName(flow, mon));
+    text.print(font, 6, top + 14, COLORS, joinText(assets.text("gText_Slash"), assets.species(mon.species).name));
     const gender = shownGender(mon);
     const male = gender === MonGender.MALE;
     const symbol = gender === MonGender.UNSPECIFIED ? flow.encode(" ") : assets.text(male ? "gText_MaleSymbol" : "gText_FemaleSymbol");
-    text.print(font, 10, 28, male ? COLORS_MALE : COLORS_FEMALE, symbol);
+    text.print(font, 10, top + 28, male ? COLORS_MALE : COLORS_FEMALE, symbol);
     const level = joinText(flow.encode(" "), assets.text("gText_Lv"), decimalText(mon.level, NumberMode.LeftAlign, 3));
-    text.print(font, 10 + font.width(symbol), 28, COLORS, level);
-    if (mon.heldItem) text.print(flow.fonts[FontId.Small], 6, 44, COLORS, assets.itemName(mon.heldItem));
+    text.print(font, 10 + font.width(symbol), top + 28, COLORS, level);
+    if (mon.heldItem) text.print(flow.fonts[FontId.Small], 6, itemY, COLORS, assets.itemName(mon.heldItem));
   }
 }

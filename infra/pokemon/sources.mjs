@@ -9,7 +9,9 @@
 //   coords: { front: y offset, back: y offset, elevation } (where the battle draws its pictures),
 //   itemScene: FireRed's only (sMonPosAttributes): [machine x, machine y, y offset, item x, item y],
 //   noFlip (the summary shows its picture unmirrored), battle: { catchRate, expYield, evYield: [hp, atk, def, spe, spa, spd], growthRate (GROWTH_ name), genderRatio (0-255), friendship },
-//   cry: { firered: number } | { wav: path }, source: "firered" | "expansion" }.
+//   cry: { firered: number } | { wav: path }, source: "firered" | "expansion",
+//   overworld: the expansion's following-Pokémon sheet for every species (FireRed has none):
+//   { pic, palette, shinyPalette (paths), size: frame side in px (32 or 64) } }.
 // Text is plain (FireRed's escapes such as \n kept); paths are relative to their reference.
 
 import { readFileSync, readdirSync } from "node:fs";
@@ -326,13 +328,17 @@ function readExpansion(root) {
   const globals = () =>
     new Map([
       ["FOOTPRINT", { params: ["sprite"], body: ".footprint = gMonFootprint_ ## sprite," }],
-      ["OVERWORLD", { params: ["..."], body: "" }],
+      ["OVERWORLD", { params: ["pic", "size", "..."], body: ".overworldPic = pic, .overworldSize = size," }],
       ["OVERWORLD_PAL", { params: ["..."], body: "" }],
       ["OVERWORLD_SET_ANIM", { params: ["..."], body: "" }],
       ["SHADOW", { params: ["..."], body: "" }],
       ["NO_SHADOW", { params: [], body: "" }],
     ]);
   const out = new Map();
+  const overworld = new Map();
+  // gObjectEventPic_X -> its folder and frame side (-mwidth in 8 px tiles).
+  const pics = new Map([...read("src/data/graphics/pokemon.h").matchAll(/(gObjectEventPic_\w+)\[\]\s*=\s*INCGFX_COMP\("(graphics\/[\w/]+)\/overworld\.png",\s*"[^"]*",\s*"-mwidth (\d+)/g)].map((m) => [m[1], { folder: m[2], size: Number(m[3]) * 8 }]));
+  const sheet = (folder, size) => ({ pic: `${folder}/overworld.png`, palette: `${folder}/overworld_normal.pal`, shinyPalette: `${folder}/overworld_shiny.pal`, size });
   const files4 = readdirSync(join(root, dir)).filter((f) => /^gen_[1-4]_families\.h$/.test(f)).sort();
   for (const file of files4) {
     const text = preprocess(read(join(dir, file)), globals());
@@ -341,7 +347,15 @@ function readExpansion(root) {
       const block = raw.replace(/\(\s*([^?()]+?)\s*\?\s*([\w-]+)\s*:\s*([\w-]+)\s*\)/g, (_, c, a, b) => (evalCondition(c) ? a : b));
       const natName = /\.natDexNum\s*=\s*(NATIONAL_DEX_\w+)/.exec(block)?.[1];
       const n = nat.get(natName);
-      if (!n || n <= FIRERED_DEX_COUNT || n > NATIONAL_DEX_COUNT || out.has(n)) continue;
+      if (!n || n > NATIONAL_DEX_COUNT || out.has(n)) continue;
+      // The first block of a species is its base form: its sheet (sPicTable_X holds gObjectEventPic_X).
+      if (!overworld.has(n)) {
+        const table = /\.overworldPic\s*=\s*sPicTable_(\w+)/.exec(block)?.[1];
+        const pic = pics.get(`gObjectEventPic_${table}`);
+        if (!pic) throw new Error(`expansion ${key}: no overworld sheet (${table})`);
+        overworld.set(n, sheet(pic.folder, pic.size));
+      }
+      if (n <= FIRERED_DEX_COUNT) continue;
       const num = (f) => {
         const v = new RegExp(`\\.${f}\\s*=\\s*(-?\\d+)`).exec(block)?.[1];
         if (v === undefined) throw new Error(`expansion ${key}: no .${f}`);
@@ -390,11 +404,24 @@ function readExpansion(root) {
       });
     }
   }
-  return out;
+  // Species whose block the expansion's config leaves out (Azurill behind P_GEN_3_CROSS_EVOS): by folder name.
+  const byFolder = new Map([...pics.values()].map((p) => [p.folder, p]));
+  const sheetFor = (n, constant) => {
+    const pic = byFolder.get(`graphics/pokemon/${constant.toLowerCase()}`);
+    if (!overworld.has(n) && pic) overworld.set(n, sheet(pic.folder, pic.size));
+    return overworld.get(n);
+  };
+  return { species: out, sheetFor };
 }
 
 export function readSpecies(firered, expansion) {
-  const all = new Map([...readFireRed(firered), ...readExpansion(expansion)]);
-  for (let n = 1; n <= NATIONAL_DEX_COUNT; n++) if (!all.has(n)) throw new Error(`species ${n}: not found`);
+  const { species, sheetFor } = readExpansion(expansion);
+  const all = new Map([...readFireRed(firered), ...species]);
+  for (let n = 1; n <= NATIONAL_DEX_COUNT; n++) {
+    if (!all.has(n)) throw new Error(`species ${n}: not found`);
+    const overworld = sheetFor(n, all.get(n).constant);
+    if (!overworld) throw new Error(`species ${n}: no overworld sheet`);
+    all.get(n).overworld = overworld;
+  }
   return new Map([...all].sort((a, b) => a[0] - b[0]));
 }

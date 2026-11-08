@@ -103,6 +103,7 @@ func (z *zone) tick() {
 		if p.dirty {
 			continue // Not saved (Redis unreachable): retried next tick, nothing shown before.
 		}
+		p.syncFollower()
 		for _, msg := range p.out {
 			p.sink.Send(msg)
 		}
@@ -159,6 +160,7 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 	}
 	to := p.pos.Step(m.Direction)
 	p.elevation = ElevationAfter(z.m, p.elevation, p.pos, to)
+	p.followStep(p.pos)
 	p.pos, p.dirty, p.corrected = to, true, false
 	z.countFriendshipStep(p)
 }
@@ -222,6 +224,6 @@ func (z *zone) withPlayer(p *Player, steps Script) Script {
 func (z *zone) correct(p *Player, step uint32) {
 	p.corrected = true
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Correction{Correction: &worldv1.Correction{
-		Step: step, X: uint32(p.pos.X), Y: uint32(p.pos.Y), Facing: p.facing,
+		Step: step, X: uint32(p.pos.X), Y: uint32(p.pos.Y), Facing: p.facing, Follower: p.follower.proto(),
 	}}})
 }

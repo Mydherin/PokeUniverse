@@ -1,7 +1,7 @@
 -- name: ListTrainerPokemon :many
 -- The party, in order.
 SELECT slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
-       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map
+       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map, markings
 FROM trainer_pokemon
 WHERE account_id = $1 AND box = 0
 ORDER BY slot;
@@ -9,7 +9,7 @@ ORDER BY slot;
 -- name: ListBoxPokemon :many
 -- One box, by slot; it can have gaps.
 SELECT slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
-       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map
+       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map, markings
 FROM trainer_pokemon
 WHERE account_id = $1 AND box = $2
 ORDER BY slot;
@@ -51,8 +51,15 @@ WHERE account_id = $1;
 
 -- name: InsertTrainerPokemon :exec
 INSERT INTO trainer_pokemon (account_id, box, slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
-                             moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24);
+                             moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map, markings)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25);
+
+-- name: OtherBoxPokemonKnowsMove :one
+-- RunCanReleaseMon: whether a boxed Pokémon other than the one at box, slot knows the move.
+SELECT EXISTS (
+    SELECT 1 FROM trainer_pokemon
+    WHERE account_id = $1 AND box <> 0 AND NOT (box = $2 AND slot = $3) AND sqlc.arg(move)::smallint = ANY (moves)
+);
 
 -- name: DeleteBoxPokemon :exec
 -- One box slot emptied (moved out or released).

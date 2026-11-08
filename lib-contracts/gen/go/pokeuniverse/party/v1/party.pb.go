@@ -140,7 +140,9 @@ type Pokemon struct {
 	OtGender v14.Gender `protobuf:"varint,20,opt,name=ot_gender,json=otGender,proto3,enum=pokeuniverse.trainer.v1.Gender" json:"ot_gender,omitempty"`
 	MetLevel uint32     `protobuf:"varint,21,opt,name=met_level,json=metLevel,proto3" json:"met_level,omitempty"`
 	// Where it was met: a lib-maps map; empty: a fateful encounter.
-	MetMap        string `protobuf:"bytes,22,opt,name=met_map,json=metMap,proto3" json:"met_map,omitempty"`
+	MetMap string `protobuf:"bytes,22,opt,name=met_map,json=metMap,proto3" json:"met_map,omitempty"`
+	// MARK's marks, one bit each from bit 0: ●, ■, ▲, ♥.
+	Markings      uint32 `protobuf:"varint,23,opt,name=markings,proto3" json:"markings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -327,6 +329,13 @@ func (x *Pokemon) GetMetMap() string {
 		return x.MetMap
 	}
 	return ""
+}
+
+func (x *Pokemon) GetMarkings() uint32 {
+	if x != nil {
+		return x.Markings
+	}
+	return 0
 }
 
 type Move struct {
@@ -1172,7 +1181,7 @@ var File_pokeuniverse_party_v1_party_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
 	"\n" +
-	"!pokeuniverse/party/v1/party.proto\x12\x15pokeuniverse.party.v1\x1a%pokeuniverse/ability/v1/catalog.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a$pokeuniverse/pokemon/v1/nature.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\x1a%pokeuniverse/species/v1/catalog.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\"\xf4\x06\n" +
+	"!pokeuniverse/party/v1/party.proto\x12\x15pokeuniverse.party.v1\x1a%pokeuniverse/ability/v1/catalog.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a$pokeuniverse/pokemon/v1/nature.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\x1a%pokeuniverse/species/v1/catalog.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\"\x90\a\n" +
 	"\aPokemon\x12:\n" +
 	"\aspecies\x18\x01 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\aspecies\x12\x1a\n" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x14\n" +
@@ -1196,7 +1205,8 @@ const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
 	"\bot_id_no\x18\x13 \x01(\rR\x06otIdNo\x12<\n" +
 	"\tot_gender\x18\x14 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\botGender\x12\x1b\n" +
 	"\tmet_level\x18\x15 \x01(\rR\bmetLevel\x12\x17\n" +
-	"\amet_map\x18\x16 \x01(\tR\x06metMap\"]\n" +
+	"\amet_map\x18\x16 \x01(\tR\x06metMap\x12\x1a\n" +
+	"\bmarkings\x18\x17 \x01(\rR\bmarkings\"]\n" +
 	"\x04Move\x12.\n" +
 	"\x04move\x18\x01 \x01(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x04move\x12\x0e\n" +
 	"\x02pp\x18\x02 \x01(\rR\x02pp\x12\x15\n" +

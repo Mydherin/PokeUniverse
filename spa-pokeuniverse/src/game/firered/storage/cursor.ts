@@ -26,8 +26,13 @@ const MAX_X = 256;
 const MIN_Y = -16;
 const MAX_Y = 176;
 
-const ANIM_BOUNCE = 0;
-const ANIM_STILL = 1;
+export const ANIM_BOUNCE = 0;
+export const ANIM_STILL = 1;
+/** The hand opening to take or let go of a Pokémon, and holding one. */
+export const HAND_OPEN = 2;
+export const HAND_FIST = 3;
+/** MonPlaceChange_MoveCursorDown: how far the hand reaches down. */
+const REACH = 8;
 const CURSOR_ANIMS: AnimCmd[][] = [
   [{ image: 0, duration: 30 }, { image: 16, duration: 30 }, { jump: 0 }],
   [{ image: 0, duration: 5 }, "end"],
@@ -63,6 +68,8 @@ export interface CursorMove {
 export class StorageCursor {
   area: Area;
   pos: number;
+  /** sIsMonBeingMoved: the hand keeps its fist while it carries one. */
+  holding = false;
   private readonly hand: Sprite;
   private readonly shadow: Sprite;
   private move: { to: CursorMove; x: number; y: number; dx: number; dy: number; steps: number; flipIn: number } | null = null;
@@ -104,7 +111,7 @@ export class StorageCursor {
       steps,
       flipIn: to.flip ? steps / 2 : 0,
     };
-    this.hand.startAnim(ANIM_STILL);
+    if (!this.holding) this.hand.startAnim(ANIM_STILL);
     this.shadow.invisible = !(this.area === Area.Box && to.area === Area.Box);
   }
 
@@ -134,9 +141,42 @@ export class StorageCursor {
     return false;
   }
 
+  setHand(anim: number): void {
+    this.hand.startAnim(anim);
+  }
+
+  /** MonPlaceChange_MoveCursorDown, each frame; false once it's down. */
+  reachDown(): boolean {
+    if (this.hand.y2 === REACH) return false;
+    this.hand.y2++;
+    return true;
+  }
+
+  /** MonPlaceChange_MoveCursorUp, each frame; false once it's up. */
+  reachUp(): boolean {
+    if (this.hand.y2 === 0) return false;
+    this.hand.y2--;
+    return true;
+  }
+
+  /** SpriteCB_HeldMon: where the held Pokémon's icon goes. */
+  holdPoint(): [number, number] {
+    return [this.hand.x, this.hand.y + this.hand.y2 + 4];
+  }
+
+  /** SpriteCB_ItemIcon_SetPosToCursor: where the held item's icon goes, and its priority. */
+  itemPoint(): [number, number, number] {
+    return [this.hand.x + 4, this.hand.y + this.hand.y2 + 8, this.hand.priority];
+  }
+
+  /** GetMonIconPriorityByCursorArea: under the hand in the box, over the party panel. */
+  get iconPriority(): number {
+    return this.area === Area.Box ? 2 : 1;
+  }
+
   private land(): void {
     const inBox = this.area === Area.Box;
-    this.hand.startAnim(ANIM_BOUNCE);
+    this.hand.startAnim(this.holding ? HAND_FIST : ANIM_BOUNCE);
     this.hand.priority = inBox ? 2 : 1;
     this.hand.vFlip = false;
     this.shadow.invisible = !inBox;

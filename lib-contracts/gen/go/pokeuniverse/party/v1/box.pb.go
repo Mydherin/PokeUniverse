@@ -9,6 +9,7 @@ package partyv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -189,8 +190,11 @@ type BoxView struct {
 	// 1 to 14; 0: refused (the player isn't at a PC, or it couldn't be read), nothing else is set.
 	Box uint32 `protobuf:"varint,1,opt,name=box,proto3" json:"box,omitempty"`
 	// All 14, in order: boxes[0] is box 1.
-	Boxes         []*BoxInfo    `protobuf:"bytes,2,rep,name=boxes,proto3" json:"boxes,omitempty"`
-	Pokemon       []*BoxPokemon `protobuf:"bytes,3,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
+	Boxes   []*BoxInfo    `protobuf:"bytes,2,rep,name=boxes,proto3" json:"boxes,omitempty"`
+	Pokemon []*BoxPokemon `protobuf:"bytes,3,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
+	// The seq of the ClientMessage this answers (OpenBox or a box action), so a client pairs answers
+	// with its requests across reconnects.
+	Request       uint32 `protobuf:"varint,4,opt,name=request,proto3" json:"request,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -246,12 +250,20 @@ func (x *BoxView) GetPokemon() []*BoxPokemon {
 	return nil
 }
 
+func (x *BoxView) GetRequest() uint32 {
+	if x != nil {
+		return x.Request
+	}
+	return 0
+}
+
 // Where a Pokémon is in BILL'S PC's screen.
 type BoxPlace struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 0: the party; 1 to 14: a box.
 	Box uint32 `protobuf:"varint,1,opt,name=box,proto3" json:"box,omitempty"`
-	// The party: 0 to 5, no gaps (one past the last places it at the end: WITHDRAW). A box: 0 to 29.
+	// The party: 0 to 5, no gaps (one past the last places it at the end: WITHDRAW). A box: 0 to 29, or 30 as
+	// MovePokemon's `to`: the box's first free slot (DEPOSIT).
 	Slot          uint32 `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -305,7 +317,8 @@ func (x *BoxPlace) GetSlot() uint32 {
 // `to` swaps the two (SHIFT). Refused, changing nothing, when the party would be over six or
 // left with no Pokémon able to battle, or when a Pokémon holding MAIL would go into a box. A
 // Pokémon placed in a box gets its HP, status and PP back. The client shows it at once; answered
-// with the BoxView of the box shown (`to`'s, else `from`'s, else the current one), plus
+// with the BoxView of the box shown (`to`'s, else `from`'s, else the current one; DEPOSIT keeps
+// the current one), plus
 // PartyChanged when the party changed or the move was refused.
 type MovePokemon struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -405,6 +418,217 @@ func (x *ReleasePokemon) GetPlace() *BoxPlace {
 	return nil
 }
 
+// Client -> server: MARK, the marks chosen (0 to 15, one bit each as Pokemon.markings).
+// Answered like ReleasePokemon.
+type SetMarkings struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Place         *BoxPlace              `protobuf:"bytes,1,opt,name=place,proto3" json:"place,omitempty"`
+	Markings      uint32                 `protobuf:"varint,2,opt,name=markings,proto3" json:"markings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetMarkings) Reset() {
+	*x = SetMarkings{}
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetMarkings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetMarkings) ProtoMessage() {}
+
+func (x *SetMarkings) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetMarkings.ProtoReflect.Descriptor instead.
+func (*SetMarkings) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SetMarkings) GetPlace() *BoxPlace {
+	if x != nil {
+		return x.Place
+	}
+	return nil
+}
+
+func (x *SetMarkings) GetMarkings() uint32 {
+	if x != nil {
+		return x.Markings
+	}
+	return 0
+}
+
+// Client -> server: ITEM mode's GIVE or SWITCH. The hand's item stays on `from` until put down:
+// `from`'s held item goes to `to`, swapping with the one `to` holds (SWITCH: the hand then holds
+// that one, still at `from`). Refused when `from` holds nothing or either holds MAIL. Answered
+// like MovePokemon.
+type MoveHeldItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	From          *BoxPlace              `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	To            *BoxPlace              `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MoveHeldItem) Reset() {
+	*x = MoveHeldItem{}
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MoveHeldItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MoveHeldItem) ProtoMessage() {}
+
+func (x *MoveHeldItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MoveHeldItem.ProtoReflect.Descriptor instead.
+func (*MoveHeldItem) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *MoveHeldItem) GetFrom() *BoxPlace {
+	if x != nil {
+		return x.From
+	}
+	return nil
+}
+
+func (x *MoveHeldItem) GetTo() *BoxPlace {
+	if x != nil {
+		return x.To
+	}
+	return nil
+}
+
+// Client -> server: ITEM mode's BAG, or YES to CLOSE BOX while holding an item: the item held at
+// `place` into the bag. Refused (nothing changes) when the bag is full or it's MAIL. Answered
+// like MovePokemon, with BagChanged first.
+type StoreHeldItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Place         *BoxPlace              `protobuf:"bytes,1,opt,name=place,proto3" json:"place,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StoreHeldItem) Reset() {
+	*x = StoreHeldItem{}
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StoreHeldItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StoreHeldItem) ProtoMessage() {}
+
+func (x *StoreHeldItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StoreHeldItem.ProtoReflect.Descriptor instead.
+func (*StoreHeldItem) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *StoreHeldItem) GetPlace() *BoxPlace {
+	if x != nil {
+		return x.Place
+	}
+	return nil
+}
+
+// Client -> server: ITEM mode's GIVE from the bag, for a Pokémon holding nothing. Refused like
+// the party menu's GIVE. Answered like StoreHeldItem.
+type GiveHeldItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Place         *BoxPlace              `protobuf:"bytes,1,opt,name=place,proto3" json:"place,omitempty"`
+	Item          v1.Item                `protobuf:"varint,2,opt,name=item,proto3,enum=pokeuniverse.item.v1.Item" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GiveHeldItem) Reset() {
+	*x = GiveHeldItem{}
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GiveHeldItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GiveHeldItem) ProtoMessage() {}
+
+func (x *GiveHeldItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GiveHeldItem.ProtoReflect.Descriptor instead.
+func (*GiveHeldItem) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GiveHeldItem) GetPlace() *BoxPlace {
+	if x != nil {
+		return x.Place
+	}
+	return nil
+}
+
+func (x *GiveHeldItem) GetItem() v1.Item {
+	if x != nil {
+		return x.Item
+	}
+	return v1.Item(0)
+}
+
 // Client -> server: the box options' NAME. 1 to 8 characters. Answered with the box's BoxView.
 type RenameBox struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -416,7 +640,7 @@ type RenameBox struct {
 
 func (x *RenameBox) Reset() {
 	*x = RenameBox{}
-	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[7]
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -428,7 +652,7 @@ func (x *RenameBox) String() string {
 func (*RenameBox) ProtoMessage() {}
 
 func (x *RenameBox) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[7]
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -441,7 +665,7 @@ func (x *RenameBox) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameBox.ProtoReflect.Descriptor instead.
 func (*RenameBox) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{7}
+	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RenameBox) GetBox() uint32 {
@@ -469,7 +693,7 @@ type SetBoxWallpaper struct {
 
 func (x *SetBoxWallpaper) Reset() {
 	*x = SetBoxWallpaper{}
-	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[8]
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -481,7 +705,7 @@ func (x *SetBoxWallpaper) String() string {
 func (*SetBoxWallpaper) ProtoMessage() {}
 
 func (x *SetBoxWallpaper) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[8]
+	mi := &file_pokeuniverse_party_v1_box_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +718,7 @@ func (x *SetBoxWallpaper) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetBoxWallpaper.ProtoReflect.Descriptor instead.
 func (*SetBoxWallpaper) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{8}
+	return file_pokeuniverse_party_v1_box_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SetBoxWallpaper) GetBox() uint32 {
@@ -515,7 +739,7 @@ var File_pokeuniverse_party_v1_box_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_party_v1_box_proto_rawDesc = "" +
 	"\n" +
-	"\x1fpokeuniverse/party/v1/box.proto\x12\x15pokeuniverse.party.v1\x1a!pokeuniverse/party/v1/party.proto\"\x1b\n" +
+	"\x1fpokeuniverse/party/v1/box.proto\x12\x15pokeuniverse.party.v1\x1a\"pokeuniverse/item/v1/catalog.proto\x1a!pokeuniverse/party/v1/party.proto\"\x1b\n" +
 	"\aOpenBox\x12\x10\n" +
 	"\x03box\x18\x01 \x01(\rR\x03box\"Q\n" +
 	"\aBoxInfo\x12\x12\n" +
@@ -525,11 +749,12 @@ const file_pokeuniverse_party_v1_box_proto_rawDesc = "" +
 	"\n" +
 	"BoxPokemon\x12\x12\n" +
 	"\x04slot\x18\x01 \x01(\rR\x04slot\x128\n" +
-	"\apokemon\x18\x02 \x01(\v2\x1e.pokeuniverse.party.v1.PokemonR\apokemon\"\x8e\x01\n" +
+	"\apokemon\x18\x02 \x01(\v2\x1e.pokeuniverse.party.v1.PokemonR\apokemon\"\xa8\x01\n" +
 	"\aBoxView\x12\x10\n" +
 	"\x03box\x18\x01 \x01(\rR\x03box\x124\n" +
 	"\x05boxes\x18\x02 \x03(\v2\x1e.pokeuniverse.party.v1.BoxInfoR\x05boxes\x12;\n" +
-	"\apokemon\x18\x03 \x03(\v2!.pokeuniverse.party.v1.BoxPokemonR\apokemon\"0\n" +
+	"\apokemon\x18\x03 \x03(\v2!.pokeuniverse.party.v1.BoxPokemonR\apokemon\x12\x18\n" +
+	"\arequest\x18\x04 \x01(\rR\arequest\"0\n" +
 	"\bBoxPlace\x12\x10\n" +
 	"\x03box\x18\x01 \x01(\rR\x03box\x12\x12\n" +
 	"\x04slot\x18\x02 \x01(\rR\x04slot\"s\n" +
@@ -537,7 +762,18 @@ const file_pokeuniverse_party_v1_box_proto_rawDesc = "" +
 	"\x04from\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x04from\x12/\n" +
 	"\x02to\x18\x02 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x02to\"G\n" +
 	"\x0eReleasePokemon\x125\n" +
-	"\x05place\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x05place\"1\n" +
+	"\x05place\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x05place\"`\n" +
+	"\vSetMarkings\x125\n" +
+	"\x05place\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x05place\x12\x1a\n" +
+	"\bmarkings\x18\x02 \x01(\rR\bmarkings\"t\n" +
+	"\fMoveHeldItem\x123\n" +
+	"\x04from\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x04from\x12/\n" +
+	"\x02to\x18\x02 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x02to\"F\n" +
+	"\rStoreHeldItem\x125\n" +
+	"\x05place\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x05place\"u\n" +
+	"\fGiveHeldItem\x125\n" +
+	"\x05place\x18\x01 \x01(\v2\x1f.pokeuniverse.party.v1.BoxPlaceR\x05place\x12.\n" +
+	"\x04item\x18\x02 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04item\"1\n" +
 	"\tRenameBox\x12\x10\n" +
 	"\x03box\x18\x01 \x01(\rR\x03box\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"A\n" +
@@ -557,7 +793,7 @@ func file_pokeuniverse_party_v1_box_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_party_v1_box_proto_rawDescData
 }
 
-var file_pokeuniverse_party_v1_box_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_pokeuniverse_party_v1_box_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_pokeuniverse_party_v1_box_proto_goTypes = []any{
 	(*OpenBox)(nil),         // 0: pokeuniverse.party.v1.OpenBox
 	(*BoxInfo)(nil),         // 1: pokeuniverse.party.v1.BoxInfo
@@ -566,22 +802,33 @@ var file_pokeuniverse_party_v1_box_proto_goTypes = []any{
 	(*BoxPlace)(nil),        // 4: pokeuniverse.party.v1.BoxPlace
 	(*MovePokemon)(nil),     // 5: pokeuniverse.party.v1.MovePokemon
 	(*ReleasePokemon)(nil),  // 6: pokeuniverse.party.v1.ReleasePokemon
-	(*RenameBox)(nil),       // 7: pokeuniverse.party.v1.RenameBox
-	(*SetBoxWallpaper)(nil), // 8: pokeuniverse.party.v1.SetBoxWallpaper
-	(*Pokemon)(nil),         // 9: pokeuniverse.party.v1.Pokemon
+	(*SetMarkings)(nil),     // 7: pokeuniverse.party.v1.SetMarkings
+	(*MoveHeldItem)(nil),    // 8: pokeuniverse.party.v1.MoveHeldItem
+	(*StoreHeldItem)(nil),   // 9: pokeuniverse.party.v1.StoreHeldItem
+	(*GiveHeldItem)(nil),    // 10: pokeuniverse.party.v1.GiveHeldItem
+	(*RenameBox)(nil),       // 11: pokeuniverse.party.v1.RenameBox
+	(*SetBoxWallpaper)(nil), // 12: pokeuniverse.party.v1.SetBoxWallpaper
+	(*Pokemon)(nil),         // 13: pokeuniverse.party.v1.Pokemon
+	(v1.Item)(0),            // 14: pokeuniverse.item.v1.Item
 }
 var file_pokeuniverse_party_v1_box_proto_depIdxs = []int32{
-	9, // 0: pokeuniverse.party.v1.BoxPokemon.pokemon:type_name -> pokeuniverse.party.v1.Pokemon
-	1, // 1: pokeuniverse.party.v1.BoxView.boxes:type_name -> pokeuniverse.party.v1.BoxInfo
-	2, // 2: pokeuniverse.party.v1.BoxView.pokemon:type_name -> pokeuniverse.party.v1.BoxPokemon
-	4, // 3: pokeuniverse.party.v1.MovePokemon.from:type_name -> pokeuniverse.party.v1.BoxPlace
-	4, // 4: pokeuniverse.party.v1.MovePokemon.to:type_name -> pokeuniverse.party.v1.BoxPlace
-	4, // 5: pokeuniverse.party.v1.ReleasePokemon.place:type_name -> pokeuniverse.party.v1.BoxPlace
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	13, // 0: pokeuniverse.party.v1.BoxPokemon.pokemon:type_name -> pokeuniverse.party.v1.Pokemon
+	1,  // 1: pokeuniverse.party.v1.BoxView.boxes:type_name -> pokeuniverse.party.v1.BoxInfo
+	2,  // 2: pokeuniverse.party.v1.BoxView.pokemon:type_name -> pokeuniverse.party.v1.BoxPokemon
+	4,  // 3: pokeuniverse.party.v1.MovePokemon.from:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 4: pokeuniverse.party.v1.MovePokemon.to:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 5: pokeuniverse.party.v1.ReleasePokemon.place:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 6: pokeuniverse.party.v1.SetMarkings.place:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 7: pokeuniverse.party.v1.MoveHeldItem.from:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 8: pokeuniverse.party.v1.MoveHeldItem.to:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 9: pokeuniverse.party.v1.StoreHeldItem.place:type_name -> pokeuniverse.party.v1.BoxPlace
+	4,  // 10: pokeuniverse.party.v1.GiveHeldItem.place:type_name -> pokeuniverse.party.v1.BoxPlace
+	14, // 11: pokeuniverse.party.v1.GiveHeldItem.item:type_name -> pokeuniverse.item.v1.Item
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_party_v1_box_proto_init() }
@@ -596,7 +843,7 @@ func file_pokeuniverse_party_v1_box_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_party_v1_box_proto_rawDesc), len(file_pokeuniverse_party_v1_box_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

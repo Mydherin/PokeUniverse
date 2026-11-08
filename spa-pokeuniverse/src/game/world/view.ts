@@ -27,6 +27,7 @@ export interface CharacterView {
   setFrame(frame: number, hFlip: boolean): void;
   /** Over the tiles that usually cover characters (or under them). */
   setOverTiles(over: boolean): void;
+  setVisible(visible: boolean): void;
   destroy(): void;
 }
 

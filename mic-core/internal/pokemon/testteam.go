@@ -61,6 +61,10 @@ func GiveTestTeam(ctx context.Context, pool *pgxpool.Pool, accountID int64, save
 		if err := insert(ctx, q, accountID, party); err != nil {
 			return err
 		}
+		// Boxes already holding Pokémon (an empty party set up by hand) keep them.
+		if boxes, err := q.CountBoxPokemon(ctx, accountID); err != nil || len(boxes) > 0 {
+			return err
+		}
 		return insertTestBoxes(ctx, q, accountID, ot)
 	})
 	if err != nil {

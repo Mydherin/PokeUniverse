@@ -49,6 +49,10 @@ message ClientMessage {
     pokeuniverse.party.v1.ReleasePokemon release_pokemon = 30;
     pokeuniverse.party.v1.RenameBox rename_box = 31;
     pokeuniverse.party.v1.SetBoxWallpaper set_box_wallpaper = 32;
+    pokeuniverse.party.v1.SetMarkings set_markings = 33;
+    pokeuniverse.party.v1.MoveHeldItem move_held_item = 34;
+    pokeuniverse.party.v1.StoreHeldItem store_held_item = 35;
+    pokeuniverse.party.v1.GiveHeldItem give_held_item = 36;
   }
 }
 
@@ -75,6 +79,7 @@ message ServerMessage {
     pokeuniverse.party.v1.LearnMoveResult learn_move_result = 18;
     pokeuniverse.party.v1.FieldMoveResult field_move_result = 19;
     pokeuniverse.party.v1.BoxView box_view = 20;
+    pokeuniverse.world.v1.FollowerChanged follower_changed = 21;
   }
 }
 

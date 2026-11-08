@@ -17,7 +17,7 @@ import type { BoxAction } from "./box-action";
 import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
-import type { Correction, Script, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 
 export type ConnectionStatus =
@@ -49,6 +49,7 @@ export interface WorldEvents {
   learnMoveResult(r: LearnMoveResult): void;
   fieldMoveResult(r: FieldMoveResult): void;
   boxView(v: BoxView): void;
+  followerChanged(f: FollowerChanged): void;
   pokedexChanged(p: PokedexChanged): void;
   /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
@@ -97,11 +98,12 @@ export interface WorldLink {
   /** A bag item used on a party Pokémon (`moveSlot`: the move, for items that ask); answered with an ItemResult. */
   usePartyItem(item: Item, slot: number, moveSlot: number): void;
   useFieldMove(slot: number, move: number, target?: number): void;
-  /** Shows a box, which becomes the current one (0: the current box); answered with a BoxView. */
-  openBox(box: number): void;
+  /** Shows a box, which becomes the current one (0: the current box); answered with a BoxView
+   *  whose `request` is the seq returned here (0: not sent). */
+  openBox(box: number): number;
   /** MovePokemon, ReleasePokemon, RenameBox or SetBoxWallpaper; shown at once, answered with a
-   *  BoxView (plus PartyChanged when it touched the party or was refused). */
-  boxAction(action: BoxAction): void;
+   *  BoxView (plus PartyChanged when it touched the party or was refused) tagged like openBox's. */
+  boxAction(action: BoxAction): number;
   /** A party Pokémon's held item into the bag; answered with an ItemResult. */
   takePartyItem(slot: number): void;
   /** SWITCH on the summary's move page (slots and moves from 0); shown at once, corrected like swapPartySlots. */
@@ -279,12 +281,12 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "useFieldMove", value: { slot, move, target } });
   }
 
-  openBox(box: number): void {
-    if (this.inWorld) this.send({ case: "openBox", value: { box } });
+  openBox(box: number): number {
+    return this.inWorld ? this.send({ case: "openBox", value: { box } }) : 0;
   }
 
-  boxAction(action: BoxAction): void {
-    if (this.inWorld) this.send(action);
+  boxAction(action: BoxAction): number {
+    return this.inWorld ? this.send(action) : 0;
   }
 
   learnMove(slot: number, move: number, forgetSlot: number): void {
@@ -343,6 +345,9 @@ export class Connection implements WorldLink {
       case "boxView":
         this.world?.boxView(msg.payload.value);
         break;
+      case "followerChanged":
+        this.world?.followerChanged(msg.payload.value);
+        break;
       case "pokedexChanged":
         this.world?.pokedexChanged(msg.payload.value);
         break;
@@ -377,9 +382,11 @@ export class Connection implements WorldLink {
     this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } });
   }
 
-  private send(payload: Payload): void {
-    if (this.ws?.readyState !== WebSocket.OPEN) return;
+  /** The message's seq (unique for the page, so answers can name it); 0: not sent. */
+  private send(payload: Payload): number {
+    if (this.ws?.readyState !== WebSocket.OPEN) return 0;
     this.ws.send(toBinary(ClientMessageSchema, create(ClientMessageSchema, { seq: ++this.seq, payload })));
+    return this.seq;
   }
 
   private async reconnect(code: number): Promise<void> {

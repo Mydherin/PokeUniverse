@@ -131,6 +131,8 @@ const NEW_GAME_GRAPHICS = {
   nsPageSwapLower: { png: "naming_screen/page_swap_lower.png" },
   nsPageSwapOthers: { png: "naming_screen/page_swap_others.png" },
   nsCursor: { png: "naming_screen/cursor.png" },
+  nsPcIconOff: { png: "naming_screen/pc_icon_off.png" },
+  nsPcIconOn: { png: "naming_screen/pc_icon_on.png" },
   nsCursorSquished: { png: "naming_screen/cursor_squished.png" },
   nsCursorFilled: { png: "naming_screen/cursor_filled.png" },
   nsInputArrow: { png: "naming_screen/input_arrow.png" },
@@ -274,6 +276,9 @@ const PARTY_GRAPHICS = {
   summaryCursorLeft: { png: "summary_screen/move_selection_cursor_left.png" },
   summaryCursorRight: { png: "summary_screen/move_selection_cursor_right.png" },
   summaryCursorPal: { pal: "summary_screen/move_selection_cursor.pal" },
+  summaryMarkingPal: { pal: "summary_screen/marking.pal" },
+  // The marks of a Pokémon (sMonMarkings_Gfx): the summary's and the box screen's.
+  markingCombo: { png: "misc/mon_markings.png", bpp4: true },
   ballMaster: { png: "interface/ball/master.png" },
   ballUltra: { png: "interface/ball/ultra.png" },
   ballGreat: { png: "interface/ball/great.png" },
@@ -354,8 +359,12 @@ const STORAGE_GRAPHICS = {
   storageSlotFilled: { bin: "pokemon_storage/party_slot_filled.bin" },
   storageSlotEmpty: { bin: "pokemon_storage/party_slot_empty.bin" },
   storageCursor: { png: "pokemon_storage/cursor.png", bpp4: true },
+  // MARK's menu (gMonMarkingsMenu_Gfx).
+  markingsMenu: { png: "misc/markings2.png", bpp4: true },
   storageCursorShadow: { png: "pokemon_storage/cursor_shadow.png", bpp4: true },
   storageArrow: { png: "pokemon_storage/box_scroll_arrow.png", bpp4: true },
+  storageChooseBoxCenter: { png: "pokemon_storage/choose_box_menu_center.png", bpp4: true },
+  storageChooseBoxCorners: { png: "pokemon_storage/choose_box_menu_corners.png", bpp4: true },
   storageWaveform: { png: "pokemon_storage/waveform.png", bpp4: true },
 };
 
@@ -597,6 +606,16 @@ export interface PokemonArt {
   footprint: IndexedImage;
 }
 
+/**
+ * A species' following-Pokémon sheet (pokeemerald-expansion's): square frames (32 or 64 px) side by
+ * side, with its normal and shiny colors.
+ */
+export interface FollowerArt {
+  image: IndexedImage;
+  palette: Uint16Array;
+  shinyPalette: Uint16Array;
+}
+
 const nnn = (n: number) => String(n).padStart(3, "0");
 
 const json = <T>(path: string): Promise<T> =>
@@ -623,6 +642,7 @@ export class Assets {
   private natureNames: Record<string, number[]> = {};
   private readonly pokemonArts = new Map<number, Promise<PokemonArt>>();
   private readonly backPics = new Map<number, Promise<IndexedImage>>();
+  private readonly followerArts = new Map<number, Promise<FollowerArt>>();
   private battle: Promise<void> | null = null;
   private readonly loadedArts = new Map<number, PokemonArt>();
   private readonly animArts = new Map<string, Promise<Graphic>>();
@@ -784,6 +804,20 @@ export class Assets {
       );
       art.catch(() => this.pokemonArts.delete(n));
       this.pokemonArts.set(n, art);
+    }
+    return art;
+  }
+
+  /** A species' following-Pokémon sheet, loaded the first time it's asked for. */
+  followerArt(n: number): Promise<FollowerArt> {
+    let art = this.followerArts.get(n);
+    if (!art) {
+      const dir = `${ROOT}/pokemon/${nnn(n)}`;
+      art = Promise.all([fetchPng(`${dir}/overworld.png`), fetchPal(`${dir}/overworld.pal`), fetchPal(`${dir}/overworld-shiny.pal`)]).then(
+        ([image, palette, shinyPalette]) => ({ image, palette, shinyPalette }),
+      );
+      art.catch(() => this.followerArts.delete(n));
+      this.followerArts.set(n, art);
     }
     return art;
   }

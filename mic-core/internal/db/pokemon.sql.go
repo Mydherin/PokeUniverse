@@ -72,8 +72,8 @@ func (q *Queries) DeleteTrainerPokemon(ctx context.Context, accountID int64) err
 
 const insertTrainerPokemon = `-- name: InsertTrainerPokemon :exec
 INSERT INTO trainer_pokemon (account_id, box, slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
-                             moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+                             moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map, markings)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
 `
 
 type InsertTrainerPokemonParams struct {
@@ -101,6 +101,7 @@ type InsertTrainerPokemonParams struct {
 	OtGender    string
 	MetLevel    int16
 	MetMap      string
+	Markings    int16
 }
 
 func (q *Queries) InsertTrainerPokemon(ctx context.Context, arg InsertTrainerPokemonParams) error {
@@ -129,13 +130,14 @@ func (q *Queries) InsertTrainerPokemon(ctx context.Context, arg InsertTrainerPok
 		arg.OtGender,
 		arg.MetLevel,
 		arg.MetMap,
+		arg.Markings,
 	)
 	return err
 }
 
 const listBoxPokemon = `-- name: ListBoxPokemon :many
 SELECT slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
-       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map
+       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map, markings
 FROM trainer_pokemon
 WHERE account_id = $1 AND box = $2
 ORDER BY slot
@@ -169,6 +171,7 @@ type ListBoxPokemonRow struct {
 	OtGender    string
 	MetLevel    int16
 	MetMap      string
+	Markings    int16
 }
 
 // One box, by slot; it can have gaps.
@@ -204,6 +207,7 @@ func (q *Queries) ListBoxPokemon(ctx context.Context, arg ListBoxPokemonParams) 
 			&i.OtGender,
 			&i.MetLevel,
 			&i.MetMap,
+			&i.Markings,
 		); err != nil {
 			return nil, err
 		}
@@ -283,7 +287,7 @@ func (q *Queries) ListTrainerBoxes(ctx context.Context, accountID int64) ([]List
 
 const listTrainerPokemon = `-- name: ListTrainerPokemon :many
 SELECT slot, species, nickname, level, exp, personality, ivs, evs, ability_slot, held_item,
-       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map
+       moves, pp, pp_ups, hp, status, friendship, ball, ot_name, ot_id, ot_gender, met_level, met_map, markings
 FROM trainer_pokemon
 WHERE account_id = $1 AND box = 0
 ORDER BY slot
@@ -312,6 +316,7 @@ type ListTrainerPokemonRow struct {
 	OtGender    string
 	MetLevel    int16
 	MetMap      string
+	Markings    int16
 }
 
 // The party, in order.
@@ -347,6 +352,7 @@ func (q *Queries) ListTrainerPokemon(ctx context.Context, accountID int64) ([]Li
 			&i.OtGender,
 			&i.MetLevel,
 			&i.MetMap,
+			&i.Markings,
 		); err != nil {
 			return nil, err
 		}
@@ -356,6 +362,33 @@ func (q *Queries) ListTrainerPokemon(ctx context.Context, accountID int64) ([]Li
 		return nil, err
 	}
 	return items, nil
+}
+
+const otherBoxPokemonKnowsMove = `-- name: OtherBoxPokemonKnowsMove :one
+SELECT EXISTS (
+    SELECT 1 FROM trainer_pokemon
+    WHERE account_id = $1 AND box <> 0 AND NOT (box = $2 AND slot = $3) AND $4::smallint = ANY (moves)
+)
+`
+
+type OtherBoxPokemonKnowsMoveParams struct {
+	AccountID int64
+	Box       int16
+	Slot      int16
+	Move      int16
+}
+
+// RunCanReleaseMon: whether a boxed Pokémon other than the one at box, slot knows the move.
+func (q *Queries) OtherBoxPokemonKnowsMove(ctx context.Context, arg OtherBoxPokemonKnowsMoveParams) (bool, error) {
+	row := q.db.QueryRow(ctx, otherBoxPokemonKnowsMove,
+		arg.AccountID,
+		arg.Box,
+		arg.Slot,
+		arg.Move,
+	)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const resetTrainerBoxes = `-- name: ResetTrainerBoxes :exec

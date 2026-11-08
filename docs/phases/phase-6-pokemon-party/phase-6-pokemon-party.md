@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** [M7: Boxes: managing Pokémon](milestones/m07-boxes-actions.md), in progress (server done): read its Resume Here. M6 is played and closed.
+**Next step:** [M9: Following Pokémon: edge cases, phase check](milestones/m09-following-check.md), in progress: edge cases all played (session 4); only step 7 is left: the phase check, regression, restore test data, close Phase 6 (its Resume Here). M7 and M8 closed 2026-11-08. Committed through step 6. **The following Pokémon (M8, M9) takes HeartGold as its main reference:** it behaves as the original HeartGold feature (`references/pokeheartgold/`, behavior only), shown in FireRed's style.
 
 Every milestone is played in the game before it closes, with the regression check: [context.md](milestones/context.md#playing-a-milestone).
 
@@ -21,9 +21,9 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M4 | [Exp. Share and held items](milestones/m04-exp-share-held-items.md) | ✅ | | Exp. Share's split in `mic-battles`; held items' effects outside battle |
 | M5 | [Field moves on the party screen](milestones/m05-field-moves.md) | ✅ | M1 | Field moves in the party menu; Milk Drink and Softboiled work, the rest refuse until their maps |
 | M6 | [Boxes: storage and viewing](milestones/m06-boxes-storage.md) | ✅ | | Box storage in `mic-core`, BILL'S PC in the PC menu, the box screen to look through |
-| M7 | [Boxes: managing Pokémon](milestones/m07-boxes-actions.md) | 🚧 | M6 | WITHDRAW, DEPOSIT, MOVE, RELEASE, held items, box options |
-| M8 | [Following Pokémon: art and walking](milestones/m08-following-walk.md) | ⬜ | | Overworld sprites in the build; the lead walks behind the player, decided by the server |
-| M9 | [Following Pokémon: edge cases, phase check](milestones/m09-following-check.md) | ⬜ | M7, M8 | Warps, lead changes, battles, reloads; the whole phase played once |
+| M7 | [Boxes: managing Pokémon](milestones/m07-boxes-actions.md) | ✅ | M6 | WITHDRAW, DEPOSIT, MOVE, RELEASE, held items, box options |
+| M8 | [Following Pokémon: art and walking](milestones/m08-following-walk.md) | ✅ | | Overworld sprites in the build; the lead walks behind the player, decided by the server |
+| M9 | [Following Pokémon: edge cases, phase check](milestones/m09-following-check.md) | 🚧 | M7, M8 | Warps, lead changes, battles, reloads; the whole phase played once |
 
 M1 → M1b → M2 → M3 and M6 → M7 → M9 are chains. M4, M5 and M8 can go in any order after what they need.
 

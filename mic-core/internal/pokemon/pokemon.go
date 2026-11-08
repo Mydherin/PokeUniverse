@@ -37,6 +37,8 @@ type Pokemon struct {
 	OT          Trainer
 	MetLevel    int
 	MetMap      string // Empty: a fateful encounter.
+	// MARK's four marks, one bit each (MON_DATA_MARKINGS).
+	Markings int
 }
 
 // Create is CreateMon: a new Pokémon at full health with its species' default moves, caught in
@@ -103,6 +105,6 @@ func (p *Pokemon) Proto() *partyv1.Pokemon {
 		Hp: uint32(p.HP), Stats: p.Stats().Proto(), Moves: moves, Status: p.Status, HeldItem: p.HeldItem,
 		Ability: p.Ability(), Nature: p.Nature(), Gender: p.Gender(), Shiny: p.Shiny(), Personality: p.Personality,
 		Ball: p.Ball, OtName: p.OT.Name, OtIdNo: p.OT.ID & 0xffff, OtGender: p.OT.Gender,
-		MetLevel: uint32(p.MetLevel), MetMap: p.MetMap,
+		MetLevel: uint32(p.MetLevel), MetMap: p.MetMap, Markings: uint32(p.Markings),
 	}
 }

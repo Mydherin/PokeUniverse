@@ -30,7 +30,7 @@ FIRERED_GFX_FILES := weather/fog_horizontal.png fonts/latin_normal.png fonts/lat
 	interface/bag_male.png interface/bag_female.png interface/bag.pal interface/red_arrow_other.png interface/red_arrow.pal \
 	interface/select_button.png interface/bag_swap.png interface/selector_outline.png \
 	interface/menu_info.png interface/pokemon_types.pal interface/dex_caught_pokeball.pal \
-	misc/option_menu.pal \
+	misc/option_menu.pal misc/markings2.png misc/mon_markings.png \
 	$(addprefix battle_terrain/building/,terrain.png terrain.bin terrain.pal) interface/text_pp.pal \
 	trainers/front_pics/cool_trainer_m_front_pic.png trainers/palettes/cool_trainer_m.pal \
 	trainers/back_pics/red_back_pic.png trainers/back_pics/leaf_back_pic.png trainers/palettes/red_back_pic.pal trainers/palettes/leaf_back_pic.pal

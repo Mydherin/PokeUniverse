@@ -126,4 +126,5 @@ type TrainerPokemon struct {
 	MetLevel    int16
 	MetMap      string
 	Box         int16
+	Markings    int16
 }

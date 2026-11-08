@@ -26,7 +26,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/world/v1/world.proto.
  */
 export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcifwoGQXZhdGFyEgkKAXgYASABKA0SCQoBeRgCIAEoDRIuCgZmYWNpbmcYAyABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIvCgZnZW5kZXIYBCABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXIibAoGV2FycGVkEgsKA21hcBgBIAEoCRIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SDwoHY2FuX3J1bhgFIAEoCCJgCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlMKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwEgsKA25wYxgDIAEoCSLiAgoKU2NyaXB0U3RlcBIxCgdtZXNzYWdlGAEgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1lc3NhZ2VIABIPCgVzb3VuZBgCIAEoCUgAEjQKCXBjX3NjcmVlbhgDIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5QY1NjcmVlbkgAEjYKCnBsYXllcnNfcGMYBCABKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyc1BjSAASLgoGeWVzX25vGAUgASgLMhwucG9rZXVuaXZlcnNlLndvcmxkLnYxLlllc05vSAASPgoOdHJhaW5lcl9iYXR0bGUYBiABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuVHJhaW5lckJhdHRsZUgAEg8KBW11c2ljGAcgASgJSAASFwoNZmFjZV9vcmlnaW5hbBgIIAEoCEgAQggKBmFjdGlvbiI2CgVZZXNObxItCgJubxgBIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIiAKDVRyYWluZXJCYXR0bGUSDwoHdHJhaW5lchgBIAEoCSIeCgxTY3JpcHRCYXR0bGUSDgoGc2NyaXB0GAEgASgNIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcisgEKBkF2YXRhchIJCgF4GAEgASgNEgkKAXkYAiABKA0SLgoGZmFjaW5nGAMgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SLwoGZ2VuZGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIoABCghGb2xsb3dlchIPCgdzcGVjaWVzGAEgASgNEg0KBXNoaW55GAIgASgIEgkKAXgYAyABKA0SCQoBeRgEIAEoDRIuCgZmYWNpbmcYBSABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIOCgZoaWRkZW4YBiABKAgiRAoPRm9sbG93ZXJDaGFuZ2VkEjEKCGZvbGxvd2VyGAEgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIp8BCgZXYXJwZWQSCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIPCgdjYW5fcnVuGAUgASgIEjEKCGZvbGxvd2VyGAYgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIpMBCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIlMKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwEgsKA25wYxgDIAEoCSLiAgoKU2NyaXB0U3RlcBIxCgdtZXNzYWdlGAEgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1lc3NhZ2VIABIPCgVzb3VuZBgCIAEoCUgAEjQKCXBjX3NjcmVlbhgDIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5QY1NjcmVlbkgAEjYKCnBsYXllcnNfcGMYBCABKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyc1BjSAASLgoGeWVzX25vGAUgASgLMhwucG9rZXVuaXZlcnNlLndvcmxkLnYxLlllc05vSAASPgoOdHJhaW5lcl9iYXR0bGUYBiABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuVHJhaW5lckJhdHRsZUgAEg8KBW11c2ljGAcgASgJSAASFwoNZmFjZV9vcmlnaW5hbBgIIAEoCEgAQggKBmFjdGlvbiI2CgVZZXNObxItCgJubxgBIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIiAKDVRyYWluZXJCYXR0bGUSDwoHdHJhaW5lchgBIAEoCSIeCgxTY3JpcHRCYXR0bGUSDgoGc2NyaXB0GAEgASgNIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
@@ -282,6 +282,13 @@ export type Avatar = Message$1<"pokeuniverse.world.v1.Avatar"> & {
    * @generated from field: pokeuniverse.trainer.v1.Gender gender = 4;
    */
   gender: Gender;
+
+  /**
+   * The Pokémon walking behind the trainer; unset when there is none.
+   *
+   * @generated from field: pokeuniverse.world.v1.Follower follower = 5;
+   */
+  follower?: Follower | undefined;
 };
 
 /**
@@ -290,6 +297,74 @@ export type Avatar = Message$1<"pokeuniverse.world.v1.Avatar"> & {
  */
 export const AvatarSchema: GenMessage<Avatar> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_world_v1_world, 7);
+
+/**
+ * The Pokémon that follows the trainer, as in HeartGold and SoulSilver: the first party Pokémon that
+ * isn't fainted (the first one if all are). It steps onto the tile the player left, at the player's speed.
+ *
+ * @generated from message pokeuniverse.world.v1.Follower
+ */
+export type Follower = Message$1<"pokeuniverse.world.v1.Follower"> & {
+  /**
+   * National Pokédex number.
+   *
+   * @generated from field: uint32 species = 1;
+   */
+  species: number;
+
+  /**
+   * @generated from field: bool shiny = 2;
+   */
+  shiny: boolean;
+
+  /**
+   * @generated from field: uint32 x = 3;
+   */
+  x: number;
+
+  /**
+   * @generated from field: uint32 y = 4;
+   */
+  y: number;
+
+  /**
+   * @generated from field: pokeuniverse.map.v1.Direction facing = 5;
+   */
+  facing: Direction;
+
+  /**
+   * On the player's own tile (entering the world, after a warp): not drawn until the player's next step.
+   *
+   * @generated from field: bool hidden = 6;
+   */
+  hidden: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.Follower.
+ * Use `create(FollowerSchema)` to create a new message.
+ */
+export const FollowerSchema: GenMessage<Follower> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 8);
+
+/**
+ * Server -> client: the follower changed (the party changed): another Pokémon, or none (unset).
+ *
+ * @generated from message pokeuniverse.world.v1.FollowerChanged
+ */
+export type FollowerChanged = Message$1<"pokeuniverse.world.v1.FollowerChanged"> & {
+  /**
+   * @generated from field: pokeuniverse.world.v1.Follower follower = 1;
+   */
+  follower?: Follower | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.FollowerChanged.
+ * Use `create(FollowerChangedSchema)` to create a new message.
+ */
+export const FollowerChangedSchema: GenMessage<FollowerChanged> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 9);
 
 /**
  * The server refused a predicted step: where the player really is. The client goes back there;
@@ -326,6 +401,13 @@ export type Warped = Message$1<"pokeuniverse.world.v1.Warped"> & {
    * @generated from field: bool can_run = 5;
    */
   canRun: boolean;
+
+  /**
+   * On the player's tile, hidden; unset when there is none.
+   *
+   * @generated from field: pokeuniverse.world.v1.Follower follower = 6;
+   */
+  follower?: Follower | undefined;
 };
 
 /**
@@ -333,7 +415,7 @@ export type Warped = Message$1<"pokeuniverse.world.v1.Warped"> & {
  * Use `create(WarpedSchema)` to create a new message.
  */
 export const WarpedSchema: GenMessage<Warped> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 8);
+  messageDesc(file_pokeuniverse_world_v1_world, 10);
 
 /**
  * @generated from message pokeuniverse.world.v1.Correction
@@ -360,6 +442,13 @@ export type Correction = Message$1<"pokeuniverse.world.v1.Correction"> & {
    * @generated from field: pokeuniverse.map.v1.Direction facing = 4;
    */
   facing: Direction;
+
+  /**
+   * Where the follower really is; unset when there is none.
+   *
+   * @generated from field: pokeuniverse.world.v1.Follower follower = 5;
+   */
+  follower?: Follower | undefined;
 };
 
 /**
@@ -367,7 +456,7 @@ export type Correction = Message$1<"pokeuniverse.world.v1.Correction"> & {
  * Use `create(CorrectionSchema)` to create a new message.
  */
 export const CorrectionSchema: GenMessage<Correction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 9);
+  messageDesc(file_pokeuniverse_world_v1_world, 11);
 
 /**
  * What an interaction runs, step by step. When it has steps, the player can't move until the
@@ -399,7 +488,7 @@ export type Script = Message$1<"pokeuniverse.world.v1.Script"> & {
  * Use `create(ScriptSchema)` to create a new message.
  */
 export const ScriptSchema: GenMessage<Script> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 10);
+  messageDesc(file_pokeuniverse_world_v1_world, 12);
 
 /**
  * @generated from message pokeuniverse.world.v1.ScriptStep
@@ -482,7 +571,7 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
  * Use `create(ScriptStepSchema)` to create a new message.
  */
 export const ScriptStepSchema: GenMessage<ScriptStep> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 11);
+  messageDesc(file_pokeuniverse_world_v1_world, 13);
 
 /**
  * @generated from message pokeuniverse.world.v1.YesNo
@@ -501,7 +590,7 @@ export type YesNo = Message$1<"pokeuniverse.world.v1.YesNo"> & {
  * Use `create(YesNoSchema)` to create a new message.
  */
 export const YesNoSchema: GenMessage<YesNo> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 12);
+  messageDesc(file_pokeuniverse_world_v1_world, 14);
 
 /**
  * @generated from message pokeuniverse.world.v1.TrainerBattle
@@ -520,7 +609,7 @@ export type TrainerBattle = Message$1<"pokeuniverse.world.v1.TrainerBattle"> & {
  * Use `create(TrainerBattleSchema)` to create a new message.
  */
 export const TrainerBattleSchema: GenMessage<TrainerBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 13);
+  messageDesc(file_pokeuniverse_world_v1_world, 15);
 
 /**
  * The client reached the running script's TrainerBattle step: the battle starts.
@@ -539,7 +628,7 @@ export type ScriptBattle = Message$1<"pokeuniverse.world.v1.ScriptBattle"> & {
  * Use `create(ScriptBattleSchema)` to create a new message.
  */
 export const ScriptBattleSchema: GenMessage<ScriptBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 14);
+  messageDesc(file_pokeuniverse_world_v1_world, 16);
 
 /**
  * AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
@@ -563,7 +652,7 @@ export type PcScreen = Message$1<"pokeuniverse.world.v1.PcScreen"> & {
  * Use `create(PcScreenSchema)` to create a new message.
  */
 export const PcScreenSchema: GenMessage<PcScreen> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 15);
+  messageDesc(file_pokeuniverse_world_v1_world, 17);
 
 /**
  * BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
@@ -585,7 +674,7 @@ export type PlayersPc = Message$1<"pokeuniverse.world.v1.PlayersPc"> & {
  * Use `create(PlayersPcSchema)` to create a new message.
  */
 export const PlayersPcSchema: GenMessage<PlayersPc> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 16);
+  messageDesc(file_pokeuniverse_world_v1_world, 18);
 
 /**
  * @generated from message pokeuniverse.world.v1.Message
@@ -611,7 +700,7 @@ export type Message = Message$1<"pokeuniverse.world.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 17);
+  messageDesc(file_pokeuniverse_world_v1_world, 19);
 
 /**
  * mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
@@ -636,7 +725,7 @@ export type SessionTaken = Message$1<"pokeuniverse.world.v1.SessionTaken"> & {
  * Use `create(SessionTakenSchema)` to create a new message.
  */
 export const SessionTakenSchema: GenMessage<SessionTaken> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 18);
+  messageDesc(file_pokeuniverse_world_v1_world, 20);
 
 /**
  * @generated from enum pokeuniverse.world.v1.Pc
