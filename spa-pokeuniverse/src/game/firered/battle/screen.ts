@@ -24,7 +24,7 @@ import {
   type EscapeBlock,
 } from "@pokeuniverse/contracts/battle/v1/view";
 import { BattleUse, Item as ItemId, Pocket, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
-import { itemInfo } from "../../world/items";
+import { ESCAPE_ITEMS, itemInfo } from "../../world/items";
 import { moveInfo } from "../../world/moves";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
 import { Type } from "@pokeuniverse/contracts/species/v1/catalog";
@@ -472,10 +472,12 @@ export class BattleScreen implements PlaybackHost {
           },
           BagLocation.Battle,
           noEffect,
+          this.state.kind === BattleKind.TRAINER ? ESCAPE_ITEMS : [],
         );
       const chosen = (item: Item) => {
         const use = itemInfo(item)?.battleUse;
-        if (use === BattleUse.SELF || use === BattleUse.BALL) {
+        // BattleUseFunc_PokeDoll: an escape item is used at once, like a ball.
+        if (use === BattleUse.SELF || use === BattleUse.BALL || use === BattleUse.ESCAPE) {
           used = { item, slot: active.partySlot, move: 0 };
           return back();
         }

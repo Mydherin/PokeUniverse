@@ -6,9 +6,18 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M3. Rules: [c
 
 ## Resume Here
 
-**In progress: code written, not run yet.** `mic-battles`, `spa-pokeuniverse` (`npx tsc --noEmit`) and `mic-core` (`go build ./... && go vet` in `golang:1.27-alpine`, see Makefile `GO_CACHE`) build; `make contracts` and `make text` were run. Nothing is deployed or played.
+**In progress: Play It almost done (2026-11-09, session 2).** Everything below passed in play except **lose on purpose**. Fixed in play: the client asked "Use on which POKéMON?" for an escape item (fix: `battle/screen.ts` uses `BattleUse.ESCAPE` at once and passes `ESCAPE_ITEMS` (new, `world/items.ts`) as `notNow` to `startBag` in trainer battles; `bag.ts` `notNow` → `ItemOutcome.NOT_NOW`, Oak's text, as `BattleUseFunc_PokeDoll`). `npx tsc --noEmit` passes; the stack runs with it. Test account 2 and the encounter table are restored (backup: shared notes `m4-db-backup-before.sql`).
 
-**Next step:** rebuild and start the stack (`docker compose up -d --build mic-battles mic-core spa-pokeuniverse`, check the Makefile/compose names first), then do **Play It** in order. Browser helpers for the hidden pane: the shared notes `m3-playit-helpers.md` (start recipe, key sending, mirror canvas, SQL). Fix what fails, tick the tasks, then mark M4 ✅ and point Resume Here / **Now** at M5.
+**Next step:** lose on purpose (Play It's 4th line), then mark M4 ✅ and point Resume Here / **Now** at M5. Recipe (all tested this session):
+1. Table: in `lib-maps/maps/pallet_town_players_house_1f.yaml` replace the 12 `slots` with `{ species: ninjask, min: 100, max: 100 }` (needs no other change), then `make tool-maps CMD=compile && docker compose up -d --build mic-core` (maps are embedded `.binpb`: a yaml edit alone does nothing).
+2. Team: leave `/play` (navigate to `/`), `docker compose restart mic-core`, then SQL `update trainer_pokemon set hp=1 where account_id=2 and box=0;` (party = `box=0`, `slot` 0-5; slot 0 Snorlax is already at 0 HP). Note `trainers.money` (2560).
+3. Play: helpers in shared notes `m3-playit-helpers.md` (`resize_window` 960x720 makes the canvas appear; then the title keys). Walk the grass, FIGHT anything, let Ninjask faint the team. Check: `select result,money from battle_outcomes where account_id=2 order by created_at desc limit 1` (result 2 = LOST, money = the loss), the party healed, the player at the respawn.
+4. Restore: `git checkout lib-maps/maps/pallet_town_players_house_1f.yaml && make tool-maps CMD=compile && docker compose up -d --build mic-core`; leave `/play`, restart mic-core, `update trainer_pokemon set hp=… ` back (Lucario 136, Charizard 143, Garchomp 171) and `trainers.money=2560`, map `pallet_town_players_house_1f` 10,5.
+- `battle_outcomes.result`: 1 WON, 2 LOST, 6 RAN. Results land there and in `trainer_pokemon` at once (no restart needed to read them).
+
+**Play It results (2026-11-09):** Pay Day +250 at L50 on a win ✓; Pickup gave Escape Rope after one win ✓; Thief stole Vulpix's Rawst Berry (KO'd it) and Meowth kept it ✓; Roar → RAN, no crash ✓; Teleport → "MEOWTH fled from battle!", RAN ✓; RUN from slower Vulpix "Got away safely!" ✓; from L100 Ninjask failed twice (foe moved) then escaped ✓; Wobbuffet: "prevents escape with SHADOW TAG", switching refused too ✓; Smoke Ball and Run Away escape Wobbuffet ✓; Poké Doll escapes (also while trapped) ✓, refused in the 2F test trainer's battle with Oak's text ✓; `docker compose restart` of mic-battles and of mic-core mid-battle resumed ✓ (a page **reload** drops the battle: D22, by design). Not tested: Mean Look and Arena Trap (Showdown's same `trapped` path as Shadow Tag), Fluffy Tail (same code as Poké Doll). Client texts still the trainer screen's (" sent out X!"): M6.
+
+**Test data that bites:** Meowth on Snorlax's slot keeps Snorlax's exp and levels/evolves at once: set `exp` to the level's (medium fast L³). Clefairy doesn't always hold an item; Vulpix always holds a Rawst Berry (catalog `item_common == item_rare`). Showdown's Roar (−6 priority) moves last.
 
 **How it's built (2026-11-09):**
 - Turn spending: a bag item is an `event` action (`engine/bag.ts` `chooseBagItem`, order 102, answered by `registerBagItems`). RUN and escape items reuse it: `engine/wild.ts` `chooseRun` queues event `Run` (order 101) with `pokemon.m.run = {item}`; `registerExtras(battle, start, extras)` answers it (escape item → leaves; else `tryRun`; fail → our line `|escapefail|<mon>`). Registered in `createBattle` / `restoreBattle` (both now take `start, extras`).
@@ -22,9 +31,9 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M3. Rules: [c
 
 **Differences (reasons):** Pickup runs only after a won battle (Gen 4 `BattleWin` script, not "every battle" as context.md said); Pickup's TM56 / TM86 rolls give nothing (Gen 4 TMs not in our catalog); `EscapeFailed` has no `reason`: a trapped RUN is refused before the turn through the request (`EscapeBlock`), as FireRed refuses it in the menu; `kept_items` isn't a field: `MonOutcome.held_item` already carries it.
 
-**Not done / to check in Play It:** `battle.tie()` called mid-move (Roar, Teleport) and mid-event (RUN): confirm no crash and the outcome arrives; the client's BattleEnded for `RAN` (fade back to the map); resume after `docker compose restart` (path is generic, untested for wild); Pay Day text on the client (M6).
+**Still for M6:** Pay Day text on the client.
 
-**Files touched:** `lib-contracts/proto/pokeuniverse/battle/v1/{event,view,battle}.proto`, `item/v1/catalog.proto`; `mic-battles/src/{battles.ts,engine/wild.ts (new),engine/battle.ts,engine/choices.ts,engine/bag.ts,protocol/views.ts,protocol/events.ts}`; `mic-core/internal/{world/battle.go,battle/outcome.go}`; `spa-pokeuniverse/src/game/firered/{texts.json,battle/messages.ts,battle/screen.ts}`.
+**Files touched:** `lib-contracts/proto/pokeuniverse/battle/v1/{event,view,battle}.proto`, `item/v1/catalog.proto`; `mic-battles/src/{battles.ts,engine/wild.ts (new),engine/battle.ts,engine/choices.ts,engine/bag.ts,protocol/views.ts,protocol/events.ts}`; `mic-core/internal/{world/battle.go,battle/outcome.go}`; `spa-pokeuniverse/src/game/firered/{texts.json,battle/messages.ts,battle/screen.ts}`; Play It fix: `spa-pokeuniverse/src/game/firered/{bag.ts,battle/screen.ts}`, `src/game/world/items.ts`.
 
 ### Looked up (2026-11-09, don't re-read)
 
@@ -65,7 +74,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M3. Rules: [c
 - [x] `BattleChoice`: RUN allowed in wild battles (refused in trainer battles as now); escape items spent from the bag.
 - [x] Outcome transaction (`world/battle.go` `finish`): `RAN` (party HP, status and PP kept, no money), kept items and Pickup items into the party's held items, Pay Day money; the follower comes back as after any battle.
 - [x] **Wild whiteout:** the same `WhiteOutLoss` and respawn (D11); the client's text differs (M6).
-- [ ] Resume: the active wild battle restarts from Redis like a trainer one (M6 of Phase 5); a reload with the game closed drops it as D22 says.
+- [x] Resume: the active wild battle restarts from Redis like a trainer one (M6 of Phase 5); a reload with the game closed drops it as D22 says.
 
 ## Play It
 

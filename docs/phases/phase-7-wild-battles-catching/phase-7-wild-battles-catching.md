@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** continue [M4](milestones/m04-wild-battle-rules.md) at its Resume Here (code written and building, not played: rebuild, then Play It). Read only that file. M1, M2 and M3 done 2026-11-09. The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
+**Next step:** continue [M4](milestones/m04-wild-battle-rules.md) at its Resume Here (Play It passed except lose on purpose; its Resume Here has the recipe). Read only that file. M1, M2 and M3 done 2026-11-09. The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 

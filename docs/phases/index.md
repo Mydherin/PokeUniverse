@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 7, [M4](phase-7-wild-battles-catching/milestones/m04-wild-battle-rules.md) in progress: code built, Play It next (M3 done 2026-11-09). **Updated:** 2026-11-09.
+**Current:** Phase 7, [M4](phase-7-wild-battles-catching/milestones/m04-wild-battle-rules.md) in progress: Play It passed except lose on purpose (M3 done 2026-11-09). **Updated:** 2026-11-09.
 
 ## Milestones of Phases With Folders
 
@@ -42,7 +42,7 @@ Everything a phase left open, reopened or handed to another phase. An item leave
 | O1 | The house's door out, Mom's healing, the Running Shoes (story flags) | 4 | 10 | [Phase 4](phase-4-players-room.md) |
 | O2 | Item screens (TOWN MAP, FAME CHECKER, TEACHY TV, mail) and field item effects (bike, rods, ESCAPE ROPE, VS SEEKER, ITEMFINDER) | 4 | 12 | [Phase 4](phase-4-players-room.md) |
 | O3 | Frame rate on a real phone, checked by the user | 5 | 5 | [M14](phase-5-battle-system/milestones/m14-battle-check.md#resume-here) |
-| O4 | Poké Doll, Fluffy Tail, Smoke Ball's escape animation (rules built in M4, not played; animation M6) | 5, 6 | 7 (M4) | [Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) |
+| O4 | Poké Doll, Fluffy Tail, Smoke Ball's escape animation (rules pass in play in M4; animation M6) | 5, 6 | 7 (M4) | [Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) |
 | O5 | Catching into the boxes | 6 | 7 (M5) | [Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) |
 | O6 | Whiteout respawn map (now same zone, `Start`'s tile) | 6 | 10 | [Phase 6 M9](phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases), Phase 7 D11 |
 | O7 | Other players' following Pokémon | 6 | 8 | [Phase 6 M9](phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases) |

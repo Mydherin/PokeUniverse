@@ -94,8 +94,8 @@ const state = {
 };
 
 /** Shows the bag, then `done` once it faded out. */
-export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field, noEffect: readonly Item[] = []): void {
-  new Bag(flow, gender, host, done, location, noEffect);
+export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field, noEffect: readonly Item[] = [], notNow: readonly Item[] = []): void {
+  new Bag(flow, gender, host, done, location, noEffect, notNow);
 }
 
 /**
@@ -252,6 +252,8 @@ class Bag {
     private readonly location: BagLocation,
     /** In battle: the items that would do nothing now. */
     private readonly noEffect: readonly Item[],
+    /** In battle: the items that can't be used in this battle (BattleUseFunc_PokeDoll in a trainer battle). */
+    private readonly notNow: readonly Item[] = [],
   ) {
     const { gba, assets } = flow;
     this.icons = new ItemMenuIcons(flow);
@@ -632,9 +634,10 @@ class Bag {
   private chooseToUseInBattle(): void {
     const { flow, gender, host, done } = this;
     const { item } = this.selected!;
+    if (this.notNow.includes(item)) return this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NOT_NOW, item }));
     if (this.noEffect.includes(item)) return this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NO_EFFECT, item }));
     if (item !== Item.BERRY_POUCH) return this.close(true, { chosen: item });
-    const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Battle, this.noEffect));
+    const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Battle, this.noEffect, this.notNow));
     this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true, true));
   }
 
