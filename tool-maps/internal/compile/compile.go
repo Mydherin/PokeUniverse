@@ -110,6 +110,7 @@ func Server(r *world.Resolved) *mapv1.ServerMap {
 	for i, t := range r.Tiles {
 		m.Encounters[i] = encounters[t.Encounter]
 	}
+	m.Wild = wild(r.Map.Encounters)
 	for _, w := range r.Map.Warps {
 		wp := &mapv1.Warp{Id: w.ID, X: uint32(w.At.X()), Y: uint32(w.At.Y()), ToWarp: w.Spawn}
 		if w.To != format.DynamicWarp {
@@ -121,6 +122,37 @@ func Server(r *world.Resolved) *mapv1.ServerMap {
 		m.Objects = append(m.Objects, object(o))
 	}
 	return m
+}
+
+// wild compiles the encounter tables; fishing's rods go into one table, old first, as FireRed's.
+func wild(e *format.Encounters) *mapv1.WildEncounters {
+	if e == nil {
+		return nil
+	}
+	table := func(rate int, groups ...[]format.WildSlot) *mapv1.WildTable {
+		t := &mapv1.WildTable{Rate: uint32(rate)}
+		for _, slots := range groups {
+			for _, s := range slots {
+				n, _ := validate.Species(s.Species)
+				t.Slots = append(t.Slots, &mapv1.WildSlot{Species: n, MinLevel: uint32(s.Min), MaxLevel: uint32(s.Max)})
+			}
+		}
+		return t
+	}
+	w := &mapv1.WildEncounters{}
+	if t := e.Land; t != nil {
+		w.Land = table(t.Rate, t.Slots)
+	}
+	if t := e.Water; t != nil {
+		w.Water = table(t.Rate, t.Slots)
+	}
+	if t := e.RockSmash; t != nil {
+		w.RockSmash = table(t.Rate, t.Slots)
+	}
+	if t := e.Fishing; t != nil {
+		w.Fishing = table(t.Rate, t.Old, t.Good, t.Super)
+	}
+	return w
 }
 
 // collision is what both sides move by: walkable, elevation and behavior per cell.

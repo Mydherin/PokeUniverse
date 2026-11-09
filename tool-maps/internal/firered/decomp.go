@@ -196,6 +196,46 @@ func (d Decomp) Behaviors() (map[int]string, error) {
 	return out, nil
 }
 
+// WildMons is one encounter kind of a map in wild_encounters.json.
+type WildMons struct {
+	Rate int `json:"encounter_rate"`
+	Mons []struct {
+		Min     int    `json:"min_level"`
+		Max     int    `json:"max_level"`
+		Species string `json:"species"`
+	} `json:"mons"`
+}
+
+type WildEncounter struct {
+	Map       string    `json:"map"`
+	Label     string    `json:"base_label"`
+	Land      *WildMons `json:"land_mons"`
+	Water     *WildMons `json:"water_mons"`
+	RockSmash *WildMons `json:"rock_smash_mons"`
+	Fishing   *WildMons `json:"fishing_mons"`
+}
+
+// WildEncounters maps MAP_ constants to FireRed's tables (LeafGreen's are skipped).
+func (d Decomp) WildEncounters() (map[string]*WildEncounter, error) {
+	var file struct {
+		Groups []struct {
+			Encounters []*WildEncounter `json:"encounters"`
+		} `json:"wild_encounter_groups"`
+	}
+	if err := readJSON(d.path("src/data/wild_encounters.json"), &file); err != nil {
+		return nil, err
+	}
+	out := map[string]*WildEncounter{}
+	for _, g := range file.Groups {
+		for _, e := range g.Encounters {
+			if !strings.HasSuffix(e.Label, "_LeafGreen") {
+				out[e.Map] = e
+			}
+		}
+	}
+	return out, nil
+}
+
 func readJSON(path string, v any) error {
 	data, err := os.ReadFile(path)
 	if err != nil {

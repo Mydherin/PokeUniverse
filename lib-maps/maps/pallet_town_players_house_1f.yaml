@@ -75,6 +75,14 @@ ground: |
   07  #D..........A
   08  #,.aqb.......
   09  ###?^|#######
+# Test content (phase 7, removed in phase 10): a grass patch with no grass art.
+overrides:
+  - { at: [10, 5], behavior: tall_grass, encounter: land }
+  - { at: [11, 5], behavior: tall_grass, encounter: land }
+  - { at: [12, 5], behavior: tall_grass, encounter: land }
+  - { at: [10, 6], behavior: tall_grass, encounter: land }
+  - { at: [11, 6], behavior: tall_grass, encounter: land }
+  - { at: [12, 6], behavior: tall_grass, encounter: land }
 warps:
   - { id: town, at: [5, 8], to: pallet_town, spawn: town_players_house_1f }
   - { id: town_2, at: [4, 8], to: pallet_town, spawn: town_players_house_1f }
@@ -83,3 +91,20 @@ warps:
 objects:
   - { type: npc, id: mom, at: [8, 4], sprite: mom, movement: face_left, script: mom }
   - { type: sign, id: tv, at: [6, 1], script: tv }
+# Test content (phase 7, removed in phase 10): a table for every wild battle and catch test.
+encounters:
+  land:
+    rate: 30
+    slots:
+      - { species: rattata, min: 2, max: 3 }
+      - { species: caterpie, min: 2, max: 3 }
+      - { species: surskit, min: 4, max: 6 }
+      - { species: magnemite, min: 8, max: 10 }
+      - { species: pikachu, min: 5, max: 7 }
+      - { species: snorlax, min: 40, max: 42 }
+      - { species: pidgey, min: 3, max: 5 }
+      - { species: skarmory, min: 20, max: 20 }
+      - { species: elekid, min: 12, max: 12 }
+      - { species: wooper, min: 6, max: 6 }
+      - { species: dratini, min: 10, max: 10 }
+      - { species: chansey, min: 15, max: 15 }

@@ -151,10 +151,19 @@ func (w *World) Resolve(m *format.Map) (*Resolved, error) {
 			fail("override %v is outside the map", o.At)
 		case seen[o.At]:
 			fail("override %v is set twice", o.At)
-		case o.Walkable == nil:
+		case o.Walkable == nil && o.Behavior == "" && o.Encounter == "":
 			fail("override %v changes nothing", o.At)
 		default:
-			r.Walkable[r.Index(o.At)] = *o.Walkable
+			i := r.Index(o.At)
+			if o.Walkable != nil {
+				r.Walkable[i] = *o.Walkable
+			}
+			if o.Behavior != "" {
+				r.Tiles[i].Behavior = o.Behavior
+			}
+			if o.Encounter != "" {
+				r.Tiles[i].Encounter = o.Encounter
+			}
 		}
 		seen[o.At] = true
 	}

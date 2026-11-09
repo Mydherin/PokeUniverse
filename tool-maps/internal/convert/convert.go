@@ -27,6 +27,7 @@ type converter struct {
 	layouts   map[string]*firered.Layout
 	dirs      map[string]string // tileset symbol → folder
 	behaviors map[int]string
+	wild      map[string]*firered.WildEncounter // MAP_ constant → FireRed's tables
 	kanto     []*firered.Map
 	names     map[string]string // MAP_ constant → FireRed name, for Kanto maps
 	tilesets  map[string]*tileset
@@ -53,6 +54,9 @@ func Run(o Options) error {
 		return err
 	}
 	if c.dirs, err = o.Decomp.TilesetDirs(); err != nil {
+		return err
+	}
+	if c.wild, err = o.Decomp.WildEncounters(); err != nil {
 		return err
 	}
 	if c.behaviors, err = o.Decomp.Behaviors(); err != nil {

@@ -143,6 +143,10 @@ message SpeciesInfo {
   // not TM numbers: a TM's move is its ItemInfo.move.
   repeated uint32 machine_moves = 15;
   repeated uint32 tutor_moves = 16;
+  // pokeuniverse.item.v1.Item numbers a wild one may hold (FireRed's SetWildMonHeldItem):
+  // common 50%, rare 5%; always the item when both are the same; 0 is none.
+  uint32 item_common = 17;
+  uint32 item_rare = 18;
 }
 
 extend google.protobuf.EnumValueOptions {
@@ -264,7 +268,8 @@ enum Species {
     catch_rate: 45, base_exp: 160, ev_yield: {sp_attack: 2, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 93}, {level: 12, move: 77}, {level: 12, move: 78}, {level: 12, move: 79}, {level: 16, move: 16}, {level: 18, move: 48}, {level: 22, move: 18}, {level: 24, move: 60}, {level: 28, move: 318}, {level: 30, move: 366}, {level: 34, move: 219}, {level: 36, move: 445}, {level: 40, move: 405}],
     machine_moves: [63, 76, 92, 94, 104, 138, 148, 156, 164, 168, 182, 202, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 263, 285, 290, 318, 332, 355, 363, 369, 412, 416, 432, 445],
-    tutor_moves: [38, 81, 102, 129, 138, 164, 171, 173, 203, 207, 214, 239, 314, 324, 366, 450, 466]
+    tutor_moves: [38, 81, 102, 129, 138, 164, 171, 173, 203, 207, 214, 239, 314, 324, 366, 450, 466],
+    item_rare: 188
   }];
   SPECIES_WEEDLE = 13 [(info) = {
     type1: TYPE_BUG, type2: TYPE_POISON, height: 3, weight: 32,
@@ -291,7 +296,8 @@ enum Species {
     catch_rate: 45, base_exp: 159, ev_yield: {attack: 2, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 31}, {level: 13, move: 116}, {level: 16, move: 41}, {level: 19, move: 99}, {level: 22, move: 228}, {level: 25, move: 390}, {level: 28, move: 42}, {level: 31, move: 97}, {level: 34, move: 372}, {level: 37, move: 398}, {level: 40, move: 283}],
     machine_moves: [14, 15, 63, 76, 92, 104, 148, 156, 164, 168, 182, 188, 202, 203, 206, 207, 213, 214, 216, 218, 237, 241, 249, 263, 280, 290, 318, 332, 355, 363, 369, 371, 398, 404, 416, 432, 445],
-    tutor_moves: [14, 38, 81, 102, 129, 164, 173, 203, 207, 210, 214, 282, 283, 314, 366, 450, 466]
+    tutor_moves: [14, 38, 81, 102, 129, 164, 173, 203, 207, 210, 214, 282, 283, 314, 366, 450, 466],
+    item_rare: 211
   }];
   SPECIES_PIDGEY = 16 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 3, weight: 18,
@@ -330,7 +336,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 39}, {level: 4, move: 98}, {level: 7, move: 116}, {level: 10, move: 44}, {level: 13, move: 228}, {level: 16, move: 158}, {level: 19, move: 389}, {level: 22, move: 242}, {level: 25, move: 372}, {level: 28, move: 162}, {level: 31, move: 38}, {level: 34, move: 283}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 20, level: 20}],
     machine_moves: [15, 58, 59, 85, 86, 87, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 263, 269, 290, 351, 363, 365, 369, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 68, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 207, 214, 283, 387, 389, 428]
+    tutor_moves: [29, 34, 38, 68, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 207, 214, 283, 387, 389, 428],
+    item_rare: 450
   }];
   SPECIES_RATICATE = 20 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 7, weight: 185,
@@ -339,7 +346,8 @@ enum Species {
     catch_rate: 127, base_exp: 116, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 14}, {level: 1, move: 33}, {level: 1, move: 39}, {level: 1, move: 98}, {level: 1, move: 116}, {level: 10, move: 44}, {level: 13, move: 228}, {level: 16, move: 158}, {level: 19, move: 389}, {level: 20, move: 184}, {level: 24, move: 242}, {level: 29, move: 372}, {level: 34, move: 162}, {level: 39, move: 38}, {level: 44, move: 283}],
     machine_moves: [14, 15, 46, 58, 59, 63, 70, 85, 86, 87, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 263, 269, 290, 351, 363, 365, 369, 416, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 68, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 207, 214, 283, 387, 389, 428]
+    tutor_moves: [29, 34, 38, 68, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 207, 214, 283, 387, 389, 428],
+    item_rare: 450
   }];
   SPECIES_SPEAROW = 21 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 3, weight: 20,
@@ -358,7 +366,8 @@ enum Species {
     catch_rate: 90, base_exp: 162, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 31}, {level: 1, move: 43}, {level: 1, move: 45}, {level: 1, move: 64}, {level: 1, move: 365}, {level: 13, move: 228}, {level: 17, move: 332}, {level: 23, move: 119}, {level: 29, move: 97}, {level: 35, move: 372}, {level: 41, move: 355}, {level: 47, move: 65}],
     machine_moves: [19, 63, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 263, 290, 332, 355, 363, 365, 369, 416, 432, 445],
-    tutor_moves: [38, 102, 129, 143, 164, 173, 189, 203, 207, 214, 239, 257, 314, 366, 466]
+    tutor_moves: [38, 102, 129, 143, 164, 173, 189, 203, 207, 214, 239, 257, 314, 366, 466],
+    item_rare: 210
   }];
   SPECIES_EKANS = 23 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 20, weight: 69,
@@ -387,7 +396,8 @@ enum Species {
     level_moves: [{level: 1, move: 45}, {level: 1, move: 84}, {level: 5, move: 39}, {level: 10, move: 86}, {level: 13, move: 98}, {level: 18, move: 104}, {level: 21, move: 21}, {level: 26, move: 85}, {level: 29, move: 364}, {level: 34, move: 97}, {level: 37, move: 435}, {level: 42, move: 113}, {level: 45, move: 87}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 26, item: 96}],
     machine_moves: [70, 85, 86, 87, 91, 92, 104, 113, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 249, 263, 264, 280, 290, 351, 363, 374, 445, 447, 451],
-    tutor_moves: [5, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 129, 164, 173, 189, 203, 205, 207, 214, 223, 270, 282, 324, 393]
+    tutor_moves: [5, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 129, 164, 173, 189, 203, 205, 207, 214, 223, 270, 282, 324, 393],
+    item_common: 139, item_rare: 202
   }];
   SPECIES_RAICHU = 26 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 8, weight: 300,
@@ -396,7 +406,8 @@ enum Species {
     catch_rate: 75, base_exp: 122, ev_yield: {speed: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 39}, {level: 1, move: 84}, {level: 1, move: 85}, {level: 1, move: 98}],
     machine_moves: [63, 70, 85, 86, 87, 91, 92, 104, 113, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 249, 263, 264, 280, 290, 351, 363, 374, 411, 416, 445, 447, 451],
-    tutor_moves: [5, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 129, 164, 173, 189, 203, 205, 207, 214, 223, 270, 282, 324, 393]
+    tutor_moves: [5, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 129, 164, 173, 189, 203, 205, 207, 214, 223, 270, 282, 324, 393],
+    item_rare: 139
   }];
   SPECIES_SANDSHREW = 27 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 6, weight: 120,
@@ -406,7 +417,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 3, move: 111}, {level: 7, move: 28}, {level: 9, move: 40}, {level: 13, move: 229}, {level: 15, move: 129}, {level: 19, move: 154}, {level: 21, move: 205}, {level: 25, move: 210}, {level: 27, move: 328}, {level: 31, move: 163}, {level: 33, move: 360}, {level: 37, move: 201}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 28, level: 22}],
     machine_moves: [14, 15, 70, 89, 91, 92, 104, 156, 157, 164, 168, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 263, 264, 280, 290, 317, 332, 360, 363, 374, 398, 404, 421, 431, 445, 446],
-    tutor_moves: [14, 29, 34, 38, 68, 69, 102, 111, 129, 157, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 282, 414]
+    tutor_moves: [14, 29, 34, 38, 68, 69, 102, 111, 129, 157, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 282, 414],
+    item_rare: 183
   }];
   SPECIES_SANDSLASH = 28 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 10, weight: 295,
@@ -415,7 +427,8 @@ enum Species {
     catch_rate: 90, base_exp: 163, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 28}, {level: 1, move: 111}, {level: 9, move: 40}, {level: 13, move: 229}, {level: 15, move: 129}, {level: 19, move: 154}, {level: 21, move: 205}, {level: 22, move: 306}, {level: 28, move: 210}, {level: 33, move: 328}, {level: 40, move: 163}, {level: 45, move: 360}, {level: 52, move: 201}],
     machine_moves: [14, 15, 63, 70, 89, 91, 92, 104, 156, 157, 164, 168, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 263, 264, 280, 290, 317, 332, 360, 363, 374, 398, 404, 411, 416, 421, 431, 444, 445, 446],
-    tutor_moves: [14, 29, 34, 38, 68, 69, 102, 111, 129, 157, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 282, 414]
+    tutor_moves: [14, 29, 34, 38, 68, 69, 102, 111, 129, 157, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 282, 414],
+    item_rare: 183
   }];
   SPECIES_NIDORAN_F = 29 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 4, weight: 70,
@@ -483,7 +496,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 45}, {level: 4, move: 227}, {level: 7, move: 47}, {level: 10, move: 3}, {level: 13, move: 111}, {level: 16, move: 266}, {level: 19, move: 107}, {level: 22, move: 358}, {level: 25, move: 322}, {level: 28, move: 381}, {level: 31, move: 118}, {level: 34, move: 356}, {level: 37, move: 236}, {level: 40, move: 113}, {level: 43, move: 309}, {level: 46, move: 361}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 36, item: 94}],
     machine_moves: [53, 58, 59, 70, 76, 85, 86, 87, 91, 92, 94, 104, 113, 115, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 263, 264, 278, 280, 289, 290, 347, 351, 352, 363, 374, 409, 445, 446, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 171, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 271, 272, 277, 282, 283, 324, 340, 356, 387, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 171, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 271, 272, 277, 282, 283, 324, 340, 356, 387, 428],
+    item_common: 138, item_rare: 94
   }];
   SPECIES_CLEFABLE = 36 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 13, weight: 400,
@@ -492,7 +506,8 @@ enum Species {
     catch_rate: 25, base_exp: 129, ev_yield: {hp: 3}, base_friendship: 140,
     level_moves: [{level: 1, move: 3}, {level: 1, move: 47}, {level: 1, move: 107}, {level: 1, move: 118}],
     machine_moves: [53, 58, 59, 63, 70, 76, 85, 86, 87, 91, 92, 94, 104, 113, 115, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 263, 264, 278, 280, 289, 290, 347, 351, 352, 363, 374, 409, 411, 416, 445, 446, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 171, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 271, 272, 277, 282, 283, 324, 340, 356, 387, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 171, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 271, 272, 277, 282, 283, 324, 340, 356, 387, 428],
+    item_common: 138, item_rare: 94
   }];
   SPECIES_VULPIX = 37 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 6, weight: 99,
@@ -502,7 +517,8 @@ enum Species {
     level_moves: [{level: 1, move: 52}, {level: 4, move: 39}, {level: 7, move: 46}, {level: 11, move: 98}, {level: 14, move: 261}, {level: 17, move: 109}, {level: 21, move: 286}, {level: 24, move: 53}, {level: 27, move: 219}, {level: 31, move: 371}, {level: 34, move: 83}, {level: 37, move: 445}, {level: 41, move: 288}, {level: 44, move: 326}, {level: 47, move: 126}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 38, item: 95}],
     machine_moves: [46, 53, 91, 92, 104, 126, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 241, 244, 261, 263, 290, 315, 363, 371, 399, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 180, 203, 207, 214, 220, 257, 272, 428, 466]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 180, 203, 207, 214, 220, 257, 272, 428, 466],
+    item_common: 136, item_rare: 136
   }];
   SPECIES_NINETALES = 38 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 11, weight: 199,
@@ -511,7 +527,8 @@ enum Species {
     catch_rate: 75, base_exp: 178, ev_yield: {speed: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 52}, {level: 1, move: 98}, {level: 1, move: 109}, {level: 1, move: 219}, {level: 1, move: 417}],
     machine_moves: [46, 53, 63, 76, 91, 92, 104, 126, 138, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 241, 244, 261, 263, 290, 315, 347, 363, 371, 399, 416, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 180, 203, 207, 214, 220, 257, 272, 428, 466]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 180, 203, 207, 214, 220, 257, 272, 428, 466],
+    item_common: 136, item_rare: 136
   }];
   SPECIES_JIGGLYPUFF = 39 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 5, weight: 55,
@@ -589,7 +606,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 6, move: 77}, {level: 6, move: 78}, {level: 11, move: 141}, {level: 17, move: 147}, {level: 22, move: 163}, {level: 27, move: 74}, {level: 33, move: 202}, {level: 38, move: 312}, {level: 43, move: 404}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 47, level: 24}],
     machine_moves: [14, 15, 76, 91, 92, 104, 148, 156, 164, 168, 182, 188, 202, 203, 206, 207, 213, 214, 216, 218, 237, 241, 249, 263, 280, 290, 331, 332, 363, 404, 412, 445, 447],
-    tutor_moves: [14, 34, 38, 68, 81, 102, 164, 173, 203, 207, 210, 214, 235, 282, 388, 402, 450]
+    tutor_moves: [14, 34, 38, 68, 81, 102, 164, 173, 203, 207, 210, 214, 235, 282, 388, 402, 450],
+    item_common: 103, item_rare: 104
   }];
   SPECIES_PARASECT = 47 [(info) = {
     type1: TYPE_BUG, type2: TYPE_GRASS, height: 10, weight: 295,
@@ -598,7 +616,8 @@ enum Species {
     catch_rate: 75, base_exp: 128, ev_yield: {attack: 2, defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 77}, {level: 1, move: 78}, {level: 1, move: 141}, {level: 1, move: 440}, {level: 17, move: 147}, {level: 22, move: 163}, {level: 30, move: 74}, {level: 39, move: 202}, {level: 47, move: 312}, {level: 55, move: 404}],
     machine_moves: [14, 15, 63, 76, 91, 92, 104, 148, 156, 164, 168, 182, 188, 202, 203, 206, 207, 213, 214, 216, 218, 237, 241, 249, 263, 280, 290, 331, 332, 363, 404, 412, 416, 445, 447],
-    tutor_moves: [14, 34, 38, 68, 81, 102, 164, 173, 203, 207, 210, 214, 235, 282, 388, 402, 450]
+    tutor_moves: [14, 34, 38, 68, 81, 102, 164, 173, 203, 207, 210, 214, 235, 282, 388, 402, 450],
+    item_common: 103, item_rare: 104
   }];
   SPECIES_VENONAT = 48 [(info) = {
     type1: TYPE_BUG, type2: TYPE_POISON, height: 10, weight: 300,
@@ -617,7 +636,8 @@ enum Species {
     catch_rate: 75, base_exp: 138, ev_yield: {speed: 1, sp_attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 48}, {level: 1, move: 50}, {level: 1, move: 193}, {level: 1, move: 318}, {level: 11, move: 93}, {level: 13, move: 77}, {level: 17, move: 141}, {level: 23, move: 78}, {level: 25, move: 60}, {level: 29, move: 79}, {level: 31, move: 16}, {level: 37, move: 324}, {level: 41, move: 428}, {level: 47, move: 305}, {level: 55, move: 94}, {level: 59, move: 405}],
     machine_moves: [63, 76, 92, 94, 104, 148, 156, 164, 168, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 241, 263, 285, 290, 318, 332, 355, 363, 369, 412, 416, 432, 445],
-    tutor_moves: [38, 81, 102, 129, 164, 173, 203, 207, 214, 239, 314, 324, 366, 428, 450, 466]
+    tutor_moves: [38, 81, 102, 129, 164, 173, 203, 207, 214, 239, 314, 324, 366, 428, 450, 466],
+    item_rare: 446
   }];
   SPECIES_DIGLETT = 50 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 2, weight: 8,
@@ -627,7 +647,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 1, move: 28}, {level: 4, move: 45}, {level: 7, move: 310}, {level: 12, move: 222}, {level: 15, move: 189}, {level: 18, move: 91}, {level: 23, move: 389}, {level: 26, move: 414}, {level: 29, move: 426}, {level: 34, move: 163}, {level: 37, move: 89}, {level: 40, move: 90}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 51, level: 26}],
     machine_moves: [15, 89, 91, 92, 104, 156, 157, 164, 168, 182, 188, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 290, 317, 332, 363, 421, 445, 446],
-    tutor_moves: [34, 38, 102, 157, 164, 173, 189, 203, 207, 214, 389, 414]
+    tutor_moves: [34, 38, 102, 157, 164, 173, 189, 203, 207, 214, 389, 414],
+    item_rare: 203
   }];
   SPECIES_DUGTRIO = 51 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 7, weight: 333,
@@ -636,7 +657,8 @@ enum Species {
     catch_rate: 50, base_exp: 153, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 28}, {level: 1, move: 45}, {level: 1, move: 161}, {level: 1, move: 400}, {level: 7, move: 310}, {level: 12, move: 222}, {level: 15, move: 189}, {level: 18, move: 91}, {level: 23, move: 389}, {level: 26, move: 328}, {level: 28, move: 414}, {level: 33, move: 426}, {level: 40, move: 163}, {level: 45, move: 89}, {level: 50, move: 90}],
     machine_moves: [15, 63, 89, 91, 92, 104, 156, 157, 164, 168, 182, 188, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 290, 317, 332, 363, 416, 421, 444, 445, 446],
-    tutor_moves: [34, 38, 102, 157, 164, 173, 189, 203, 207, 214, 389, 414]
+    tutor_moves: [34, 38, 102, 157, 164, 173, 189, 203, 207, 214, 389, 414],
+    item_rare: 203
   }];
   SPECIES_MEOWTH = 52 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 4, weight: 42,
@@ -646,7 +668,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 1, move: 45}, {level: 6, move: 44}, {level: 9, move: 252}, {level: 14, move: 154}, {level: 17, move: 103}, {level: 22, move: 185}, {level: 25, move: 269}, {level: 30, move: 6}, {level: 33, move: 163}, {level: 38, move: 417}, {level: 41, move: 372}, {level: 46, move: 445}, {level: 49, move: 400}, {level: 54, move: 364}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 53, level: 28}],
     machine_moves: [15, 85, 87, 91, 92, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 259, 263, 269, 289, 290, 332, 351, 352, 363, 369, 371, 399, 421, 445],
-    tutor_moves: [29, 34, 38, 102, 111, 129, 138, 164, 171, 173, 180, 189, 196, 203, 207, 214, 244, 253, 282, 387, 402, 441]
+    tutor_moves: [29, 34, 38, 102, 111, 129, 138, 164, 171, 173, 180, 189, 196, 203, 207, 214, 244, 253, 282, 387, 402, 441],
+    item_rare: 183
   }];
   SPECIES_PERSIAN = 53 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 10, weight: 320,
@@ -655,7 +678,8 @@ enum Species {
     catch_rate: 90, base_exp: 148, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 44}, {level: 1, move: 45}, {level: 1, move: 252}, {level: 1, move: 415}, {level: 14, move: 154}, {level: 17, move: 103}, {level: 22, move: 185}, {level: 25, move: 269}, {level: 32, move: 408}, {level: 37, move: 163}, {level: 44, move: 417}, {level: 49, move: 372}, {level: 56, move: 445}, {level: 61, move: 400}, {level: 68, move: 364}],
     machine_moves: [15, 46, 63, 85, 87, 91, 92, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 259, 263, 269, 289, 290, 332, 351, 352, 363, 369, 371, 373, 399, 416, 421, 445],
-    tutor_moves: [29, 34, 38, 102, 111, 129, 138, 164, 171, 173, 180, 189, 196, 203, 207, 214, 244, 253, 282, 387, 402, 441]
+    tutor_moves: [29, 34, 38, 102, 111, 129, 138, 164, 171, 173, 180, 189, 196, 203, 207, 214, 244, 253, 282, 387, 402, 441],
+    item_rare: 183
   }];
   SPECIES_PSYDUCK = 54 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 8, weight: 196,
@@ -684,7 +708,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 1, move: 67}, {level: 1, move: 116}, {level: 1, move: 343}, {level: 9, move: 154}, {level: 13, move: 2}, {level: 17, move: 69}, {level: 21, move: 103}, {level: 25, move: 372}, {level: 33, move: 207}, {level: 37, move: 238}, {level: 41, move: 37}, {level: 45, move: 386}, {level: 49, move: 370}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 57, level: 28}],
     machine_moves: [70, 85, 87, 89, 91, 92, 104, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 263, 264, 269, 280, 290, 315, 317, 332, 339, 363, 369, 371, 374, 398, 411, 431, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 118, 129, 157, 164, 173, 180, 189, 200, 203, 207, 214, 223, 244, 253, 270, 272, 283, 402, 410, 441]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 118, 129, 157, 164, 173, 180, 189, 200, 203, 207, 214, 223, 244, 253, 270, 272, 283, 402, 410, 441],
+    item_rare: 460
   }];
   SPECIES_PRIMEAPE = 57 [(info) = {
     type1: TYPE_FIGHTING, type2: TYPE_FIGHTING, height: 10, weight: 320,
@@ -693,7 +718,8 @@ enum Species {
     catch_rate: 75, base_exp: 149, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 1, move: 67}, {level: 1, move: 116}, {level: 1, move: 374}, {level: 9, move: 154}, {level: 13, move: 2}, {level: 17, move: 69}, {level: 21, move: 103}, {level: 25, move: 372}, {level: 28, move: 99}, {level: 35, move: 207}, {level: 41, move: 238}, {level: 47, move: 37}, {level: 53, move: 386}, {level: 59, move: 370}],
     machine_moves: [63, 70, 85, 87, 89, 91, 92, 104, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 263, 264, 269, 280, 290, 315, 317, 332, 339, 363, 369, 371, 374, 398, 411, 416, 431, 444, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 118, 129, 157, 164, 173, 180, 189, 200, 203, 207, 214, 223, 244, 253, 270, 272, 283, 402, 410, 441]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 118, 129, 157, 164, 173, 180, 189, 200, 203, 207, 214, 223, 244, 253, 270, 272, 283, 402, 410, 441],
+    item_rare: 460
   }];
   SPECIES_GROWLITHE = 58 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 7, weight: 190,
@@ -703,7 +729,8 @@ enum Species {
     level_moves: [{level: 1, move: 44}, {level: 1, move: 46}, {level: 6, move: 52}, {level: 9, move: 43}, {level: 14, move: 316}, {level: 17, move: 270}, {level: 20, move: 172}, {level: 25, move: 179}, {level: 28, move: 424}, {level: 31, move: 36}, {level: 34, move: 53}, {level: 39, move: 97}, {level: 42, move: 242}, {level: 45, move: 257}, {level: 48, move: 394}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 59, item: 95}],
     machine_moves: [46, 53, 70, 91, 92, 104, 126, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 261, 263, 290, 315, 332, 363, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 189, 203, 207, 214, 257, 270]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 189, 203, 207, 214, 257, 270],
+    item_common: 136, item_rare: 136
   }];
   SPECIES_ARCANINE = 59 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 19, weight: 1550,
@@ -712,7 +739,8 @@ enum Species {
     catch_rate: 75, base_exp: 213, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 44}, {level: 1, move: 46}, {level: 1, move: 316}, {level: 1, move: 422}, {level: 1, move: 424}, {level: 39, move: 245}],
     machine_moves: [46, 53, 63, 70, 76, 91, 92, 104, 126, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 261, 263, 290, 315, 332, 363, 406, 416, 431, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 189, 203, 207, 214, 257, 270, 442]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 189, 203, 207, 214, 257, 270, 442],
+    item_common: 136, item_rare: 136
   }];
   SPECIES_POLIWAG = 60 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 6, weight: 124,
@@ -732,7 +760,8 @@ enum Species {
     level_moves: [{level: 1, move: 95}, {level: 1, move: 145}, {level: 1, move: 346}, {level: 11, move: 55}, {level: 15, move: 3}, {level: 18, move: 240}, {level: 21, move: 34}, {level: 27, move: 61}, {level: 32, move: 341}, {level: 37, move: 187}, {level: 43, move: 358}, {level: 48, move: 56}, {level: 53, move: 426}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 62, item: 97}, {method: EVOLUTION_METHOD_TRADE, species: 186, item: 187}, {method: EVOLUTION_METHOD_ITEM, species: 186, item: 187}],
     machine_moves: [57, 58, 59, 70, 89, 91, 92, 94, 104, 127, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 249, 250, 258, 263, 264, 280, 290, 291, 352, 363, 374, 445],
-    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 102, 111, 118, 164, 173, 189, 196, 203, 207, 214, 270, 291]
+    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 102, 111, 118, 164, 173, 189, 196, 203, 207, 214, 270, 291],
+    item_rare: 187
   }];
   SPECIES_POLIWRATH = 62 [(info) = {
     type1: TYPE_WATER, type2: TYPE_FIGHTING, height: 13, weight: 540,
@@ -741,7 +770,8 @@ enum Species {
     catch_rate: 45, base_exp: 185, ev_yield: {defense: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 3}, {level: 1, move: 61}, {level: 1, move: 66}, {level: 1, move: 95}, {level: 43, move: 223}, {level: 53, move: 170}],
     machine_moves: [57, 58, 59, 63, 70, 89, 91, 92, 94, 104, 127, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 249, 250, 258, 263, 264, 280, 290, 291, 317, 339, 352, 363, 371, 374, 398, 411, 416, 431, 445],
-    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 102, 111, 118, 164, 173, 189, 196, 203, 207, 214, 223, 270, 291, 410]
+    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 102, 111, 118, 164, 173, 189, 196, 203, 207, 214, 223, 270, 291, 410],
+    item_rare: 187
   }];
   SPECIES_ABRA = 63 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 9, weight: 195,
@@ -751,7 +781,8 @@ enum Species {
     level_moves: [{level: 1, move: 100}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 64, level: 16}],
     machine_moves: [86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 259, 263, 264, 269, 278, 285, 289, 290, 347, 351, 363, 373, 374, 409, 412, 433, 445, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 203, 207, 214, 223, 244, 271, 272, 277, 282, 324, 356, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 203, 207, 214, 223, 244, 271, 272, 277, 282, 324, 356, 428],
+    item_rare: 214
   }];
   SPECIES_KADABRA = 64 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 13, weight: 565,
@@ -761,7 +792,8 @@ enum Species {
     level_moves: [{level: 1, move: 93}, {level: 1, move: 100}, {level: 1, move: 134}, {level: 18, move: 50}, {level: 22, move: 357}, {level: 24, move: 60}, {level: 28, move: 115}, {level: 30, move: 105}, {level: 34, move: 427}, {level: 36, move: 272}, {level: 40, move: 94}, {level: 42, move: 248}, {level: 46, move: 271}],
     evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 65}],
     machine_moves: [86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 259, 263, 264, 269, 278, 285, 289, 290, 347, 351, 363, 373, 374, 409, 412, 433, 445, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 203, 207, 214, 223, 244, 271, 272, 277, 282, 324, 356, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 203, 207, 214, 223, 244, 271, 272, 277, 282, 324, 356, 428],
+    item_rare: 214
   }];
   SPECIES_ALAKAZAM = 65 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 15, weight: 480,
@@ -770,7 +802,8 @@ enum Species {
     catch_rate: 50, base_exp: 186, ev_yield: {sp_attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 93}, {level: 1, move: 100}, {level: 1, move: 134}, {level: 18, move: 50}, {level: 22, move: 357}, {level: 24, move: 60}, {level: 28, move: 115}, {level: 30, move: 105}, {level: 34, move: 427}, {level: 36, move: 347}, {level: 40, move: 94}, {level: 42, move: 248}, {level: 46, move: 271}],
     machine_moves: [63, 86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 259, 263, 264, 269, 278, 285, 289, 290, 347, 351, 363, 373, 374, 409, 411, 412, 416, 433, 445, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 203, 207, 214, 223, 244, 271, 272, 277, 282, 324, 356, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 203, 207, 214, 223, 244, 271, 272, 277, 282, 324, 356, 428],
+    item_rare: 214
   }];
   SPECIES_MACHOP = 66 [(info) = {
     type1: TYPE_FIGHTING, type2: TYPE_FIGHTING, height: 8, weight: 195,
@@ -838,7 +871,8 @@ enum Species {
     level_moves: [{level: 1, move: 40}, {level: 5, move: 48}, {level: 8, move: 132}, {level: 12, move: 51}, {level: 15, move: 390}, {level: 19, move: 61}, {level: 22, move: 35}, {level: 26, move: 112}, {level: 29, move: 352}, {level: 33, move: 398}, {level: 36, move: 103}, {level: 40, move: 56}, {level: 43, move: 378}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 73, level: 30}],
     machine_moves: [14, 15, 57, 58, 59, 92, 104, 127, 156, 164, 168, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 371, 398, 445],
-    tutor_moves: [14, 38, 102, 164, 173, 196, 203, 207, 214, 277, 282, 291]
+    tutor_moves: [14, 38, 102, 164, 173, 196, 203, 207, 214, 277, 282, 291],
+    item_rare: 211
   }];
   SPECIES_TENTACRUEL = 73 [(info) = {
     type1: TYPE_WATER, type2: TYPE_POISON, height: 16, weight: 550,
@@ -847,7 +881,8 @@ enum Species {
     catch_rate: 60, base_exp: 205, ev_yield: {sp_defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 40}, {level: 1, move: 48}, {level: 1, move: 132}, {level: 12, move: 51}, {level: 15, move: 390}, {level: 19, move: 61}, {level: 22, move: 35}, {level: 26, move: 112}, {level: 29, move: 352}, {level: 36, move: 398}, {level: 42, move: 103}, {level: 49, move: 56}, {level: 55, move: 378}],
     machine_moves: [14, 15, 57, 58, 59, 63, 92, 104, 127, 156, 164, 168, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 371, 398, 416, 445],
-    tutor_moves: [14, 38, 102, 164, 173, 196, 203, 207, 214, 277, 282, 291]
+    tutor_moves: [14, 38, 102, 164, 173, 196, 203, 207, 214, 277, 282, 291],
+    item_rare: 211
   }];
   SPECIES_GEODUDE = 74 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_GROUND, height: 4, weight: 200,
@@ -857,7 +892,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 111}, {level: 4, move: 300}, {level: 8, move: 397}, {level: 11, move: 88}, {level: 15, move: 222}, {level: 18, move: 120}, {level: 22, move: 205}, {level: 25, move: 350}, {level: 29, move: 89}, {level: 32, move: 153}, {level: 36, move: 38}, {level: 39, move: 444}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 75, level: 25}],
     machine_moves: [53, 70, 89, 91, 92, 104, 126, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 264, 280, 290, 317, 360, 363, 374, 397, 431, 444, 445, 446],
-    tutor_moves: [5, 7, 9, 29, 34, 38, 68, 69, 102, 111, 118, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 223, 246, 276, 335, 389, 414]
+    tutor_moves: [5, 7, 9, 29, 34, 38, 68, 69, 102, 111, 118, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 223, 246, 276, 335, 389, 414],
+    item_rare: 195
   }];
   SPECIES_GRAVELER = 75 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_GROUND, height: 10, weight: 1050,
@@ -867,7 +903,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 111}, {level: 1, move: 300}, {level: 1, move: 397}, {level: 11, move: 88}, {level: 15, move: 222}, {level: 18, move: 120}, {level: 22, move: 205}, {level: 27, move: 350}, {level: 33, move: 89}, {level: 38, move: 153}, {level: 44, move: 38}, {level: 49, move: 444}],
     evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 76}],
     machine_moves: [53, 70, 89, 91, 92, 104, 126, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 264, 280, 290, 317, 360, 363, 374, 397, 431, 444, 445, 446],
-    tutor_moves: [5, 7, 9, 29, 34, 38, 68, 69, 102, 111, 118, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 223, 246, 276, 335, 389, 414]
+    tutor_moves: [5, 7, 9, 29, 34, 38, 68, 69, 102, 111, 118, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 223, 246, 276, 335, 389, 414],
+    item_rare: 195
   }];
   SPECIES_GOLEM = 76 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_GROUND, height: 14, weight: 3000,
@@ -876,7 +913,8 @@ enum Species {
     catch_rate: 45, base_exp: 177, ev_yield: {defense: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 111}, {level: 1, move: 300}, {level: 1, move: 397}, {level: 11, move: 88}, {level: 15, move: 222}, {level: 18, move: 120}, {level: 22, move: 205}, {level: 27, move: 350}, {level: 33, move: 89}, {level: 38, move: 153}, {level: 44, move: 38}, {level: 49, move: 444}],
     machine_moves: [46, 53, 63, 70, 89, 91, 92, 104, 126, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 264, 280, 290, 317, 360, 363, 374, 397, 411, 416, 431, 444, 445, 446],
-    tutor_moves: [5, 7, 9, 25, 29, 34, 38, 68, 69, 102, 111, 118, 120, 153, 157, 164, 173, 189, 203, 205, 207, 210, 214, 223, 246, 276, 335, 389, 414, 442]
+    tutor_moves: [5, 7, 9, 25, 29, 34, 38, 68, 69, 102, 111, 118, 120, 153, 157, 164, 173, 189, 203, 205, 207, 210, 214, 223, 246, 276, 335, 389, 414, 442],
+    item_rare: 195
   }];
   SPECIES_PONYTA = 77 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 10, weight: 300,
@@ -886,7 +924,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 6, move: 39}, {level: 10, move: 52}, {level: 15, move: 172}, {level: 19, move: 23}, {level: 24, move: 83}, {level: 28, move: 36}, {level: 33, move: 97}, {level: 37, move: 126}, {level: 42, move: 340}, {level: 46, move: 394}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 78, level: 40}],
     machine_moves: [53, 70, 76, 92, 104, 126, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 241, 261, 263, 290, 315, 363, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 203, 207, 214, 257, 340]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 203, 207, 214, 257, 340],
+    item_rare: 458
   }];
   SPECIES_RAPIDASH = 78 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 17, weight: 950,
@@ -895,7 +934,8 @@ enum Species {
     catch_rate: 60, base_exp: 192, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 39}, {level: 1, move: 45}, {level: 1, move: 52}, {level: 1, move: 98}, {level: 1, move: 224}, {level: 1, move: 398}, {level: 15, move: 172}, {level: 19, move: 23}, {level: 24, move: 83}, {level: 28, move: 36}, {level: 33, move: 97}, {level: 37, move: 126}, {level: 40, move: 31}, {level: 47, move: 340}, {level: 56, move: 394}],
     machine_moves: [53, 63, 70, 76, 92, 104, 126, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 241, 261, 263, 290, 315, 363, 398, 416, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 203, 207, 214, 257, 340]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 203, 207, 214, 257, 340],
+    item_rare: 458
   }];
   SPECIES_SLOWPOKE = 79 [(info) = {
     type1: TYPE_WATER, type2: TYPE_PSYCHIC, height: 12, weight: 360,
@@ -905,7 +945,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 174}, {level: 1, move: 281}, {level: 6, move: 45}, {level: 11, move: 55}, {level: 15, move: 93}, {level: 20, move: 50}, {level: 25, move: 29}, {level: 29, move: 352}, {level: 34, move: 428}, {level: 39, move: 303}, {level: 43, move: 133}, {level: 48, move: 94}, {level: 53, move: 240}, {level: 57, move: 244}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 80, level: 37}, {method: EVOLUTION_METHOD_TRADE, species: 199, item: 187}, {method: EVOLUTION_METHOD_ITEM, species: 199, item: 187}],
     machine_moves: [53, 57, 58, 59, 70, 86, 89, 91, 92, 94, 104, 113, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 250, 258, 263, 278, 285, 290, 291, 347, 352, 362, 363, 433, 445, 447],
-    tutor_moves: [29, 34, 38, 86, 102, 129, 138, 164, 171, 173, 189, 196, 203, 207, 214, 244, 271, 277, 291, 324, 335, 401, 428]
+    tutor_moves: [29, 34, 38, 86, 102, 129, 138, 164, 171, 173, 189, 196, 203, 207, 214, 244, 271, 277, 291, 324, 335, 401, 428],
+    item_rare: 441
   }];
   SPECIES_SLOWBRO = 80 [(info) = {
     type1: TYPE_WATER, type2: TYPE_PSYCHIC, height: 16, weight: 785,
@@ -914,7 +955,8 @@ enum Species {
     catch_rate: 75, base_exp: 164, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 1, move: 174}, {level: 1, move: 281}, {level: 11, move: 55}, {level: 15, move: 93}, {level: 20, move: 50}, {level: 25, move: 29}, {level: 29, move: 352}, {level: 34, move: 428}, {level: 37, move: 110}, {level: 41, move: 303}, {level: 47, move: 133}, {level: 54, move: 94}, {level: 61, move: 240}, {level: 67, move: 244}],
     machine_moves: [53, 57, 58, 59, 63, 70, 86, 89, 91, 92, 94, 104, 113, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 250, 258, 263, 264, 278, 280, 285, 290, 291, 347, 352, 362, 363, 374, 409, 411, 416, 419, 433, 445, 447],
-    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 86, 102, 129, 138, 164, 171, 173, 189, 196, 203, 207, 210, 214, 223, 244, 271, 277, 291, 324, 334, 335, 401, 428]
+    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 86, 102, 129, 138, 164, 171, 173, 189, 196, 203, 207, 210, 214, 223, 244, 271, 277, 291, 324, 334, 335, 401, 428],
+    item_rare: 187
   }];
   SPECIES_MAGNEMITE = 81 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_STEEL, height: 3, weight: 60,
@@ -924,7 +966,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 319}, {level: 6, move: 84}, {level: 11, move: 48}, {level: 14, move: 49}, {level: 17, move: 86}, {level: 22, move: 209}, {level: 27, move: 199}, {level: 30, move: 443}, {level: 33, move: 103}, {level: 38, move: 435}, {level: 43, move: 429}, {level: 46, move: 393}, {level: 49, move: 360}, {level: 54, move: 192}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 82, level: 30}],
     machine_moves: [85, 86, 87, 92, 104, 113, 115, 148, 153, 156, 164, 182, 203, 207, 214, 216, 218, 237, 240, 241, 244, 263, 278, 290, 351, 360, 363, 430, 451],
-    tutor_moves: [38, 86, 102, 129, 164, 173, 203, 205, 207, 214, 277, 324, 334, 356, 393]
+    tutor_moves: [38, 86, 102, 129, 164, 173, 203, 205, 207, 214, 277, 324, 334, 356, 393],
+    item_rare: 199
   }];
   SPECIES_MAGNETON = 82 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_STEEL, height: 10, weight: 600,
@@ -934,7 +977,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 48}, {level: 1, move: 84}, {level: 1, move: 161}, {level: 1, move: 319}, {level: 14, move: 49}, {level: 17, move: 86}, {level: 22, move: 209}, {level: 27, move: 199}, {level: 30, move: 443}, {level: 34, move: 103}, {level: 40, move: 435}, {level: 46, move: 429}, {level: 50, move: 393}, {level: 54, move: 360}, {level: 60, move: 192}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 462, item: 96}],
     machine_moves: [63, 85, 86, 87, 92, 104, 113, 115, 148, 153, 156, 164, 182, 203, 207, 214, 216, 218, 237, 240, 241, 244, 263, 278, 290, 351, 360, 363, 416, 430, 451],
-    tutor_moves: [38, 86, 102, 129, 164, 173, 203, 205, 207, 214, 277, 324, 334, 356, 393]
+    tutor_moves: [38, 86, 102, 129, 164, 173, 203, 205, 207, 214, 277, 324, 334, 356, 393],
+    item_rare: 199
   }];
   SPECIES_FARFETCHD = 83 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 8, weight: 150,
@@ -943,7 +987,8 @@ enum Species {
     catch_rate: 45, base_exp: 94, ev_yield: {attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 28}, {level: 1, move: 43}, {level: 1, move: 64}, {level: 1, move: 210}, {level: 1, move: 398}, {level: 7, move: 31}, {level: 9, move: 282}, {level: 13, move: 332}, {level: 19, move: 163}, {level: 21, move: 314}, {level: 25, move: 14}, {level: 31, move: 97}, {level: 33, move: 400}, {level: 37, move: 403}, {level: 43, move: 206}, {level: 43, move: 364}],
     machine_moves: [14, 15, 19, 92, 104, 156, 164, 168, 182, 203, 206, 207, 211, 213, 214, 216, 218, 231, 237, 241, 244, 263, 290, 332, 355, 363, 365, 369, 398, 432, 445],
-    tutor_moves: [14, 29, 34, 38, 102, 129, 164, 173, 189, 203, 207, 210, 214, 239, 244, 253, 257, 282, 314, 387, 466]
+    tutor_moves: [14, 29, 34, 38, 102, 129, 164, 173, 189, 203, 207, 210, 214, 239, 244, 253, 257, 282, 314, 387, 466],
+    item_rare: 225
   }];
   SPECIES_DODUO = 84 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 14, weight: 392,
@@ -953,7 +998,8 @@ enum Species {
     level_moves: [{level: 1, move: 45}, {level: 1, move: 64}, {level: 5, move: 98}, {level: 10, move: 99}, {level: 14, move: 31}, {level: 19, move: 228}, {level: 23, move: 253}, {level: 28, move: 367}, {level: 32, move: 458}, {level: 37, move: 97}, {level: 41, move: 65}, {level: 46, move: 283}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 85, level: 31}],
     machine_moves: [19, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 241, 263, 290, 332, 355, 363, 365, 445],
-    tutor_moves: [34, 38, 102, 129, 143, 164, 173, 189, 203, 207, 214, 253, 282, 283, 314]
+    tutor_moves: [34, 38, 102, 129, 143, 164, 173, 189, 203, 207, 214, 253, 282, 283, 314],
+    item_rare: 210
   }];
   SPECIES_DODRIO = 85 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 18, weight: 852,
@@ -962,7 +1008,8 @@ enum Species {
     catch_rate: 45, base_exp: 158, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 45}, {level: 1, move: 64}, {level: 1, move: 98}, {level: 1, move: 99}, {level: 1, move: 365}, {level: 14, move: 31}, {level: 19, move: 228}, {level: 23, move: 253}, {level: 28, move: 367}, {level: 34, move: 161}, {level: 41, move: 97}, {level: 47, move: 65}, {level: 54, move: 283}],
     machine_moves: [19, 63, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 241, 259, 263, 269, 290, 332, 355, 363, 365, 371, 416, 445],
-    tutor_moves: [34, 38, 102, 129, 143, 164, 173, 189, 203, 207, 214, 253, 282, 283, 314]
+    tutor_moves: [34, 38, 102, 129, 143, 164, 173, 189, 203, 207, 214, 253, 282, 283, 314],
+    item_rare: 210
   }];
   SPECIES_SEEL = 86 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 11, weight: 900,
@@ -991,7 +1038,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 139}, {level: 4, move: 106}, {level: 7, move: 189}, {level: 12, move: 50}, {level: 17, move: 107}, {level: 20, move: 124}, {level: 23, move: 426}, {level: 28, move: 374}, {level: 33, move: 103}, {level: 36, move: 188}, {level: 39, move: 151}, {level: 44, move: 441}, {level: 49, move: 262}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 89, level: 38}],
     machine_moves: [53, 70, 85, 87, 91, 92, 104, 126, 153, 156, 157, 164, 168, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 259, 263, 269, 290, 317, 351, 363, 371, 374, 398, 445],
-    tutor_moves: [7, 8, 9, 34, 102, 120, 153, 164, 173, 189, 203, 207, 214, 220, 223, 441]
+    tutor_moves: [7, 8, 9, 34, 102, 120, 153, 164, 173, 189, 203, 207, 214, 220, 223, 441],
+    item_rare: 110
   }];
   SPECIES_MUK = 89 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 12, weight: 300,
@@ -1000,7 +1048,8 @@ enum Species {
     catch_rate: 75, base_exp: 157, ev_yield: {hp: 1, attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 106}, {level: 1, move: 139}, {level: 1, move: 189}, {level: 12, move: 50}, {level: 17, move: 107}, {level: 20, move: 124}, {level: 23, move: 426}, {level: 28, move: 374}, {level: 33, move: 103}, {level: 36, move: 188}, {level: 44, move: 151}, {level: 54, move: 441}, {level: 65, move: 262}],
     machine_moves: [53, 63, 70, 85, 87, 91, 92, 104, 126, 153, 156, 157, 164, 168, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 259, 263, 264, 269, 280, 290, 317, 351, 363, 371, 374, 398, 399, 411, 416, 445],
-    tutor_moves: [7, 8, 9, 34, 102, 120, 153, 164, 173, 189, 203, 207, 214, 220, 223, 335, 441]
+    tutor_moves: [7, 8, 9, 34, 102, 120, 153, 164, 173, 189, 203, 207, 214, 220, 223, 335, 441],
+    item_rare: 110
   }];
   SPECIES_SHELLDER = 90 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 3, weight: 40,
@@ -1010,7 +1059,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 4, move: 110}, {level: 8, move: 48}, {level: 13, move: 333}, {level: 16, move: 182}, {level: 20, move: 43}, {level: 25, move: 128}, {level: 28, move: 420}, {level: 32, move: 62}, {level: 37, move: 250}, {level: 40, move: 334}, {level: 44, move: 362}, {level: 49, move: 58}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 91, item: 97}],
     machine_moves: [57, 58, 59, 92, 104, 153, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 371, 445],
-    tutor_moves: [38, 102, 120, 129, 153, 164, 173, 196, 203, 207, 214, 291, 334]
+    tutor_moves: [38, 102, 120, 129, 153, 164, 173, 196, 203, 207, 214, 291, 334],
+    item_common: 106, item_rare: 107
   }];
   SPECIES_CLOYSTER = 91 [(info) = {
     type1: TYPE_WATER, type2: TYPE_ICE, height: 15, weight: 1325,
@@ -1019,7 +1069,8 @@ enum Species {
     catch_rate: 60, base_exp: 203, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 48}, {level: 1, move: 62}, {level: 1, move: 110}, {level: 1, move: 182}, {level: 1, move: 390}, {level: 28, move: 191}, {level: 40, move: 131}],
     machine_moves: [57, 58, 59, 63, 92, 104, 153, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 259, 263, 290, 291, 352, 362, 363, 371, 398, 416, 419, 445],
-    tutor_moves: [38, 102, 120, 129, 153, 164, 173, 196, 203, 207, 214, 291, 324, 334]
+    tutor_moves: [38, 102, 120, 129, 153, 164, 173, 196, 203, 207, 214, 291, 324, 334],
+    item_common: 106, item_rare: 107
   }];
   SPECIES_GASTLY = 92 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_POISON, height: 13, weight: 1,
@@ -1144,7 +1195,8 @@ enum Species {
     level_moves: [{level: 1, move: 45}, {level: 3, move: 39}, {level: 7, move: 125}, {level: 11, move: 29}, {level: 13, move: 43}, {level: 17, move: 116}, {level: 21, move: 155}, {level: 23, move: 99}, {level: 27, move: 206}, {level: 31, move: 37}, {level: 33, move: 374}, {level: 37, move: 198}, {level: 41, move: 283}, {level: 43, move: 38}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 105, level: 28}],
     machine_moves: [14, 53, 58, 59, 70, 89, 91, 92, 104, 126, 156, 157, 164, 168, 182, 201, 203, 206, 207, 213, 214, 216, 218, 231, 237, 241, 249, 263, 264, 280, 290, 317, 332, 363, 374, 431, 445, 446],
-    tutor_moves: [5, 7, 9, 14, 25, 29, 34, 38, 67, 68, 69, 102, 157, 164, 173, 189, 196, 203, 207, 210, 214, 223, 253, 282, 283, 334, 414]
+    tutor_moves: [5, 7, 9, 14, 25, 29, 34, 38, 67, 68, 69, 102, 157, 164, 173, 189, 196, 203, 207, 210, 214, 223, 253, 282, 283, 334, 414],
+    item_rare: 224
   }];
   SPECIES_MAROWAK = 105 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 10, weight: 450,
@@ -1153,7 +1205,8 @@ enum Species {
     catch_rate: 75, base_exp: 124, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 29}, {level: 1, move: 39}, {level: 1, move: 45}, {level: 1, move: 125}, {level: 13, move: 43}, {level: 17, move: 116}, {level: 21, move: 155}, {level: 23, move: 99}, {level: 27, move: 206}, {level: 33, move: 37}, {level: 37, move: 374}, {level: 43, move: 198}, {level: 49, move: 283}, {level: 53, move: 38}],
     machine_moves: [14, 53, 58, 59, 63, 70, 89, 91, 92, 104, 126, 156, 157, 164, 168, 182, 201, 203, 206, 207, 213, 214, 216, 218, 231, 237, 241, 249, 263, 264, 280, 290, 317, 332, 363, 374, 411, 416, 431, 444, 445, 446],
-    tutor_moves: [5, 7, 9, 14, 25, 29, 34, 38, 67, 68, 69, 102, 157, 164, 173, 189, 196, 200, 203, 207, 210, 214, 223, 253, 282, 283, 334, 414]
+    tutor_moves: [5, 7, 9, 14, 25, 29, 34, 38, 67, 68, 69, 102, 157, 164, 173, 189, 196, 200, 203, 207, 210, 214, 223, 253, 282, 283, 334, 414],
+    item_rare: 224
   }];
   SPECIES_HITMONLEE = 106 [(info) = {
     type1: TYPE_FIGHTING, type2: TYPE_FIGHTING, height: 15, weight: 498,
@@ -1181,7 +1234,8 @@ enum Species {
     level_moves: [{level: 1, move: 122}, {level: 5, move: 48}, {level: 9, move: 111}, {level: 13, move: 282}, {level: 17, move: 35}, {level: 21, move: 23}, {level: 25, move: 50}, {level: 29, move: 21}, {level: 33, move: 205}, {level: 37, move: 382}, {level: 41, move: 287}, {level: 45, move: 103}, {level: 49, move: 438}, {level: 53, move: 378}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 463, move: 205}],
     machine_moves: [14, 15, 53, 57, 58, 59, 63, 70, 76, 85, 87, 89, 91, 92, 104, 126, 138, 156, 157, 164, 168, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 250, 263, 264, 280, 290, 317, 351, 352, 363, 374, 416, 431, 445],
-    tutor_moves: [5, 7, 8, 9, 14, 25, 29, 34, 38, 68, 69, 102, 111, 138, 157, 164, 171, 173, 189, 196, 203, 205, 207, 214, 223, 244, 282, 401, 428]
+    tutor_moves: [5, 7, 8, 9, 14, 25, 29, 34, 38, 68, 69, 102, 111, 138, 157, 164, 171, 173, 189, 196, 203, 205, 207, 214, 223, 244, 282, 401, 428],
+    item_rare: 441
   }];
   SPECIES_KOFFING = 109 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 6, weight: 10,
@@ -1191,7 +1245,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 139}, {level: 6, move: 123}, {level: 10, move: 108}, {level: 15, move: 372}, {level: 19, move: 120}, {level: 24, move: 124}, {level: 28, move: 114}, {level: 33, move: 360}, {level: 37, move: 153}, {level: 42, move: 188}, {level: 46, move: 194}, {level: 51, move: 262}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 110, level: 35}],
     machine_moves: [53, 85, 87, 92, 104, 126, 148, 153, 156, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 259, 261, 263, 269, 290, 351, 360, 363, 371, 399, 445],
-    tutor_moves: [102, 120, 153, 164, 173, 180, 203, 205, 207, 214, 220, 253]
+    tutor_moves: [102, 120, 153, 164, 173, 180, 203, 205, 207, 214, 220, 253],
+    item_rare: 194
   }];
   SPECIES_WEEZING = 110 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 12, weight: 95,
@@ -1200,7 +1255,8 @@ enum Species {
     catch_rate: 60, base_exp: 173, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 108}, {level: 1, move: 123}, {level: 1, move: 139}, {level: 15, move: 372}, {level: 19, move: 120}, {level: 24, move: 124}, {level: 28, move: 114}, {level: 33, move: 458}, {level: 40, move: 153}, {level: 48, move: 188}, {level: 55, move: 194}, {level: 63, move: 262}],
     machine_moves: [53, 63, 85, 87, 92, 104, 126, 148, 153, 156, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 259, 261, 263, 269, 290, 351, 360, 363, 371, 399, 416, 445],
-    tutor_moves: [102, 120, 153, 164, 173, 180, 203, 205, 207, 214, 220, 253]
+    tutor_moves: [102, 120, 153, 164, 173, 180, 203, 205, 207, 214, 220, 253],
+    item_rare: 194
   }];
   SPECIES_RHYHORN = 111 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_ROCK, height: 10, weight: 1150,
@@ -1230,7 +1286,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 45}, {level: 5, move: 39}, {level: 9, move: 287}, {level: 12, move: 135}, {level: 16, move: 3}, {level: 20, move: 107}, {level: 23, move: 47}, {level: 27, move: 374}, {level: 31, move: 111}, {level: 34, move: 113}, {level: 38, move: 121}, {level: 42, move: 361}, {level: 46, move: 38}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 242, friendship: 220}],
     machine_moves: [53, 58, 59, 63, 70, 76, 85, 86, 87, 89, 92, 94, 104, 113, 126, 138, 148, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 258, 263, 264, 278, 280, 285, 289, 290, 317, 347, 351, 352, 363, 374, 409, 416, 431, 445, 446, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 283, 356, 387, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 283, 356, 387, 428],
+    item_common: 390, item_rare: 197
   }];
   SPECIES_TANGELA = 114 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 10, weight: 350,
@@ -1259,7 +1316,8 @@ enum Species {
     level_moves: [{level: 1, move: 145}, {level: 4, move: 108}, {level: 8, move: 43}, {level: 11, move: 55}, {level: 14, move: 116}, {level: 18, move: 61}, {level: 23, move: 97}, {level: 26, move: 239}, {level: 30, move: 362}, {level: 35, move: 56}, {level: 38, move: 349}, {level: 42, move: 406}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 117, level: 32}],
     machine_moves: [57, 58, 59, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 406, 430, 445],
-    tutor_moves: [29, 38, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 291, 324, 340]
+    tutor_moves: [29, 38, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 291, 324, 340],
+    item_rare: 201
   }];
   SPECIES_SEADRA = 117 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 12, weight: 250,
@@ -1269,7 +1327,8 @@ enum Species {
     level_moves: [{level: 1, move: 43}, {level: 1, move: 55}, {level: 1, move: 108}, {level: 1, move: 145}, {level: 14, move: 116}, {level: 18, move: 61}, {level: 23, move: 97}, {level: 26, move: 239}, {level: 30, move: 362}, {level: 40, move: 56}, {level: 48, move: 349}, {level: 57, move: 406}],
     evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 230, item: 201}, {method: EVOLUTION_METHOD_ITEM, species: 230, item: 201}],
     machine_moves: [57, 58, 59, 63, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 406, 416, 430, 445],
-    tutor_moves: [29, 38, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 291, 324, 340]
+    tutor_moves: [29, 38, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 291, 324, 340],
+    item_rare: 201
   }];
   SPECIES_GOLDEEN = 118 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 6, weight: 150,
@@ -1298,7 +1357,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 106}, {level: 6, move: 55}, {level: 10, move: 229}, {level: 15, move: 105}, {level: 19, move: 293}, {level: 24, move: 129}, {level: 28, move: 61}, {level: 33, move: 107}, {level: 37, move: 360}, {level: 42, move: 113}, {level: 46, move: 408}, {level: 51, move: 322}, {level: 55, move: 56}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 121, item: 97}],
     machine_moves: [57, 58, 59, 85, 86, 87, 92, 94, 104, 113, 115, 127, 148, 156, 164, 182, 203, 207, 214, 216, 218, 237, 240, 244, 250, 258, 263, 278, 290, 291, 352, 360, 362, 363, 430],
-    tutor_moves: [38, 86, 102, 129, 164, 173, 196, 203, 205, 207, 214, 220, 239, 244, 277, 291, 324, 356]
+    tutor_moves: [38, 86, 102, 129, 164, 173, 196, 203, 205, 207, 214, 220, 239, 244, 277, 291, 324, 356],
+    item_common: 108, item_rare: 109
   }];
   SPECIES_STARMIE = 121 [(info) = {
     type1: TYPE_WATER, type2: TYPE_PSYCHIC, height: 11, weight: 800,
@@ -1307,7 +1367,8 @@ enum Species {
     catch_rate: 60, base_exp: 207, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 55}, {level: 1, move: 105}, {level: 1, move: 129}, {level: 1, move: 229}, {level: 28, move: 109}],
     machine_moves: [57, 58, 59, 63, 85, 86, 87, 92, 94, 104, 113, 115, 127, 138, 148, 156, 164, 182, 203, 207, 214, 216, 218, 237, 240, 244, 250, 258, 263, 278, 285, 290, 291, 352, 360, 362, 363, 416, 419, 430, 433, 447],
-    tutor_moves: [38, 86, 102, 129, 138, 164, 171, 173, 196, 203, 205, 207, 214, 220, 239, 244, 271, 277, 291, 324, 356]
+    tutor_moves: [38, 86, 102, 129, 138, 164, 171, 173, 196, 203, 205, 207, 214, 220, 239, 244, 271, 277, 291, 324, 356],
+    item_common: 108, item_rare: 109
   }];
   SPECIES_MR_MIME = 122 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 13, weight: 545,
@@ -1316,7 +1377,8 @@ enum Species {
     catch_rate: 45, base_exp: 136, ev_yield: {sp_defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 93}, {level: 1, move: 112}, {level: 1, move: 345}, {level: 1, move: 384}, {level: 1, move: 385}, {level: 4, move: 383}, {level: 8, move: 96}, {level: 11, move: 227}, {level: 15, move: 3}, {level: 18, move: 102}, {level: 22, move: 113}, {level: 22, move: 115}, {level: 25, move: 60}, {level: 29, move: 164}, {level: 32, move: 278}, {level: 36, move: 271}, {level: 39, move: 94}, {level: 43, move: 272}, {level: 46, move: 226}, {level: 50, move: 219}],
     machine_moves: [63, 76, 85, 86, 87, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 259, 263, 264, 269, 278, 280, 285, 289, 290, 332, 347, 351, 363, 371, 374, 409, 411, 412, 416, 433, 445, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 189, 203, 207, 214, 244, 270, 271, 272, 277, 324, 334, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 118, 138, 164, 171, 173, 189, 203, 207, 214, 244, 270, 271, 272, 277, 324, 334, 428],
+    item_rare: 138
   }];
   SPECIES_SCYTHER = 123 [(info) = {
     type1: TYPE_BUG, type2: TYPE_FLYING, height: 15, weight: 560,
@@ -1335,7 +1397,8 @@ enum Species {
     catch_rate: 45, base_exp: 137, ev_yield: {sp_attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 122}, {level: 1, move: 142}, {level: 1, move: 181}, {level: 15, move: 3}, {level: 18, move: 8}, {level: 21, move: 212}, {level: 25, move: 313}, {level: 28, move: 358}, {level: 33, move: 419}, {level: 39, move: 34}, {level: 44, move: 378}, {level: 49, move: 195}, {level: 55, move: 59}],
     machine_moves: [58, 59, 63, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 244, 247, 258, 259, 263, 264, 269, 278, 280, 285, 290, 347, 352, 363, 371, 374, 409, 411, 412, 416, 419, 433, 445, 447],
-    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 102, 118, 138, 164, 171, 173, 189, 196, 203, 207, 214, 215, 223, 244, 270, 271, 272, 277, 324, 428]
+    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 102, 118, 138, 164, 171, 173, 189, 196, 203, 207, 214, 215, 223, 244, 270, 271, 272, 277, 324, 428],
+    item_common: 137, item_rare: 137
   }];
   SPECIES_ELECTABUZZ = 125 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 11, weight: 300,
@@ -1407,7 +1470,8 @@ enum Species {
     base_stats: {hp: 48, attack: 48, defense: 48, speed: 48, sp_attack: 48, sp_defense: 48},
     abilities: [ABILITY_LIMBER], gender_ratio: 255, growth_rate: GROWTH_RATE_MEDIUM_FAST,
     catch_rate: 35, base_exp: 61, ev_yield: {hp: 1}, base_friendship: 70,
-    level_moves: [{level: 1, move: 144}]
+    level_moves: [{level: 1, move: 144}],
+    item_common: 407, item_rare: 223
   }];
   SPECIES_EEVEE = 133 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 3, weight: 65,
@@ -1510,7 +1574,8 @@ enum Species {
     catch_rate: 25, base_exp: 154, ev_yield: {hp: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 4, move: 111}, {level: 9, move: 133}, {level: 12, move: 122}, {level: 17, move: 187}, {level: 20, move: 281}, {level: 25, move: 156}, {level: 28, move: 173}, {level: 28, move: 214}, {level: 33, move: 34}, {level: 36, move: 335}, {level: 41, move: 205}, {level: 44, move: 242}, {level: 49, move: 416}],
     machine_moves: [53, 57, 58, 59, 63, 70, 76, 85, 87, 89, 92, 94, 104, 126, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 250, 263, 264, 278, 280, 290, 317, 351, 352, 363, 374, 411, 416, 431, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 111, 118, 120, 157, 164, 173, 189, 196, 200, 203, 205, 207, 214, 223, 244, 276, 335, 387, 402, 428, 441, 442]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 111, 118, 120, 157, 164, 173, 189, 196, 200, 203, 205, 207, 214, 223, 244, 276, 335, 387, 402, 428, 441, 442],
+    item_common: 200, item_rare: 200
   }];
   SPECIES_ARTICUNO = 144 [(info) = {
     type1: TYPE_ICE, type2: TYPE_FLYING, height: 17, weight: 554,
@@ -1547,7 +1612,8 @@ enum Species {
     level_moves: [{level: 1, move: 35}, {level: 1, move: 43}, {level: 5, move: 86}, {level: 11, move: 239}, {level: 15, move: 82}, {level: 21, move: 21}, {level: 25, move: 97}, {level: 31, move: 401}, {level: 35, move: 407}, {level: 41, move: 219}, {level: 45, move: 349}, {level: 51, move: 200}, {level: 55, move: 63}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 148, level: 30}],
     machine_moves: [53, 57, 58, 59, 63, 85, 86, 87, 92, 104, 126, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 250, 258, 263, 290, 351, 352, 363, 406, 445],
-    tutor_moves: [29, 34, 38, 86, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 401, 434]
+    tutor_moves: [29, 34, 38, 86, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 401, 434],
+    item_rare: 201
   }];
   SPECIES_DRAGONAIR = 148 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_DRAGON, height: 40, weight: 165,
@@ -1557,7 +1623,8 @@ enum Species {
     level_moves: [{level: 1, move: 35}, {level: 1, move: 43}, {level: 1, move: 86}, {level: 1, move: 239}, {level: 15, move: 82}, {level: 21, move: 21}, {level: 25, move: 97}, {level: 33, move: 401}, {level: 39, move: 407}, {level: 47, move: 219}, {level: 53, move: 349}, {level: 61, move: 200}, {level: 67, move: 63}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 149, level: 55}],
     machine_moves: [53, 57, 58, 59, 63, 85, 86, 87, 92, 104, 126, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 250, 258, 263, 290, 351, 352, 363, 406, 445],
-    tutor_moves: [29, 34, 38, 86, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 401, 434]
+    tutor_moves: [29, 34, 38, 86, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 401, 434],
+    item_rare: 201
   }];
   SPECIES_DRAGONITE = 149 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_FLYING, height: 22, weight: 2100,
@@ -1566,7 +1633,8 @@ enum Species {
     catch_rate: 45, base_exp: 218, ev_yield: {attack: 3}, base_friendship: 35,
     level_moves: [{level: 1, move: 7}, {level: 1, move: 9}, {level: 1, move: 35}, {level: 1, move: 43}, {level: 1, move: 86}, {level: 1, move: 239}, {level: 1, move: 355}, {level: 15, move: 82}, {level: 21, move: 21}, {level: 25, move: 97}, {level: 33, move: 401}, {level: 39, move: 407}, {level: 47, move: 219}, {level: 53, move: 349}, {level: 55, move: 17}, {level: 64, move: 200}, {level: 73, move: 63}],
     machine_moves: [15, 19, 46, 53, 57, 58, 59, 63, 70, 85, 86, 87, 89, 92, 104, 126, 127, 156, 157, 164, 182, 201, 203, 207, 211, 213, 214, 216, 218, 219, 231, 237, 240, 241, 249, 250, 258, 263, 264, 280, 290, 291, 317, 332, 337, 351, 352, 355, 363, 374, 406, 411, 416, 432, 444, 445],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 86, 102, 129, 164, 173, 189, 196, 200, 203, 207, 210, 214, 223, 239, 257, 276, 291, 314, 366, 401, 434, 442, 466]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 86, 102, 129, 164, 173, 189, 196, 200, 203, 207, 210, 214, 223, 239, 257, 276, 291, 314, 366, 401, 434, 442, 466],
+    item_rare: 201
   }];
   SPECIES_MEWTWO = 150 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 20, weight: 1220,
@@ -1584,7 +1652,8 @@ enum Species {
     catch_rate: 45, base_exp: 64, ev_yield: {hp: 3}, base_friendship: 100,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 144}, {level: 10, move: 5}, {level: 20, move: 118}, {level: 30, move: 94}, {level: 40, move: 112}, {level: 50, move: 246}, {level: 60, move: 133}, {level: 70, move: 382}, {level: 80, move: 226}, {level: 90, move: 417}, {level: 100, move: 396}],
     machine_moves: [14, 15, 19, 46, 53, 57, 58, 59, 63, 70, 76, 85, 86, 87, 89, 91, 92, 94, 104, 113, 115, 126, 127, 138, 148, 153, 156, 157, 164, 168, 182, 188, 201, 202, 203, 206, 207, 211, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 250, 258, 259, 261, 263, 264, 269, 278, 280, 285, 289, 290, 291, 315, 317, 318, 331, 332, 337, 339, 347, 351, 352, 355, 360, 362, 363, 365, 369, 371, 373, 374, 397, 398, 399, 404, 406, 409, 411, 412, 416, 419, 421, 430, 431, 432, 433, 444, 445, 446, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 14, 25, 29, 34, 38, 67, 68, 69, 81, 86, 102, 111, 118, 120, 129, 135, 138, 143, 153, 157, 162, 164, 171, 173, 180, 189, 196, 200, 203, 205, 207, 210, 214, 215, 220, 223, 235, 239, 244, 246, 253, 257, 270, 271, 272, 276, 277, 282, 283, 291, 314, 324, 334, 335, 340, 356, 366, 380, 387, 388, 389, 393, 401, 402, 410, 414, 428, 441, 442, 450, 466]
+    tutor_moves: [5, 7, 8, 9, 14, 25, 29, 34, 38, 67, 68, 69, 81, 86, 102, 111, 118, 120, 129, 135, 138, 143, 153, 157, 162, 164, 171, 173, 180, 189, 196, 200, 203, 205, 207, 210, 214, 215, 220, 223, 235, 239, 244, 246, 253, 257, 270, 271, 272, 276, 277, 282, 283, 291, 314, 324, 334, 335, 340, 356, 366, 380, 387, 388, 389, 393, 401, 402, 410, 414, 428, 441, 442, 450, 466],
+    item_common: 141, item_rare: 141
   }];
   SPECIES_CHIKORITA = 152 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 9, weight: 64,
@@ -1681,7 +1750,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 1, move: 193}, {level: 4, move: 111}, {level: 7, move: 98}, {level: 13, move: 154}, {level: 16, move: 270}, {level: 19, move: 266}, {level: 25, move: 21}, {level: 28, move: 156}, {level: 31, move: 389}, {level: 36, move: 133}, {level: 39, move: 226}, {level: 42, move: 382}, {level: 47, move: 304}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 162, level: 15}],
     machine_moves: [15, 53, 57, 58, 76, 85, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 250, 263, 264, 280, 290, 351, 352, 363, 369, 374, 421, 445, 447, 451],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 102, 111, 129, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 253, 270, 282, 387, 389, 401]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 102, 111, 129, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 253, 270, 282, 387, 389, 401],
+    item_rare: 139
   }];
   SPECIES_FURRET = 162 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 18, weight: 325,
@@ -1690,7 +1760,8 @@ enum Species {
     catch_rate: 90, base_exp: 116, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 98}, {level: 1, move: 111}, {level: 1, move: 193}, {level: 13, move: 154}, {level: 17, move: 270}, {level: 21, move: 266}, {level: 28, move: 21}, {level: 32, move: 156}, {level: 36, move: 389}, {level: 42, move: 133}, {level: 46, move: 226}, {level: 50, move: 382}, {level: 56, move: 304}],
     machine_moves: [15, 53, 57, 58, 59, 63, 70, 76, 85, 87, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 250, 263, 264, 280, 290, 351, 352, 363, 369, 374, 411, 416, 421, 445, 447, 451],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 102, 111, 129, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 253, 270, 282, 387, 389, 401]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 102, 111, 129, 162, 164, 173, 189, 203, 205, 207, 210, 214, 223, 253, 270, 282, 387, 389, 401],
+    item_common: 139, item_rare: 142
   }];
   SPECIES_HOOTHOOT = 163 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 7, weight: 212,
@@ -1766,7 +1837,8 @@ enum Species {
     level_moves: [{level: 1, move: 48}, {level: 1, move: 145}, {level: 6, move: 86}, {level: 9, move: 175}, {level: 12, move: 55}, {level: 17, move: 109}, {level: 20, move: 209}, {level: 23, move: 36}, {level: 28, move: 61}, {level: 31, move: 324}, {level: 34, move: 435}, {level: 39, move: 392}, {level: 42, move: 56}, {level: 45, move: 268}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 171, level: 27}],
     machine_moves: [57, 58, 59, 85, 86, 87, 92, 104, 127, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 351, 352, 362, 363, 445, 451],
-    tutor_moves: [38, 86, 102, 164, 173, 196, 203, 207, 214, 215, 291, 324, 340, 389]
+    tutor_moves: [38, 86, 102, 164, 173, 196, 203, 207, 214, 215, 291, 324, 340, 389],
+    item_rare: 193
   }];
   SPECIES_LANTURN = 171 [(info) = {
     type1: TYPE_WATER, type2: TYPE_ELECTRIC, height: 12, weight: 225,
@@ -1775,7 +1847,8 @@ enum Species {
     catch_rate: 75, base_exp: 156, ev_yield: {hp: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 48}, {level: 1, move: 86}, {level: 1, move: 145}, {level: 9, move: 175}, {level: 12, move: 55}, {level: 17, move: 109}, {level: 20, move: 209}, {level: 23, move: 36}, {level: 27, move: 254}, {level: 27, move: 255}, {level: 27, move: 256}, {level: 30, move: 61}, {level: 35, move: 324}, {level: 40, move: 435}, {level: 47, move: 392}, {level: 52, move: 56}, {level: 57, move: 268}],
     machine_moves: [57, 58, 59, 63, 85, 86, 87, 92, 104, 127, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 351, 352, 362, 363, 416, 445, 451],
-    tutor_moves: [38, 86, 102, 164, 173, 196, 203, 207, 214, 215, 291, 324, 340, 389, 401]
+    tutor_moves: [38, 86, 102, 164, 173, 196, 203, 207, 214, 215, 291, 324, 340, 389, 401],
+    item_rare: 193
   }];
   SPECIES_PICHU = 172 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 3, weight: 20,
@@ -1785,7 +1858,8 @@ enum Species {
     level_moves: [{level: 1, move: 84}, {level: 1, move: 204}, {level: 5, move: 39}, {level: 10, move: 86}, {level: 13, move: 186}, {level: 18, move: 417}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 25, friendship: 220}],
     machine_moves: [85, 86, 87, 92, 104, 113, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 263, 290, 351, 363, 374, 445, 447, 451],
-    tutor_moves: [5, 25, 29, 34, 38, 68, 69, 86, 102, 111, 129, 164, 173, 189, 203, 205, 207, 214, 253, 270, 324, 393]
+    tutor_moves: [5, 25, 29, 34, 38, 68, 69, 86, 102, 111, 129, 164, 173, 189, 203, 205, 207, 214, 253, 270, 324, 393],
+    item_rare: 139
   }];
   SPECIES_CLEFFA = 173 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 3, weight: 30,
@@ -1795,7 +1869,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 204}, {level: 4, move: 227}, {level: 7, move: 47}, {level: 10, move: 186}, {level: 13, move: 383}, {level: 16, move: 345}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 35, friendship: 220}],
     machine_moves: [53, 76, 86, 91, 92, 94, 104, 113, 115, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 263, 278, 290, 351, 352, 363, 374, 445, 447],
-    tutor_moves: [5, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 171, 173, 189, 196, 203, 205, 207, 214, 244, 253, 270, 271, 272, 277, 283, 324, 356, 387, 428]
+    tutor_moves: [5, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 171, 173, 189, 196, 203, 205, 207, 214, 244, 253, 270, 271, 272, 277, 283, 324, 356, 387, 428],
+    item_common: 138, item_rare: 94
   }];
   SPECIES_IGGLYBUFF = 174 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 3, weight: 10,
@@ -1919,7 +1994,8 @@ enum Species {
     catch_rate: 45, base_exp: 185, ev_yield: {sp_defense: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 3}, {level: 1, move: 61}, {level: 1, move: 95}, {level: 1, move: 195}, {level: 27, move: 207}, {level: 37, move: 340}, {level: 48, move: 304}],
     machine_moves: [57, 58, 59, 63, 70, 89, 91, 92, 94, 104, 127, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 249, 250, 258, 263, 264, 280, 290, 291, 352, 363, 371, 374, 411, 416, 445],
-    tutor_moves: [5, 25, 29, 34, 38, 68, 69, 102, 111, 118, 164, 173, 189, 196, 203, 207, 214, 223, 270, 291, 340]
+    tutor_moves: [5, 25, 29, 34, 38, 68, 69, 102, 111, 118, 164, 173, 189, 196, 203, 207, 214, 223, 270, 291, 340],
+    item_rare: 187
   }];
   SPECIES_HOPPIP = 187 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_FLYING, height: 4, weight: 5,
@@ -1968,7 +2044,8 @@ enum Species {
     level_moves: [{level: 1, move: 71}, {level: 1, move: 74}, {level: 5, move: 72}, {level: 9, move: 275}, {level: 13, move: 320}, {level: 17, move: 73}, {level: 21, move: 283}, {level: 25, move: 388}, {level: 29, move: 75}, {level: 33, move: 235}, {level: 37, move: 241}, {level: 41, move: 202}, {level: 45, move: 402}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 192, item: 93}],
     machine_moves: [14, 15, 76, 92, 104, 113, 148, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 219, 237, 241, 263, 290, 331, 363, 412, 445, 447],
-    tutor_moves: [14, 38, 102, 164, 173, 203, 207, 214, 235, 253, 270, 283, 388, 402, 414]
+    tutor_moves: [14, 38, 102, 164, 173, 203, 207, 214, 235, 253, 270, 283, 388, 402, 414],
+    item_rare: 459
   }];
   SPECIES_SUNFLORA = 192 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 8, weight: 85,
@@ -1987,7 +2064,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 193}, {level: 6, move: 98}, {level: 11, move: 104}, {level: 14, move: 49}, {level: 17, move: 197}, {level: 22, move: 48}, {level: 27, move: 253}, {level: 30, move: 228}, {level: 33, move: 246}, {level: 38, move: 95}, {level: 43, move: 17}, {level: 46, move: 103}, {level: 49, move: 369}, {level: 54, move: 403}, {level: 57, move: 405}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 469, move: 246}],
     machine_moves: [76, 92, 94, 104, 138, 148, 156, 164, 168, 182, 202, 203, 207, 211, 213, 214, 216, 218, 237, 241, 247, 263, 290, 318, 332, 355, 363, 369, 432, 445],
-    tutor_moves: [29, 38, 81, 102, 129, 138, 164, 173, 203, 207, 214, 246, 253, 314, 324, 366, 450, 466]
+    tutor_moves: [29, 38, 81, 102, 129, 138, 164, 173, 203, 207, 214, 246, 253, 314, 324, 366, 450, 466],
+    item_rare: 430
   }];
   SPECIES_WOOPER = 194 [(info) = {
     type1: TYPE_WATER, type2: TYPE_GROUND, height: 4, weight: 85,
@@ -2043,7 +2121,8 @@ enum Species {
     catch_rate: 70, base_exp: 164, ev_yield: {sp_defense: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 174}, {level: 1, move: 237}, {level: 1, move: 281}, {level: 1, move: 408}, {level: 6, move: 45}, {level: 11, move: 55}, {level: 15, move: 93}, {level: 20, move: 50}, {level: 25, move: 29}, {level: 29, move: 352}, {level: 34, move: 428}, {level: 39, move: 417}, {level: 43, move: 207}, {level: 48, move: 94}, {level: 53, move: 376}, {level: 57, move: 244}],
     machine_moves: [53, 57, 58, 59, 63, 70, 86, 89, 91, 92, 94, 104, 113, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 250, 258, 263, 264, 278, 280, 285, 290, 291, 347, 352, 362, 363, 374, 409, 411, 416, 419, 433, 445, 447],
-    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 86, 102, 129, 138, 164, 171, 173, 189, 196, 203, 207, 210, 214, 223, 244, 271, 277, 291, 324, 334, 335, 401, 428]
+    tutor_moves: [5, 8, 25, 29, 34, 38, 68, 69, 86, 102, 129, 138, 164, 171, 173, 189, 196, 203, 207, 210, 214, 223, 244, 271, 277, 291, 324, 334, 335, 401, 428],
+    item_rare: 187
   }];
   SPECIES_MISDREAVUS = 200 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 7, weight: 10,
@@ -2076,7 +2155,8 @@ enum Species {
     catch_rate: 60, base_exp: 149, ev_yield: {sp_attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 1, move: 93}, {level: 1, move: 310}, {level: 1, move: 384}, {level: 1, move: 385}, {level: 5, move: 316}, {level: 10, move: 23}, {level: 14, move: 97}, {level: 19, move: 60}, {level: 23, move: 226}, {level: 28, move: 372}, {level: 32, move: 458}, {level: 37, move: 94}, {level: 41, move: 428}, {level: 46, move: 242}],
     machine_moves: [70, 85, 86, 87, 89, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 263, 278, 285, 290, 347, 351, 363, 412, 433, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 129, 138, 164, 171, 173, 189, 203, 207, 214, 244, 253, 271, 277, 324, 356, 389, 428]
+    tutor_moves: [29, 34, 38, 86, 102, 129, 138, 164, 171, 173, 189, 203, 207, 214, 244, 253, 271, 277, 324, 356, 389, 428],
+    item_rare: 140
   }];
   SPECIES_PINECO = 204 [(info) = {
     type1: TYPE_BUG, type2: TYPE_BUG, height: 6, weight: 72,
@@ -2123,7 +2203,8 @@ enum Species {
     catch_rate: 25, base_exp: 196, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 20}, {level: 1, move: 33}, {level: 1, move: 106}, {level: 1, move: 300}, {level: 1, move: 422}, {level: 1, move: 423}, {level: 1, move: 424}, {level: 6, move: 103}, {level: 9, move: 88}, {level: 14, move: 99}, {level: 17, move: 317}, {level: 22, move: 201}, {level: 25, move: 21}, {level: 30, move: 397}, {level: 33, move: 225}, {level: 38, move: 174}, {level: 38, move: 231}, {level: 41, move: 242}, {level: 46, move: 38}, {level: 49, move: 444}],
     machine_moves: [15, 46, 63, 70, 89, 91, 92, 104, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 241, 244, 249, 259, 263, 269, 290, 317, 360, 363, 371, 397, 399, 406, 416, 430, 431, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 239, 246, 335, 393, 401, 414, 442]
+    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 239, 246, 335, 393, 401, 414, 442],
+    item_rare: 199
   }];
   SPECIES_SNUBBULL = 209 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 78,
@@ -2151,7 +2232,8 @@ enum Species {
     catch_rate: 45, base_exp: 100, ev_yield: {attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 40}, {level: 1, move: 191}, {level: 9, move: 106}, {level: 9, move: 107}, {level: 13, move: 55}, {level: 17, move: 205}, {level: 21, move: 390}, {level: 25, move: 254}, {level: 25, move: 255}, {level: 29, move: 279}, {level: 33, move: 362}, {level: 37, move: 42}, {level: 41, move: 36}, {level: 45, move: 401}, {level: 49, move: 398}, {level: 53, move: 194}, {level: 57, move: 56}],
     machine_moves: [57, 58, 59, 86, 92, 104, 127, 153, 156, 164, 182, 188, 203, 207, 213, 214, 216, 218, 237, 240, 247, 250, 258, 263, 269, 290, 291, 351, 352, 360, 362, 363, 371, 398, 445],
-    tutor_moves: [14, 29, 38, 86, 102, 111, 120, 129, 164, 173, 196, 203, 205, 207, 214, 220, 291, 324, 340, 401]
+    tutor_moves: [14, 29, 38, 86, 102, 111, 120, 129, 164, 173, 196, 203, 205, 207, 214, 220, 291, 324, 340, 401],
+    item_rare: 211
   }];
   SPECIES_SCIZOR = 212 [(info) = {
     type1: TYPE_BUG, type2: TYPE_STEEL, height: 18, weight: 1180,
@@ -2169,7 +2251,8 @@ enum Species {
     catch_rate: 190, base_exp: 80, ev_yield: {defense: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 110}, {level: 1, move: 117}, {level: 1, move: 132}, {level: 9, move: 227}, {level: 14, move: 219}, {level: 22, move: 35}, {level: 27, move: 156}, {level: 35, move: 380}, {level: 40, move: 450}, {level: 48, move: 379}],
     machine_moves: [70, 89, 91, 92, 104, 148, 156, 157, 164, 182, 188, 201, 203, 207, 213, 214, 216, 218, 219, 237, 241, 249, 263, 290, 317, 360, 363, 397, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 81, 102, 111, 157, 164, 173, 189, 203, 205, 207, 214, 246, 270, 380, 414, 450]
+    tutor_moves: [29, 34, 38, 81, 102, 111, 157, 164, 173, 189, 203, 205, 207, 214, 246, 270, 380, 414, 450],
+    item_common: 44, item_rare: 44
   }];
   SPECIES_HERACROSS = 214 [(info) = {
     type1: TYPE_BUG, type2: TYPE_FIGHTING, height: 15, weight: 540,
@@ -2188,7 +2271,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 1, move: 269}, {level: 8, move: 98}, {level: 10, move: 103}, {level: 14, move: 185}, {level: 21, move: 154}, {level: 24, move: 97}, {level: 28, move: 196}, {level: 35, move: 163}, {level: 38, move: 251}, {level: 42, move: 232}, {level: 49, move: 420}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 461, item: 448, time: EVOLUTION_TIME_NIGHT}],
     machine_moves: [14, 15, 57, 58, 59, 70, 91, 92, 104, 138, 156, 164, 168, 182, 203, 206, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 250, 258, 259, 263, 264, 269, 280, 289, 290, 332, 347, 363, 371, 373, 374, 398, 399, 404, 419, 421, 445],
-    tutor_moves: [8, 14, 29, 38, 67, 68, 102, 111, 129, 138, 164, 171, 173, 180, 189, 196, 203, 207, 210, 214, 223, 244, 282]
+    tutor_moves: [8, 14, 29, 38, 67, 68, 102, 111, 129, 138, 164, 171, 173, 180, 189, 196, 203, 207, 210, 214, 223, 244, 282],
+    item_common: 444, item_rare: 183
   }];
   SPECIES_TEDDIURSA = 216 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 88,
@@ -2255,7 +2339,8 @@ enum Species {
     catch_rate: 60, base_exp: 113, ev_yield: {defense: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 4, move: 106}, {level: 8, move: 145}, {level: 13, move: 105}, {level: 16, move: 287}, {level: 20, move: 350}, {level: 25, move: 61}, {level: 28, move: 381}, {level: 32, move: 246}, {level: 37, move: 392}, {level: 40, move: 131}, {level: 44, move: 408}, {level: 48, move: 243}, {level: 53, move: 414}],
     machine_moves: [57, 58, 59, 70, 89, 91, 92, 94, 104, 113, 115, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 247, 249, 250, 258, 263, 290, 317, 347, 352, 362, 363, 397, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 157, 164, 173, 189, 196, 203, 205, 207, 214, 246, 277, 283, 389, 414]
+    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 157, 164, 173, 189, 196, 203, 205, 207, 214, 246, 277, 283, 389, 414],
+    item_rare: 204
   }];
   SPECIES_REMORAID = 223 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 6, weight: 120,
@@ -2329,7 +2414,8 @@ enum Species {
     catch_rate: 45, base_exp: 207, ev_yield: {attack: 1, sp_attack: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 43}, {level: 1, move: 55}, {level: 1, move: 108}, {level: 1, move: 145}, {level: 1, move: 281}, {level: 14, move: 116}, {level: 18, move: 61}, {level: 23, move: 97}, {level: 26, move: 239}, {level: 30, move: 362}, {level: 40, move: 56}, {level: 48, move: 349}, {level: 57, move: 406}],
     machine_moves: [57, 58, 59, 63, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 406, 416, 430, 445],
-    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 291, 324, 340, 434, 442]
+    tutor_moves: [29, 34, 38, 102, 129, 164, 173, 196, 200, 203, 207, 214, 239, 291, 324, 340, 434, 442],
+    item_rare: 201
   }];
   SPECIES_PHANPY = 231 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 5, weight: 335,
@@ -2339,7 +2425,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 1, move: 111}, {level: 1, move: 316}, {level: 6, move: 175}, {level: 10, move: 36}, {level: 15, move: 205}, {level: 19, move: 363}, {level: 24, move: 21}, {level: 28, move: 203}, {level: 33, move: 204}, {level: 37, move: 387}, {level: 42, move: 38}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 232, level: 25}],
     machine_moves: [46, 70, 89, 92, 104, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 263, 290, 317, 363, 445, 446],
-    tutor_moves: [29, 34, 38, 68, 102, 111, 164, 173, 189, 203, 205, 207, 214, 246, 276, 282, 283, 402, 414, 441]
+    tutor_moves: [29, 34, 38, 68, 102, 111, 164, 173, 189, 203, 205, 207, 214, 246, 276, 282, 283, 402, 414, 441],
+    item_rare: 452
   }];
   SPECIES_DONPHAN = 232 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 11, weight: 1200,
@@ -2348,7 +2435,8 @@ enum Species {
     catch_rate: 60, base_exp: 189, ev_yield: {attack: 1, defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 30}, {level: 1, move: 45}, {level: 1, move: 111}, {level: 1, move: 175}, {level: 1, move: 422}, {level: 1, move: 424}, {level: 6, move: 229}, {level: 10, move: 282}, {level: 15, move: 205}, {level: 19, move: 222}, {level: 24, move: 21}, {level: 25, move: 31}, {level: 31, move: 372}, {level: 39, move: 184}, {level: 46, move: 89}, {level: 54, move: 416}],
     machine_moves: [46, 63, 70, 89, 92, 104, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 263, 290, 317, 360, 363, 397, 398, 416, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 68, 102, 111, 157, 164, 173, 189, 203, 205, 207, 214, 246, 276, 282, 283, 334, 335, 340, 402, 414, 441]
+    tutor_moves: [29, 34, 38, 68, 102, 111, 157, 164, 173, 189, 203, 205, 207, 214, 246, 276, 282, 283, 334, 335, 340, 402, 414, 441],
+    item_rare: 452
   }];
   SPECIES_PORYGON2 = 233 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 325,
@@ -2403,7 +2491,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 5, move: 122}, {level: 8, move: 186}, {level: 11, move: 181}, {level: 15, move: 93}, {level: 18, move: 47}, {level: 21, move: 212}, {level: 25, move: 313}, {level: 28, move: 381}, {level: 31, move: 419}, {level: 35, move: 94}, {level: 38, move: 383}, {level: 41, move: 195}, {level: 45, move: 59}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 124, level: 30}],
     machine_moves: [58, 59, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 244, 247, 258, 263, 278, 285, 290, 347, 352, 363, 371, 374, 419, 433, 445, 447],
-    tutor_moves: [5, 8, 25, 34, 38, 68, 69, 102, 118, 138, 164, 171, 173, 189, 196, 203, 207, 214, 215, 223, 244, 253, 270, 271, 272, 277, 324, 428]
+    tutor_moves: [5, 8, 25, 34, 38, 68, 69, 102, 118, 138, 164, 171, 173, 189, 196, 203, 207, 214, 215, 223, 244, 253, 270, 271, 272, 277, 324, 428],
+    item_common: 137, item_rare: 137
   }];
   SPECIES_ELEKID = 239 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 6, weight: 235,
@@ -2432,7 +2521,8 @@ enum Species {
     catch_rate: 45, base_exp: 200, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 3, move: 45}, {level: 5, move: 111}, {level: 8, move: 23}, {level: 11, move: 208}, {level: 15, move: 117}, {level: 19, move: 205}, {level: 24, move: 34}, {level: 29, move: 428}, {level: 35, move: 445}, {level: 41, move: 360}, {level: 48, move: 215}, {level: 55, move: 358}],
     machine_moves: [57, 58, 59, 63, 70, 76, 85, 86, 87, 89, 92, 104, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 250, 263, 264, 280, 290, 317, 351, 352, 360, 363, 374, 411, 416, 445, 446],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 157, 164, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 335, 428, 442]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 157, 164, 173, 189, 196, 203, 205, 207, 214, 215, 223, 244, 270, 335, 428, 442],
+    item_common: 29, item_rare: 29
   }];
   SPECIES_BLISSEY = 242 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 15, weight: 468,
@@ -2441,7 +2531,8 @@ enum Species {
     catch_rate: 30, base_exp: 255, ev_yield: {hp: 2}, base_friendship: 140,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 45}, {level: 5, move: 39}, {level: 9, move: 287}, {level: 12, move: 135}, {level: 16, move: 3}, {level: 20, move: 107}, {level: 23, move: 47}, {level: 27, move: 374}, {level: 31, move: 111}, {level: 34, move: 113}, {level: 38, move: 121}, {level: 42, move: 361}, {level: 46, move: 38}],
     machine_moves: [53, 58, 59, 63, 70, 76, 85, 86, 87, 89, 92, 94, 104, 113, 126, 138, 148, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 258, 263, 264, 278, 280, 285, 289, 290, 317, 347, 351, 352, 363, 374, 409, 411, 416, 419, 431, 445, 446, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 223, 270, 283, 335, 356, 387, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 86, 102, 111, 118, 135, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 223, 270, 283, 335, 356, 387, 428],
+    item_common: 390, item_rare: 197
   }];
   SPECIES_RAIKOU = 243 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 19, weight: 1780,
@@ -2515,7 +2606,8 @@ enum Species {
     catch_rate: 3, base_exp: 220, ev_yield: {sp_defense: 3}, base_friendship: 0,
     level_moves: [{level: 1, move: 18}, {level: 1, move: 311}, {level: 9, move: 16}, {level: 9, move: 219}, {level: 15, move: 413}, {level: 23, move: 105}, {level: 23, move: 326}, {level: 29, move: 126}, {level: 29, move: 241}, {level: 43, move: 129}, {level: 43, move: 221}, {level: 50, move: 386}, {level: 51, move: 363}, {level: 57, move: 246}, {level: 79, move: 248}, {level: 93, move: 347}, {level: 99, move: 143}],
     machine_moves: [19, 46, 53, 63, 70, 76, 85, 86, 87, 89, 92, 94, 104, 113, 115, 126, 138, 148, 156, 164, 182, 201, 202, 203, 207, 211, 214, 216, 218, 219, 237, 240, 241, 244, 247, 249, 261, 263, 290, 315, 332, 347, 351, 355, 363, 365, 416, 432, 451],
-    tutor_moves: [38, 86, 102, 129, 138, 143, 164, 171, 173, 189, 203, 207, 214, 239, 244, 246, 257, 314, 324, 366, 414, 428, 442, 466]
+    tutor_moves: [38, 86, 102, 129, 138, 143, 164, 171, 173, 189, 203, 207, 214, 239, 244, 246, 257, 314, 324, 366, 414, 428, 442, 466],
+    item_common: 45, item_rare: 45
   }];
   SPECIES_CELEBI = 251 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_GRASS, height: 6, weight: 50,
@@ -2524,7 +2616,8 @@ enum Species {
     catch_rate: 45, base_exp: 64, ev_yield: {hp: 3}, base_friendship: 100,
     level_moves: [{level: 1, move: 73}, {level: 1, move: 93}, {level: 1, move: 105}, {level: 1, move: 215}, {level: 10, move: 219}, {level: 19, move: 345}, {level: 28, move: 246}, {level: 37, move: 226}, {level: 46, move: 363}, {level: 55, move: 377}, {level: 64, move: 248}, {level: 73, move: 361}, {level: 82, move: 437}, {level: 91, move: 195}],
     machine_moves: [14, 15, 63, 76, 86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 182, 201, 202, 203, 207, 214, 216, 218, 219, 237, 240, 241, 244, 247, 263, 285, 290, 318, 332, 347, 351, 352, 363, 369, 374, 412, 416, 433, 446, 447, 451],
-    tutor_moves: [14, 38, 102, 111, 118, 129, 138, 164, 171, 173, 189, 203, 207, 214, 215, 235, 244, 246, 253, 270, 271, 277, 324, 387, 388, 389, 402, 414, 428]
+    tutor_moves: [14, 38, 102, 111, 118, 129, 138, 164, 171, 173, 189, 203, 207, 214, 215, 235, 244, 246, 253, 270, 271, 277, 324, 387, 388, 389, 402, 414, 428],
+    item_common: 141, item_rare: 141
   }];
   SPECIES_TREECKO = 252 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 5, weight: 50,
@@ -2621,7 +2714,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 5, move: 336}, {level: 9, move: 28}, {level: 13, move: 44}, {level: 17, move: 316}, {level: 21, move: 46}, {level: 25, move: 207}, {level: 29, move: 372}, {level: 33, move: 184}, {level: 37, move: 269}, {level: 41, move: 373}, {level: 45, move: 36}, {level: 49, move: 389}, {level: 53, move: 242}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 262, level: 18}],
     machine_moves: [46, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 259, 263, 269, 289, 290, 363, 371, 373, 399, 445],
-    tutor_moves: [29, 34, 38, 68, 102, 162, 164, 173, 180, 189, 203, 207, 214, 244, 253, 389]
+    tutor_moves: [29, 34, 38, 68, 102, 162, 164, 173, 180, 189, 203, 207, 214, 244, 253, 389],
+    item_rare: 135
   }];
   SPECIES_MIGHTYENA = 262 [(info) = {
     type1: TYPE_DARK, type2: TYPE_DARK, height: 10, weight: 370,
@@ -2630,7 +2724,8 @@ enum Species {
     catch_rate: 127, base_exp: 128, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 28}, {level: 1, move: 33}, {level: 1, move: 44}, {level: 1, move: 336}, {level: 17, move: 316}, {level: 22, move: 46}, {level: 27, move: 207}, {level: 32, move: 372}, {level: 37, move: 184}, {level: 42, move: 269}, {level: 47, move: 373}, {level: 52, move: 36}, {level: 57, move: 168}, {level: 62, move: 389}],
     machine_moves: [46, 63, 70, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 259, 263, 269, 289, 290, 363, 371, 373, 399, 416, 445],
-    tutor_moves: [29, 34, 38, 68, 102, 162, 164, 173, 180, 189, 203, 207, 214, 244, 253, 389]
+    tutor_moves: [29, 34, 38, 68, 102, 162, 164, 173, 180, 189, 203, 207, 214, 244, 253, 389],
+    item_rare: 135
   }];
   SPECIES_ZIGZAGOON = 263 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 4, weight: 175,
@@ -2640,7 +2735,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 5, move: 39}, {level: 9, move: 29}, {level: 13, move: 28}, {level: 17, move: 316}, {level: 21, move: 300}, {level: 25, move: 42}, {level: 29, move: 343}, {level: 33, move: 175}, {level: 37, move: 156}, {level: 41, move: 187}, {level: 45, move: 374}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 264, level: 20}],
     machine_moves: [15, 57, 58, 59, 85, 86, 87, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 250, 263, 290, 351, 352, 363, 374, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 205, 207, 210, 214, 270, 271, 387, 402, 441]
+    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 205, 207, 210, 214, 270, 271, 387, 402, 441],
+    item_rare: 139
   }];
   SPECIES_LINOONE = 264 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 5, weight: 325,
@@ -2649,7 +2745,8 @@ enum Species {
     catch_rate: 90, base_exp: 128, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 29}, {level: 1, move: 33}, {level: 1, move: 39}, {level: 1, move: 45}, {level: 1, move: 415}, {level: 13, move: 28}, {level: 17, move: 316}, {level: 23, move: 300}, {level: 29, move: 154}, {level: 35, move: 343}, {level: 41, move: 163}, {level: 47, move: 156}, {level: 53, move: 187}, {level: 59, move: 374}],
     machine_moves: [15, 46, 57, 58, 59, 63, 70, 85, 86, 87, 91, 92, 104, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 250, 263, 290, 351, 352, 363, 374, 416, 421, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 205, 207, 210, 214, 270, 271, 387, 402, 441]
+    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 162, 164, 173, 189, 196, 203, 205, 207, 210, 214, 270, 271, 387, 402, 441],
+    item_common: 139, item_rare: 142
   }];
   SPECIES_WURMPLE = 265 [(info) = {
     type1: TYPE_BUG, type2: TYPE_BUG, height: 3, weight: 36,
@@ -2676,7 +2773,8 @@ enum Species {
     catch_rate: 45, base_exp: 161, ev_yield: {sp_attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 71}, {level: 13, move: 16}, {level: 17, move: 78}, {level: 20, move: 234}, {level: 24, move: 72}, {level: 27, move: 18}, {level: 31, move: 213}, {level: 34, move: 318}, {level: 38, move: 202}, {level: 41, move: 405}],
     machine_moves: [63, 76, 92, 94, 104, 148, 156, 164, 168, 182, 202, 203, 207, 213, 214, 216, 218, 219, 237, 241, 247, 263, 290, 318, 332, 355, 363, 369, 412, 416, 432, 445],
-    tutor_moves: [38, 81, 102, 129, 164, 173, 203, 207, 214, 239, 314, 324, 366, 450, 466]
+    tutor_moves: [38, 81, 102, 129, 164, 173, 203, 207, 214, 239, 314, 324, 366, 450, 466],
+    item_rare: 446
   }];
   SPECIES_CASCOON = 268 [(info) = {
     type1: TYPE_BUG, type2: TYPE_BUG, height: 7, weight: 115,
@@ -2694,7 +2792,8 @@ enum Species {
     catch_rate: 45, base_exp: 160, ev_yield: {sp_defense: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 93}, {level: 13, move: 16}, {level: 17, move: 182}, {level: 20, move: 236}, {level: 24, move: 60}, {level: 27, move: 18}, {level: 31, move: 113}, {level: 34, move: 318}, {level: 38, move: 92}, {level: 41, move: 405}],
     machine_moves: [63, 76, 92, 94, 104, 113, 148, 156, 164, 168, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 241, 247, 263, 290, 318, 332, 355, 363, 369, 412, 416, 432, 445],
-    tutor_moves: [38, 81, 102, 129, 164, 173, 203, 207, 214, 239, 314, 324, 366, 450, 466]
+    tutor_moves: [38, 81, 102, 129, 164, 173, 203, 207, 214, 239, 314, 324, 366, 450, 466],
+    item_rare: 446
   }];
   SPECIES_LOTAD = 270 [(info) = {
     type1: TYPE_WATER, type2: TYPE_GRASS, height: 5, weight: 26,
@@ -2762,7 +2861,8 @@ enum Species {
     level_moves: [{level: 1, move: 45}, {level: 1, move: 64}, {level: 4, move: 116}, {level: 8, move: 98}, {level: 13, move: 17}, {level: 19, move: 104}, {level: 26, move: 283}, {level: 34, move: 332}, {level: 43, move: 97}, {level: 53, move: 403}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 277, level: 22}],
     machine_moves: [19, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 263, 290, 332, 355, 363, 365, 369, 432, 445],
-    tutor_moves: [38, 68, 102, 129, 143, 164, 173, 189, 203, 207, 214, 239, 257, 283, 314, 366, 466]
+    tutor_moves: [38, 68, 102, 129, 143, 164, 173, 189, 203, 207, 214, 239, 257, 283, 314, 366, 466],
+    item_rare: 462
   }];
   SPECIES_SWELLOW = 277 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 7, weight: 198,
@@ -2771,7 +2871,8 @@ enum Species {
     catch_rate: 45, base_exp: 162, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 45}, {level: 1, move: 64}, {level: 1, move: 98}, {level: 1, move: 116}, {level: 1, move: 365}, {level: 13, move: 17}, {level: 19, move: 104}, {level: 28, move: 283}, {level: 38, move: 332}, {level: 49, move: 97}, {level: 61, move: 403}],
     machine_moves: [19, 63, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 263, 290, 332, 355, 363, 365, 369, 416, 432, 445],
-    tutor_moves: [38, 68, 102, 129, 143, 164, 173, 189, 203, 207, 214, 239, 257, 283, 314, 366, 466]
+    tutor_moves: [38, 68, 102, 129, 143, 164, 173, 189, 203, 207, 214, 239, 257, 283, 314, 366, 466],
+    item_rare: 462
   }];
   SPECIES_WINGULL = 278 [(info) = {
     type1: TYPE_WATER, type2: TYPE_FLYING, height: 6, weight: 95,
@@ -2838,7 +2939,8 @@ enum Species {
     catch_rate: 75, base_exp: 128, ev_yield: {sp_attack: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 98}, {level: 1, move: 145}, {level: 1, move: 230}, {level: 1, move: 346}, {level: 1, move: 466}, {level: 22, move: 16}, {level: 26, move: 184}, {level: 33, move: 78}, {level: 40, move: 318}, {level: 47, move: 403}, {level: 54, move: 18}, {level: 61, move: 405}],
     machine_moves: [58, 59, 63, 76, 92, 104, 148, 156, 164, 168, 182, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 263, 290, 318, 332, 352, 355, 363, 369, 412, 416, 432, 445],
-    tutor_moves: [38, 81, 102, 129, 164, 171, 173, 189, 196, 203, 207, 214, 239, 244, 314, 324, 366, 450, 466]
+    tutor_moves: [38, 81, 102, 129, 164, 171, 173, 189, 196, 203, 207, 214, 239, 244, 314, 324, 366, 450, 466],
+    item_rare: 188
   }];
   SPECIES_SHROOMISH = 285 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 4, weight: 45,
@@ -2848,7 +2950,8 @@ enum Species {
     level_moves: [{level: 1, move: 71}, {level: 5, move: 33}, {level: 9, move: 78}, {level: 13, move: 73}, {level: 17, move: 72}, {level: 21, move: 29}, {level: 25, move: 77}, {level: 29, move: 388}, {level: 33, move: 74}, {level: 37, move: 202}, {level: 41, move: 402}, {level: 45, move: 147}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 286, level: 23}],
     machine_moves: [14, 76, 92, 104, 148, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 219, 237, 241, 263, 289, 290, 331, 363, 412, 445, 447],
-    tutor_moves: [14, 29, 34, 38, 102, 164, 173, 203, 207, 214, 235, 270, 388, 402]
+    tutor_moves: [14, 29, 34, 38, 102, 164, 173, 203, 207, 214, 235, 270, 388, 402],
+    item_rare: 457
   }];
   SPECIES_BRELOOM = 286 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_FIGHTING, height: 12, weight: 392,
@@ -2857,7 +2960,8 @@ enum Species {
     catch_rate: 90, base_exp: 165, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 71}, {level: 1, move: 73}, {level: 1, move: 78}, {level: 17, move: 72}, {level: 21, move: 29}, {level: 23, move: 183}, {level: 25, move: 68}, {level: 29, move: 395}, {level: 33, move: 327}, {level: 37, move: 170}, {level: 41, move: 402}, {level: 45, move: 223}],
     machine_moves: [14, 15, 63, 70, 76, 92, 104, 148, 156, 157, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 219, 231, 237, 241, 249, 263, 264, 280, 289, 290, 317, 331, 339, 363, 374, 409, 411, 412, 416, 444, 445, 447],
-    tutor_moves: [5, 9, 14, 25, 29, 34, 38, 68, 69, 102, 164, 173, 189, 203, 207, 210, 214, 223, 235, 270, 276, 388, 402, 410]
+    tutor_moves: [5, 9, 14, 25, 29, 34, 38, 68, 69, 102, 164, 173, 189, 203, 207, 210, 214, 223, 235, 270, 276, 388, 402, 410],
+    item_rare: 457
   }];
   SPECIES_SLAKOTH = 287 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 8, weight: 240,
@@ -2924,7 +3028,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 5, move: 253}, {level: 11, move: 310}, {level: 15, move: 336}, {level: 21, move: 48}, {level: 25, move: 23}, {level: 31, move: 103}, {level: 35, move: 46}, {level: 41, move: 156}, {level: 41, move: 214}, {level: 45, move: 304}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 294, level: 20}],
     machine_moves: [46, 53, 58, 59, 76, 92, 104, 126, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 263, 290, 351, 352, 363, 374, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 111, 164, 173, 189, 196, 203, 205, 207, 214, 223, 244, 253, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 111, 164, 173, 189, 196, 203, 205, 207, 214, 223, 244, 253, 428],
+    item_rare: 134
   }];
   SPECIES_LOUDRED = 294 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 10, weight: 405,
@@ -2934,7 +3039,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 253}, {level: 1, move: 310}, {level: 1, move: 336}, {level: 20, move: 44}, {level: 23, move: 48}, {level: 29, move: 23}, {level: 37, move: 103}, {level: 43, move: 46}, {level: 51, move: 156}, {level: 51, move: 214}, {level: 57, move: 304}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 295, level: 40}],
     machine_moves: [46, 53, 58, 59, 70, 76, 89, 92, 104, 126, 156, 157, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 259, 263, 269, 280, 290, 315, 317, 351, 352, 363, 374, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 157, 164, 173, 189, 196, 203, 205, 207, 214, 223, 244, 253, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 157, 164, 173, 189, 196, 203, 205, 207, 214, 223, 244, 253, 428],
+    item_rare: 134
   }];
   SPECIES_EXPLOUD = 295 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 15, weight: 840,
@@ -2943,7 +3049,8 @@ enum Species {
     catch_rate: 45, base_exp: 184, ev_yield: {hp: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 253}, {level: 1, move: 310}, {level: 1, move: 336}, {level: 1, move: 422}, {level: 1, move: 423}, {level: 1, move: 424}, {level: 20, move: 44}, {level: 23, move: 48}, {level: 29, move: 23}, {level: 37, move: 103}, {level: 40, move: 242}, {level: 45, move: 46}, {level: 55, move: 156}, {level: 55, move: 214}, {level: 63, move: 304}, {level: 71, move: 63}],
     machine_moves: [46, 53, 57, 58, 59, 63, 70, 76, 89, 92, 104, 126, 156, 157, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 250, 259, 263, 269, 280, 290, 315, 317, 351, 352, 363, 374, 411, 416, 419, 431, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 157, 164, 173, 189, 196, 200, 203, 205, 207, 214, 223, 244, 253, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 157, 164, 173, 189, 196, 200, 203, 205, 207, 214, 223, 244, 253, 428],
+    item_rare: 134
   }];
   SPECIES_MAKUHITA = 296 [(info) = {
     type1: TYPE_FIGHTING, type2: TYPE_FIGHTING, height: 10, weight: 864,
@@ -2962,7 +3069,8 @@ enum Species {
     catch_rate: 200, base_exp: 184, ev_yield: {hp: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 28}, {level: 1, move: 33}, {level: 1, move: 116}, {level: 1, move: 292}, {level: 1, move: 362}, {level: 10, move: 233}, {level: 13, move: 252}, {level: 16, move: 18}, {level: 19, move: 282}, {level: 22, move: 265}, {level: 27, move: 187}, {level: 32, move: 395}, {level: 37, move: 69}, {level: 42, move: 358}, {level: 47, move: 203}, {level: 52, move: 370}, {level: 57, move: 179}],
     machine_moves: [57, 63, 70, 89, 91, 92, 104, 156, 157, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 249, 250, 263, 264, 280, 290, 317, 339, 362, 363, 371, 374, 398, 411, 416, 431, 444, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 118, 157, 164, 173, 189, 203, 207, 214, 223, 270, 272, 276, 282, 410, 442]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 118, 157, 164, 173, 189, 203, 207, 214, 223, 270, 272, 276, 282, 410, 442],
+    item_rare: 187
   }];
   SPECIES_AZURILL = 298 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 2, weight: 20,
@@ -2982,7 +3090,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 7, move: 106}, {level: 13, move: 88}, {level: 19, move: 335}, {level: 25, move: 86}, {level: 31, move: 157}, {level: 37, move: 201}, {level: 43, move: 156}, {level: 49, move: 408}, {level: 49, move: 435}, {level: 55, move: 444}, {level: 61, move: 192}, {level: 67, move: 199}, {level: 73, move: 414}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 476, item: 96}],
     machine_moves: [70, 85, 86, 87, 89, 92, 104, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 259, 263, 269, 290, 317, 351, 363, 397, 444, 445, 446],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 86, 102, 111, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 220, 223, 246, 277, 334, 335, 356, 393, 414]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 86, 102, 111, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 220, 223, 246, 277, 334, 335, 356, 393, 414],
+    item_rare: 204
   }];
   SPECIES_SKITTY = 300 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 110,
@@ -2992,7 +3101,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 39}, {level: 1, move: 45}, {level: 1, move: 252}, {level: 4, move: 193}, {level: 4, move: 213}, {level: 8, move: 47}, {level: 11, move: 383}, {level: 15, move: 3}, {level: 18, move: 274}, {level: 22, move: 204}, {level: 25, move: 185}, {level: 29, move: 358}, {level: 32, move: 343}, {level: 36, move: 215}, {level: 39, move: 38}, {level: 42, move: 445}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 301, item: 94}],
     machine_moves: [58, 59, 76, 85, 86, 87, 91, 92, 104, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 263, 290, 347, 351, 352, 363, 371, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 244, 270, 387, 389, 428]
+    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 244, 270, 387, 389, 428],
+    item_rare: 138
   }];
   SPECIES_DELCATTY = 301 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 11, weight: 326,
@@ -3001,7 +3111,8 @@ enum Species {
     catch_rate: 60, base_exp: 138, ev_yield: {hp: 1, speed: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 3}, {level: 1, move: 47}, {level: 1, move: 213}, {level: 1, move: 252}],
     machine_moves: [58, 59, 63, 70, 76, 85, 86, 87, 91, 92, 104, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 241, 244, 247, 249, 263, 290, 347, 351, 352, 363, 371, 416, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 244, 270, 387, 389, 428]
+    tutor_moves: [29, 34, 38, 86, 102, 111, 129, 138, 164, 173, 189, 196, 203, 205, 207, 214, 215, 244, 270, 387, 389, 428],
+    item_rare: 138
   }];
   SPECIES_SABLEYE = 302 [(info) = {
     type1: TYPE_DARK, type2: TYPE_GHOST, height: 5, weight: 110,
@@ -3019,7 +3130,8 @@ enum Species {
     catch_rate: 45, base_exp: 98, ev_yield: {attack: 1, defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 310}, {level: 6, move: 313}, {level: 11, move: 44}, {level: 16, move: 230}, {level: 21, move: 11}, {level: 26, move: 185}, {level: 31, move: 226}, {level: 36, move: 242}, {level: 41, move: 334}, {level: 46, move: 389}, {level: 51, move: 254}, {level: 51, move: 255}, {level: 51, move: 256}, {level: 56, move: 442}],
     machine_moves: [14, 53, 58, 63, 70, 76, 92, 104, 126, 156, 157, 164, 182, 188, 201, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 259, 263, 264, 269, 280, 290, 317, 363, 371, 373, 374, 399, 411, 416, 430, 445, 447, 451],
-    tutor_moves: [5, 8, 9, 14, 25, 29, 34, 38, 68, 69, 102, 157, 162, 164, 173, 189, 196, 203, 207, 214, 220, 223, 244, 246, 282, 334, 389, 393, 442]
+    tutor_moves: [5, 8, 9, 14, 25, 29, 34, 38, 68, 69, 102, 157, 162, 164, 173, 189, 196, 203, 207, 214, 220, 223, 244, 246, 282, 334, 389, 393, 442],
+    item_rare: 451
   }];
   SPECIES_ARON = 304 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_ROCK, height: 4, weight: 600,
@@ -3029,7 +3141,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 4, move: 106}, {level: 8, move: 189}, {level: 11, move: 29}, {level: 15, move: 232}, {level: 18, move: 334}, {level: 22, move: 46}, {level: 25, move: 36}, {level: 29, move: 442}, {level: 32, move: 182}, {level: 36, move: 319}, {level: 39, move: 231}, {level: 43, move: 38}, {level: 46, move: 368}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 305, level: 32}],
     machine_moves: [15, 46, 70, 89, 91, 92, 104, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 263, 290, 317, 332, 351, 352, 363, 397, 421, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 180, 189, 203, 205, 207, 210, 214, 246, 253, 276, 283, 334, 393, 414, 442]
+    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 180, 189, 203, 205, 207, 210, 214, 246, 253, 276, 283, 334, 393, 414, 442],
+    item_rare: 204
   }];
   SPECIES_LAIRON = 305 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_ROCK, height: 9, weight: 1200,
@@ -3039,7 +3152,8 @@ enum Species {
     level_moves: [{level: 1, move: 29}, {level: 1, move: 33}, {level: 1, move: 106}, {level: 1, move: 189}, {level: 15, move: 232}, {level: 18, move: 334}, {level: 22, move: 46}, {level: 25, move: 36}, {level: 29, move: 442}, {level: 34, move: 182}, {level: 40, move: 319}, {level: 45, move: 231}, {level: 51, move: 38}, {level: 56, move: 368}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 306, level: 42}],
     machine_moves: [15, 46, 70, 89, 91, 92, 104, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 263, 290, 317, 332, 351, 352, 363, 397, 421, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 180, 189, 203, 205, 207, 210, 214, 246, 253, 276, 283, 334, 393, 414, 442]
+    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 180, 189, 203, 205, 207, 210, 214, 246, 253, 276, 283, 334, 393, 414, 442],
+    item_rare: 204
   }];
   SPECIES_AGGRON = 306 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_ROCK, height: 21, weight: 3600,
@@ -3048,7 +3162,8 @@ enum Species {
     catch_rate: 45, base_exp: 205, ev_yield: {defense: 3}, base_friendship: 35,
     level_moves: [{level: 1, move: 29}, {level: 1, move: 33}, {level: 1, move: 106}, {level: 1, move: 189}, {level: 15, move: 232}, {level: 18, move: 334}, {level: 22, move: 46}, {level: 25, move: 36}, {level: 29, move: 442}, {level: 34, move: 182}, {level: 40, move: 319}, {level: 48, move: 231}, {level: 57, move: 38}, {level: 65, move: 368}],
     machine_moves: [15, 46, 53, 57, 58, 59, 63, 70, 76, 85, 86, 87, 89, 91, 92, 104, 126, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 250, 263, 264, 269, 280, 290, 317, 332, 337, 351, 352, 363, 371, 374, 397, 399, 406, 411, 416, 419, 421, 430, 431, 444, 445, 446],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 86, 102, 111, 157, 164, 173, 180, 189, 196, 200, 203, 205, 207, 210, 214, 223, 246, 253, 276, 283, 334, 335, 393, 401, 414, 442]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 86, 102, 111, 157, 164, 173, 180, 189, 196, 200, 203, 205, 207, 210, 214, 223, 246, 253, 276, 283, 334, 335, 393, 401, 414, 442],
+    item_rare: 204
   }];
   SPECIES_MEDITITE = 307 [(info) = {
     type1: TYPE_FIGHTING, type2: TYPE_PSYCHIC, height: 6, weight: 112,
@@ -3132,7 +3247,8 @@ enum Species {
     level_moves: [{level: 1, move: 71}, {level: 4, move: 74}, {level: 7, move: 40}, {level: 10, move: 78}, {level: 13, move: 72}, {level: 16, move: 73}, {level: 19, move: 345}, {level: 22, move: 320}, {level: 25, move: 202}, {level: 28, move: 390}, {level: 31, move: 230}, {level: 34, move: 275}, {level: 37, move: 92}, {level: 40, move: 80}, {level: 43, move: 312}, {level: 46, move: 235}],
     evolutions: [{method: EVOLUTION_METHOD_ITEM, species: 407, item: 382}],
     machine_moves: [14, 15, 76, 92, 104, 148, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 263, 290, 331, 363, 398, 412, 445, 447],
-    tutor_moves: [14, 34, 38, 102, 129, 164, 171, 173, 189, 203, 207, 210, 214, 235, 244, 388, 402]
+    tutor_moves: [14, 34, 38, 102, 129, 164, 171, 173, 189, 203, 207, 210, 214, 235, 244, 388, 402],
+    item_rare: 211
   }];
   SPECIES_GULPIN = 316 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 4, weight: 103,
@@ -3142,7 +3258,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 6, move: 281}, {level: 9, move: 139}, {level: 14, move: 124}, {level: 17, move: 133}, {level: 23, move: 227}, {level: 28, move: 92}, {level: 34, move: 254}, {level: 34, move: 255}, {level: 34, move: 256}, {level: 39, move: 188}, {level: 44, move: 380}, {level: 49, move: 378}, {level: 54, move: 441}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 317, level: 26}],
     machine_moves: [58, 70, 76, 92, 104, 138, 153, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 263, 289, 290, 331, 351, 352, 363, 445],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 68, 102, 111, 120, 138, 153, 164, 171, 173, 189, 203, 205, 207, 214, 220, 223, 380, 402, 441]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 68, 102, 111, 120, 138, 153, 164, 171, 173, 189, 203, 205, 207, 214, 220, 223, 380, 402, 441],
+    item_rare: 107
   }];
   SPECIES_SWALOT = 317 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 17, weight: 800,
@@ -3151,7 +3268,8 @@ enum Species {
     catch_rate: 75, base_exp: 168, ev_yield: {hp: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 124}, {level: 1, move: 139}, {level: 1, move: 281}, {level: 17, move: 133}, {level: 23, move: 227}, {level: 26, move: 34}, {level: 30, move: 92}, {level: 38, move: 254}, {level: 38, move: 255}, {level: 38, move: 256}, {level: 45, move: 188}, {level: 52, move: 380}, {level: 59, move: 378}, {level: 66, move: 441}],
     machine_moves: [58, 63, 70, 76, 89, 92, 104, 138, 153, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 263, 289, 290, 331, 351, 352, 363, 416, 445],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 68, 102, 111, 120, 138, 153, 164, 171, 173, 189, 203, 205, 207, 214, 220, 223, 335, 380, 402, 441]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 68, 102, 111, 120, 138, 153, 164, 171, 173, 189, 203, 205, 207, 214, 220, 223, 335, 380, 402, 441],
+    item_rare: 107
   }];
   SPECIES_CARVANHA = 318 [(info) = {
     type1: TYPE_WATER, type2: TYPE_DARK, height: 8, weight: 208,
@@ -3161,7 +3279,8 @@ enum Species {
     level_moves: [{level: 1, move: 43}, {level: 1, move: 44}, {level: 6, move: 99}, {level: 8, move: 116}, {level: 11, move: 184}, {level: 16, move: 423}, {level: 18, move: 103}, {level: 21, move: 207}, {level: 26, move: 372}, {level: 28, move: 242}, {level: 31, move: 453}, {level: 36, move: 97}, {level: 38, move: 36}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 319, level: 30}],
     machine_moves: [57, 58, 59, 92, 104, 127, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 259, 263, 269, 290, 291, 352, 362, 363, 371, 399, 445],
-    tutor_moves: [38, 102, 129, 162, 164, 173, 180, 189, 196, 203, 207, 210, 214, 246, 253, 291, 340, 428]
+    tutor_moves: [38, 102, 129, 162, 164, 173, 180, 189, 196, 203, 207, 210, 214, 246, 253, 291, 340, 428],
+    item_rare: 192
   }];
   SPECIES_SHARPEDO = 319 [(info) = {
     type1: TYPE_WATER, type2: TYPE_DARK, height: 18, weight: 888,
@@ -3170,7 +3289,8 @@ enum Species {
     catch_rate: 60, base_exp: 175, ev_yield: {attack: 2}, base_friendship: 35,
     level_moves: [{level: 1, move: 43}, {level: 1, move: 44}, {level: 1, move: 99}, {level: 1, move: 116}, {level: 1, move: 364}, {level: 11, move: 184}, {level: 16, move: 423}, {level: 18, move: 103}, {level: 21, move: 207}, {level: 26, move: 372}, {level: 28, move: 242}, {level: 30, move: 163}, {level: 34, move: 453}, {level: 40, move: 269}, {level: 45, move: 97}, {level: 50, move: 130}, {level: 56, move: 400}],
     machine_moves: [46, 57, 58, 59, 63, 70, 89, 92, 104, 127, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 249, 250, 258, 259, 263, 269, 290, 291, 317, 352, 362, 363, 371, 398, 399, 416, 419, 445],
-    tutor_moves: [38, 102, 129, 162, 164, 173, 180, 189, 196, 203, 207, 210, 214, 246, 253, 291, 340, 428]
+    tutor_moves: [38, 102, 129, 162, 164, 173, 180, 189, 196, 203, 207, 210, 214, 246, 253, 291, 340, 428],
+    item_rare: 192
   }];
   SPECIES_WAILMER = 320 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 20, weight: 1300,
@@ -3199,7 +3319,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 5, move: 52}, {level: 11, move: 222}, {level: 15, move: 116}, {level: 21, move: 36}, {level: 25, move: 133}, {level: 31, move: 436}, {level: 35, move: 414}, {level: 41, move: 89}, {level: 45, move: 53}, {level: 51, move: 38}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 323, level: 33}],
     machine_moves: [53, 70, 89, 91, 92, 104, 126, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 261, 263, 290, 315, 317, 363, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 189, 203, 205, 207, 214, 257, 414]
+    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 189, 203, 205, 207, 214, 257, 414],
+    item_common: 136, item_rare: 136
   }];
   SPECIES_CAMERUPT = 323 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_GROUND, height: 19, weight: 2200,
@@ -3208,7 +3329,8 @@ enum Species {
     catch_rate: 150, base_exp: 175, ev_yield: {attack: 1, sp_attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 1, move: 52}, {level: 1, move: 222}, {level: 15, move: 116}, {level: 21, move: 36}, {level: 25, move: 133}, {level: 31, move: 436}, {level: 33, move: 157}, {level: 39, move: 414}, {level: 49, move: 89}, {level: 57, move: 284}, {level: 67, move: 90}],
     machine_moves: [46, 53, 63, 70, 76, 89, 91, 92, 104, 126, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 261, 263, 290, 315, 317, 363, 397, 416, 430, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 257, 414, 442]
+    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 157, 164, 173, 189, 203, 205, 207, 214, 257, 414, 442],
+    item_common: 136, item_rare: 136
   }];
   SPECIES_TORKOAL = 324 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 5, weight: 804,
@@ -3227,7 +3349,8 @@ enum Species {
     level_moves: [{level: 1, move: 150}, {level: 7, move: 149}, {level: 10, move: 316}, {level: 14, move: 60}, {level: 15, move: 244}, {level: 18, move: 109}, {level: 21, move: 277}, {level: 26, move: 428}, {level: 29, move: 156}, {level: 29, move: 173}, {level: 34, move: 371}, {level: 41, move: 94}, {level: 46, move: 408}, {level: 48, move: 340}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 326, level: 32}],
     machine_moves: [86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 259, 263, 269, 278, 285, 289, 290, 347, 351, 363, 371, 433, 445, 447, 451],
-    tutor_moves: [29, 34, 38, 102, 129, 138, 164, 173, 196, 203, 207, 214, 215, 244, 271, 272, 277, 324, 340, 428]
+    tutor_moves: [29, 34, 38, 102, 129, 138, 164, 173, 196, 203, 207, 214, 215, 244, 271, 272, 277, 324, 340, 428],
+    item_rare: 461
   }];
   SPECIES_GRUMPIG = 326 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 9, weight: 715,
@@ -3236,7 +3359,8 @@ enum Species {
     catch_rate: 60, base_exp: 164, ev_yield: {sp_defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 60}, {level: 1, move: 149}, {level: 1, move: 150}, {level: 1, move: 316}, {level: 15, move: 244}, {level: 18, move: 109}, {level: 21, move: 277}, {level: 26, move: 428}, {level: 29, move: 156}, {level: 29, move: 173}, {level: 37, move: 371}, {level: 47, move: 94}, {level: 55, move: 408}, {level: 60, move: 340}],
     machine_moves: [63, 86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 259, 263, 264, 269, 278, 280, 285, 289, 290, 347, 351, 363, 371, 374, 409, 411, 412, 416, 433, 445, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 129, 138, 164, 173, 189, 196, 203, 207, 214, 215, 223, 244, 271, 272, 277, 324, 340, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 129, 138, 164, 173, 189, 196, 203, 207, 214, 215, 223, 244, 271, 272, 277, 324, 340, 428],
+    item_rare: 461
   }];
   SPECIES_SPINDA = 327 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 11, weight: 50,
@@ -3245,7 +3369,8 @@ enum Species {
     catch_rate: 255, base_exp: 85, ev_yield: {sp_attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 5, move: 253}, {level: 10, move: 383}, {level: 14, move: 185}, {level: 19, move: 60}, {level: 23, move: 95}, {level: 28, move: 146}, {level: 32, move: 389}, {level: 37, move: 298}, {level: 41, move: 244}, {level: 46, move: 38}, {level: 50, move: 175}, {level: 55, move: 37}],
     machine_moves: [70, 91, 92, 94, 104, 138, 148, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 249, 263, 264, 278, 280, 285, 289, 290, 317, 347, 351, 352, 363, 374, 409, 433, 445],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 118, 129, 138, 157, 164, 171, 173, 189, 196, 203, 205, 207, 214, 223, 244, 253, 270, 272, 387, 389, 428]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 102, 111, 118, 129, 138, 157, 164, 171, 173, 189, 196, 203, 205, 207, 214, 223, 244, 253, 270, 272, 387, 389, 428],
+    item_rare: 134
   }];
   SPECIES_TRAPINCH = 328 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_GROUND, height: 7, weight: 150,
@@ -3255,7 +3380,8 @@ enum Species {
     level_moves: [{level: 1, move: 44}, {level: 9, move: 28}, {level: 17, move: 185}, {level: 25, move: 328}, {level: 33, move: 242}, {level: 41, move: 91}, {level: 49, move: 201}, {level: 57, move: 63}, {level: 65, move: 414}, {level: 73, move: 89}, {level: 81, move: 364}, {level: 89, move: 90}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 329, level: 35}],
     machine_moves: [63, 70, 76, 89, 91, 92, 104, 156, 157, 164, 182, 201, 202, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 290, 317, 363, 445],
-    tutor_moves: [29, 34, 38, 102, 157, 164, 173, 189, 203, 207, 210, 214, 414, 450]
+    tutor_moves: [29, 34, 38, 102, 157, 164, 173, 189, 203, 207, 210, 214, 414, 450],
+    item_rare: 203
   }];
   SPECIES_VIBRAVA = 329 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_DRAGON, height: 11, weight: 153,
@@ -3284,7 +3410,8 @@ enum Species {
     level_moves: [{level: 1, move: 40}, {level: 1, move: 43}, {level: 5, move: 71}, {level: 9, move: 74}, {level: 13, move: 73}, {level: 17, move: 28}, {level: 21, move: 42}, {level: 25, move: 275}, {level: 29, move: 185}, {level: 33, move: 191}, {level: 37, move: 389}, {level: 41, move: 371}, {level: 45, move: 302}, {level: 49, move: 178}, {level: 53, move: 201}, {level: 57, move: 194}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 332, level: 32}],
     machine_moves: [14, 15, 76, 92, 104, 148, 156, 164, 182, 201, 202, 203, 207, 213, 214, 216, 218, 237, 241, 263, 264, 280, 290, 331, 363, 371, 374, 398, 399, 409, 412, 445, 447],
-    tutor_moves: [5, 9, 14, 29, 34, 38, 67, 68, 69, 102, 164, 173, 180, 189, 203, 207, 210, 214, 223, 235, 272, 388, 389, 402]
+    tutor_moves: [5, 9, 14, 29, 34, 38, 67, 68, 69, 102, 164, 173, 180, 189, 203, 207, 210, 214, 223, 235, 272, 388, 389, 402],
+    item_rare: 445
   }];
   SPECIES_CACTURNE = 332 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_DARK, height: 13, weight: 774,
@@ -3293,7 +3420,8 @@ enum Species {
     catch_rate: 60, base_exp: 177, ev_yield: {attack: 1, sp_attack: 1}, base_friendship: 35,
     level_moves: [{level: 1, move: 40}, {level: 1, move: 43}, {level: 1, move: 71}, {level: 1, move: 74}, {level: 1, move: 279}, {level: 13, move: 73}, {level: 17, move: 28}, {level: 21, move: 42}, {level: 25, move: 275}, {level: 29, move: 185}, {level: 35, move: 191}, {level: 41, move: 389}, {level: 47, move: 371}, {level: 53, move: 302}, {level: 59, move: 178}, {level: 65, move: 201}, {level: 71, move: 194}],
     machine_moves: [14, 15, 63, 70, 76, 92, 104, 148, 156, 164, 182, 201, 202, 203, 207, 213, 214, 216, 218, 237, 241, 263, 264, 280, 290, 331, 363, 371, 373, 374, 398, 399, 409, 411, 412, 416, 445, 447],
-    tutor_moves: [5, 9, 14, 25, 29, 34, 38, 67, 68, 69, 102, 164, 173, 180, 189, 203, 207, 210, 214, 223, 235, 272, 276, 388, 389, 402]
+    tutor_moves: [5, 9, 14, 25, 29, 34, 38, 67, 68, 69, 102, 164, 173, 180, 189, 203, 207, 210, 214, 223, 235, 272, 276, 388, 389, 402],
+    item_rare: 445
   }];
   SPECIES_SWABLU = 333 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 4, weight: 12,
@@ -3321,7 +3449,8 @@ enum Species {
     catch_rate: 90, base_exp: 165, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 5, move: 98}, {level: 9, move: 14}, {level: 14, move: 210}, {level: 18, move: 163}, {level: 22, move: 228}, {level: 27, move: 373}, {level: 31, move: 306}, {level: 35, move: 269}, {level: 40, move: 197}, {level: 44, move: 206}, {level: 48, move: 404}, {level: 53, move: 370}],
     machine_moves: [14, 46, 53, 58, 59, 70, 76, 85, 87, 91, 92, 104, 126, 156, 157, 164, 168, 182, 202, 203, 206, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 263, 264, 269, 280, 290, 317, 332, 351, 352, 363, 371, 373, 374, 398, 404, 411, 421, 431, 445],
-    tutor_moves: [5, 7, 8, 9, 14, 25, 29, 34, 38, 67, 68, 69, 86, 102, 111, 129, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 282, 283, 387]
+    tutor_moves: [5, 7, 8, 9, 14, 25, 29, 34, 38, 67, 68, 69, 86, 102, 111, 129, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 282, 283, 387],
+    item_rare: 183
   }];
   SPECIES_SEVIPER = 336 [(info) = {
     type1: TYPE_POISON, type2: TYPE_POISON, height: 27, weight: 525,
@@ -3339,7 +3468,8 @@ enum Species {
     catch_rate: 45, base_exp: 150, ev_yield: {sp_attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 93}, {level: 1, move: 106}, {level: 9, move: 88}, {level: 12, move: 95}, {level: 20, move: 397}, {level: 23, move: 149}, {level: 31, move: 373}, {level: 34, move: 322}, {level: 42, move: 377}, {level: 45, move: 94}, {level: 53, move: 248}, {level: 56, move: 153}],
     machine_moves: [58, 59, 63, 89, 92, 94, 104, 113, 115, 138, 148, 153, 156, 157, 164, 182, 201, 203, 207, 214, 216, 218, 219, 237, 240, 244, 247, 263, 278, 285, 290, 317, 347, 360, 363, 373, 397, 416, 433, 444, 446, 447, 451],
-    tutor_moves: [34, 38, 102, 111, 120, 129, 138, 153, 157, 164, 173, 203, 205, 207, 214, 220, 244, 246, 270, 277, 324, 356, 414, 428, 442]
+    tutor_moves: [34, 38, 102, 111, 120, 129, 138, 153, 157, 164, 173, 203, 205, 207, 214, 220, 244, 246, 270, 277, 324, 356, 414, 428, 442],
+    item_rare: 94
   }];
   SPECIES_SOLROCK = 338 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_PSYCHIC, height: 12, weight: 1540,
@@ -3348,7 +3478,8 @@ enum Species {
     catch_rate: 45, base_exp: 150, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 93}, {level: 1, move: 106}, {level: 9, move: 88}, {level: 12, move: 83}, {level: 20, move: 397}, {level: 23, move: 149}, {level: 31, move: 373}, {level: 34, move: 322}, {level: 42, move: 377}, {level: 45, move: 157}, {level: 53, move: 76}, {level: 56, move: 153}],
     machine_moves: [53, 63, 76, 89, 92, 94, 104, 113, 115, 126, 138, 148, 153, 156, 157, 164, 182, 201, 203, 207, 214, 216, 218, 219, 237, 241, 244, 247, 261, 263, 278, 285, 290, 315, 317, 347, 360, 363, 373, 397, 416, 433, 444, 446, 447, 451],
-    tutor_moves: [34, 38, 102, 111, 120, 129, 138, 153, 157, 164, 173, 203, 205, 207, 214, 220, 244, 246, 270, 277, 324, 334, 356, 414, 428, 442]
+    tutor_moves: [34, 38, 102, 111, 120, 129, 138, 153, 157, 164, 173, 203, 205, 207, 214, 220, 244, 246, 270, 277, 324, 334, 356, 414, 428, 442],
+    item_rare: 93
   }];
   SPECIES_BARBOACH = 339 [(info) = {
     type1: TYPE_WATER, type2: TYPE_GROUND, height: 4, weight: 19,
@@ -3415,7 +3546,8 @@ enum Species {
     level_moves: [{level: 1, move: 132}, {level: 1, move: 310}, {level: 8, move: 51}, {level: 15, move: 275}, {level: 22, move: 109}, {level: 29, move: 133}, {level: 36, move: 380}, {level: 43, move: 246}, {level: 50, move: 412}, {level: 57, move: 254}, {level: 57, move: 255}, {level: 57, move: 256}, {level: 64, move: 378}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 346, level: 40}],
     machine_moves: [14, 76, 92, 104, 148, 156, 157, 164, 182, 188, 201, 202, 203, 207, 213, 214, 216, 218, 237, 241, 263, 290, 317, 331, 363, 397, 412, 445, 446, 447],
-    tutor_moves: [34, 38, 81, 102, 157, 164, 173, 189, 203, 207, 214, 220, 235, 244, 246, 380, 388, 402, 414]
+    tutor_moves: [34, 38, 81, 102, 157, 164, 173, 189, 203, 207, 214, 220, 235, 244, 246, 380, 388, 402, 414],
+    item_rare: 447
   }];
   SPECIES_CRADILY = 346 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_GRASS, height: 15, weight: 604,
@@ -3424,7 +3556,8 @@ enum Species {
     catch_rate: 45, base_exp: 201, ev_yield: {sp_defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 51}, {level: 1, move: 132}, {level: 1, move: 275}, {level: 1, move: 310}, {level: 22, move: 109}, {level: 29, move: 133}, {level: 36, move: 246}, {level: 46, move: 380}, {level: 56, move: 412}, {level: 66, move: 254}, {level: 66, move: 255}, {level: 66, move: 256}, {level: 76, move: 378}],
     machine_moves: [14, 63, 70, 76, 89, 92, 104, 148, 156, 157, 164, 182, 188, 201, 202, 203, 207, 213, 214, 216, 218, 237, 241, 249, 263, 290, 317, 331, 363, 397, 412, 416, 444, 445, 446, 447],
-    tutor_moves: [29, 34, 38, 81, 102, 157, 164, 173, 189, 203, 207, 214, 220, 235, 244, 246, 335, 380, 388, 402, 414]
+    tutor_moves: [29, 34, 38, 81, 102, 157, 164, 173, 189, 203, 207, 214, 220, 235, 244, 246, 335, 380, 388, 402, 414],
+    item_rare: 447
   }];
   SPECIES_ANORITH = 347 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_BUG, height: 7, weight: 125,
@@ -3470,7 +3603,8 @@ enum Species {
     catch_rate: 45, base_exp: 145, ev_yield: {hp: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 10, move: 52}, {level: 10, move: 55}, {level: 10, move: 181}, {level: 20, move: 240}, {level: 20, move: 241}, {level: 20, move: 258}, {level: 30, move: 311}],
     machine_moves: [53, 58, 59, 76, 85, 86, 87, 92, 104, 126, 148, 156, 164, 168, 182, 201, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 258, 263, 290, 351, 352, 363, 412, 419, 445],
-    tutor_moves: [34, 38, 86, 102, 111, 129, 164, 173, 196, 203, 207, 214, 244, 366, 387, 466]
+    tutor_moves: [34, 38, 86, 102, 111, 129, 164, 173, 196, 203, 207, 214, 244, 366, 387, 466],
+    item_common: 209, item_rare: 209
   }];
   SPECIES_KECLEON = 352 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 10, weight: 220,
@@ -3479,7 +3613,8 @@ enum Species {
     catch_rate: 200, base_exp: 132, ev_yield: {sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 39}, {level: 1, move: 122}, {level: 1, move: 168}, {level: 1, move: 310}, {level: 4, move: 20}, {level: 7, move: 185}, {level: 10, move: 154}, {level: 14, move: 364}, {level: 15, move: 60}, {level: 20, move: 425}, {level: 25, move: 163}, {level: 32, move: 103}, {level: 37, move: 164}, {level: 43, move: 389}, {level: 49, move: 421}, {level: 55, move: 246}],
     machine_moves: [15, 53, 58, 59, 70, 76, 85, 86, 87, 91, 92, 104, 126, 148, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 263, 264, 278, 280, 285, 289, 290, 317, 332, 351, 352, 363, 374, 409, 421, 433, 445, 446, 447, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 86, 102, 111, 118, 129, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 244, 246, 271, 272, 277, 282, 387, 389, 401]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 67, 68, 69, 86, 102, 111, 118, 129, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 244, 246, 271, 272, 277, 282, 387, 389, 401],
+    item_rare: 140
   }];
   SPECIES_SHUPPET = 353 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 6, weight: 23,
@@ -3489,7 +3624,8 @@ enum Species {
     level_moves: [{level: 1, move: 282}, {level: 5, move: 103}, {level: 8, move: 101}, {level: 13, move: 174}, {level: 16, move: 180}, {level: 20, move: 425}, {level: 23, move: 261}, {level: 28, move: 185}, {level: 31, move: 247}, {level: 35, move: 389}, {level: 38, move: 373}, {level: 43, move: 289}, {level: 46, move: 288}, {level: 50, move: 271}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 354, level: 37}],
     machine_moves: [85, 86, 87, 92, 94, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 259, 261, 263, 269, 285, 289, 290, 347, 351, 363, 371, 373, 399, 433, 445, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 138, 164, 171, 173, 180, 196, 203, 207, 214, 220, 244, 271, 272, 277, 282, 389, 466]
+    tutor_moves: [29, 34, 38, 86, 102, 138, 164, 171, 173, 180, 196, 203, 207, 214, 220, 244, 271, 272, 277, 282, 389, 466],
+    item_rare: 213
   }];
   SPECIES_BANETTE = 354 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 11, weight: 125,
@@ -3498,7 +3634,8 @@ enum Species {
     catch_rate: 45, base_exp: 179, ev_yield: {attack: 2}, base_friendship: 35,
     level_moves: [{level: 1, move: 101}, {level: 1, move: 103}, {level: 1, move: 174}, {level: 1, move: 282}, {level: 16, move: 180}, {level: 20, move: 425}, {level: 23, move: 261}, {level: 28, move: 185}, {level: 31, move: 247}, {level: 35, move: 389}, {level: 42, move: 373}, {level: 51, move: 289}, {level: 58, move: 288}, {level: 66, move: 271}],
     machine_moves: [63, 85, 86, 87, 92, 94, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 259, 261, 263, 269, 285, 289, 290, 347, 351, 363, 371, 373, 374, 399, 416, 421, 433, 445, 451],
-    tutor_moves: [29, 34, 38, 86, 102, 118, 138, 164, 171, 173, 180, 189, 196, 203, 207, 214, 220, 244, 271, 272, 277, 282, 389, 466]
+    tutor_moves: [29, 34, 38, 86, 102, 118, 138, 164, 171, 173, 180, 189, 196, 203, 207, 214, 220, 244, 271, 272, 277, 282, 389, 466],
+    item_rare: 213
   }];
   SPECIES_DUSKULL = 355 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 8, weight: 150,
@@ -3508,7 +3645,8 @@ enum Species {
     level_moves: [{level: 1, move: 43}, {level: 1, move: 101}, {level: 6, move: 50}, {level: 9, move: 193}, {level: 14, move: 310}, {level: 17, move: 109}, {level: 22, move: 425}, {level: 25, move: 228}, {level: 30, move: 174}, {level: 33, move: 261}, {level: 38, move: 212}, {level: 41, move: 371}, {level: 46, move: 248}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 356, level: 37}],
     machine_moves: [58, 59, 92, 94, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 259, 261, 263, 269, 285, 289, 290, 347, 363, 371, 373, 374, 399, 433, 445, 451],
-    tutor_moves: [29, 34, 38, 102, 138, 164, 171, 173, 180, 196, 203, 207, 214, 220, 244, 271, 356, 389, 466]
+    tutor_moves: [29, 34, 38, 102, 138, 164, 171, 173, 180, 196, 203, 207, 214, 220, 244, 271, 356, 389, 466],
+    item_rare: 463
   }];
   SPECIES_DUSCLOPS = 356 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 16, weight: 306,
@@ -3518,7 +3656,8 @@ enum Species {
     level_moves: [{level: 1, move: 7}, {level: 1, move: 8}, {level: 1, move: 9}, {level: 1, move: 20}, {level: 1, move: 43}, {level: 1, move: 50}, {level: 1, move: 101}, {level: 1, move: 356}, {level: 9, move: 193}, {level: 14, move: 310}, {level: 17, move: 109}, {level: 22, move: 425}, {level: 25, move: 228}, {level: 30, move: 174}, {level: 33, move: 261}, {level: 37, move: 325}, {level: 43, move: 212}, {level: 51, move: 371}, {level: 61, move: 248}],
     evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 477, item: 389}],
     machine_moves: [58, 59, 63, 70, 89, 92, 94, 104, 138, 148, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 249, 259, 261, 263, 264, 269, 280, 285, 289, 290, 317, 347, 363, 371, 373, 374, 399, 416, 433, 445, 451],
-    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 118, 138, 157, 164, 171, 173, 180, 189, 196, 203, 207, 214, 220, 223, 244, 271, 356, 389, 466]
+    tutor_moves: [5, 7, 8, 9, 25, 29, 34, 38, 68, 69, 102, 118, 138, 157, 164, 171, 173, 180, 189, 196, 203, 207, 214, 220, 223, 244, 271, 356, 389, 466],
+    item_rare: 463
   }];
   SPECIES_TROPIUS = 357 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_FLYING, height: 20, weight: 1000,
@@ -3536,7 +3675,8 @@ enum Species {
     catch_rate: 45, base_exp: 147, ev_yield: {sp_attack: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 35}, {level: 6, move: 45}, {level: 9, move: 310}, {level: 14, move: 93}, {level: 17, move: 253}, {level: 22, move: 36}, {level: 25, move: 281}, {level: 30, move: 149}, {level: 33, move: 38}, {level: 38, move: 215}, {level: 41, move: 219}, {level: 46, move: 326}, {level: 49, move: 361}],
     machine_moves: [86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 259, 263, 269, 278, 285, 289, 290, 347, 351, 363, 412, 433, 445, 447, 451],
-    tutor_moves: [38, 102, 111, 138, 164, 171, 173, 196, 203, 205, 207, 214, 215, 244, 253, 270, 271, 277, 282, 324, 356, 387, 428]
+    tutor_moves: [38, 102, 111, 138, 164, 171, 173, 196, 203, 205, 207, 214, 215, 244, 253, 270, 271, 277, 282, 324, 356, 387, 428],
+    item_rare: 465
   }];
   SPECIES_ABSOL = 359 [(info) = {
     type1: TYPE_DARK, type2: TYPE_DARK, height: 12, weight: 470,
@@ -3563,7 +3703,8 @@ enum Species {
     level_moves: [{level: 1, move: 43}, {level: 1, move: 181}, {level: 4, move: 104}, {level: 10, move: 44}, {level: 13, move: 196}, {level: 19, move: 29}, {level: 22, move: 182}, {level: 28, move: 423}, {level: 31, move: 242}, {level: 37, move: 420}, {level: 40, move: 258}, {level: 46, move: 59}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 362, level: 42}, {method: EVOLUTION_METHOD_ITEM, species: 478, item: 384, gender: GENDER_FEMALE}],
     machine_moves: [58, 59, 92, 104, 113, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 247, 258, 263, 290, 352, 363, 419, 445],
-    tutor_moves: [29, 34, 38, 102, 164, 173, 180, 196, 203, 205, 207, 214, 335]
+    tutor_moves: [29, 34, 38, 102, 164, 173, 180, 196, 203, 205, 207, 214, 335],
+    item_rare: 466
   }];
   SPECIES_GLALIE = 362 [(info) = {
     type1: TYPE_ICE, type2: TYPE_ICE, height: 15, weight: 2565,
@@ -3572,7 +3713,8 @@ enum Species {
     catch_rate: 75, base_exp: 187, ev_yield: {hp: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 43}, {level: 1, move: 44}, {level: 1, move: 104}, {level: 1, move: 181}, {level: 13, move: 196}, {level: 19, move: 29}, {level: 22, move: 182}, {level: 28, move: 423}, {level: 31, move: 242}, {level: 37, move: 58}, {level: 40, move: 258}, {level: 51, move: 59}, {level: 59, move: 329}],
     machine_moves: [58, 59, 63, 89, 92, 104, 113, 148, 153, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 247, 258, 259, 263, 269, 290, 352, 360, 363, 371, 399, 416, 419, 445],
-    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 162, 164, 173, 180, 196, 203, 205, 207, 214, 324, 335, 442]
+    tutor_moves: [29, 34, 38, 102, 111, 120, 153, 162, 164, 173, 180, 196, 203, 205, 207, 214, 324, 335, 442],
+    item_rare: 466
   }];
   SPECIES_SPHEAL = 363 [(info) = {
     type1: TYPE_ICE, type2: TYPE_WATER, height: 8, weight: 395,
@@ -3611,7 +3753,8 @@ enum Species {
     level_moves: [{level: 1, move: 55}, {level: 1, move: 128}, {level: 1, move: 250}, {level: 1, move: 334}],
     evolutions: [{method: EVOLUTION_METHOD_TRADE, species: 367, item: 192}, {method: EVOLUTION_METHOD_TRADE, species: 368, item: 193}, {method: EVOLUTION_METHOD_ITEM, species: 367, item: 192}, {method: EVOLUTION_METHOD_ITEM, species: 368, item: 193}],
     machine_moves: [57, 58, 59, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 290, 291, 352, 362, 363, 445],
-    tutor_moves: [34, 38, 102, 164, 173, 196, 203, 207, 214, 291, 334]
+    tutor_moves: [34, 38, 102, 164, 173, 196, 203, 207, 214, 291, 334],
+    item_rare: 107
   }];
   SPECIES_HUNTAIL = 367 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 17, weight: 270,
@@ -3620,7 +3763,8 @@ enum Species {
     catch_rate: 60, base_exp: 178, ev_yield: {attack: 1, defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 250}, {level: 6, move: 44}, {level: 10, move: 103}, {level: 15, move: 352}, {level: 19, move: 184}, {level: 24, move: 423}, {level: 28, move: 362}, {level: 33, move: 226}, {level: 37, move: 291}, {level: 42, move: 242}, {level: 46, move: 401}, {level: 51, move: 56}],
     machine_moves: [57, 58, 59, 63, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 250, 258, 263, 289, 290, 291, 317, 352, 362, 363, 416, 445],
-    tutor_moves: [34, 38, 102, 129, 162, 164, 173, 189, 196, 203, 207, 214, 291, 340, 389, 401]
+    tutor_moves: [34, 38, 102, 129, 162, 164, 173, 189, 196, 203, 207, 214, 291, 340, 389, 401],
+    item_rare: 192
   }];
   SPECIES_GOREBYSS = 368 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 18, weight: 226,
@@ -3629,7 +3773,8 @@ enum Species {
     catch_rate: 60, base_exp: 178, ev_yield: {sp_attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 250}, {level: 6, move: 93}, {level: 10, move: 97}, {level: 15, move: 352}, {level: 19, move: 133}, {level: 24, move: 392}, {level: 28, move: 445}, {level: 33, move: 226}, {level: 37, move: 291}, {level: 42, move: 94}, {level: 46, move: 401}, {level: 51, move: 56}],
     machine_moves: [57, 58, 59, 63, 92, 94, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 244, 247, 250, 258, 263, 290, 291, 352, 362, 363, 416, 445],
-    tutor_moves: [34, 38, 102, 129, 164, 173, 189, 196, 203, 207, 214, 291, 324, 340, 401]
+    tutor_moves: [34, 38, 102, 129, 164, 173, 189, 196, 203, 207, 214, 291, 324, 340, 401],
+    item_rare: 193
   }];
   SPECIES_RELICANTH = 369 [(info) = {
     type1: TYPE_WATER, type2: TYPE_ROCK, height: 10, weight: 234,
@@ -3638,7 +3783,8 @@ enum Species {
     catch_rate: 25, base_exp: 198, ev_yield: {hp: 1, defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 106}, {level: 8, move: 55}, {level: 15, move: 317}, {level: 22, move: 281}, {level: 29, move: 36}, {level: 36, move: 300}, {level: 43, move: 246}, {level: 50, move: 38}, {level: 57, move: 291}, {level: 64, move: 156}, {level: 71, move: 56}, {level: 78, move: 457}],
     machine_moves: [57, 58, 59, 63, 89, 92, 104, 127, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 219, 237, 240, 244, 249, 250, 258, 263, 290, 291, 317, 347, 352, 362, 363, 397, 416, 444, 445, 446],
-    tutor_moves: [29, 34, 38, 102, 157, 164, 173, 189, 196, 203, 207, 214, 244, 246, 291, 340, 401, 414]
+    tutor_moves: [29, 34, 38, 102, 157, 164, 173, 189, 196, 203, 207, 214, 244, 246, 291, 340, 401, 414],
+    item_rare: 193
   }];
   SPECIES_LUVDISC = 370 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 6, weight: 87,
@@ -3647,7 +3793,8 @@ enum Species {
     catch_rate: 225, base_exp: 110, ev_yield: {speed: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 4, move: 204}, {level: 7, move: 55}, {level: 9, move: 97}, {level: 14, move: 36}, {level: 17, move: 381}, {level: 22, move: 213}, {level: 27, move: 186}, {level: 31, move: 352}, {level: 37, move: 392}, {level: 40, move: 445}, {level: 46, move: 175}, {level: 51, move: 219}],
     machine_moves: [57, 58, 59, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 244, 250, 258, 263, 290, 291, 352, 362, 363, 445],
-    tutor_moves: [38, 102, 129, 164, 173, 196, 203, 207, 214, 244, 291, 340]
+    tutor_moves: [38, 102, 129, 164, 173, 196, 203, 207, 214, 244, 291, 340],
+    item_common: 111
   }];
   SPECIES_BAGON = 371 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_DRAGON, height: 6, weight: 421,
@@ -3657,7 +3804,8 @@ enum Species {
     level_moves: [{level: 1, move: 99}, {level: 5, move: 44}, {level: 10, move: 43}, {level: 16, move: 29}, {level: 20, move: 116}, {level: 25, move: 52}, {level: 31, move: 225}, {level: 35, move: 428}, {level: 40, move: 184}, {level: 46, move: 242}, {level: 50, move: 337}, {level: 55, move: 38}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 372, level: 30}],
     machine_moves: [15, 46, 53, 70, 92, 104, 126, 156, 157, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 249, 263, 280, 290, 317, 332, 337, 363, 406, 421, 445],
-    tutor_moves: [29, 34, 38, 102, 157, 164, 173, 189, 200, 203, 207, 210, 214, 239, 428, 434]
+    tutor_moves: [29, 34, 38, 102, 157, 164, 173, 189, 200, 203, 207, 210, 214, 239, 428, 434],
+    item_rare: 216
   }];
   SPECIES_SHELGON = 372 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_DRAGON, height: 11, weight: 1105,
@@ -3667,7 +3815,8 @@ enum Species {
     level_moves: [{level: 1, move: 29}, {level: 1, move: 43}, {level: 1, move: 44}, {level: 1, move: 99}, {level: 20, move: 116}, {level: 25, move: 52}, {level: 30, move: 182}, {level: 32, move: 225}, {level: 37, move: 428}, {level: 43, move: 184}, {level: 50, move: 242}, {level: 55, move: 337}, {level: 61, move: 38}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 373, level: 50}],
     machine_moves: [15, 46, 53, 70, 92, 104, 126, 156, 157, 164, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 249, 263, 280, 290, 317, 332, 337, 363, 406, 421, 445],
-    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 189, 200, 203, 205, 207, 210, 214, 239, 334, 428, 434]
+    tutor_moves: [29, 34, 38, 102, 111, 157, 164, 173, 189, 200, 203, 205, 207, 210, 214, 239, 334, 428, 434],
+    item_rare: 216
   }];
   SPECIES_SALAMENCE = 373 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_FLYING, height: 15, weight: 1026,
@@ -3676,7 +3825,8 @@ enum Species {
     catch_rate: 45, base_exp: 218, ev_yield: {attack: 3}, base_friendship: 35,
     level_moves: [{level: 1, move: 29}, {level: 1, move: 43}, {level: 1, move: 44}, {level: 1, move: 99}, {level: 1, move: 422}, {level: 1, move: 424}, {level: 20, move: 116}, {level: 25, move: 52}, {level: 30, move: 182}, {level: 32, move: 225}, {level: 37, move: 428}, {level: 43, move: 184}, {level: 50, move: 19}, {level: 53, move: 242}, {level: 61, move: 337}, {level: 70, move: 38}],
     machine_moves: [15, 19, 46, 53, 63, 70, 89, 92, 104, 126, 156, 157, 164, 182, 203, 207, 211, 213, 214, 216, 218, 231, 237, 240, 241, 249, 263, 280, 290, 317, 332, 337, 355, 363, 406, 416, 421, 432, 444, 445],
-    tutor_moves: [29, 34, 38, 102, 111, 129, 157, 164, 173, 189, 200, 203, 205, 207, 210, 214, 239, 257, 314, 366, 401, 428, 434, 466]
+    tutor_moves: [29, 34, 38, 102, 111, 129, 157, 164, 173, 189, 200, 203, 205, 207, 210, 214, 239, 257, 314, 366, 401, 428, 434, 466],
+    item_rare: 216
   }];
   SPECIES_BELDUM = 374 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_PSYCHIC, height: 6, weight: 952,
@@ -3685,7 +3835,8 @@ enum Species {
     catch_rate: 3, base_exp: 103, ev_yield: {defense: 1}, base_friendship: 35,
     level_moves: [{level: 1, move: 36}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 375, level: 20}],
-    tutor_moves: [29, 334, 428, 442]
+    tutor_moves: [29, 334, 428, 442],
+    item_rare: 199
   }];
   SPECIES_METANG = 375 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_PSYCHIC, height: 12, weight: 2025,
@@ -3695,7 +3846,8 @@ enum Species {
     level_moves: [{level: 1, move: 36}, {level: 1, move: 93}, {level: 1, move: 232}, {level: 1, move: 393}, {level: 24, move: 184}, {level: 28, move: 228}, {level: 32, move: 418}, {level: 36, move: 94}, {level: 40, move: 334}, {level: 44, move: 97}, {level: 48, move: 309}, {level: 52, move: 428}, {level: 56, move: 63}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 376, level: 45}],
     machine_moves: [15, 63, 70, 89, 92, 94, 104, 113, 115, 148, 153, 156, 157, 164, 182, 188, 201, 203, 207, 214, 216, 218, 237, 240, 241, 244, 247, 249, 263, 280, 290, 317, 332, 360, 363, 397, 430, 446, 447],
-    tutor_moves: [8, 9, 29, 34, 38, 102, 111, 120, 129, 153, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 244, 271, 324, 334, 356, 393, 428, 442]
+    tutor_moves: [8, 9, 29, 34, 38, 102, 111, 120, 129, 153, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 244, 271, 324, 334, 356, 393, 428, 442],
+    item_rare: 199
   }];
   SPECIES_METAGROSS = 376 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_PSYCHIC, height: 16, weight: 5500,
@@ -3704,7 +3856,8 @@ enum Species {
     catch_rate: 3, base_exp: 210, ev_yield: {defense: 3}, base_friendship: 35,
     level_moves: [{level: 1, move: 36}, {level: 1, move: 93}, {level: 1, move: 232}, {level: 1, move: 393}, {level: 24, move: 184}, {level: 28, move: 228}, {level: 32, move: 418}, {level: 36, move: 94}, {level: 40, move: 334}, {level: 44, move: 97}, {level: 45, move: 359}, {level: 53, move: 309}, {level: 62, move: 428}, {level: 71, move: 63}],
     machine_moves: [15, 63, 70, 89, 92, 94, 104, 113, 115, 148, 153, 156, 157, 164, 182, 188, 201, 203, 207, 214, 216, 218, 237, 240, 241, 244, 247, 249, 263, 280, 290, 317, 332, 360, 363, 397, 416, 430, 446, 447],
-    tutor_moves: [8, 9, 29, 34, 38, 102, 111, 120, 129, 153, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 244, 271, 324, 334, 335, 356, 393, 428, 442]
+    tutor_moves: [8, 9, 29, 34, 38, 102, 111, 120, 129, 153, 157, 164, 173, 189, 196, 203, 205, 207, 210, 214, 223, 244, 271, 324, 334, 335, 356, 393, 428, 442],
+    item_rare: 199
   }];
   SPECIES_REGIROCK = 377 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_ROCK, height: 17, weight: 2300,
@@ -3785,7 +3938,8 @@ enum Species {
     catch_rate: 3, base_exp: 215, ev_yield: {hp: 3}, base_friendship: 100,
     level_moves: [{level: 1, move: 93}, {level: 1, move: 273}, {level: 5, move: 156}, {level: 10, move: 129}, {level: 15, move: 270}, {level: 20, move: 94}, {level: 25, move: 287}, {level: 35, move: 428}, {level: 40, move: 38}, {level: 45, move: 356}, {level: 50, move: 361}, {level: 55, move: 248}, {level: 60, move: 322}, {level: 65, move: 387}, {level: 70, move: 353}],
     machine_moves: [63, 85, 86, 87, 92, 94, 104, 113, 115, 138, 148, 156, 164, 182, 201, 203, 207, 214, 216, 218, 219, 237, 240, 241, 244, 247, 263, 278, 285, 290, 332, 347, 351, 352, 363, 369, 374, 409, 412, 416, 430, 433, 446, 447, 451],
-    tutor_moves: [7, 8, 9, 29, 34, 38, 86, 102, 111, 118, 129, 138, 164, 171, 173, 189, 196, 203, 207, 214, 223, 244, 246, 253, 270, 271, 277, 324, 334, 356, 387, 428, 442]
+    tutor_moves: [7, 8, 9, 29, 34, 38, 86, 102, 111, 118, 129, 138, 164, 171, 173, 189, 196, 203, 207, 214, 223, 244, 246, 253, 270, 271, 277, 324, 334, 356, 387, 428, 442],
+    item_common: 109, item_rare: 109
   }];
   SPECIES_DEOXYS = 386 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 17, weight: 608,
@@ -3891,7 +4045,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 5, move: 98}, {level: 9, move: 17}, {level: 13, move: 104}, {level: 17, move: 283}, {level: 21, move: 18}, {level: 25, move: 332}, {level: 29, move: 36}, {level: 33, move: 97}, {level: 37, move: 413}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 397, level: 14}],
     machine_moves: [19, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 263, 290, 332, 355, 363, 365, 369, 432, 445],
-    tutor_moves: [129, 173, 189, 239, 257, 283, 314, 366, 466]
+    tutor_moves: [129, 173, 189, 239, 257, 283, 314, 366, 466],
+    item_rare: 455
   }];
   SPECIES_STARAVIA = 397 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 6, weight: 155,
@@ -3901,7 +4056,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 1, move: 98}, {level: 9, move: 17}, {level: 13, move: 104}, {level: 18, move: 283}, {level: 23, move: 18}, {level: 28, move: 332}, {level: 33, move: 36}, {level: 38, move: 97}, {level: 43, move: 413}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 398, level: 34}],
     machine_moves: [19, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 263, 290, 332, 355, 363, 365, 369, 432, 445],
-    tutor_moves: [129, 173, 189, 239, 257, 283, 314, 366, 466]
+    tutor_moves: [129, 173, 189, 239, 257, 283, 314, 366, 466],
+    item_rare: 455
   }];
   SPECIES_STARAPTOR = 398 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 12, weight: 249,
@@ -3910,7 +4066,8 @@ enum Species {
     catch_rate: 45, base_exp: 172, ev_yield: {attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 17}, {level: 1, move: 33}, {level: 1, move: 45}, {level: 1, move: 98}, {level: 13, move: 104}, {level: 18, move: 283}, {level: 23, move: 18}, {level: 28, move: 332}, {level: 33, move: 36}, {level: 34, move: 370}, {level: 41, move: 97}, {level: 49, move: 413}],
     machine_moves: [19, 63, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 263, 290, 332, 355, 363, 365, 369, 416, 432, 445],
-    tutor_moves: [129, 143, 173, 189, 239, 257, 283, 314, 366, 466]
+    tutor_moves: [129, 143, 173, 189, 239, 257, 283, 314, 366, 466],
+    item_rare: 455
   }];
   SPECIES_BIDOOF = 399 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 5, weight: 200,
@@ -3929,7 +4086,8 @@ enum Species {
     catch_rate: 127, base_exp: 116, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 45}, {level: 9, move: 111}, {level: 13, move: 205}, {level: 15, move: 55}, {level: 18, move: 29}, {level: 23, move: 158}, {level: 28, move: 281}, {level: 33, move: 133}, {level: 38, move: 36}, {level: 43, move: 162}, {level: 48, move: 276}, {level: 53, move: 174}],
     machine_moves: [15, 57, 58, 59, 63, 70, 85, 86, 87, 91, 92, 104, 127, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 250, 263, 264, 269, 290, 351, 352, 363, 365, 374, 416, 431, 445, 446, 447, 451],
-    tutor_moves: [29, 129, 162, 173, 189, 196, 205, 210, 276, 291, 387, 401]
+    tutor_moves: [29, 129, 162, 173, 189, 196, 205, 210, 276, 291, 387, 401],
+    item_common: 139, item_rare: 142
   }];
   SPECIES_KRICKETOT = 401 [(info) = {
     type1: TYPE_BUG, type2: TYPE_BUG, height: 3, weight: 22,
@@ -3938,7 +4096,8 @@ enum Species {
     catch_rate: 255, base_exp: 54, ev_yield: {defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 45}, {level: 1, move: 117}, {level: 16, move: 450}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 402, level: 10}],
-    tutor_moves: [81, 173, 189, 253, 283, 450]
+    tutor_moves: [81, 173, 189, 253, 283, 450],
+    item_rare: 439
   }];
   SPECIES_KRICKETUNE = 402 [(info) = {
     type1: TYPE_BUG, type2: TYPE_BUG, height: 10, weight: 255,
@@ -3947,7 +4106,8 @@ enum Species {
     catch_rate: 45, base_exp: 159, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 45}, {level: 1, move: 117}, {level: 10, move: 210}, {level: 14, move: 141}, {level: 18, move: 47}, {level: 22, move: 116}, {level: 26, move: 163}, {level: 26, move: 404}, {level: 30, move: 103}, {level: 34, move: 405}, {level: 38, move: 195}, {level: 38, move: 269}, {level: 42, move: 400}],
     machine_moves: [14, 15, 63, 70, 92, 104, 148, 156, 164, 182, 203, 206, 207, 213, 214, 216, 218, 237, 240, 241, 249, 263, 269, 280, 290, 318, 332, 363, 404, 416, 445],
-    tutor_moves: [81, 173, 189, 210, 253, 282, 283, 450]
+    tutor_moves: [81, 173, 189, 210, 253, 282, 283, 450],
+    item_rare: 439
   }];
   SPECIES_SHINX = 403 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 5, weight: 95,
@@ -3986,7 +4146,8 @@ enum Species {
     level_moves: [{level: 1, move: 71}, {level: 4, move: 74}, {level: 7, move: 346}, {level: 10, move: 78}, {level: 13, move: 72}, {level: 16, move: 388}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 315, friendship: 220, time: EVOLUTION_TIME_DAY}],
     machine_moves: [14, 15, 76, 92, 104, 148, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 263, 290, 331, 363, 412, 445, 447],
-    tutor_moves: [129, 173, 189, 235, 253, 388, 402]
+    tutor_moves: [129, 173, 189, 235, 253, 388, 402],
+    item_rare: 211
   }];
   SPECIES_ROSERADE = 407 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_POISON, height: 9, weight: 145,
@@ -3995,7 +4156,8 @@ enum Species {
     catch_rate: 75, base_exp: 204, ev_yield: {sp_attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 40}, {level: 1, move: 72}, {level: 1, move: 230}, {level: 1, move: 311}, {level: 1, move: 345}],
     machine_moves: [14, 15, 63, 76, 92, 104, 148, 156, 164, 182, 188, 202, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 263, 290, 331, 363, 398, 412, 416, 445, 447],
-    tutor_moves: [129, 173, 189, 210, 235, 388, 402]
+    tutor_moves: [129, 173, 189, 210, 235, 388, 402],
+    item_rare: 211
   }];
   SPECIES_CRANIDOS = 408 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_ROCK, height: 9, weight: 315,
@@ -4051,7 +4213,8 @@ enum Species {
     catch_rate: 45, base_exp: 159, ev_yield: {sp_defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 10, move: 182}, {level: 15, move: 450}, {level: 20, move: 237}, {level: 23, move: 93}, {level: 26, move: 75}, {level: 29, move: 74}, {level: 32, move: 60}, {level: 35, move: 445}, {level: 38, move: 175}, {level: 41, move: 213}, {level: 44, move: 94}, {level: 47, move: 437}],
     machine_moves: [63, 76, 92, 94, 104, 138, 148, 156, 164, 168, 182, 202, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 263, 285, 290, 331, 363, 412, 416, 445, 447],
-    tutor_moves: [81, 173, 235, 253, 283, 324, 388, 389, 402, 450]
+    tutor_moves: [81, 173, 235, 253, 283, 324, 388, 389, 402, 450],
+    item_rare: 188
   }];
   SPECIES_MOTHIM = 414 [(info) = {
     type1: TYPE_BUG, type2: TYPE_FLYING, height: 9, weight: 233,
@@ -4060,7 +4223,8 @@ enum Species {
     catch_rate: 45, base_exp: 159, ev_yield: {attack: 1, sp_attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 10, move: 182}, {level: 15, move: 450}, {level: 20, move: 237}, {level: 23, move: 93}, {level: 26, move: 16}, {level: 29, move: 77}, {level: 32, move: 60}, {level: 35, move: 293}, {level: 38, move: 318}, {level: 41, move: 403}, {level: 44, move: 94}, {level: 47, move: 405}],
     machine_moves: [63, 76, 92, 94, 104, 138, 148, 156, 164, 168, 182, 202, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 263, 285, 290, 318, 332, 355, 363, 369, 412, 416, 432, 445],
-    tutor_moves: [81, 129, 173, 189, 239, 314, 324, 366, 450, 466]
+    tutor_moves: [81, 129, 173, 189, 239, 314, 324, 366, 450, 466],
+    item_rare: 188
   }];
   SPECIES_COMBEE = 415 [(info) = {
     type1: TYPE_BUG, type2: TYPE_FLYING, height: 3, weight: 55,
@@ -4078,7 +4242,8 @@ enum Species {
     catch_rate: 45, base_exp: 188, ev_yield: {defense: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 16}, {level: 1, move: 230}, {level: 3, move: 40}, {level: 7, move: 109}, {level: 9, move: 210}, {level: 13, move: 455}, {level: 15, move: 228}, {level: 19, move: 154}, {level: 21, move: 408}, {level: 25, move: 456}, {level: 27, move: 92}, {level: 31, move: 163}, {level: 33, move: 445}, {level: 37, move: 454}, {level: 39, move: 207}, {level: 43, move: 194}],
     machine_moves: [15, 63, 92, 104, 148, 156, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 237, 240, 241, 263, 290, 318, 332, 355, 363, 369, 374, 404, 416, 432, 445],
-    tutor_moves: [81, 129, 173, 189, 210, 283, 314, 324, 366, 450, 466]
+    tutor_moves: [81, 129, 173, 189, 210, 283, 314, 324, 366, 450, 466],
+    item_rare: 211
   }];
   SPECIES_PACHIRISU = 417 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_ELECTRIC, height: 4, weight: 39,
@@ -4097,7 +4262,8 @@ enum Species {
     level_moves: [{level: 1, move: 45}, {level: 1, move: 49}, {level: 1, move: 346}, {level: 3, move: 98}, {level: 6, move: 55}, {level: 10, move: 228}, {level: 15, move: 129}, {level: 21, move: 453}, {level: 28, move: 97}, {level: 36, move: 250}, {level: 45, move: 13}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 419, level: 26}],
     machine_moves: [57, 58, 59, 70, 91, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 249, 250, 258, 263, 264, 280, 290, 317, 339, 352, 362, 363, 445],
-    tutor_moves: [8, 29, 129, 173, 189, 196, 291]
+    tutor_moves: [8, 29, 129, 173, 189, 196, 291],
+    item_rare: 453
   }];
   SPECIES_FLOATZEL = 419 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 11, weight: 335,
@@ -4106,7 +4272,8 @@ enum Species {
     catch_rate: 75, base_exp: 178, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 45}, {level: 1, move: 49}, {level: 1, move: 98}, {level: 1, move: 346}, {level: 1, move: 423}, {level: 6, move: 55}, {level: 10, move: 228}, {level: 15, move: 129}, {level: 21, move: 453}, {level: 26, move: 242}, {level: 29, move: 97}, {level: 39, move: 250}, {level: 50, move: 13}],
     machine_moves: [46, 57, 58, 59, 63, 70, 91, 92, 104, 127, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 249, 250, 258, 259, 263, 264, 269, 280, 290, 317, 339, 352, 362, 363, 371, 411, 416, 445],
-    tutor_moves: [8, 29, 67, 129, 173, 189, 196, 291, 401]
+    tutor_moves: [8, 29, 67, 129, 173, 189, 196, 291, 401],
+    item_rare: 453
   }];
   SPECIES_CHERUBI = 420 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 4, weight: 33,
@@ -4116,7 +4283,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 7, move: 74}, {level: 10, move: 73}, {level: 13, move: 270}, {level: 19, move: 345}, {level: 22, move: 241}, {level: 28, move: 388}, {level: 31, move: 36}, {level: 37, move: 76}, {level: 40, move: 381}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 421, level: 25}],
     machine_moves: [14, 76, 92, 104, 148, 156, 164, 182, 202, 203, 207, 213, 214, 216, 218, 219, 237, 241, 263, 290, 331, 363, 412, 445, 447],
-    tutor_moves: [173, 205, 235, 270, 388, 402]
+    tutor_moves: [173, 205, 235, 270, 388, 402],
+    item_rare: 205
   }];
   SPECIES_CHERRIM = 421 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 5, weight: 93,
@@ -4125,7 +4293,8 @@ enum Species {
     catch_rate: 75, base_exp: 133, ev_yield: {sp_attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 74}, {level: 10, move: 73}, {level: 13, move: 270}, {level: 19, move: 345}, {level: 22, move: 241}, {level: 25, move: 80}, {level: 30, move: 388}, {level: 35, move: 36}, {level: 43, move: 76}, {level: 48, move: 381}],
     machine_moves: [14, 63, 76, 92, 104, 148, 156, 164, 182, 202, 203, 207, 213, 214, 216, 218, 219, 237, 241, 263, 290, 331, 363, 412, 416, 445, 447],
-    tutor_moves: [173, 205, 235, 270, 388, 402]
+    tutor_moves: [173, 205, 235, 270, 388, 402],
+    item_rare: 205
   }];
   SPECIES_SHELLOS = 422 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 3, weight: 63,
@@ -4182,7 +4351,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 111}, {level: 1, move: 150}, {level: 1, move: 193}, {level: 6, move: 203}, {level: 13, move: 218}, {level: 16, move: 98}, {level: 23, move: 26}, {level: 26, move: 226}, {level: 33, move: 97}, {level: 36, move: 146}, {level: 43, move: 204}, {level: 46, move: 340}, {level: 53, move: 361}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 428, friendship: 220}],
     machine_moves: [15, 58, 76, 85, 86, 91, 92, 104, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 263, 264, 290, 351, 352, 363, 374, 409, 445, 447, 451],
-    tutor_moves: [29, 67, 129, 173, 189, 215, 253, 270, 277, 283, 340, 387]
+    tutor_moves: [29, 67, 129, 173, 189, 215, 253, 270, 277, 283, 340, 387],
+    item_rare: 456
   }];
   SPECIES_LOPUNNY = 428 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 12, weight: 333,
@@ -4191,7 +4361,8 @@ enum Species {
     catch_rate: 60, base_exp: 178, ev_yield: {speed: 2}, base_friendship: 140,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 111}, {level: 1, move: 150}, {level: 1, move: 193}, {level: 1, move: 243}, {level: 1, move: 277}, {level: 6, move: 203}, {level: 13, move: 216}, {level: 16, move: 98}, {level: 23, move: 26}, {level: 26, move: 226}, {level: 33, move: 97}, {level: 36, move: 146}, {level: 43, move: 204}, {level: 46, move: 340}, {level: 53, move: 361}],
     machine_moves: [15, 58, 59, 63, 70, 76, 85, 86, 87, 91, 92, 104, 156, 164, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 263, 264, 290, 351, 352, 363, 374, 409, 411, 416, 445, 447, 451],
-    tutor_moves: [7, 8, 9, 29, 67, 129, 173, 189, 210, 215, 253, 270, 277, 283, 340, 387]
+    tutor_moves: [7, 8, 9, 29, 67, 129, 173, 189, 210, 215, 253, 270, 277, 283, 340, 387],
+    item_rare: 456
   }];
   SPECIES_MISMAGIUS = 429 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 9, weight: 44,
@@ -4219,7 +4390,8 @@ enum Species {
     level_moves: [{level: 1, move: 252}, {level: 5, move: 10}, {level: 8, move: 45}, {level: 13, move: 95}, {level: 17, move: 185}, {level: 20, move: 154}, {level: 25, move: 204}, {level: 29, move: 274}, {level: 32, move: 445}, {level: 37, move: 163}, {level: 41, move: 389}, {level: 45, move: 213}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 432, level: 38}],
     machine_moves: [15, 85, 87, 91, 92, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 259, 263, 269, 289, 290, 332, 351, 352, 363, 369, 371, 421, 445],
-    tutor_moves: [29, 129, 162, 173, 189, 210, 282, 387, 389]
+    tutor_moves: [29, 129, 162, 173, 189, 210, 282, 387, 389],
+    item_rare: 133
   }];
   SPECIES_PURUGLY = 432 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 10, weight: 438,
@@ -4228,7 +4400,8 @@ enum Species {
     catch_rate: 75, base_exp: 183, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 45}, {level: 1, move: 252}, {level: 13, move: 95}, {level: 17, move: 185}, {level: 20, move: 154}, {level: 25, move: 204}, {level: 29, move: 274}, {level: 32, move: 445}, {level: 37, move: 163}, {level: 38, move: 207}, {level: 45, move: 34}, {level: 53, move: 213}],
     machine_moves: [15, 46, 63, 85, 87, 91, 92, 104, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 259, 263, 269, 289, 290, 332, 351, 352, 363, 369, 371, 416, 421, 445],
-    tutor_moves: [29, 129, 162, 173, 189, 205, 210, 282, 387, 389]
+    tutor_moves: [29, 129, 162, 173, 189, 205, 210, 282, 387, 389],
+    item_rare: 133
   }];
   SPECIES_CHINGLING = 433 [(info) = {
     type1: TYPE_PSYCHIC, type2: TYPE_PSYCHIC, height: 2, weight: 6,
@@ -4238,7 +4411,8 @@ enum Species {
     level_moves: [{level: 1, move: 35}, {level: 6, move: 45}, {level: 9, move: 310}, {level: 14, move: 93}, {level: 17, move: 253}, {level: 22, move: 387}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 358, friendship: 220, time: EVOLUTION_TIME_NIGHT}],
     machine_moves: [86, 92, 94, 104, 113, 115, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 259, 263, 269, 278, 285, 289, 290, 347, 351, 363, 433, 445, 447, 451],
-    tutor_moves: [129, 173, 196, 205, 215, 253, 270, 271, 277, 282, 324, 356, 387, 428]
+    tutor_moves: [129, 173, 196, 205, 215, 253, 270, 271, 277, 282, 324, 356, 387, 428],
+    item_rare: 465
   }];
   SPECIES_STUNKY = 434 [(info) = {
     type1: TYPE_POISON, type2: TYPE_DARK, height: 4, weight: 192,
@@ -4248,7 +4422,8 @@ enum Species {
     level_moves: [{level: 1, move: 10}, {level: 1, move: 116}, {level: 4, move: 139}, {level: 7, move: 103}, {level: 10, move: 154}, {level: 14, move: 108}, {level: 18, move: 364}, {level: 20, move: 92}, {level: 22, move: 163}, {level: 31, move: 400}, {level: 37, move: 262}, {level: 44, move: 153}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 435, level: 34}],
     machine_moves: [15, 46, 53, 91, 92, 104, 126, 153, 156, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 259, 263, 269, 289, 290, 363, 371, 399, 421, 432, 445],
-    tutor_moves: [29, 129, 173, 189, 210, 389]
+    tutor_moves: [29, 129, 173, 189, 210, 389],
+    item_rare: 135
   }];
   SPECIES_SKUNTANK = 435 [(info) = {
     type1: TYPE_POISON, type2: TYPE_DARK, height: 10, weight: 380,
@@ -4257,7 +4432,8 @@ enum Species {
     catch_rate: 60, base_exp: 209, ev_yield: {hp: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 116}, {level: 1, move: 139}, {level: 7, move: 103}, {level: 10, move: 154}, {level: 14, move: 108}, {level: 18, move: 364}, {level: 20, move: 92}, {level: 22, move: 163}, {level: 31, move: 400}, {level: 34, move: 53}, {level: 41, move: 262}, {level: 52, move: 153}],
     machine_moves: [15, 46, 53, 63, 70, 91, 92, 104, 126, 153, 156, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 259, 263, 269, 289, 290, 363, 371, 398, 399, 416, 421, 432, 445],
-    tutor_moves: [29, 129, 173, 189, 210, 389]
+    tutor_moves: [29, 129, 173, 189, 210, 389],
+    item_rare: 135
   }];
   SPECIES_BRONZOR = 436 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_PSYCHIC, height: 5, weight: 605,
@@ -4267,7 +4443,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 93}, {level: 7, move: 95}, {level: 12, move: 286}, {level: 14, move: 109}, {level: 19, move: 326}, {level: 26, move: 334}, {level: 30, move: 219}, {level: 35, move: 360}, {level: 37, move: 248}, {level: 41, move: 185}, {level: 49, move: 371}, {level: 52, move: 377}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 437, level: 33}],
     machine_moves: [76, 89, 92, 94, 104, 113, 115, 138, 148, 156, 157, 164, 182, 201, 203, 207, 214, 216, 218, 219, 237, 240, 241, 244, 247, 263, 278, 285, 290, 317, 347, 360, 363, 371, 397, 430, 433, 446, 447, 451],
-    tutor_moves: [173, 205, 246, 271, 324, 356]
+    tutor_moves: [173, 205, 246, 271, 324, 356],
+    item_rare: 199
   }];
   SPECIES_BRONZONG = 437 [(info) = {
     type1: TYPE_STEEL, type2: TYPE_PSYCHIC, height: 13, weight: 1870,
@@ -4276,7 +4453,8 @@ enum Species {
     catch_rate: 90, base_exp: 188, ev_yield: {defense: 1, sp_defense: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 93}, {level: 1, move: 95}, {level: 1, move: 240}, {level: 1, move: 241}, {level: 1, move: 286}, {level: 14, move: 109}, {level: 19, move: 326}, {level: 26, move: 334}, {level: 30, move: 219}, {level: 33, move: 335}, {level: 38, move: 360}, {level: 43, move: 248}, {level: 50, move: 185}, {level: 61, move: 371}, {level: 67, move: 377}],
     machine_moves: [63, 70, 76, 89, 92, 94, 104, 113, 115, 138, 148, 153, 156, 157, 164, 182, 201, 203, 207, 214, 216, 218, 219, 237, 240, 241, 244, 247, 249, 263, 278, 285, 290, 317, 347, 360, 363, 371, 397, 416, 430, 433, 446, 447, 451],
-    tutor_moves: [173, 205, 246, 271, 324, 335, 356, 428, 442]
+    tutor_moves: [173, 205, 246, 271, 324, 335, 356, 428, 442],
+    item_rare: 199
   }];
   SPECIES_BONSLY = 438 [(info) = {
     type1: TYPE_ROCK, type2: TYPE_ROCK, height: 5, weight: 150,
@@ -4296,7 +4474,8 @@ enum Species {
     level_moves: [{level: 1, move: 93}, {level: 1, move: 112}, {level: 1, move: 321}, {level: 4, move: 383}, {level: 8, move: 96}, {level: 11, move: 227}, {level: 15, move: 3}, {level: 18, move: 102}, {level: 22, move: 113}, {level: 22, move: 115}, {level: 25, move: 60}, {level: 29, move: 164}, {level: 32, move: 278}, {level: 36, move: 271}, {level: 39, move: 94}, {level: 43, move: 272}, {level: 46, move: 226}, {level: 50, move: 219}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 122, move: 102}],
     machine_moves: [76, 85, 86, 87, 92, 94, 104, 113, 115, 138, 148, 156, 164, 168, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 259, 263, 264, 269, 278, 280, 285, 289, 290, 347, 351, 363, 374, 409, 433, 445, 447, 451],
-    tutor_moves: [29, 173, 189, 253, 270, 271, 272, 277, 324]
+    tutor_moves: [29, 173, 189, 253, 270, 271, 272, 277, 324],
+    item_rare: 138
   }];
   SPECIES_HAPPINY = 440 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 244,
@@ -4306,7 +4485,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 1, move: 204}, {level: 5, move: 383}, {level: 9, move: 287}, {level: 12, move: 186}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 113, item: 390, time: EVOLUTION_TIME_DAY}],
     machine_moves: [53, 76, 86, 92, 94, 104, 113, 126, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 241, 244, 247, 258, 263, 278, 290, 351, 352, 363, 374, 409, 445, 447],
-    tutor_moves: [29, 173, 189, 196, 205, 215, 253, 270, 283, 356, 387, 428]
+    tutor_moves: [29, 173, 189, 196, 205, 215, 253, 270, 283, 356, 387, 428],
+    item_common: 390, item_rare: 222
   }];
   SPECIES_CHATOT = 441 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 5, weight: 19,
@@ -4315,7 +4495,8 @@ enum Species {
     catch_rate: 30, base_exp: 107, ev_yield: {attack: 1}, base_friendship: 35,
     level_moves: [{level: 1, move: 64}, {level: 5, move: 45}, {level: 9, move: 119}, {level: 13, move: 47}, {level: 17, move: 31}, {level: 21, move: 448}, {level: 25, move: 269}, {level: 29, move: 102}, {level: 33, move: 355}, {level: 37, move: 253}, {level: 41, move: 297}, {level: 45, move: 304}],
     machine_moves: [19, 92, 104, 156, 164, 168, 182, 203, 207, 211, 213, 214, 216, 218, 237, 240, 241, 259, 263, 269, 290, 332, 355, 363, 365, 369, 432, 445],
-    tutor_moves: [129, 143, 173, 189, 239, 253, 257, 272, 314, 366, 466]
+    tutor_moves: [129, 143, 173, 189, 239, 253, 257, 272, 314, 366, 466],
+    item_rare: 439
   }];
   SPECIES_SPIRITOMB = 442 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_DARK, height: 10, weight: 1080,
@@ -4334,7 +4515,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 3, move: 28}, {level: 7, move: 82}, {level: 13, move: 201}, {level: 15, move: 36}, {level: 19, move: 328}, {level: 25, move: 163}, {level: 27, move: 337}, {level: 31, move: 91}, {level: 37, move: 407}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 444, level: 24}],
     machine_moves: [15, 46, 53, 70, 89, 91, 92, 104, 126, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 240, 241, 249, 263, 290, 317, 332, 337, 363, 406, 421, 431, 444, 445, 446],
-    tutor_moves: [29, 129, 173, 189, 200, 210, 239, 414, 434, 442]
+    tutor_moves: [29, 129, 173, 189, 200, 210, 239, 414, 434, 442],
+    item_rare: 464
   }];
   SPECIES_GABITE = 444 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_GROUND, height: 14, weight: 560,
@@ -4344,7 +4526,8 @@ enum Species {
     level_moves: [{level: 1, move: 28}, {level: 1, move: 33}, {level: 7, move: 82}, {level: 13, move: 201}, {level: 15, move: 36}, {level: 19, move: 328}, {level: 28, move: 163}, {level: 33, move: 337}, {level: 40, move: 91}, {level: 49, move: 407}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 445, level: 48}],
     machine_moves: [15, 46, 53, 70, 89, 91, 92, 104, 126, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 263, 290, 317, 332, 337, 363, 406, 421, 431, 444, 445, 446],
-    tutor_moves: [29, 129, 173, 189, 200, 210, 239, 414, 434, 442]
+    tutor_moves: [29, 129, 173, 189, 200, 210, 239, 414, 434, 442],
+    item_rare: 464
   }];
   SPECIES_GARCHOMP = 445 [(info) = {
     type1: TYPE_DRAGON, type2: TYPE_GROUND, height: 19, weight: 950,
@@ -4353,7 +4536,8 @@ enum Species {
     catch_rate: 45, base_exp: 218, ev_yield: {attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 28}, {level: 1, move: 33}, {level: 1, move: 82}, {level: 1, move: 201}, {level: 1, move: 424}, {level: 15, move: 36}, {level: 19, move: 328}, {level: 28, move: 163}, {level: 33, move: 337}, {level: 40, move: 91}, {level: 48, move: 242}, {level: 55, move: 407}],
     machine_moves: [14, 15, 46, 53, 57, 63, 70, 89, 91, 92, 104, 126, 156, 157, 164, 182, 201, 203, 206, 207, 213, 214, 216, 218, 231, 237, 240, 241, 249, 250, 263, 280, 290, 317, 332, 337, 363, 374, 398, 406, 416, 421, 431, 444, 445, 446],
-    tutor_moves: [29, 129, 173, 189, 200, 210, 239, 401, 414, 434, 442]
+    tutor_moves: [29, 129, 173, 189, 200, 210, 239, 401, 414, 434, 442],
+    item_rare: 464
   }];
   SPECIES_MUNCHLAX = 446 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 6, weight: 1050,
@@ -4363,7 +4547,8 @@ enum Species {
     level_moves: [{level: 1, move: 33}, {level: 1, move: 118}, {level: 1, move: 316}, {level: 4, move: 111}, {level: 9, move: 133}, {level: 12, move: 122}, {level: 17, move: 278}, {level: 20, move: 103}, {level: 25, move: 254}, {level: 28, move: 256}, {level: 33, move: 34}, {level: 36, move: 374}, {level: 41, move: 205}, {level: 44, move: 363}, {level: 49, move: 387}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 143, friendship: 220}],
     machine_moves: [53, 57, 58, 59, 70, 76, 85, 87, 89, 92, 94, 104, 126, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 250, 263, 264, 278, 280, 290, 317, 351, 352, 363, 374, 431, 445],
-    tutor_moves: [7, 8, 9, 29, 173, 189, 196, 205, 253, 276, 387, 402, 428, 441]
+    tutor_moves: [7, 8, 9, 29, 173, 189, 196, 205, 253, 276, 387, 402, 428, 441],
+    item_common: 200, item_rare: 200
   }];
   SPECIES_RIOLU = 447 [(info) = {
     type1: TYPE_FIGHTING, type2: TYPE_FIGHTING, height: 7, weight: 202,
@@ -4411,7 +4596,8 @@ enum Species {
     level_moves: [{level: 1, move: 40}, {level: 1, move: 43}, {level: 1, move: 44}, {level: 6, move: 282}, {level: 12, move: 42}, {level: 17, move: 367}, {level: 23, move: 184}, {level: 28, move: 390}, {level: 34, move: 450}, {level: 39, move: 305}, {level: 45, move: 242}, {level: 50, move: 440}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 452, level: 40}],
     machine_moves: [14, 15, 70, 91, 92, 104, 148, 156, 164, 168, 182, 188, 203, 206, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 259, 263, 269, 280, 290, 317, 332, 363, 371, 374, 398, 399, 404, 445],
-    tutor_moves: [29, 173, 189, 210, 282, 401, 450]
+    tutor_moves: [29, 173, 189, 210, 282, 401, 450],
+    item_rare: 211
   }];
   SPECIES_DRAPION = 452 [(info) = {
     type1: TYPE_POISON, type2: TYPE_DARK, height: 13, weight: 615,
@@ -4420,7 +4606,8 @@ enum Species {
     catch_rate: 45, base_exp: 204, ev_yield: {defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 40}, {level: 1, move: 42}, {level: 1, move: 43}, {level: 1, move: 44}, {level: 1, move: 282}, {level: 1, move: 422}, {level: 1, move: 423}, {level: 1, move: 424}, {level: 17, move: 367}, {level: 23, move: 184}, {level: 28, move: 390}, {level: 34, move: 450}, {level: 39, move: 305}, {level: 49, move: 242}, {level: 58, move: 440}],
     machine_moves: [14, 15, 46, 63, 70, 89, 91, 92, 104, 148, 156, 157, 164, 168, 182, 188, 203, 206, 207, 213, 214, 216, 218, 231, 237, 240, 241, 247, 249, 259, 263, 269, 280, 290, 317, 332, 363, 371, 374, 398, 399, 404, 416, 431, 445],
-    tutor_moves: [29, 173, 189, 210, 282, 401, 450]
+    tutor_moves: [29, 173, 189, 210, 282, 401, 450],
+    item_rare: 211
   }];
   SPECIES_CROAGUNK = 453 [(info) = {
     type1: TYPE_POISON, type2: TYPE_FIGHTING, height: 7, weight: 230,
@@ -4430,7 +4617,8 @@ enum Species {
     level_moves: [{level: 1, move: 310}, {level: 3, move: 189}, {level: 8, move: 40}, {level: 10, move: 269}, {level: 15, move: 228}, {level: 17, move: 185}, {level: 22, move: 279}, {level: 24, move: 207}, {level: 29, move: 426}, {level: 31, move: 389}, {level: 36, move: 417}, {level: 38, move: 398}, {level: 43, move: 188}, {level: 45, move: 260}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 454, level: 37}],
     machine_moves: [70, 89, 91, 92, 104, 156, 157, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 259, 263, 264, 269, 280, 289, 290, 317, 339, 363, 371, 373, 374, 398, 399, 404, 411, 431, 445],
-    tutor_moves: [8, 9, 29, 67, 162, 173, 180, 189, 196, 210, 270, 272, 282, 340, 389, 410, 441]
+    tutor_moves: [8, 9, 29, 67, 162, 173, 180, 189, 196, 210, 270, 272, 282, 340, 389, 410, 441],
+    item_rare: 443
   }];
   SPECIES_TOXICROAK = 454 [(info) = {
     type1: TYPE_POISON, type2: TYPE_FIGHTING, height: 13, weight: 444,
@@ -4439,7 +4627,8 @@ enum Species {
     catch_rate: 75, base_exp: 181, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 40}, {level: 1, move: 189}, {level: 1, move: 310}, {level: 10, move: 269}, {level: 15, move: 228}, {level: 17, move: 185}, {level: 22, move: 279}, {level: 24, move: 207}, {level: 29, move: 426}, {level: 31, move: 389}, {level: 36, move: 417}, {level: 41, move: 398}, {level: 49, move: 188}, {level: 54, move: 260}],
     machine_moves: [14, 15, 63, 70, 89, 91, 92, 104, 156, 157, 164, 168, 182, 188, 203, 207, 213, 214, 216, 218, 237, 240, 241, 247, 249, 259, 263, 264, 269, 280, 289, 290, 317, 339, 363, 371, 373, 374, 398, 399, 404, 411, 416, 431, 444, 445],
-    tutor_moves: [8, 9, 29, 67, 162, 173, 180, 189, 196, 210, 270, 272, 282, 340, 389, 410, 441]
+    tutor_moves: [8, 9, 29, 67, 162, 173, 180, 189, 196, 210, 270, 272, 282, 340, 389, 410, 441],
+    item_rare: 443
   }];
   SPECIES_CARNIVINE = 455 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 14, weight: 270,
@@ -4458,7 +4647,8 @@ enum Species {
     level_moves: [{level: 1, move: 1}, {level: 6, move: 55}, {level: 10, move: 213}, {level: 13, move: 240}, {level: 17, move: 16}, {level: 22, move: 352}, {level: 26, move: 445}, {level: 29, move: 219}, {level: 33, move: 392}, {level: 38, move: 250}, {level: 42, move: 369}, {level: 45, move: 340}, {level: 49, move: 318}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 457, level: 31}],
     machine_moves: [57, 58, 59, 92, 104, 127, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 244, 250, 258, 263, 290, 318, 352, 362, 363, 369, 371, 432, 445],
-    tutor_moves: [129, 173, 196, 239, 291, 314, 340, 366, 401, 466]
+    tutor_moves: [129, 173, 196, 239, 291, 314, 340, 366, 401, 466],
+    item_rare: 454
   }];
   SPECIES_LUMINEON = 457 [(info) = {
     type1: TYPE_WATER, type2: TYPE_WATER, height: 12, weight: 240,
@@ -4467,7 +4657,8 @@ enum Species {
     catch_rate: 75, base_exp: 156, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 1}, {level: 1, move: 55}, {level: 1, move: 213}, {level: 13, move: 240}, {level: 17, move: 16}, {level: 22, move: 352}, {level: 26, move: 445}, {level: 29, move: 219}, {level: 35, move: 392}, {level: 42, move: 250}, {level: 48, move: 369}, {level: 53, move: 340}, {level: 59, move: 318}],
     machine_moves: [57, 58, 59, 63, 92, 104, 127, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 244, 250, 258, 263, 290, 318, 352, 362, 363, 369, 371, 416, 432, 445],
-    tutor_moves: [129, 173, 196, 239, 291, 314, 340, 366, 401, 466]
+    tutor_moves: [129, 173, 196, 239, 291, 314, 340, 366, 401, 466],
+    item_rare: 454
   }];
   SPECIES_MANTYKE = 458 [(info) = {
     type1: TYPE_WATER, type2: TYPE_FLYING, height: 10, weight: 650,
@@ -4487,7 +4678,8 @@ enum Species {
     level_moves: [{level: 1, move: 43}, {level: 1, move: 181}, {level: 5, move: 75}, {level: 9, move: 196}, {level: 13, move: 320}, {level: 17, move: 207}, {level: 21, move: 54}, {level: 26, move: 420}, {level: 31, move: 275}, {level: 36, move: 452}, {level: 41, move: 59}, {level: 46, move: 329}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 460, level: 40}],
     machine_moves: [14, 58, 59, 76, 92, 104, 113, 148, 156, 164, 182, 202, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 247, 258, 263, 290, 331, 352, 363, 412, 419, 445, 447],
-    tutor_moves: [8, 29, 173, 189, 196, 235, 272, 388, 402]
+    tutor_moves: [8, 29, 173, 189, 196, 235, 272, 388, 402],
+    item_rare: 212
   }];
   SPECIES_ABOMASNOW = 460 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_ICE, height: 22, weight: 1355,
@@ -4496,7 +4688,8 @@ enum Species {
     catch_rate: 60, base_exp: 214, ev_yield: {attack: 1, sp_attack: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 8}, {level: 1, move: 43}, {level: 1, move: 75}, {level: 1, move: 181}, {level: 1, move: 196}, {level: 13, move: 320}, {level: 17, move: 207}, {level: 21, move: 54}, {level: 26, move: 420}, {level: 31, move: 275}, {level: 36, move: 452}, {level: 47, move: 59}, {level: 58, move: 329}],
     machine_moves: [14, 58, 59, 63, 70, 76, 89, 92, 104, 113, 148, 156, 157, 164, 182, 202, 203, 207, 213, 214, 216, 218, 219, 231, 237, 240, 247, 249, 258, 263, 264, 280, 290, 317, 331, 352, 363, 374, 411, 412, 416, 419, 431, 445, 447],
-    tutor_moves: [8, 29, 173, 189, 196, 200, 235, 272, 335, 388, 402]
+    tutor_moves: [8, 29, 173, 189, 196, 200, 235, 272, 335, 388, 402],
+    item_rare: 212
   }];
   SPECIES_WEAVILE = 461 [(info) = {
     type1: TYPE_DARK, type2: TYPE_ICE, height: 11, weight: 340,
@@ -4505,7 +4698,8 @@ enum Species {
     catch_rate: 45, base_exp: 199, ev_yield: {attack: 1, speed: 1}, base_friendship: 35,
     level_moves: [{level: 1, move: 10}, {level: 1, move: 43}, {level: 1, move: 98}, {level: 1, move: 269}, {level: 1, move: 279}, {level: 1, move: 372}, {level: 1, move: 373}, {level: 10, move: 103}, {level: 14, move: 185}, {level: 21, move: 154}, {level: 24, move: 417}, {level: 28, move: 196}, {level: 35, move: 400}, {level: 38, move: 374}, {level: 42, move: 232}, {level: 49, move: 399}],
     machine_moves: [14, 15, 57, 58, 59, 63, 70, 91, 92, 104, 138, 156, 164, 168, 182, 203, 206, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 250, 258, 259, 263, 264, 269, 280, 289, 290, 332, 347, 363, 371, 373, 374, 398, 399, 404, 411, 416, 419, 421, 445],
-    tutor_moves: [8, 29, 67, 129, 173, 180, 189, 196, 210, 282]
+    tutor_moves: [8, 29, 67, 129, 173, 180, 189, 196, 210, 282],
+    item_common: 444, item_rare: 183
   }];
   SPECIES_MAGNEZONE = 462 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_STEEL, height: 12, weight: 1800,
@@ -4514,7 +4708,8 @@ enum Species {
     catch_rate: 30, base_exp: 211, ev_yield: {sp_attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 48}, {level: 1, move: 84}, {level: 1, move: 112}, {level: 1, move: 243}, {level: 1, move: 319}, {level: 14, move: 49}, {level: 17, move: 86}, {level: 22, move: 209}, {level: 27, move: 199}, {level: 30, move: 443}, {level: 34, move: 103}, {level: 40, move: 435}, {level: 46, move: 429}, {level: 50, move: 393}, {level: 54, move: 360}, {level: 60, move: 192}],
     machine_moves: [63, 85, 86, 87, 92, 104, 113, 115, 148, 153, 156, 164, 182, 203, 207, 214, 216, 218, 237, 240, 241, 244, 263, 278, 290, 351, 360, 363, 416, 430, 451],
-    tutor_moves: [129, 173, 205, 277, 324, 334, 356, 393, 442]
+    tutor_moves: [129, 173, 205, 277, 324, 334, 356, 393, 442],
+    item_rare: 199
   }];
   SPECIES_LICKILICKY = 463 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 17, weight: 1400,
@@ -4523,7 +4718,8 @@ enum Species {
     catch_rate: 30, base_exp: 193, ev_yield: {hp: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 122}, {level: 5, move: 48}, {level: 9, move: 111}, {level: 13, move: 282}, {level: 17, move: 35}, {level: 21, move: 23}, {level: 25, move: 50}, {level: 29, move: 21}, {level: 33, move: 205}, {level: 37, move: 382}, {level: 41, move: 287}, {level: 45, move: 103}, {level: 49, move: 438}, {level: 53, move: 378}, {level: 57, move: 360}],
     machine_moves: [14, 15, 53, 57, 58, 59, 63, 70, 76, 85, 87, 89, 91, 92, 104, 126, 138, 153, 156, 157, 164, 168, 182, 201, 203, 207, 213, 214, 216, 218, 231, 237, 240, 241, 244, 247, 249, 250, 263, 264, 280, 290, 317, 351, 352, 360, 363, 374, 411, 416, 431, 445],
-    tutor_moves: [7, 8, 9, 29, 173, 189, 196, 205, 282, 335, 401, 428]
+    tutor_moves: [7, 8, 9, 29, 173, 189, 196, 205, 282, 335, 401, 428],
+    item_rare: 441
   }];
   SPECIES_RHYPERIOR = 464 [(info) = {
     type1: TYPE_GROUND, type2: TYPE_ROCK, height: 24, weight: 2828,
@@ -4550,7 +4746,8 @@ enum Species {
     catch_rate: 30, base_exp: 199, ev_yield: {attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 7}, {level: 1, move: 43}, {level: 1, move: 67}, {level: 1, move: 84}, {level: 1, move: 98}, {level: 16, move: 129}, {level: 19, move: 351}, {level: 25, move: 113}, {level: 28, move: 9}, {level: 37, move: 435}, {level: 43, move: 85}, {level: 52, move: 103}, {level: 58, move: 87}, {level: 67, move: 416}],
     machine_moves: [53, 63, 70, 85, 86, 87, 89, 91, 92, 94, 104, 113, 148, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 240, 249, 259, 263, 264, 269, 280, 290, 317, 351, 363, 374, 411, 416, 431, 445, 451],
-    tutor_moves: [7, 8, 9, 29, 67, 129, 173, 189, 270, 324, 393]
+    tutor_moves: [7, 8, 9, 29, 67, 129, 173, 189, 270, 324, 393],
+    item_rare: 386
   }];
   SPECIES_MAGMORTAR = 467 [(info) = {
     type1: TYPE_FIRE, type2: TYPE_FIRE, height: 16, weight: 680,
@@ -4559,7 +4756,8 @@ enum Species {
     catch_rate: 30, base_exp: 199, ev_yield: {sp_attack: 3}, base_friendship: 70,
     level_moves: [{level: 1, move: 9}, {level: 1, move: 43}, {level: 1, move: 52}, {level: 1, move: 108}, {level: 1, move: 123}, {level: 16, move: 185}, {level: 19, move: 83}, {level: 25, move: 109}, {level: 28, move: 7}, {level: 37, move: 436}, {level: 43, move: 53}, {level: 52, move: 241}, {level: 58, move: 126}, {level: 67, move: 63}],
     machine_moves: [53, 63, 70, 76, 85, 89, 92, 94, 104, 126, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 231, 237, 241, 249, 259, 261, 263, 264, 269, 280, 290, 315, 317, 363, 374, 411, 416, 431, 445],
-    tutor_moves: [7, 9, 29, 67, 173, 189, 257, 270]
+    tutor_moves: [7, 9, 29, 67, 173, 189, 257, 270],
+    item_rare: 387
   }];
   SPECIES_TOGEKISS = 468 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_FLYING, height: 15, weight: 380,
@@ -4577,7 +4775,8 @@ enum Species {
     catch_rate: 30, base_exp: 198, ev_yield: {attack: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 98}, {level: 1, move: 104}, {level: 1, move: 193}, {level: 1, move: 400}, {level: 1, move: 450}, {level: 14, move: 49}, {level: 17, move: 197}, {level: 22, move: 48}, {level: 27, move: 253}, {level: 30, move: 228}, {level: 33, move: 246}, {level: 38, move: 163}, {level: 38, move: 364}, {level: 43, move: 103}, {level: 46, move: 369}, {level: 49, move: 403}, {level: 54, move: 405}],
     machine_moves: [63, 76, 92, 94, 104, 138, 148, 156, 164, 168, 182, 202, 203, 207, 211, 213, 214, 216, 218, 237, 241, 244, 247, 263, 290, 318, 332, 355, 363, 369, 416, 432, 445],
-    tutor_moves: [29, 81, 129, 173, 189, 246, 253, 314, 324, 366, 450, 466]
+    tutor_moves: [29, 81, 129, 173, 189, 246, 253, 314, 324, 366, 450, 466],
+    item_rare: 430
   }];
   SPECIES_LEAFEON = 470 [(info) = {
     type1: TYPE_GRASS, type2: TYPE_GRASS, height: 10, weight: 255,
@@ -4640,7 +4839,8 @@ enum Species {
     catch_rate: 60, base_exp: 198, ev_yield: {defense: 1, sp_defense: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 33}, {level: 1, move: 334}, {level: 1, move: 335}, {level: 1, move: 356}, {level: 1, move: 393}, {level: 1, move: 443}, {level: 25, move: 86}, {level: 31, move: 157}, {level: 37, move: 201}, {level: 43, move: 156}, {level: 49, move: 408}, {level: 49, move: 435}, {level: 55, move: 444}, {level: 61, move: 192}, {level: 67, move: 199}, {level: 73, move: 414}],
     machine_moves: [63, 70, 85, 86, 87, 89, 92, 104, 153, 156, 157, 164, 182, 201, 203, 207, 213, 214, 216, 218, 237, 241, 249, 259, 263, 269, 290, 317, 351, 363, 397, 416, 430, 444, 445, 446],
-    tutor_moves: [7, 8, 9, 29, 173, 189, 205, 220, 246, 277, 334, 335, 356, 393, 414, 442]
+    tutor_moves: [7, 8, 9, 29, 173, 189, 205, 220, 246, 277, 334, 335, 356, 393, 414, 442],
+    item_rare: 204
   }];
   SPECIES_DUSKNOIR = 477 [(info) = {
     type1: TYPE_GHOST, type2: TYPE_GHOST, height: 22, weight: 1066,
@@ -4649,7 +4849,8 @@ enum Species {
     catch_rate: 45, base_exp: 210, ev_yield: {defense: 1, sp_defense: 2}, base_friendship: 35,
     level_moves: [{level: 1, move: 7}, {level: 1, move: 8}, {level: 1, move: 9}, {level: 1, move: 20}, {level: 1, move: 43}, {level: 1, move: 50}, {level: 1, move: 101}, {level: 1, move: 356}, {level: 9, move: 193}, {level: 14, move: 310}, {level: 17, move: 109}, {level: 22, move: 425}, {level: 25, move: 228}, {level: 30, move: 174}, {level: 33, move: 261}, {level: 37, move: 325}, {level: 43, move: 212}, {level: 51, move: 371}, {level: 61, move: 248}],
     machine_moves: [58, 59, 63, 70, 89, 92, 94, 104, 138, 148, 156, 157, 164, 168, 182, 203, 207, 213, 214, 216, 218, 237, 240, 241, 244, 247, 249, 259, 261, 263, 264, 269, 280, 285, 289, 290, 317, 347, 363, 371, 373, 374, 399, 411, 416, 433, 445, 451],
-    tutor_moves: [7, 8, 9, 29, 173, 180, 189, 196, 220, 271, 356, 389, 466]
+    tutor_moves: [7, 8, 9, 29, 173, 180, 189, 196, 220, 271, 356, 389, 466],
+    item_rare: 463
   }];
   SPECIES_FROSLASS = 478 [(info) = {
     type1: TYPE_ICE, type2: TYPE_GHOST, height: 13, weight: 266,
@@ -4658,7 +4859,8 @@ enum Species {
     catch_rate: 75, base_exp: 187, ev_yield: {speed: 2}, base_friendship: 70,
     level_moves: [{level: 1, move: 43}, {level: 1, move: 104}, {level: 1, move: 181}, {level: 1, move: 310}, {level: 13, move: 196}, {level: 19, move: 109}, {level: 22, move: 466}, {level: 28, move: 358}, {level: 31, move: 445}, {level: 37, move: 420}, {level: 40, move: 258}, {level: 51, move: 59}, {level: 59, move: 194}],
     machine_moves: [58, 59, 63, 85, 86, 87, 92, 94, 104, 113, 138, 148, 156, 164, 182, 203, 207, 213, 214, 216, 218, 219, 237, 240, 244, 247, 258, 259, 263, 269, 289, 290, 351, 352, 363, 371, 373, 374, 416, 419, 445],
-    tutor_moves: [8, 29, 173, 180, 189, 196, 205, 220, 271, 324, 335, 389, 466]
+    tutor_moves: [8, 29, 173, 180, 189, 196, 205, 220, 271, 324, 335, 389, 466],
+    item_rare: 466
   }];
   SPECIES_ROTOM = 479 [(info) = {
     type1: TYPE_ELECTRIC, type2: TYPE_GHOST, height: 3, weight: 3,
@@ -4784,7 +4986,8 @@ enum Species {
     catch_rate: 45, base_exp: 64, ev_yield: {hp: 3}, base_friendship: 100,
     level_moves: [{level: 1, move: 74}, {level: 1, move: 111}, {level: 10, move: 345}, {level: 19, move: 73}, {level: 28, move: 98}, {level: 28, move: 235}, {level: 37, move: 230}, {level: 46, move: 363}, {level: 55, move: 388}, {level: 64, move: 312}, {level: 64, move: 403}, {level: 73, move: 412}, {level: 82, move: 186}, {level: 82, move: 320}, {level: 91, move: 361}, {level: 91, move: 381}, {level: 91, move: 437}, {level: 100, move: 465}],
     machine_moves: [14, 63, 76, 92, 94, 104, 148, 156, 164, 182, 202, 203, 207, 214, 216, 218, 219, 237, 241, 244, 263, 290, 331, 363, 412, 416, 447],
-    tutor_moves: [29, 129, 173, 189, 235, 283, 314, 366, 387, 388, 402, 414, 428, 466]
+    tutor_moves: [29, 129, 173, 189, 235, 283, 314, 366, 387, 388, 402, 414, 428, 466],
+    item_common: 141, item_rare: 141
   }];
   SPECIES_ARCEUS = 493 [(info) = {
     type1: TYPE_NORMAL, type2: TYPE_NORMAL, height: 32, weight: 3200,

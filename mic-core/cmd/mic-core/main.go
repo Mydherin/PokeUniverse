@@ -114,6 +114,12 @@ func run(log *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	for id, m := range worldMaps {
+		if w := m.Wild; w != nil {
+			log.Info("wild encounters", "map", id, "land", w.GetLand().GetSlots(), "land_rate", w.GetLand().GetRate(),
+				"water", len(w.GetWater().GetSlots()), "rock_smash", len(w.GetRockSmash().GetSlots()), "fishing", len(w.GetFishing().GetSlots()))
+		}
+	}
 	positions := live.NewStore(rdb, pool, log)
 	go positions.CopyLoop(ctx, positionCopyInterval)
 	bus := sessionbus.New(nc, log)

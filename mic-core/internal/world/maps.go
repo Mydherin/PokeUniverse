@@ -46,8 +46,11 @@ type Map struct {
 	walkable      []byte
 	elevation     []byte
 	behaviors     []mapv1.TileBehavior
-	objects       []*mapv1.MapObject
-	warps         []*mapv1.Warp
+	encounters    []mapv1.EncounterType
+	// The map's wild Pokémon tables; nil when it has none.
+	Wild    *mapv1.WildEncounters
+	objects []*mapv1.MapObject
+	warps   []*mapv1.Warp
 	// The NPCs, by the cell they stand on.
 	npcs map[Point]*mapv1.MapObject
 }
@@ -70,6 +73,14 @@ func (m *Map) Behavior(p Point) mapv1.TileBehavior {
 		return mapv1.TileBehavior_TILE_BEHAVIOR_UNSPECIFIED
 	}
 	return m.behaviors[p.Y*m.Width+p.X]
+}
+
+// Encounter is the cell's encounter kind (land, water); unspecified outside the map.
+func (m *Map) Encounter(p Point) mapv1.EncounterType {
+	if !m.In(p) {
+		return mapv1.EncounterType_ENCOUNTER_TYPE_UNSPECIFIED
+	}
+	return m.encounters[p.Y*m.Width+p.X]
 }
 
 // WarpAt is the warp on a cell, or nil (a map has a handful: a scan is enough).
@@ -142,7 +153,7 @@ func LoadMaps(fsys fs.FS) (Maps, error) {
 		}
 		n := int(sm.Width * sm.Height)
 		if id := strings.TrimSuffix(path.Base(f), ".binpb"); sm.Id != id || n == 0 ||
-			len(sm.Walkable) != n || len(sm.Elevation) != n || len(sm.Behaviors) != n {
+			len(sm.Walkable) != n || len(sm.Elevation) != n || len(sm.Behaviors) != n || len(sm.Encounters) != n {
 			return nil, fmt.Errorf("maps: %s is malformed: run make maps", f)
 		}
 		npcs := map[Point]*mapv1.MapObject{}
@@ -162,6 +173,8 @@ func LoadMaps(fsys fs.FS) (Maps, error) {
 			walkable:      sm.Walkable,
 			elevation:     sm.Elevation,
 			behaviors:     sm.Behaviors,
+			encounters:    sm.Encounters,
+			Wild:          sm.Wild,
 			objects:       sm.Objects,
 			warps:         sm.Warps,
 			npcs:          npcs,

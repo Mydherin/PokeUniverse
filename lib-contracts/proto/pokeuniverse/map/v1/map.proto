@@ -73,6 +73,34 @@ message ServerMap {
   bool allow_escaping = 14;
   bool requires_flash = 15;
   string region = 16;
+  // The map's wild Pokémon (lib-maps `encounters:`); unset when it has none.
+  WildEncounters wild = 17;
+}
+
+// One table per encounter kind; a kind is unset when the map has none. The slot chances are
+// FireRed's, kept in mic-core's code, not here.
+message WildEncounters {
+  // 12 slots.
+  WildTable land = 1;
+  // 5 slots.
+  WildTable water = 2;
+  // 5 slots.
+  WildTable rock_smash = 3;
+  // 10 slots: old rod 0-1, good rod 2-4, super rod 5-9.
+  WildTable fishing = 4;
+}
+
+message WildTable {
+  // FireRed's encounter rate (0-255 in its data).
+  uint32 rate = 1;
+  repeated WildSlot slots = 2;
+}
+
+message WildSlot {
+  // National Pokédex number.
+  uint32 species = 1;
+  uint32 min_level = 2;
+  uint32 max_level = 3;
 }
 
 enum MapType {

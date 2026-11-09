@@ -62,8 +62,9 @@ elevation: |                # optional: '.' = the tile's elevation, a hex digit 
   #   0         1
   #   012345678901
   00  ............
-overrides:                  # optional: cells whose collision differs from the catalog
+overrides:                  # optional: cells whose walkable, behavior or encounter differs from the catalog
   - { at: [3, 5], walkable: true }
+  - { at: [4, 5], behavior: tall_grass, encounter: land }
 connections:
   north: route_1            # or { map: route_1, offset: 3 } when shifted along the edge
 warps:
@@ -73,6 +74,16 @@ objects:
   - { type: sign, id: pc, at: [1, 1], script: pc }
   - { type: hidden_item, id: hidden_potion, at: [3, 22], item: potion, flag: hidden_item_viridian_forest_potion }
   - { type: trigger, id: oak_trigger_left, at: [12, 1], var: map_scene_pallet_town_oak, value: 0, script: oak_trigger_left }
+encounters:                 # optional: the map's wild Pokémon
+  land:                     # also water, rock_smash: { rate, slots }
+    rate: 21
+    slots:                  # exactly 12, in FireRed's slot order
+      - { species: pidgey, min: 2, max: 5 }
+  fishing:                  # one rate, slots by rod
+    rate: 20
+    old: [...]              # 2 slots
+    good: [...]             # 3
+    super: [...]            # 5
 ```
 
 ### Rules
@@ -86,8 +97,9 @@ objects:
 - **Warps:** named after where they lead; `spawn` is a warp ID of the destination map; `to: dynamic` returns to the previous map.
 - **Objects:** `npc`, `sign` (checked with A), `hidden_item`, `trigger` (runs when stepped on). Scripts of the same map are written by name, shared ones as `scope.name` (`common.pkmn_center_nurse`).
 - **Stable IDs** for maps, layouts, tiles, warps and objects: lowercase letters, digits and `_`; references always use IDs.
+- **Encounters:** one table per kind, slot counts as FireRed's: land 12, water 5, rock_smash 5, fishing old 2, good 3, super 5. Species by catalog name (`mr_mime`), levels 1-100. A slot's chance comes from its position, FireRed's constants in `mic-core`'s code (land 20/20/10/10/10/10/5/5/4/4/1/1; water and Rock Smash 60/30/5/4/1; old rod 70/30; good 60/20/20; super 40/40/15/4/1), never from the file. `land` needs land cells, `water` and `fishing` water cells; `rock_smash` needs none (its rocks are objects). `convert` copies FireRed's tables from `wild_encounters.json` (FireRed's, not LeafGreen's).
 - **Canonical files:** commands that write files (`convert`, `rename`) use one layout and don't keep comments.
-- **Planned, when new content needs them:** semantic terrain with auto-tiling, multi-tile objects anchored at their top-left, and encounter tables.
+- **Planned, when new content needs them:** semantic terrain with auto-tiling, and multi-tile objects anchored at their top-left.
 
 ## Tile Catalog
 
@@ -118,7 +130,7 @@ All tools live in `tool-maps/` (Go) and run from the command line: `make tool-ma
 | Command | Purpose |
 |---|---|
 | `convert [--force] [map...]` | FireRed maps (FireRed names or our IDs; none = all of Kanto) to text maps, shared layouts and catalogs. **Keeps existing files** and reuses existing catalogs, so converting more maps never undoes edits; `--force` overwrites. Links to maps outside Kanto are left out |
-| `validate` | Checks everything: syntax (unknown fields are errors), tiles and legend, grids, IDs, warps and spawns, reciprocal connections, object fields. **Warnings:** links to maps not written yet, walkable areas no warp or connection reaches, NPCs on blocked tiles |
+| `validate` | Checks everything: syntax (unknown fields are errors), tiles and legend, grids, IDs, warps and spawns, reciprocal connections, object fields, encounter tables. **Warnings:** links to maps not written yet, walkable areas no warp or connection reaches, NPCs on blocked tiles |
 | `compile` | Validates, then writes the runtime maps; any error stops it |
 | `tilesets` | Renders every FireRed tileset of `lib-maps` to PNG (needs the submodule) |
 | `preview <map>` | Renders a map to PNG with numbered rows and columns. `--region x,y,w,h`, `--scale n`, `--collision` (blocked tiles hatched red), `--objects` (warps and objects outlined) |
@@ -135,7 +147,7 @@ Generated, gitignored, never edited by hand.
 |---|---|---|
 | Tileset art | `spa-pokeuniverse/public/firered/tilesets/<id>.png` and `<id>.above.png` | 16×16 frames, 16 per row, frame = tile index; `.above` is drawn over the player. A tileset with a base also holds the base's frames, drawn with its palettes |
 | Client maps | `spa-pokeuniverse/public/maps/<id>.binpb` (served at `/maps/`) | `ClientMap`: size, tileset, tile per cell, border, connections, music, weather; walkable, elevation and behavior per cell, to predict movement; NPCs (ID, cell, sprite, facing: drawn, and blocking steps); warp cells, to predict the transition; region, to name the place |
-| Server maps | `mic-core/maps/<id>.binpb` | `ServerMap`: walkable, elevation, behavior and encounter type per cell; connections, warps, objects, map rules |
+| Server maps | `mic-core/maps/<id>.binpb` | `ServerMap`: walkable, elevation, behavior and encounter type per cell; connections, warps, objects, map rules, wild encounter tables |
 
 - Both are Protocol Buffers messages of `pokeuniverse.map.v1` ([lib-contracts](tech-stack.md#lib-contracts)).
 - Tile animations (water, flowers) are not rendered yet: tiles show their first frame.

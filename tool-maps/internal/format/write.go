@@ -58,7 +58,39 @@ func WriteMap(path string, m *Map) error {
 			w.line("  - %s", object(o))
 		}
 	}
+	w.encounters(m.Encounters)
 	return w.save(path)
+}
+
+func (w *writer) encounters(e *Encounters) {
+	if e == nil {
+		return
+	}
+	w.line("encounters:")
+	slots := func(key string, list []WildSlot) {
+		w.line("    %s:", key)
+		for _, s := range list {
+			w.line("      - { species: %s, min: %d, max: %d }", s.Species, s.Min, s.Max)
+		}
+	}
+	table := func(key string, t *WildTable) {
+		if t == nil {
+			return
+		}
+		w.line("  %s:", key)
+		w.line("    rate: %d", t.Rate)
+		slots("slots", t.Slots)
+	}
+	table("land", e.Land)
+	table("water", e.Water)
+	table("rock_smash", e.RockSmash)
+	if f := e.Fishing; f != nil {
+		w.line("  fishing:")
+		w.line("    rate: %d", f.Rate)
+		slots("old", f.Old)
+		slots("good", f.Good)
+		slots("super", f.Super)
+	}
 }
 
 func WriteLayout(path string, l *Layout) error {
@@ -124,6 +156,8 @@ func (w *writer) grid(g *Grid) {
 			if o.Walkable != nil {
 				f.add("walkable", strconv.FormatBool(*o.Walkable))
 			}
+			f.str("behavior", o.Behavior)
+			f.str("encounter", o.Encounter)
 			w.line("  - %s", f)
 		}
 	}

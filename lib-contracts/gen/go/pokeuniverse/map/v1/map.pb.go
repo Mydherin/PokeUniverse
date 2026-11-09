@@ -814,6 +814,8 @@ type ServerMap struct {
 	AllowEscaping bool            `protobuf:"varint,14,opt,name=allow_escaping,json=allowEscaping,proto3" json:"allow_escaping,omitempty"`
 	RequiresFlash bool            `protobuf:"varint,15,opt,name=requires_flash,json=requiresFlash,proto3" json:"requires_flash,omitempty"`
 	Region        string          `protobuf:"bytes,16,opt,name=region,proto3" json:"region,omitempty"`
+	// The map's wild Pokémon (lib-maps `encounters:`); unset when it has none.
+	Wild          *WildEncounters `protobuf:"bytes,17,opt,name=wild,proto3" json:"wild,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -960,6 +962,201 @@ func (x *ServerMap) GetRegion() string {
 	return ""
 }
 
+func (x *ServerMap) GetWild() *WildEncounters {
+	if x != nil {
+		return x.Wild
+	}
+	return nil
+}
+
+// One table per encounter kind; a kind is unset when the map has none. The slot chances are
+// FireRed's, kept in mic-core's code, not here.
+type WildEncounters struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 12 slots.
+	Land *WildTable `protobuf:"bytes,1,opt,name=land,proto3" json:"land,omitempty"`
+	// 5 slots.
+	Water *WildTable `protobuf:"bytes,2,opt,name=water,proto3" json:"water,omitempty"`
+	// 5 slots.
+	RockSmash *WildTable `protobuf:"bytes,3,opt,name=rock_smash,json=rockSmash,proto3" json:"rock_smash,omitempty"`
+	// 10 slots: old rod 0-1, good rod 2-4, super rod 5-9.
+	Fishing       *WildTable `protobuf:"bytes,4,opt,name=fishing,proto3" json:"fishing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WildEncounters) Reset() {
+	*x = WildEncounters{}
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WildEncounters) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WildEncounters) ProtoMessage() {}
+
+func (x *WildEncounters) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WildEncounters.ProtoReflect.Descriptor instead.
+func (*WildEncounters) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *WildEncounters) GetLand() *WildTable {
+	if x != nil {
+		return x.Land
+	}
+	return nil
+}
+
+func (x *WildEncounters) GetWater() *WildTable {
+	if x != nil {
+		return x.Water
+	}
+	return nil
+}
+
+func (x *WildEncounters) GetRockSmash() *WildTable {
+	if x != nil {
+		return x.RockSmash
+	}
+	return nil
+}
+
+func (x *WildEncounters) GetFishing() *WildTable {
+	if x != nil {
+		return x.Fishing
+	}
+	return nil
+}
+
+type WildTable struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// FireRed's encounter rate (0-255 in its data).
+	Rate          uint32      `protobuf:"varint,1,opt,name=rate,proto3" json:"rate,omitempty"`
+	Slots         []*WildSlot `protobuf:"bytes,2,rep,name=slots,proto3" json:"slots,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WildTable) Reset() {
+	*x = WildTable{}
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WildTable) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WildTable) ProtoMessage() {}
+
+func (x *WildTable) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WildTable.ProtoReflect.Descriptor instead.
+func (*WildTable) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WildTable) GetRate() uint32 {
+	if x != nil {
+		return x.Rate
+	}
+	return 0
+}
+
+func (x *WildTable) GetSlots() []*WildSlot {
+	if x != nil {
+		return x.Slots
+	}
+	return nil
+}
+
+type WildSlot struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// National Pokédex number.
+	Species       uint32 `protobuf:"varint,1,opt,name=species,proto3" json:"species,omitempty"`
+	MinLevel      uint32 `protobuf:"varint,2,opt,name=min_level,json=minLevel,proto3" json:"min_level,omitempty"`
+	MaxLevel      uint32 `protobuf:"varint,3,opt,name=max_level,json=maxLevel,proto3" json:"max_level,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WildSlot) Reset() {
+	*x = WildSlot{}
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WildSlot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WildSlot) ProtoMessage() {}
+
+func (x *WildSlot) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WildSlot.ProtoReflect.Descriptor instead.
+func (*WildSlot) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *WildSlot) GetSpecies() uint32 {
+	if x != nil {
+		return x.Species
+	}
+	return 0
+}
+
+func (x *WildSlot) GetMinLevel() uint32 {
+	if x != nil {
+		return x.MinLevel
+	}
+	return 0
+}
+
+func (x *WildSlot) GetMaxLevel() uint32 {
+	if x != nil {
+		return x.MaxLevel
+	}
+	return 0
+}
+
 // Another map joined along one edge; offset shifts it along that edge, in tiles.
 type Connection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -972,7 +1169,7 @@ type Connection struct {
 
 func (x *Connection) Reset() {
 	*x = Connection{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[4]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -984,7 +1181,7 @@ func (x *Connection) String() string {
 func (*Connection) ProtoMessage() {}
 
 func (x *Connection) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[4]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -997,7 +1194,7 @@ func (x *Connection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Connection.ProtoReflect.Descriptor instead.
 func (*Connection) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{4}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Connection) GetDirection() Direction {
@@ -1036,7 +1233,7 @@ type Warp struct {
 
 func (x *Warp) Reset() {
 	*x = Warp{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[5]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1048,7 +1245,7 @@ func (x *Warp) String() string {
 func (*Warp) ProtoMessage() {}
 
 func (x *Warp) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[5]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1061,7 +1258,7 @@ func (x *Warp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Warp.ProtoReflect.Descriptor instead.
 func (*Warp) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{5}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Warp) GetId() string {
@@ -1117,7 +1314,7 @@ type MapObject struct {
 
 func (x *MapObject) Reset() {
 	*x = MapObject{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[6]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1129,7 +1326,7 @@ func (x *MapObject) String() string {
 func (*MapObject) ProtoMessage() {}
 
 func (x *MapObject) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[6]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1142,7 +1339,7 @@ func (x *MapObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapObject.ProtoReflect.Descriptor instead.
 func (*MapObject) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{6}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *MapObject) GetId() string {
@@ -1255,7 +1452,7 @@ type Npc struct {
 
 func (x *Npc) Reset() {
 	*x = Npc{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[7]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1267,7 +1464,7 @@ func (x *Npc) String() string {
 func (*Npc) ProtoMessage() {}
 
 func (x *Npc) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[7]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1280,7 +1477,7 @@ func (x *Npc) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Npc.ProtoReflect.Descriptor instead.
 func (*Npc) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{7}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Npc) GetSprite() string {
@@ -1351,7 +1548,7 @@ type Sign struct {
 
 func (x *Sign) Reset() {
 	*x = Sign{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[8]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1363,7 +1560,7 @@ func (x *Sign) String() string {
 func (*Sign) ProtoMessage() {}
 
 func (x *Sign) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[8]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1376,7 +1573,7 @@ func (x *Sign) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Sign.ProtoReflect.Descriptor instead.
 func (*Sign) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{8}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Sign) GetScript() string {
@@ -1406,7 +1603,7 @@ type HiddenItem struct {
 
 func (x *HiddenItem) Reset() {
 	*x = HiddenItem{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[9]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1418,7 +1615,7 @@ func (x *HiddenItem) String() string {
 func (*HiddenItem) ProtoMessage() {}
 
 func (x *HiddenItem) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[9]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1431,7 +1628,7 @@ func (x *HiddenItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HiddenItem.ProtoReflect.Descriptor instead.
 func (*HiddenItem) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{9}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *HiddenItem) GetItem() string {
@@ -1474,7 +1671,7 @@ type Trigger struct {
 
 func (x *Trigger) Reset() {
 	*x = Trigger{}
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[10]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1486,7 +1683,7 @@ func (x *Trigger) String() string {
 func (*Trigger) ProtoMessage() {}
 
 func (x *Trigger) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[10]
+	mi := &file_pokeuniverse_map_v1_map_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1499,7 +1696,7 @@ func (x *Trigger) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Trigger.ProtoReflect.Descriptor instead.
 func (*Trigger) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{10}
+	return file_pokeuniverse_map_v1_map_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Trigger) GetScript() string {
@@ -1555,7 +1752,7 @@ const file_pokeuniverse_map_v1_map_proto_rawDesc = "" +
 	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
 	"\x01y\x18\x03 \x01(\rR\x01y\x12\x16\n" +
 	"\x06sprite\x18\x04 \x01(\tR\x06sprite\x126\n" +
-	"\x06facing\x18\x05 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\"\x98\x05\n" +
+	"\x06facing\x18\x05 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\"\xd1\x05\n" +
 	"\tServerMap\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05width\x18\x02 \x01(\rR\x05width\x12\x16\n" +
@@ -1575,7 +1772,21 @@ const file_pokeuniverse_map_v1_map_proto_rawDesc = "" +
 	"\rallow_cycling\x18\r \x01(\bR\fallowCycling\x12%\n" +
 	"\x0eallow_escaping\x18\x0e \x01(\bR\rallowEscaping\x12%\n" +
 	"\x0erequires_flash\x18\x0f \x01(\bR\rrequiresFlash\x12\x16\n" +
-	"\x06region\x18\x10 \x01(\tR\x06region\"t\n" +
+	"\x06region\x18\x10 \x01(\tR\x06region\x127\n" +
+	"\x04wild\x18\x11 \x01(\v2#.pokeuniverse.map.v1.WildEncountersR\x04wild\"\xf3\x01\n" +
+	"\x0eWildEncounters\x122\n" +
+	"\x04land\x18\x01 \x01(\v2\x1e.pokeuniverse.map.v1.WildTableR\x04land\x124\n" +
+	"\x05water\x18\x02 \x01(\v2\x1e.pokeuniverse.map.v1.WildTableR\x05water\x12=\n" +
+	"\n" +
+	"rock_smash\x18\x03 \x01(\v2\x1e.pokeuniverse.map.v1.WildTableR\trockSmash\x128\n" +
+	"\afishing\x18\x04 \x01(\v2\x1e.pokeuniverse.map.v1.WildTableR\afishing\"T\n" +
+	"\tWildTable\x12\x12\n" +
+	"\x04rate\x18\x01 \x01(\rR\x04rate\x123\n" +
+	"\x05slots\x18\x02 \x03(\v2\x1d.pokeuniverse.map.v1.WildSlotR\x05slots\"^\n" +
+	"\bWildSlot\x12\x18\n" +
+	"\aspecies\x18\x01 \x01(\rR\aspecies\x12\x1b\n" +
+	"\tmin_level\x18\x02 \x01(\rR\bminLevel\x12\x1b\n" +
+	"\tmax_level\x18\x03 \x01(\rR\bmaxLevel\"t\n" +
 	"\n" +
 	"Connection\x12<\n" +
 	"\tdirection\x18\x01 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\tdirection\x12\x10\n" +
@@ -1736,26 +1947,29 @@ func file_pokeuniverse_map_v1_map_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_map_v1_map_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_pokeuniverse_map_v1_map_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_pokeuniverse_map_v1_map_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_pokeuniverse_map_v1_map_proto_goTypes = []any{
-	(MapType)(0),       // 0: pokeuniverse.map.v1.MapType
-	(Direction)(0),     // 1: pokeuniverse.map.v1.Direction
-	(EncounterType)(0), // 2: pokeuniverse.map.v1.EncounterType
-	(TileBehavior)(0),  // 3: pokeuniverse.map.v1.TileBehavior
-	(*ClientMap)(nil),  // 4: pokeuniverse.map.v1.ClientMap
-	(*WarpCell)(nil),   // 5: pokeuniverse.map.v1.WarpCell
-	(*ClientNpc)(nil),  // 6: pokeuniverse.map.v1.ClientNpc
-	(*ServerMap)(nil),  // 7: pokeuniverse.map.v1.ServerMap
-	(*Connection)(nil), // 8: pokeuniverse.map.v1.Connection
-	(*Warp)(nil),       // 9: pokeuniverse.map.v1.Warp
-	(*MapObject)(nil),  // 10: pokeuniverse.map.v1.MapObject
-	(*Npc)(nil),        // 11: pokeuniverse.map.v1.Npc
-	(*Sign)(nil),       // 12: pokeuniverse.map.v1.Sign
-	(*HiddenItem)(nil), // 13: pokeuniverse.map.v1.HiddenItem
-	(*Trigger)(nil),    // 14: pokeuniverse.map.v1.Trigger
+	(MapType)(0),           // 0: pokeuniverse.map.v1.MapType
+	(Direction)(0),         // 1: pokeuniverse.map.v1.Direction
+	(EncounterType)(0),     // 2: pokeuniverse.map.v1.EncounterType
+	(TileBehavior)(0),      // 3: pokeuniverse.map.v1.TileBehavior
+	(*ClientMap)(nil),      // 4: pokeuniverse.map.v1.ClientMap
+	(*WarpCell)(nil),       // 5: pokeuniverse.map.v1.WarpCell
+	(*ClientNpc)(nil),      // 6: pokeuniverse.map.v1.ClientNpc
+	(*ServerMap)(nil),      // 7: pokeuniverse.map.v1.ServerMap
+	(*WildEncounters)(nil), // 8: pokeuniverse.map.v1.WildEncounters
+	(*WildTable)(nil),      // 9: pokeuniverse.map.v1.WildTable
+	(*WildSlot)(nil),       // 10: pokeuniverse.map.v1.WildSlot
+	(*Connection)(nil),     // 11: pokeuniverse.map.v1.Connection
+	(*Warp)(nil),           // 12: pokeuniverse.map.v1.Warp
+	(*MapObject)(nil),      // 13: pokeuniverse.map.v1.MapObject
+	(*Npc)(nil),            // 14: pokeuniverse.map.v1.Npc
+	(*Sign)(nil),           // 15: pokeuniverse.map.v1.Sign
+	(*HiddenItem)(nil),     // 16: pokeuniverse.map.v1.HiddenItem
+	(*Trigger)(nil),        // 17: pokeuniverse.map.v1.Trigger
 }
 var file_pokeuniverse_map_v1_map_proto_depIdxs = []int32{
-	8,  // 0: pokeuniverse.map.v1.ClientMap.connections:type_name -> pokeuniverse.map.v1.Connection
+	11, // 0: pokeuniverse.map.v1.ClientMap.connections:type_name -> pokeuniverse.map.v1.Connection
 	3,  // 1: pokeuniverse.map.v1.ClientMap.behaviors:type_name -> pokeuniverse.map.v1.TileBehavior
 	6,  // 2: pokeuniverse.map.v1.ClientMap.npcs:type_name -> pokeuniverse.map.v1.ClientNpc
 	5,  // 3: pokeuniverse.map.v1.ClientMap.warps:type_name -> pokeuniverse.map.v1.WarpCell
@@ -1763,20 +1977,26 @@ var file_pokeuniverse_map_v1_map_proto_depIdxs = []int32{
 	0,  // 5: pokeuniverse.map.v1.ServerMap.type:type_name -> pokeuniverse.map.v1.MapType
 	3,  // 6: pokeuniverse.map.v1.ServerMap.behaviors:type_name -> pokeuniverse.map.v1.TileBehavior
 	2,  // 7: pokeuniverse.map.v1.ServerMap.encounters:type_name -> pokeuniverse.map.v1.EncounterType
-	8,  // 8: pokeuniverse.map.v1.ServerMap.connections:type_name -> pokeuniverse.map.v1.Connection
-	9,  // 9: pokeuniverse.map.v1.ServerMap.warps:type_name -> pokeuniverse.map.v1.Warp
-	10, // 10: pokeuniverse.map.v1.ServerMap.objects:type_name -> pokeuniverse.map.v1.MapObject
-	1,  // 11: pokeuniverse.map.v1.Connection.direction:type_name -> pokeuniverse.map.v1.Direction
-	11, // 12: pokeuniverse.map.v1.MapObject.npc:type_name -> pokeuniverse.map.v1.Npc
-	12, // 13: pokeuniverse.map.v1.MapObject.sign:type_name -> pokeuniverse.map.v1.Sign
-	13, // 14: pokeuniverse.map.v1.MapObject.hidden_item:type_name -> pokeuniverse.map.v1.HiddenItem
-	14, // 15: pokeuniverse.map.v1.MapObject.trigger:type_name -> pokeuniverse.map.v1.Trigger
-	1,  // 16: pokeuniverse.map.v1.Sign.facing:type_name -> pokeuniverse.map.v1.Direction
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	11, // 8: pokeuniverse.map.v1.ServerMap.connections:type_name -> pokeuniverse.map.v1.Connection
+	12, // 9: pokeuniverse.map.v1.ServerMap.warps:type_name -> pokeuniverse.map.v1.Warp
+	13, // 10: pokeuniverse.map.v1.ServerMap.objects:type_name -> pokeuniverse.map.v1.MapObject
+	8,  // 11: pokeuniverse.map.v1.ServerMap.wild:type_name -> pokeuniverse.map.v1.WildEncounters
+	9,  // 12: pokeuniverse.map.v1.WildEncounters.land:type_name -> pokeuniverse.map.v1.WildTable
+	9,  // 13: pokeuniverse.map.v1.WildEncounters.water:type_name -> pokeuniverse.map.v1.WildTable
+	9,  // 14: pokeuniverse.map.v1.WildEncounters.rock_smash:type_name -> pokeuniverse.map.v1.WildTable
+	9,  // 15: pokeuniverse.map.v1.WildEncounters.fishing:type_name -> pokeuniverse.map.v1.WildTable
+	10, // 16: pokeuniverse.map.v1.WildTable.slots:type_name -> pokeuniverse.map.v1.WildSlot
+	1,  // 17: pokeuniverse.map.v1.Connection.direction:type_name -> pokeuniverse.map.v1.Direction
+	14, // 18: pokeuniverse.map.v1.MapObject.npc:type_name -> pokeuniverse.map.v1.Npc
+	15, // 19: pokeuniverse.map.v1.MapObject.sign:type_name -> pokeuniverse.map.v1.Sign
+	16, // 20: pokeuniverse.map.v1.MapObject.hidden_item:type_name -> pokeuniverse.map.v1.HiddenItem
+	17, // 21: pokeuniverse.map.v1.MapObject.trigger:type_name -> pokeuniverse.map.v1.Trigger
+	1,  // 22: pokeuniverse.map.v1.Sign.facing:type_name -> pokeuniverse.map.v1.Direction
+	23, // [23:23] is the sub-list for method output_type
+	23, // [23:23] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_map_v1_map_proto_init() }
@@ -1784,7 +2004,7 @@ func file_pokeuniverse_map_v1_map_proto_init() {
 	if File_pokeuniverse_map_v1_map_proto != nil {
 		return
 	}
-	file_pokeuniverse_map_v1_map_proto_msgTypes[6].OneofWrappers = []any{
+	file_pokeuniverse_map_v1_map_proto_msgTypes[9].OneofWrappers = []any{
 		(*MapObject_Npc)(nil),
 		(*MapObject_Sign)(nil),
 		(*MapObject_HiddenItem)(nil),
@@ -1796,7 +2016,7 @@ func file_pokeuniverse_map_v1_map_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_map_v1_map_proto_rawDesc), len(file_pokeuniverse_map_v1_map_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   11,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

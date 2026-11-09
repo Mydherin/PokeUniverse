@@ -27,6 +27,9 @@ type Grid struct {
 type Override struct {
 	At       Point `yaml:"at"`
 	Walkable *bool `yaml:"walkable,omitempty"`
+	// A catalog behavior or encounter name, as in Tile.
+	Behavior  string `yaml:"behavior,omitempty"`
+	Encounter string `yaml:"encounter,omitempty"`
 }
 
 // Layout is a grid shared by several maps (layouts/<id>.yaml).
@@ -53,7 +56,47 @@ type Map struct {
 	Connections Connections `yaml:"connections,omitempty"`
 	Warps       []Warp      `yaml:"warps,omitempty"`
 	Objects     []Object    `yaml:"objects,omitempty"`
+	Encounters  *Encounters `yaml:"encounters,omitempty"`
 }
+
+// Encounters is a map's wild Pokémon, one table per kind (docs/maps.md). Slot chances are
+// FireRed's, fixed by slot position, so a table lists exactly its kind's slot count.
+type Encounters struct {
+	Land      *WildTable `yaml:"land,omitempty"`
+	Water     *WildTable `yaml:"water,omitempty"`
+	RockSmash *WildTable `yaml:"rock_smash,omitempty"`
+	Fishing   *Fishing   `yaml:"fishing,omitempty"`
+}
+
+type WildTable struct {
+	Rate  int        `yaml:"rate"`
+	Slots []WildSlot `yaml:"slots"`
+}
+
+// Fishing shares one rate; its slots are split by rod.
+type Fishing struct {
+	Rate  int        `yaml:"rate"`
+	Old   []WildSlot `yaml:"old"`
+	Good  []WildSlot `yaml:"good"`
+	Super []WildSlot `yaml:"super"`
+}
+
+// WildSlot is a species (lowercase, as in the species catalog: mr_mime) and a level range.
+type WildSlot struct {
+	Species string `yaml:"species"`
+	Min     int    `yaml:"min"`
+	Max     int    `yaml:"max"`
+}
+
+// Slot counts per kind, as FireRed's.
+const (
+	LandSlots      = 12
+	WaterSlots     = 5
+	RockSmashSlots = 5
+	OldRodSlots    = 2
+	GoodRodSlots   = 3
+	SuperRodSlots  = 5
+)
 
 // Allow values.
 const (

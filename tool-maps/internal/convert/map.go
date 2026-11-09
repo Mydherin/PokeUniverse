@@ -55,10 +55,37 @@ func (c *converter) convertMap(fm *firered.Map, stats cellStats, sharedLayout bo
 	c.connections(fm, m)
 	c.warps(fm, m)
 	objects(fm, m)
+	m.Encounters = encounters(c.wild[fm.ID])
 	return c.save(world.MapsDir, id, func(path string) error { return format.WriteMap(path, m) })
 }
 
 // layoutID names a shared layout: "LAYOUT_POKEMON_CENTER_1F" → "pokemon_center_1f".
+// encounters copies FireRed's tables for the map; fishing's 10 slots split by rod (2, 3, 5).
+func encounters(e *firered.WildEncounter) *format.Encounters {
+	if e == nil {
+		return nil
+	}
+	slots := func(w *firered.WildMons, from, to int) []format.WildSlot {
+		var out []format.WildSlot
+		for _, s := range w.Mons[min(from, len(w.Mons)):min(to, len(w.Mons))] {
+			out = append(out, format.WildSlot{Species: firered.Constant(s.Species, "SPECIES_"), Min: s.Min, Max: s.Max})
+		}
+		return out
+	}
+	table := func(w *firered.WildMons) *format.WildTable {
+		if w == nil {
+			return nil
+		}
+		return &format.WildTable{Rate: w.Rate, Slots: slots(w, 0, len(w.Mons))}
+	}
+	out := &format.Encounters{Land: table(e.Land), Water: table(e.Water), RockSmash: table(e.RockSmash)}
+	if f := e.Fishing; f != nil {
+		old, good := format.OldRodSlots, format.OldRodSlots+format.GoodRodSlots
+		out.Fishing = &format.Fishing{Rate: f.Rate, Old: slots(f, 0, old), Good: slots(f, old, good), Super: slots(f, good, len(f.Mons))}
+	}
+	return out
+}
+
 func layoutID(l *firered.Layout) string { return firered.Snake(strings.TrimSuffix(l.Name, "_Layout")) }
 
 var directions = map[string]format.Direction{"up": format.North, "down": format.South, "left": format.West, "right": format.East}

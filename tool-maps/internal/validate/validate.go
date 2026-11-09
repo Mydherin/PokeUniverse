@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
+	speciesv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 	"pokeuniverse/tool-maps/internal/format"
 	"pokeuniverse/tool-maps/internal/world"
 )
@@ -182,6 +183,69 @@ func (c *checker) mapFile(m *format.Map) {
 	ids = map[string]bool{}
 	for _, o := range m.Objects {
 		c.object(f, r, o, ids)
+	}
+	for _, o := range r.Grid.Overrides {
+		if _, ok := Behavior(o.Behavior); o.Behavior != "" && !ok {
+			c.err(gridFile, "override %v: unknown behavior %q (see TileBehavior in lib-contracts map.proto)", o.At, o.Behavior)
+		}
+		if o.Encounter != "" && o.Encounter != format.EncounterLand && o.Encounter != format.EncounterWater {
+			c.err(gridFile, "override %v: encounter must be land or water", o.At)
+		}
+	}
+	c.encounters(f, r)
+}
+
+// Species returns the species catalog number of a lowercase name (mr_mime).
+func Species(name string) (uint32, bool) {
+	v, ok := speciesv1.Species_value["SPECIES_"+strings.ToUpper(name)]
+	return uint32(v), ok && v != 0 && name == strings.ToLower(name)
+}
+
+// encounters checks the map's tables: FireRed's slot counts, real species, levels 1-100, and a
+// table only where the map has cells of its kind (Rock Smash's rocks are objects, so it needs none).
+func (c *checker) encounters(f string, r *world.Resolved) {
+	e := r.Map.Encounters
+	if e == nil {
+		return
+	}
+	has := map[string]bool{}
+	for _, t := range r.Tiles {
+		has[t.Encounter] = true
+	}
+	table := func(kind string, rate int, need string, groups ...any) {
+		if rate < 1 || rate > 255 {
+			c.err(f, "encounters %s: rate must be 1-255", kind)
+		}
+		if need != "" && !has[need] {
+			c.err(f, "encounters %s: the map has no %s cells", kind, need)
+		}
+		for g := 0; g < len(groups); g += 3 {
+			name, slots, count := groups[g].(string), groups[g+1].([]format.WildSlot), groups[g+2].(int)
+			if len(slots) != count {
+				c.err(f, "encounters %s: %d slots, FireRed's has %d", name, len(slots), count)
+			}
+			for i, s := range slots {
+				if _, ok := Species(s.Species); !ok {
+					c.err(f, "encounters %s slot %d: unknown species %q", name, i, s.Species)
+				}
+				if s.Min < 1 || s.Max > 100 || s.Min > s.Max {
+					c.err(f, "encounters %s slot %d: levels must be 1-100, min <= max", name, i)
+				}
+			}
+		}
+	}
+	if t := e.Land; t != nil {
+		table("land", t.Rate, format.EncounterLand, "land", t.Slots, format.LandSlots)
+	}
+	if t := e.Water; t != nil {
+		table("water", t.Rate, format.EncounterWater, "water", t.Slots, format.WaterSlots)
+	}
+	if t := e.RockSmash; t != nil {
+		table("rock_smash", t.Rate, "", "rock_smash", t.Slots, format.RockSmashSlots)
+	}
+	if t := e.Fishing; t != nil {
+		table("fishing", t.Rate, format.EncounterWater, "fishing old", t.Old, format.OldRodSlots,
+			"fishing good", t.Good, format.GoodRodSlots, "fishing super", t.Super, format.SuperRodSlots)
 	}
 }
 

@@ -507,7 +507,7 @@ enum Item {
   ITEM_FOCUS_SASH = 437 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_ZOOM_LENS = 438 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_METRONOME = 439 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
-  ITEM_IRON_BALL = 440 [(info) = {pocket: POCKET_POKE_BALLS, price: 200, battle_use: BATTLE_USE_BALL}];
+  ITEM_IRON_BALL = 440 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_LAGGING_TAIL = 441 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_DESTINY_KNOT = 442 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
   ITEM_BLACK_SLUDGE = 443 [(info) = {pocket: POCKET_ITEMS, price: 200, field_use: FIELD_USE_NOT_NOW}];
