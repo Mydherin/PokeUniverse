@@ -303,6 +303,22 @@ const PARTY_GRAPHICS = {
  * pictures (the opponent's front, the player's back with its throwing frames).
  */
 const BATTLE_GRAPHICS = {
+  // Every ball but the Poké Ball (pokeBall) for the throw and send-outs (pokeball.ts BALLS), the expansion's Gen 4 three too
+  ball_great: { png: "interface/ball/great.png" },
+  ball_safari: { png: "interface/ball/safari.png" },
+  ball_ultra: { png: "interface/ball/ultra.png" },
+  ball_master: { png: "interface/ball/master.png" },
+  ball_net: { png: "interface/ball/net.png" },
+  ball_dive: { png: "interface/ball/dive.png" },
+  ball_nest: { png: "interface/ball/nest.png" },
+  ball_repeat: { png: "interface/ball/repeat.png" },
+  ball_timer: { png: "interface/ball/timer.png" },
+  ball_luxury: { png: "interface/ball/luxury.png" },
+  ball_premier: { png: "interface/ball/premier.png" },
+  ball_heal: { png: "expansion/balls/heal.png" },
+  ball_dusk: { png: "expansion/balls/dusk.png" },
+  ball_quick: { png: "expansion/balls/quick.png" },
+  ballParticles2: { png: "expansion/battle_anims/sprites/particles2.png" },
   levelUpStripes: { png: "pokemon_special_anim/level_up.png", bpp4: true },
   evolutionSparkle: { png: "evolution_scene/sparkle.png", bpp4: true },
   evolutionBg: { png: "evolution_scene/bg.png", bin: "evolution_scene/bg.bin", bpp4: true },
@@ -467,6 +483,13 @@ export const BATTLE_SOUNDS = [
   "se_shiny",
   "se_m_petal_dance",
   "se_ball_throw",
+  // The catch scene (battle/anims/behaviors/ball.ts, phase-7 M7)
+  "se_ball_bounce_2",
+  "se_ball_bounce_3",
+  "se_ball_bounce_4",
+  "se_ball_click",
+  "mus_caught_intro",
+  "mus_caught",
   "se_effective",
   "se_super_effective",
   "se_not_effective",
