@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** start [M2](milestones/m02-wild-pokemon.md) at its Resume Here; read only that file, then the [context.md](milestones/context.md) sections it names. M1 done 2026-11-09 (wild held items are Gen 4's HGSS table, D5). The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
+**Next step:** start [M3](milestones/m03-encounters.md) at its Resume Here; read only that file, then the [context.md](milestones/context.md) sections it names. M1 and M2 done 2026-11-09 (M2: `encounter.Generate`, `pokemon.CreateWild`; Sweet Scent's no-skip flag is for M3 to add). The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 
@@ -17,7 +17,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | # | Milestone | Status | Needs | In short |
 |---|---|---|---|---|
 | M1 | [Data: tables, wild items, test grass](milestones/m01-data-tables.md) | ✅ | | Encounter tables in the map format and `ServerMap` (land, water, Rock Smash, rods); species' wild held items; Iron Ball fix; the test grass patch and its table |
-| M2 | [Making a wild Pokémon](milestones/m02-wild-pokemon.md) | ⬜ | M1 | Slot and level choice per kind; IVs, nature, gender, ability, shiny, held item; Gen 4 lead abilities on the Pokémon made |
+| M2 | [Making a wild Pokémon](milestones/m02-wild-pokemon.md) | ✅ | M1 | Slot and level choice per kind; IVs, nature, gender, ability, shiny, held item; Gen 4 lead abilities on the Pokémon made |
 | M3 | [Encounters on the map](milestones/m03-encounters.md) | ⬜ | M2 | Step check (cooldown, rate, buff), Repel, flutes, Cleanse Tag, Pure Incense, Gen 4 rate abilities, Sweet Scent; starting the wild battle; grass rustle; Rock Smash and rods ready for Phase 12 |
 | M4 | [Wild battle rules](milestones/m04-wild-battle-rules.md) | ⬜ | M3 | `mic-battles` wild side; RUN and the Gen 4 escape rule; Poké Doll, Fluffy Tail, Smoke Ball, Run Away; Roar, Whirlwind, Teleport; Thief/Covet; Pay Day; Pickup; wild whiteout; resume |
 | M5 | [Catching rules](milestones/m05-catching-rules.md) | ⬜ | M4 | Gen 4 catch formula and every ball; trainer block; full storage; the caught Pokémon saved to party or box, Pokédex caught, the nickname intent |

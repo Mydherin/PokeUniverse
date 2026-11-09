@@ -22,7 +22,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M2. Rules: [c
 
 - [ ] **Repel** (`FIELD_USE_REPEL`, Super / Max Repel): steps saved on the trainer (new column, migration; D8), `UpdateRepelCounter` (576) on every step; at 0 the field message "REPEL's effect wore off…" (`EventScript_RepelWoreOff`: grep it in `data/scripts/`; FireRed asks nothing more). Using one while active: FireRed's `ItemUseOutOfBattle_Repel` text ("But the effects of a REPEL lingered from earlier."); find both strings in `data/text/` for `make text`.
 - [ ] **White / Black Flute** (`FIELD_USE_BLACK_WHITE_FLUTE`): `ItemUseOutOfBattle_BlackWhiteFlute` sets `FLAG_SYS_WHITE_FLUTE_ACTIVE` / `BLACK`; grep where FireRed clears them (map change?) and copy that lifetime; its messages and sound.
-- [ ] **Sweet Scent** from the party menu (Phase 6 M5 refused it): `SweetScentWildEncounter` (464) on a land or water cell with a table starts a battle with no rate roll and no Repel check; otherwise "Looks like there's nothing here…". The screen's pink fade (`FLDEFF_SWEET_SCENT`, grep `sweet_scent` in `src/`). Update Phase 6 M5's refusal list.
+- [ ] **Sweet Scent** from the party menu (Phase 6 M5 refused it): `SweetScentWildEncounter` (464) on a land or water cell with a table starts a battle with no rate roll and no Repel check; otherwise "Looks like there's nothing here…". The screen's pink fade (`FLDEFF_SWEET_SCENT`, grep `sweet_scent` in `src/`). Update Phase 6 M5's refusal list. M2's `encounter.Generate` needs a Sweet Scent flag: Intimidate / Keen Eye never skip there (HGSS `DoesAbilitySuppressEncounter` 1145); call it with `RepelLevel: 0`.
 
 ### Starting the battle (`mic-core/internal/world/battle.go`)
 
