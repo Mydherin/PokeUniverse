@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7 M4: Wild battle rules](docs/phases/phase-7-wild-battles-catching/milestones/m04-wild-battle-rules.md): Play It passed except lose on purpose; read its Resume Here (next: lose on purpose, then M4 ✅). M3 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7 M5: Catching rules](docs/phases/phase-7-wild-battles-catching/milestones/m05-catching-rules.md): not started; read its Resume Here. M4 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
