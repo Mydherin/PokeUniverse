@@ -110,6 +110,8 @@ export interface WorldLink {
   swapPokemonMoves(slot: number, from: number, to: number): void;
   evolvePokemon(slot: number): void;
   learnMove(slot: number, move: number, forgetSlot: number): void;
+  /** The just-caught Pokémon's nickname ("": keep the species' name); PartyChanged answers it when in the party. */
+  nameCaughtPokemon(name: string): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -291,6 +293,10 @@ export class Connection implements WorldLink {
 
   learnMove(slot: number, move: number, forgetSlot: number): void {
     if (this.inWorld) this.send({ case: "learnMove", value: { slot, move, forgetSlot } });
+  }
+
+  nameCaughtPokemon(name: string): void {
+    if (this.inWorld) this.send({ case: "nameCaughtPokemon", value: { name } });
   }
 
   private receive(data: Uint8Array): void {

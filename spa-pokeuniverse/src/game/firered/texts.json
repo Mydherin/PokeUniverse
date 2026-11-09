@@ -1,6 +1,6 @@
 [
   "gText_Controls", "gText_ABUTTONNext", "gText_ABUTTONNext_BBUTTONBack", "gText_Boy", "gText_Girl",
-  "gText_SelectorArrow2", "gText_YesNo", "gText_YourName", "gText_RivalsName", "gText_MoveOkBack",
+  "gText_SelectorArrow2", "gText_YesNo", "gText_YourName", "gText_RivalsName", "gText_PkmnsNickname", "gText_MoveOkBack",
   "gOtherText_NewName",
   "gNameChoice_Green", "gNameChoice_Red", "gNameChoice_Leaf", "gNameChoice_Fire", "gNameChoice_Gary",
   "gNameChoice_Kaz", "gNameChoice_Toru", "gNameChoice_Ash", "gNameChoice_Kene", "gNameChoice_Geki",

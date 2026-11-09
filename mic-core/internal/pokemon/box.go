@@ -127,13 +127,14 @@ func AddCaught(ctx context.Context, q *db.Queries, accountID int64, save time.Ti
 	if err := q.InsertTrainerPokemon(ctx, toRow(accountID, box, slot, p)); err != nil {
 		return party, at, false, fmt.Errorf("add to box: %w", err)
 	}
-	return party, Placed{Place: Place{Box: box, Slot: slot}, Moved: box != int(current)}, false, nil
+	return party, Placed{Place: Place{Box: box, Slot: slot}, Moved: box != int(current), Current: int(current)}, false, nil
 }
 
 // Placed is where AddCaught put a Pokémon.
 type Placed struct {
 	Place
-	Moved bool // SendMonToPC passed the current box: it was full.
+	Moved   bool // SendMonToPC passed the current box: it was full.
+	Current int  // The current box (1-14), the full one when Moved.
 }
 
 // StorageFull is IsPlayerPartyAndPokemonStorageFull's box half: no box has a free slot.

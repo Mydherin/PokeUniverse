@@ -13,6 +13,8 @@ import {
   BattleActionSchema,
   BattleKind,
   BattleResult,
+  CaughtWhere,
+  type CaughtPokemon,
   PartyBall,
   RequestKind,
   type BattleAction,
@@ -28,15 +30,18 @@ import { ESCAPE_ITEMS, itemInfo } from "../../world/items";
 import { moveInfo } from "../../world/moves";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
 import { Type } from "@pokeuniverse/contracts/species/v1/catalog";
-import { speciesInfo } from "../../world/pokedex";
+import { speciesInfo, type PokedexState } from "../../world/pokedex";
+import { Gender as MonGender } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
+import { startNamingScreen } from "../naming-screen";
+import { registerMonToPokedex } from "../pokedex";
 import { MoveSchema, PartySchema, PokemonSchema, type Pokemon, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import { ItemResultSchema } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../../gba/assets";
 import { Button } from "../../gba/input";
 import { PALETTES_ALL } from "../../gba/palette";
-import { decimalText, NumberMode, type Text } from "../../gba/text";
-import { rgb, RGB_BLACK } from "../../gba/video";
+import { decimalText, decodeText, expandPlaceholders, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, type Text } from "../../gba/text";
+import { rgb, RGB_BLACK, RGB_WHITE } from "../../gba/video";
 import { BattleState } from "../../battle/state";
 import { PartyState } from "../../world/party";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "../bag";
@@ -72,6 +77,10 @@ export interface BattleHost {
   evolve(slot: number): Promise<PokemonEvolved>;
   /** After an evolution: a move replaces another (mic-core saves it). */
   learnMove(slot: number, move: number, forget: number): void;
+  /** The Pokédex as mic-core last said (a catch's page). */
+  readonly pokedex: PokedexState;
+  /** The just-caught Pokémon's nickname ("": its species' name). */
+  nameCaught(name: string): void;
   /** The battle is over and the screen black: back to the field (after a loss, the whiteout). */
   finished(result: BattleResult): void;
 }
@@ -82,6 +91,9 @@ export function prepareBattle(flow: Flow): Promise<void> {
 }
 
 type Job = () => Generator<void, void, void>;
+
+/** {STR_VAR_3}. */
+const STR_VAR_3 = 0x04;
 
 export class BattleScreen implements PlaybackHost {
   readonly state: BattleState;
@@ -426,6 +438,7 @@ export class BattleScreen implements PlaybackHost {
       if (state.trainer) yield* this.scene.message(texts.format("sText_PlayerPaidAsPrizeMoney", { buff1: money }), 0);
       else yield* this.scene.message(texts.format(e.money > 0 ? "sText_PlayerPanicked" : "sText_PlayerWhiteout2", { buff1: money }), 0);
     }
+    if (this.sceneNow && e.result === BattleResult.CAUGHT && e.caught) yield* this.caughtJob(e.caught);
     // Cmd_givepaydaymoney: after a win, the coins Pay Day scattered.
     if (this.sceneNow && e.result === BattleResult.WON && e.payDay > 0) {
       yield* this.scene.message(texts.format("sText_PkmnPickedUpItem", { buff1: decimalText(e.payDay, NumberMode.LeftAlign, String(e.payDay).length) }), 0);
@@ -441,6 +454,66 @@ export class BattleScreen implements PlaybackHost {
       for (const pending of e.evolutions) yield* evolutionScene(evolving, pending);
     }
     this.host.finished(e.result);
+  }
+
+  /**
+   * BattleScript_SuccessBallThrow after "Gotcha!": a new species' Pokédex page (Cmd_displaydexinfo),
+   * the nickname question (Cmd_trygivecaughtmonnick: YES names it, and the naming screen tells of
+   * the PC itself), then on NO the PC message when the party was full (gCaughtMonStringIds).
+   */
+  private *caughtJob(c: CaughtPokemon): Generator<void, void, void> {
+    const { flow, texts, host } = this;
+    const { gba } = flow;
+    const foe = this.state.side(true).active[0]?.battler ?? create(BattlerSchema, { foe: true });
+    const info = texts.info(foe);
+    const speciesName = flow.assets.species(c.species).name;
+    if (c.newInPokedex) {
+      yield* this.scene.message(texts.format("sText_PkmnDataAddedToDex", { atk: foe }), 0);
+      gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_WHITE);
+      while (gba.palettes.fadeActive) yield;
+      let back = false;
+      this.away = true;
+      registerMonToPokedex(flow, host.gender, host.pokedex, c.species, () => (back = true));
+      while (!back) yield;
+      this.away = false;
+      gba.setMain(() => this.frame());
+      // The battle's background and text box, and the caught Pokémon's picture in the middle.
+      const scene = this.newScene();
+      scene.drawTerrain();
+      const mon = info && scene.showMon(info);
+      if (mon) {
+        mon.sprite.x = 120;
+        mon.sprite.y = 64;
+      }
+      this.fadeIn();
+      while (gba.palettes.fadeActive) yield;
+    }
+    if (!c.nicknamePending) return;
+    const box = (n: Text | null) =>
+      expandPlaceholders(flow.assets.text(c.boxFullBefore ? "Text_MonSentToBoxSomeonesBoxFull" : "Text_MonSentToBoxInSomeonesPC"), {
+        [PLACEHOLDER_STR_VAR_1]: flow.encode(c.boxName),
+        [PLACEHOLDER_STR_VAR_2]: n ?? speciesName,
+        [STR_VAR_3]: flow.encode(c.fullBoxName),
+      });
+    const toPc = c.where === CaughtWhere.BOX;
+    yield* this.scene.message(texts.format("sText_GiveNicknameCaptured", { atk: foe }), 0);
+    if (!(yield* this.scene.yesNo())) {
+      host.nameCaught("");
+      if (toPc) yield* this.scene.message(box(null));
+      return;
+    }
+    // The naming screen; the battle stays black after it, until the field.
+    gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+    while (gba.palettes.fadeActive) yield;
+    let named: Text | null | undefined;
+    this.away = true;
+    const gender = info?.gender === MonGender.MALE ? "male" : info?.gender === MonGender.FEMALE ? "female" : null;
+    startNamingScreen(flow, "caughtMon", host.gender, (n) => (named = n), { species: c.species, name: speciesName, gender, sentToPc: toPc ? box : undefined });
+    while (named === undefined) yield;
+    this.away = false;
+    gba.setMain(() => this.frame());
+    host.nameCaught(named ? decodeText(flow.assets.charmap, named) : "");
+    this.sceneNow = null;
   }
 
   /** The party is mic-core's again here: the battle's outcome reached it with the ending. */

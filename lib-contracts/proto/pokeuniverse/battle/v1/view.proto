@@ -318,4 +318,6 @@ message CaughtPokemon {
   bool new_in_pokedex = 7;
   // PARTY: its slot.
   uint32 slot = 8;
+  // BOX with box_full_before: the current box that was full (FireRed's STR_VAR_3).
+  string full_box_name = 9;
 }

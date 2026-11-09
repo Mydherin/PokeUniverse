@@ -17,6 +17,8 @@ import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { setBlend } from "./intro";
 import { copyTiles, loadStdWindowFrameGfx } from "./menu";
+import { MonIcon } from "./mon-icon";
+import { textSpeedDelay } from "./options";
 
 const enum Page {
   Symbols,
@@ -38,6 +40,7 @@ const enum State {
   StartPageSwap,
   WaitPageSwap,
   PressedOk,
+  WaitSentToPcMessage,
   FadeOut,
   Exit,
 }
@@ -68,10 +71,22 @@ const enum ButtonId {
   Count,
 }
 
-/** Who is named: the player and the rival take PLAYER_NAME_LENGTH, a box BOX_NAME_LENGTH. */
-export type NamingKind = "player" | "rival" | "box";
-const MAX_CHARS: Record<NamingKind, number> = { player: 7, rival: 7, box: 8 };
-const TITLES: Record<NamingKind, string> = { player: "gText_YourName", rival: "gText_RivalsName", box: "gText_BoxName" };
+/** Who is named: the player and the rival take PLAYER_NAME_LENGTH, a box BOX_NAME_LENGTH, a caught Pokémon POKEMON_NAME_LENGTH. */
+export type NamingKind = "player" | "rival" | "box" | "caughtMon";
+const MAX_CHARS: Record<NamingKind, number> = { player: 7, rival: 7, box: 8, caughtMon: 10 };
+const TITLES: Record<NamingKind, string> = { player: "gText_YourName", rival: "gText_RivalsName", box: "gText_BoxName", caughtMon: "gText_PkmnsNickname" };
+/** sGenderColors. */
+const GENDER_COLORS = { male: [0, 9, 8], female: [0, 5, 4] } as const;
+
+/** NAMING_SCREEN_CAUGHT_MON: the Pokémon named, and the sent-to-PC message when its party was full. */
+export interface NamedMon {
+  species: number;
+  /** Its species' name, before the title. */
+  name: Text;
+  gender: "male" | "female" | null;
+  /** DisplaySentToPCMessage after OK, given the name entered (null: none, the species' name stays). */
+  sentToPc?: (name: Text | null) => Text;
+}
 /** sPCIconOff_Gfx, sPCIconOn_Gfx: 16×24, in a 16×32 sprite with its bottom row empty. */
 const PC_ICON_TILES = 8;
 const ROWS = 4;
@@ -132,8 +147,8 @@ const template = (sheet: string, palette: string, width: number, height: number,
 });
 
 /** Starts the naming screen; `done` gets the entered name, or null to keep the default. */
-export function startNamingScreen(flow: Flow, kind: NamingKind, gender: Gender, done: (name: Text | null) => void): void {
-  new NamingScreen(flow, kind, gender, done).start();
+export function startNamingScreen(flow: Flow, kind: NamingKind, gender: Gender, done: (name: Text | null) => void, mon?: NamedMon): void {
+  new NamingScreen(flow, kind, gender, done, mon).start();
 }
 
 class NamingScreen {
@@ -167,6 +182,7 @@ class NamingScreen {
     private readonly kind: NamingKind,
     private readonly gender: Gender,
     private readonly done: (name: Text | null) => void,
+    private readonly mon?: NamedMon,
   ) {
     this.maxChars = MAX_CHARS[kind];
     this.inputCharBaseX = (240 - this.maxChars * 8) / 2 + 6;
@@ -339,11 +355,26 @@ class NamingScreen {
     this.createIcon();
   }
 
-  /** The player walking south, the rival's icon, or the PC's blinking screen. */
+  /** DisplaySentToPCMessage: in window 0 (the first keyboard page's), as the game draws it. */
+  private displaySentToPcMessage(text: Text): void {
+    const { flow } = this;
+    const win = this.windows.kbPage1;
+    win.fill(1);
+    const f = flow.fonts[FontId.Normal];
+    flow.text.ctx.canABSpeedUpPrint = true;
+    flow.text.add(win, { font: f, x: 0, y: 1, letterSpacing: f.letterSpacing, lineSpacing: f.lineSpacing, colors: [2, 1, 3] }, textSpeedDelay(flow.options), text);
+    win.copyToVram();
+    win.putTilemap();
+  }
+
+  /** The player walking south, the rival's icon, the PC's blinking screen, or the Pokémon's icon. */
   private createIcon(): void {
     const { assets, gba } = this.flow;
     const { sprites, palettes } = gba;
-    if (this.kind === "player") {
+    if (this.kind === "caughtMon") {
+      // NamingScreen_CreateMonIcon.
+      new MonIcon(this.flow, this.mon?.species ?? 0, 56, 40, 0, 3);
+    } else if (this.kind === "player") {
       const id = this.gender === Gender.GIRL ? "owGreen" : "owRed";
       sprites.loadSheet("nsIcon", assets.get(id).tiles);
       palettes.loadSpritePalette("nsIcon", assets.get("owPlayerPal").palette);
@@ -521,6 +552,14 @@ class NamingScreen {
         this.setCursorFlashing(false);
         this.tryStartButtonFlash(ButtonId.Count, false, true);
         this.state = State.FadeOut;
+        if (this.mon?.sentToPc) {
+          this.displaySentToPcMessage(this.mon.sentToPc(this.enteredName()));
+          this.state = State.WaitSentToPcMessage;
+        }
+        break;
+      case State.WaitSentToPcMessage:
+        this.flow.text.run();
+        if (!this.flow.text.isActive(this.windows.kbPage1) && this.gba.input.isPressed(Button.A)) this.state = State.FadeOut;
         break;
       case State.FadeOut:
         this.gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
@@ -551,11 +590,14 @@ class NamingScreen {
 
   /** SaveInputText: the name only counts if it has something besides spaces. */
   private exit(): void {
-    const name = this.buffer.slice(0, this.maxChars);
-    const valid = name.some((c) => c !== 0 && c !== EOS);
     this.gba.input.repeatStartDelay = 40;
     this.gba.tasks.reset();
-    this.done(valid ? [...name, EOS] : null);
+    this.done(this.enteredName());
+  }
+
+  private enteredName(): Text | null {
+    const name = this.buffer.slice(0, this.maxChars);
+    return name.some((c) => c !== 0 && c !== EOS) ? [...name, EOS] : null;
   }
 
   private vblank(): void {
@@ -642,6 +684,9 @@ class NamingScreen {
     const x = this.inputCharBaseX - 0x40;
     win.fill(1);
     for (let i = 0; i < this.maxChars; i++) win.print(font, i * 8 + x, 1, [1, 2, 3], [this.buffer[i], EOS]);
+    // DrawGenderIcon.
+    const gender = this.mon?.gender;
+    if (gender) win.print(font, 0x68, 1, [...GENDER_COLORS[gender]], this.text(gender === "male" ? "gText_MaleSymbol" : "gText_FemaleSymbol"));
     win.copyToVram();
     win.putTilemap();
   }
@@ -649,7 +694,9 @@ class NamingScreen {
   private drawTextEntryBox(): void {
     const win = this.windows.textEntryBox;
     win.fill(1);
-    win.print(this.flow.fonts[FontId.NormalCopy1], 1, 1, [1, 2, 3], this.text(TITLES[this.kind]));
+    // DrawMonTextEntryBox: the species' name before "'s nickname?".
+    const title = this.text(TITLES[this.kind]);
+    win.print(this.flow.fonts[FontId.NormalCopy1], 1, 1, [1, 2, 3], this.mon ? [...this.mon.name.slice(0, this.mon.name.indexOf(EOS) >>> 0), ...title] : title);
     win.copyToVram();
     win.putTilemap();
   }

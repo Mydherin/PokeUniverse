@@ -517,6 +517,10 @@ class Overworld {
       choose: (battleId, step, action, partner) => link.battleChoice(battleId, step, action, partner),
       evolve: (slot) => this.askEvolve(slot),
       learnMove: (slot, move, forget) => link.learnMove(slot, move, forget),
+      get pokedex() {
+        return self.pokedex;
+      },
+      nameCaught: (name) => link.nameCaughtPokemon(name),
       finished: (result) => {
         this.leaveBattle();
         this.afterBattle(result);

@@ -25,6 +25,15 @@ export function startPokedex(flow: Flow, gender: Gender, pokedex: PokedexState, 
   new Pokedex(flow, gender, pokedex, done);
 }
 
+/**
+ * DexScreen_RegisterMonToPokedex: a just-caught species' habitat page, then its entry, then `done`
+ * once faded to black. Before the National Pokédex, a species past Kanto's shows nothing.
+ */
+export function registerMonToPokedex(flow: Flow, gender: Gender, pokedex: PokedexState, species: number, done: () => void): void {
+  if (!pokedex.national && species > KANTO_COUNT) return done();
+  new Pokedex(flow, gender, pokedex, done, species);
+}
+
 /** DEX_ORDER_*: the lists. */
 const enum Order {
   NumericalKanto,
@@ -148,6 +157,7 @@ class Pokedex {
     gender: Gender,
     private readonly pokedex: PokedexState,
     private readonly done: () => void,
+    registering = 0,
   ) {
     const { gba, assets } = flow;
     gba.setVBlank(null);
@@ -177,6 +187,12 @@ class Pokedex {
       seenKanto: pokedex.count(false, KANTO_COUNT),
       ownedKanto: pokedex.count(true, KANTO_COUNT),
     };
+    if (registering) {
+      this.pages.lookUpCategory(registering);
+      this.task = () => this.register();
+      // The battle faded to white: the screen comes in from it.
+      gba.palettes.blendPalettes(PALETTES_ALL, 16, RGB_WHITE);
+    }
     gba.tasks.create(() => this.task(), 0);
     gba.setVBlank(() => {
       gba.video.objs = gba.sprites.oam;
@@ -831,6 +847,77 @@ class Pokedex {
       case 26:
         p.destroyAreaPage();
         this.state = 18;
+        break;
+    }
+  }
+
+  /** Task_DexScreen_RegisterMonToPokedex: the habitat page with the new one selected for 30 frames, its entry zooming in, A or B. */
+  private register(): void {
+    const p = this.pages;
+    switch (this.state) {
+      case 0:
+        p.pageLimits(p.category);
+        if (p.pageNum < p.firstPage) p.pageNum = p.firstPage;
+        this.hide(3, 2, 1, 0);
+        this.state = 3;
+        break;
+      case 2:
+        p.destroyCategoryWindows();
+        this.close();
+        break;
+      case 3:
+        if (!this.ready(p.speciesOn(p.category, p.pageNum))) break;
+        p.drawCategoryPage(true);
+        p.blinkSelection(null);
+        this.state = 4;
+        break;
+      case 4:
+        this.flow.gba.palettes.beginFade(PALETTES_ALL, 0, 16, 0, RGB_WHITE);
+        this.show(3, 2, 1, 0);
+        this.state = 5;
+        break;
+      case 5:
+        this.data0 = 30;
+        p.addOutline();
+        this.state = 6;
+        break;
+      case 6:
+        p.blinkSelection(p.cursorPos);
+        p.outlineSelected();
+        if (this.data0) this.data0--;
+        else {
+          p.removeOutline();
+          this.state = 7;
+        }
+        break;
+      case 7:
+        p.dexSpecies = p.pageSpecies[p.cursorPos];
+        this.state = 8;
+        break;
+      case 8:
+        if (!this.ready([p.dexSpecies])) break;
+        p.drawEntryPage(true);
+        this.data0 = this.data1 = 0;
+        this.state = 10;
+        break;
+      case 10: {
+        const [bg0] = this.bgs;
+        if (this.data1 < 6) {
+          if (this.data0) {
+            p.zoomFrame(bg0, this.data1);
+            this.data0 = 4;
+            this.data1++;
+          } else this.data0--;
+          break;
+        }
+        fillBgRect(bg0, 0, 0, 2, 30, 16, 0);
+        this.playCry();
+        this.data0 = 0;
+        this.state = 11;
+        break;
+      }
+      case 11:
+        if (this.flow.gba.input.isPressed(Button.A | Button.B)) this.state = 2;
         break;
     }
   }

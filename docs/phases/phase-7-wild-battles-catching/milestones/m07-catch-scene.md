@@ -6,7 +6,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M5, M6. Rules
 
 ## Resume Here
 
-**In progress (session 2 ended 2026-11-09, usage limit).** Build: `npx tsc --noEmit -p spa-pokeuniverse` passes; nothing played yet; `make graphics` done (new balls copied); **`make audio` not run yet** (new sounds below).
+**In progress (session 3 ended 2026-11-09 at the context guard; only the Play It is left).** Build: `npx tsc --noEmit -p spa-pokeuniverse` passes, mic-core `go vet` + gofmt clean (golang:1.27-alpine container); `make graphics`, `make text` (703 strings), `make audio` done; nothing played yet.
 
 **Done:**
 - Art: Makefile `EXPANSION_GFX_FILES` + `balls/{heal,dusk,quick}.png`; manifest `BATTLE_GRAPHICS`: `ball_<name>` (11 FireRed + 3 expansion) and `ballParticles2`. Still to do: add the expansion balls to the copied-asset exceptions in AGENTS.md and tech-stack.md (`#firered-as-reference`).
@@ -20,7 +20,14 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M5, M6. Rules
 
 - Text codes (session 2): `gba/text.ts` 0x0B PLAY_BGM → `ctx.playBgm` (`TEXT_MUSIC` 322 → `mus_caught` in `boot.ts`), {WAIT_SE} waits on `ctx.sePlaying` (`isPlaying("se")`). Typechecks.
 
-**Next step:** the end flow in `battle/screen.ts` `endJob` (CAUGHT: `e.caught` = `CaughtPokemon` {species, nickname_pending, where, box, box_name, box_full_before, new_in_pokedex, slot}): "…data was added to the POKéDEX." + Pokédex page if new (`pokedex-pages.ts`) → "Give a nickname…" YES/NO (B = NO) → `naming-screen.ts` caught mode → send `NameCaughtPokemon` (`party.proto:198`, realtime `name_caught_pokemon = 37`; no client sender yet: find how other realtime party messages are sent, e.g. grep `learnMove` in the host) → PC message only on NO with `where == BOX` (STR_VAR_1 box name, 2 mon, 3 full box: `expandPlaceholders` codes 2/3/4; "Someone's" for now). No victory music/exp after a catch. Then the Trainer-block task line, the AGENTS.md / tech-stack.md copied-asset line for the expansion balls, docs/audio.md sounds, `make audio`, build, Play It.
+- After-catch flow (session 3): `screen.ts` `caughtJob` (from `endJob` on CAUGHT): new species → "…data was added…" (wait 0), fade to white, `registerMonToPokedex` (new in `pokedex.ts`: Task_DexScreen_RegisterMonToPokedex, habitat page 30 frames, entry zoom, cry, A/B; non-Kanto before National: nothing), then the terrain + the caught pic at (120, 64), fade in → if `nickname_pending`: "Give a nickname…" `yesNo` → NO: `nameCaught("")` + the PC message when `where == BOX`; YES: fade black, `startNamingScreen(…, "caughtMon", …, NamedMon)` (new kind: 10 chars, mon icon (56, 40), species name + `gText_PkmnsNickname`, gender sign at 0x68, PC message in window 0 after OK when the party was full, as FireRed's naming screen does), then stays black to the end. `BattleHost.pokedex` / `nameCaught` (overworld.ts → `Connection.nameCaughtPokemon`). Server: `CaughtPokemon.full_box_name = 9` (`make contracts` run) from `Placed.Current` (`mic-core/internal/pokemon/box.go`, `world/battle.go`) for the full-box text's STR_VAR_3. `gText_PkmnsNickname` added to texts.json (`make text` run). Typechecks; Go not built yet (no local go: the Docker build checks it).
+- Correction to "Looked up": YES → naming → the naming screen itself shows the PC message when the party was full (`naming_screen.c` 696); NO → the battle prints it.
+
+- Docs (session 3): expansion balls added to AGENTS.md and tech-stack.md's copied-asset lines; docs/audio.md lists no battle sounds (nothing to add).
+
+**Next step (session 4): the Play It**, nothing else is left. Stack built and running (`docker compose up -d --build`, session 3, exit 0). Test recipe: [M4](m04-wild-battle-rules.md) lines 11-13 (login, SQL, Redis, test grass); browser gotchas: [M6](m06-wild-battle-screen.md) "Gotchas". Account 2's party is full (catches go to a box: PC message) and every species is caught: delete one species' caught row to see the Pokédex page. Balls: pocket-3 rows by SQL (as in M5). Watch for: the naming screen's gender-sign and PC-message colors (palette 10 may lack 4/5/8/9), the battle staying black after naming, the caught pic at (120, 64) after the Pokédex page.
+
+Files touched this milestone: Makefile, manifest.ts, sounds.json, texts.json, pokeball.ts, battle/anims/behaviors/{ball,behaviors}.ts, anims/script.ts, battle/{playback,screen}.ts, gba/text.ts, boot.ts, pokedex.ts, naming-screen.ts, overworld.ts, realtime/connection.ts, view.proto, mic-core box.go + battle.go.
 
 ### Looked up (don't re-read)
 
@@ -41,15 +48,15 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M5, M6. Rules
 
 ### Art (`make graphics`)
 
-- [~] (copied and in the manifest; the AGENTS.md / tech-stack.md exception line still to write) FireRed's 12 balls and particles from `graphics/battle_anims/` / `graphics/balls/` (check the paths); Heal, Dusk and Quick from `pokeemerald-expansion` `graphics/balls/` and its particles. That's a new copied asset: add it to the build exceptions in AGENTS.md and [tech-stack.md](../../../tech-stack.md#firered-as-reference).
+- [x] (copied, in the manifest and in the exception lines) FireRed's 12 balls and particles from `graphics/battle_anims/` / `graphics/balls/` (check the paths); Heal, Dusk and Quick from `pokeemerald-expansion` `graphics/balls/` and its particles. That's a new copied asset: add it to the build exceptions in AGENTS.md and [tech-stack.md](../../../tech-stack.md#firered-as-reference).
 
 ### Messages and flow (`firered/battle/playback.ts`, `messages.ts`, `make text`)
 
 - [x] "{PLAYER} used {ITEM}!" (`BattleScript_ThrowBall`), then by shakes `gBallEscapeStringIds`: "Oh, no! The POKéMON broke free!", "Aww! It appeared to be caught!", "Aargh! Almost had it!", "Shoot! It was so close, too!".
-- [ ] Caught, as `BattleScript_SuccessBallThrow` (73): "Gotcha! {mon} was caught!" with the caught fanfare (check which: `MUS_CAUGHT_INTRO` then `MUS_CAUGHT`, grep both in `src/`); if `new_in_pokedex`: "{mon}'s data was added to the POKéDEX." and the Pokédex page (`DexScreen_RegisterMonToPokedex`, `src/pokedex_screen.c`; reuse `pokedex-pages.ts`), back to the battle.
-- [ ] "Give a nickname to the captured {mon}?" YES / NO (`Cmd_trygivecaughtmonnick` 9789) → `naming-screen.ts` in its caught-Pokémon mode (`NAMING_SCREEN_CAUGHT_MON`: the Pokémon's icon and title) → `NameCaughtPokemon` (M5); NO keeps the name.
-- [ ] Where it went (`Cmd_givecaughtmon` 9617, `gCaughtMonStringIds`): nothing for the party; "{mon} was transferred to someone's PC. It was placed in BOX "{box}"."; the BOX-full variant naming both boxes. "Someone's" until the player meets BILL (`FLAG_SYS_NOT_SOMEONES_PC`, Phase 12): use "someone's" now and leave the flag's hook.
-- [ ] The battle's end after a catch: fade out with the fanfare, no victory music, no exp (D9); evolutions from earlier exp this battle still run after (check FireRed's order).
+- [x] Caught, as `BattleScript_SuccessBallThrow` (73): "Gotcha! {mon} was caught!" with the caught fanfare (check which: `MUS_CAUGHT_INTRO` then `MUS_CAUGHT`, grep both in `src/`); if `new_in_pokedex`: "{mon}'s data was added to the POKéDEX." and the Pokédex page (`DexScreen_RegisterMonToPokedex`, `src/pokedex_screen.c`; reuse `pokedex-pages.ts`), back to the battle.
+- [x] "Give a nickname to the captured {mon}?" YES / NO (`Cmd_trygivecaughtmonnick` 9789) → `naming-screen.ts` in its caught-Pokémon mode (`NAMING_SCREEN_CAUGHT_MON`: the Pokémon's icon and title) → `NameCaughtPokemon` (M5); NO keeps the name.
+- [x] Where it went (`Cmd_givecaughtmon` 9617, `gCaughtMonStringIds`): nothing for the party; "{mon} was transferred to someone's PC. It was placed in BOX "{box}"."; the BOX-full variant naming both boxes. "Someone's" until the player meets BILL (`FLAG_SYS_NOT_SOMEONES_PC`, Phase 12): use "someone's" now and leave the flag's hook.
+- [x] The battle's end after a catch: fade out with the fanfare, no victory music, no exp (D9); evolutions from earlier exp this battle still run after (check FireRed's order).
 
 ## Play It
 

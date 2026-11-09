@@ -522,6 +522,9 @@ func (c *catch) add(ctx context.Context, q *db.Queries, p *Player, save time.Tim
 			return err
 		}
 		ended.Where, ended.Box, ended.BoxName, ended.BoxFullBefore = battlev1.CaughtWhere_CAUGHT_WHERE_BOX, uint32(at.Box-1), boxes[at.Box-1].Name, at.Moved
+		if at.Moved {
+			ended.FullBoxName = boxes[at.Current-1].Name
+		}
 	}
 	if err := saveNaming(ctx, q, p.accountID, save, &at.Place); err != nil {
 		return err

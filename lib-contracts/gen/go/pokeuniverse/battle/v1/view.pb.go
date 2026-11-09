@@ -1966,7 +1966,9 @@ type CaughtPokemon struct {
 	// First time caught: the Pokédex page shows (FireRed's "Registered in the POKéDEX").
 	NewInPokedex bool `protobuf:"varint,7,opt,name=new_in_pokedex,json=newInPokedex,proto3" json:"new_in_pokedex,omitempty"`
 	// PARTY: its slot.
-	Slot          uint32 `protobuf:"varint,8,opt,name=slot,proto3" json:"slot,omitempty"`
+	Slot uint32 `protobuf:"varint,8,opt,name=slot,proto3" json:"slot,omitempty"`
+	// BOX with box_full_before: the current box that was full (FireRed's STR_VAR_3).
+	FullBoxName   string `protobuf:"bytes,9,opt,name=full_box_name,json=fullBoxName,proto3" json:"full_box_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2055,6 +2057,13 @@ func (x *CaughtPokemon) GetSlot() uint32 {
 		return x.Slot
 	}
 	return 0
+}
+
+func (x *CaughtPokemon) GetFullBoxName() string {
+	if x != nil {
+		return x.FullBoxName
+	}
+	return ""
 }
 
 var File_pokeuniverse_battle_v1_view_proto protoreflect.FileDescriptor
@@ -2182,7 +2191,7 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"evolutions\x18\x04 \x03(\v2'.pokeuniverse.party.v1.PendingEvolutionR\n" +
 	"evolutions\x12\x17\n" +
 	"\apay_day\x18\x05 \x01(\rR\x06payDay\x12=\n" +
-	"\x06caught\x18\x06 \x01(\v2%.pokeuniverse.battle.v1.CaughtPokemonR\x06caught\"\xc0\x02\n" +
+	"\x06caught\x18\x06 \x01(\v2%.pokeuniverse.battle.v1.CaughtPokemonR\x06caught\"\xe4\x02\n" +
 	"\rCaughtPokemon\x12:\n" +
 	"\aspecies\x18\x01 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\aspecies\x12)\n" +
 	"\x10nickname_pending\x18\x02 \x01(\bR\x0fnicknamePending\x129\n" +
@@ -2191,7 +2200,8 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\bbox_name\x18\x05 \x01(\tR\aboxName\x12&\n" +
 	"\x0fbox_full_before\x18\x06 \x01(\bR\rboxFullBefore\x12$\n" +
 	"\x0enew_in_pokedex\x18\a \x01(\bR\fnewInPokedex\x12\x12\n" +
-	"\x04slot\x18\b \x01(\rR\x04slot*X\n" +
+	"\x04slot\x18\b \x01(\rR\x04slot\x12\"\n" +
+	"\rfull_box_name\x18\t \x01(\tR\vfullBoxName*X\n" +
 	"\n" +
 	"BattleKind\x12\x1b\n" +
 	"\x17BATTLE_KIND_UNSPECIFIED\x10\x00\x12\x17\n" +
