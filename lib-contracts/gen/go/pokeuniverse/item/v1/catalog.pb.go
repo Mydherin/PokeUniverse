@@ -235,6 +235,8 @@ const (
 	BattleUse_BATTLE_USE_SELF BattleUse = 3
 	// Thrown: a trainer blocks it, and it's spent all the same.
 	BattleUse_BATTLE_USE_BALL BattleUse = 4
+	// Ends a wild battle (POKé DOLL, FLUFFY TAIL); refused in trainer battles.
+	BattleUse_BATTLE_USE_ESCAPE BattleUse = 5
 )
 
 // Enum value maps for BattleUse.
@@ -245,6 +247,7 @@ var (
 		2: "BATTLE_USE_MOVE",
 		3: "BATTLE_USE_SELF",
 		4: "BATTLE_USE_BALL",
+		5: "BATTLE_USE_ESCAPE",
 	}
 	BattleUse_value = map[string]int32{
 		"BATTLE_USE_UNSPECIFIED": 0,
@@ -252,6 +255,7 @@ var (
 		"BATTLE_USE_MOVE":        2,
 		"BATTLE_USE_SELF":        3,
 		"BATTLE_USE_BALL":        4,
+		"BATTLE_USE_ESCAPE":      5,
 	}
 )
 
@@ -1922,13 +1926,14 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x11FIELD_USE_TM_CASE\x10\x16\x12\x19\n" +
 	"\x15FIELD_USE_BERRY_POUCH\x10\x17\x12\x17\n" +
 	"\x13FIELD_USE_TEACHY_TV\x10\x18\x12\x13\n" +
-	"\x0fFIELD_USE_TM_HM\x10\x19*|\n" +
+	"\x0fFIELD_USE_TM_HM\x10\x19*\x93\x01\n" +
 	"\tBattleUse\x12\x1a\n" +
 	"\x16BATTLE_USE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10BATTLE_USE_PARTY\x10\x01\x12\x13\n" +
 	"\x0fBATTLE_USE_MOVE\x10\x02\x12\x13\n" +
 	"\x0fBATTLE_USE_SELF\x10\x03\x12\x13\n" +
-	"\x0fBATTLE_USE_BALL\x10\x04*\xadu\n" +
+	"\x0fBATTLE_USE_BALL\x10\x04\x12\x15\n" +
+	"\x11BATTLE_USE_ESCAPE\x10\x05*\xb1u\n" +
 	"\x04Item\x12\x14\n" +
 	"\x10ITEM_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x10ITEM_MASTER_BALL\x10\x01\x1a\b\x82\xb5\x18\x04\b\x03H\x04\x12 \n" +
@@ -2015,9 +2020,9 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\rITEM_X_DEFEND\x10L\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xa6\x04(\x01H\x03R\x05r\x03\x02\x02\x00\x12&\n" +
 	"\fITEM_X_SPEED\x10M\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xde\x02(\x01H\x03R\x05r\x03\x02\x02\x00\x12)\n" +
 	"\x0fITEM_X_ACCURACY\x10N\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xb6\a(\x01H\x03R\x05r\x03\x02\x02\x00\x12(\n" +
-	"\x0eITEM_X_SPECIAL\x10O\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xde\x02(\x01H\x03R\x05r\x03\x02\x02\x00\x12\x1f\n" +
-	"\x0eITEM_POKE_DOLL\x10P\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12!\n" +
-	"\x10ITEM_FLUFFY_TAIL\x10Q\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12$\n" +
+	"\x0eITEM_X_SPECIAL\x10O\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xde\x02(\x01H\x03R\x05r\x03\x02\x02\x00\x12!\n" +
+	"\x0eITEM_POKE_DOLL\x10P\x1a\r\x82\xb5\x18\t\b\x01\x10\xe8\a(\x01H\x05\x12#\n" +
+	"\x10ITEM_FLUFFY_TAIL\x10Q\x1a\r\x82\xb5\x18\t\b\x01\x10\xe8\a(\x01H\x05\x12$\n" +
 	"\x10ITEM_SUPER_REPEL\x10S\x1a\x0e\x82\xb5\x18\n" +
 	"\b\x01\x10\xf4\x03(\x108\xc8\x01\x12\"\n" +
 	"\x0eITEM_MAX_REPEL\x10T\x1a\x0e\x82\xb5\x18\n" +

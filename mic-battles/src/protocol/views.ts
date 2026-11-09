@@ -5,11 +5,12 @@ import type { MessageInitShape } from "@bufbuild/protobuf";
 import type { Battle } from "@pkmn/sim";
 import type { BattleOutcomeSchema, StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
 import type { BattlerInfoSchema, HealthSchema } from "@pokeuniverse/contracts/battle/v1/event";
-import { BattleResult, PartyBall, RequestKind, type BattleRequestSchema, type BattleViewSchema } from "@pokeuniverse/contracts/battle/v1/view";
+import { BattleKind, BattleResult, PartyBall, RequestKind, type BattleRequestSchema, type BattleViewSchema } from "@pokeuniverse/contracts/battle/v1/view";
 import type { ShiftOffer } from "../engine/choices.ts";
 import { moveOptions, partySlot, pokemonAt, positionsToChoose, statsOf, type Pokemon, type Side } from "../engine/battle.ts";
 import { selfItemsWithNoEffect } from "../engine/bag.ts";
-import { itemNumber, moveNumber, statusNumber, weatherNumber } from "../engine/lookup.ts";
+import { escapeBlock, pickUp, type Extras } from "../engine/wild.ts";
+import { abilityNumber, itemNumber, moveNumber, statusNumber, weatherNumber } from "../engine/lookup.ts";
 import { levelSpan, seenBy, totalExp, type ExpState } from "../exp.ts";
 
 /** Showdown keeps a fainted Pokémon's status; FireRed clears it. */
@@ -45,7 +46,15 @@ export function request(battle: Battle, start: StartBattle, exp: ExpState, side:
   const choosing = positionsToChoose(battle, s);
   if (req.forceSwitch) return { kind: RequestKind.SWITCH, step, party, positions: start.doubles ? choosing.map((position) => ({ position })) : [] };
   const positions = start.doubles ? choosing.map((position) => ({ position, ...moveChoice(s, position) })) : [];
-  return { kind: RequestKind.ACTION, step, ...moveChoice(s, choosing[0] ?? 0), party, positions };
+  const escape = start.kind === BattleKind.WILD && side === 0 ? escapeOf(s.active[choosing[0] ?? 0]) : undefined;
+  return { kind: RequestKind.ACTION, step, ...moveChoice(s, choosing[0] ?? 0), party, positions, escape };
+}
+
+/** IsRunningFromBattleImpossible, for the RUN choice. */
+function escapeOf(pokemon: Pokemon) {
+  const { blocked, byAbility, foe } = escapeBlock(pokemon);
+  if (!blocked) return undefined;
+  return { blocked, byAbility: byAbility ? abilityNumber(byAbility) : 0, foe: foe && { foe: true, partySlot: partySlot(foe), position: foe.position } };
 }
 
 /** One active Pokémon's moves for FIGHT. */
@@ -100,13 +109,12 @@ function ball(p: Pokemon): PartyBall {
 }
 
 /** What each side keeps after the battle (D14), once it has ended. */
-export function outcome(battle: Battle, start: StartBattle, exp: ExpState, forfeit?: number): MessageInitShape<typeof BattleOutcomeSchema> {
+export function outcome(battle: Battle, start: StartBattle, exp: ExpState, extras: Extras | undefined, forfeit?: number): MessageInitShape<typeof BattleOutcomeSchema> {
   return {
     doublePrize: exp.doublePrize ?? false,
-    sides: start.sides.map((team, side) => ({
-      result: result(battle, side, forfeit),
-      seen: seenBy(start, exp, side),
-      pokemon: team.pokemon.map((_, slot) => {
+    sides: start.sides.map((team, side) => {
+      const won = result(battle, side, extras, forfeit) === BattleResult.WON && side === 0 && (start.kind === BattleKind.TRAINER || start.kind === BattleKind.WILD);
+      const pokemon = team.pokemon.map((mon, slot) => {
         const p = pokemonAt(battle, side, slot);
         const gain = exp.gains[side][slot];
         const [hp, attack, defense, speed, spAttack, spDefense] = gain.evs;
@@ -114,19 +122,30 @@ export function outcome(battle: Battle, start: StartBattle, exp: ExpState, forfe
           hp: p.hp,
           status: status(p),
           pp: p.baseMoveSlots.map((m) => m.pp),
-          heldItem: itemNumber(p.item),
+          // Knock Off (Gen 4): the item comes back after the battle.
+          heldItem: p.itemKnockedOff && !p.item ? mon.heldItem : itemNumber(p.item),
           exp: gain.exp,
           faints: gain.faints ?? [],
           evs: { hp, attack, defense, speed, spAttack, spDefense },
           moves: p.baseMoveSlots.map((m) => moveNumber(m.id)),
         };
-      }),
-    })),
+      });
+      return {
+        result: result(battle, side, extras, forfeit),
+        seen: seenBy(start, exp, side),
+        pokemon,
+        // BattleWin's end-of-battle items and Pay Day: a won battle only.
+        pickedUp: won ? pickUp(battle, side, pokemon.map((p) => p.heldItem)) : [],
+        payDay: won ? (extras?.payDay ?? 0) * (exp.doublePrize ? 2 : 1) : 0,
+      };
+    }),
   };
 }
 
-function result(battle: Battle, side: number, forfeit?: number): BattleResult {
+function result(battle: Battle, side: number, extras: Extras | undefined, forfeit?: number): BattleResult {
   if (forfeit !== undefined) return side === forfeit ? BattleResult.FORFEITED : BattleResult.FORFEIT_WON;
+  // A wild battle someone left (RUN, an escape item, Roar, Teleport): nobody won.
+  if (extras?.left) return BattleResult.RAN;
   if (!battle.winner) return BattleResult.TIE;
   return battle.winner === battle.sides[side].name ? BattleResult.WON : BattleResult.LOST;
 }

@@ -181,6 +181,16 @@ export function toEvents(line: Line, ctx: Context): BattleEvent[] {
     case "bagitem":
       add({ case: "itemUsed", value: { foe: parseSide(args[0]) !== ctx.viewer, item: Number(args[1]), target: who(2), awoke: args[3] === "awoke" } });
       break;
+    case "left": {
+      // Our line (engine/wild.ts): `|left|<pokemon>|<how>|<item>|<ability>|<move>`.
+      const left = who(0);
+      if (left && !left.foe) add({ case: "escaped", value: { how: Number(args[1]), item: Number(args[2]), ability: abilityNumber(args[3] ?? ""), move: Number(args[4]), battler: left } });
+      else add({ case: "wildFled", value: { battler: left, move: Number(args[4]) } });
+      break;
+    }
+    case "escapefail":
+      add({ case: "escapeFailed", value: { battler: who(0) } });
+      break;
     case "-transform":
       add({ case: "transform", value: { battler: who(0), target: who(1) } });
       break;

@@ -5,6 +5,7 @@ syntax = "proto3";
 // requests; mic-core forwards them and checks every choice first (phase-5 D3).
 package pokeuniverse.battle.v1;
 
+import "pokeuniverse/ability/v1/catalog.proto";
 import "pokeuniverse/battle/v1/event.proto";
 import "pokeuniverse/item/v1/catalog.proto";
 import "pokeuniverse/move/v1/catalog.proto";
@@ -18,7 +19,7 @@ enum BattleKind {
   BATTLE_KIND_UNSPECIFIED = 0;
   // Against an NPC trainer: no running, money for the winner.
   BATTLE_KIND_TRAINER = 1;
-  // Phase 7.
+  // Against one wild Pokémon (Phase 7): RUN, escape items and balls; no money but Pay Day.
   BATTLE_KIND_WILD = 2;
 }
 
@@ -182,6 +183,17 @@ message BattleRequest {
   // ACTION: items the active Pokémon uses itself that would do nothing now ("It won't have any
   // effect." in the BAG, BattleUseFunc_StatBooster). In doubles, the first one's.
   repeated pokeuniverse.item.v1.Item no_effect_items = 9;
+  // ACTION, wild battles: RUN can't be chosen now (IsRunningFromBattleImpossible).
+  EscapeBlock escape = 10;
+}
+
+// Why RUN is refused before the turn: "Can't escape!", or the foe's ability's text
+// ("<FOE> prevents escape with <ABILITY>!").
+message EscapeBlock {
+  bool blocked = 1;
+  // The foe's Shadow Tag, Arena Trap or Magnet Pull; unspecified for moves (Mean Look, a bind…).
+  pokeuniverse.ability.v1.Ability by_ability = 2;
+  Battler foe = 3;
 }
 
 // FIGHT: one of the active Pokémon's moves.
@@ -276,4 +288,6 @@ message BattleEnded {
   uint32 money = 3;
   // Who evolves now, in party order: the scene plays, then EvolvePokemon unless B stops it.
   repeated pokeuniverse.party.v1.PendingEvolution evolutions = 4;
+  // Pay Day's coins picked up after a win ("<PLAYER> picked up ¥X!"), included in `money`.
+  uint32 pay_day = 5;
 }

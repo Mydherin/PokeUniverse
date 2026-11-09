@@ -138,6 +138,9 @@ message BattleEvent {
     ItemUsed item_used = 32;
     LevelUp level_up = 33;
     MoveLearned move_learned = 34;
+    Escaped escaped = 35;
+    EscapeFailed escape_failed = 36;
+    WildFled wild_fled = 37;
   }
   // Changes the battle's state only (HP, status…): no text, animation or sound.
   bool silent = 50;
@@ -441,4 +444,39 @@ message MoveLearned {
   pokeuniverse.move.v1.Move move = 2;
   // Unspecified: it replaced nothing.
   pokeuniverse.move.v1.Move forgot = 3;
+}
+
+// How the reader got away from a wild battle.
+enum EscapeHow {
+  ESCAPE_HOW_UNSPECIFIED = 0;
+  // RUN: "Got away safely!"
+  ESCAPE_HOW_NORMAL = 1;
+  // Smoke Ball held, or a Poké Doll or Fluffy Tail from the bag (see `item`).
+  ESCAPE_HOW_ITEM = 2;
+  // Run Away (see `ability`).
+  ESCAPE_HOW_ABILITY = 3;
+  // Teleport used by the reader's Pokémon, or the foe's Roar or Whirlwind blew it away (see `move`).
+  ESCAPE_HOW_MOVE = 4;
+}
+
+// The reader's side left a wild battle (it ends after this event).
+message Escaped {
+  EscapeHow how = 1;
+  pokeuniverse.item.v1.Item item = 2;
+  pokeuniverse.ability.v1.Ability ability = 3;
+  pokeuniverse.move.v1.Move move = 4;
+  // The Pokémon that held the item, has the ability or was moved.
+  Battler battler = 5;
+}
+
+// RUN failed the speed roll: "Can't escape!"; the turn goes on. (Trapped: the request's
+// `escape` refuses RUN before any turn.)
+message EscapeFailed {
+  Battler battler = 1;
+}
+
+// The wild Pokémon left: its Teleport ("<FOE> fled!"), or the reader's Roar or Whirlwind blew it away.
+message WildFled {
+  Battler battler = 1;
+  pokeuniverse.move.v1.Move move = 2;
 }

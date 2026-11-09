@@ -965,7 +965,12 @@ type SideOutcome struct {
 	// In party order, as the battle started.
 	Pokemon []*MonOutcome `protobuf:"bytes,2,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
 	// The other side's species that came out, for the Pokédex.
-	Seen          []v1.Species `protobuf:"varint,3,rep,packed,name=seen,proto3,enum=pokeuniverse.species.v1.Species" json:"seen,omitempty"`
+	Seen []v1.Species `protobuf:"varint,3,rep,packed,name=seen,proto3,enum=pokeuniverse.species.v1.Species" json:"seen,omitempty"`
+	// Pickup (Gen 4): what each party slot picked up after the battle (unspecified: nothing), in
+	// party order. mic-core gives it as the slot's held item.
+	PickedUp []v13.Item `protobuf:"varint,4,rep,packed,name=picked_up,json=pickedUp,proto3,enum=pokeuniverse.item.v1.Item" json:"picked_up,omitempty"`
+	// Pay Day: the money scattered for this side ("<PLAYER> picked up ¥X!").
+	PayDay        uint32 `protobuf:"varint,5,opt,name=pay_day,json=payDay,proto3" json:"pay_day,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1019,6 +1024,20 @@ func (x *SideOutcome) GetSeen() []v1.Species {
 		return x.Seen
 	}
 	return nil
+}
+
+func (x *SideOutcome) GetPickedUp() []v13.Item {
+	if x != nil {
+		return x.PickedUp
+	}
+	return nil
+}
+
+func (x *SideOutcome) GetPayDay() uint32 {
+	if x != nil {
+		return x.PayDay
+	}
+	return 0
 }
 
 type BattleOutcome struct {
@@ -1214,11 +1233,13 @@ const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"\x03exp\x18\x05 \x01(\rR\x03exp\x120\n" +
 	"\x03evs\x18\x06 \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03evs\x120\n" +
 	"\x05moves\x18\a \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x05moves\x12\x16\n" +
-	"\x06faints\x18\b \x03(\bR\x06faints\"\xbf\x01\n" +
+	"\x06faints\x18\b \x03(\bR\x06faints\"\x91\x02\n" +
 	"\vSideOutcome\x12<\n" +
 	"\x06result\x18\x01 \x01(\x0e2$.pokeuniverse.battle.v1.BattleResultR\x06result\x12<\n" +
 	"\apokemon\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.MonOutcomeR\apokemon\x124\n" +
-	"\x04seen\x18\x03 \x03(\x0e2 .pokeuniverse.species.v1.SpeciesR\x04seen\"m\n" +
+	"\x04seen\x18\x03 \x03(\x0e2 .pokeuniverse.species.v1.SpeciesR\x04seen\x127\n" +
+	"\tpicked_up\x18\x04 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\bpickedUp\x12\x17\n" +
+	"\apay_day\x18\x05 \x01(\rR\x06payDay\"m\n" +
 	"\rBattleOutcome\x129\n" +
 	"\x05sides\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.SideOutcomeR\x05sides\x12!\n" +
 	"\fdouble_prize\x18\x02 \x01(\bR\vdoublePrize\"\xa6\x01\n" +
@@ -1315,14 +1336,15 @@ var file_pokeuniverse_battle_v1_battle_proto_depIdxs = []int32{
 	31, // 26: pokeuniverse.battle.v1.SideOutcome.result:type_name -> pokeuniverse.battle.v1.BattleResult
 	11, // 27: pokeuniverse.battle.v1.SideOutcome.pokemon:type_name -> pokeuniverse.battle.v1.MonOutcome
 	15, // 28: pokeuniverse.battle.v1.SideOutcome.seen:type_name -> pokeuniverse.species.v1.Species
-	12, // 29: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
-	10, // 30: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
-	13, // 31: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
-	32, // [32:32] is the sub-list for method output_type
-	32, // [32:32] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	18, // 29: pokeuniverse.battle.v1.SideOutcome.picked_up:type_name -> pokeuniverse.item.v1.Item
+	12, // 30: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
+	10, // 31: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
+	13, // 32: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
+	33, // [33:33] is the sub-list for method output_type
+	33, // [33:33] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_battle_proto_init() }

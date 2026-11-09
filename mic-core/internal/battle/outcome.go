@@ -21,10 +21,11 @@ var whiteOutMultipliers = [...]int{2, 4, 6, 9, 12, 16, 20, 25, 30}
 
 // Apply changes the party by its side's outcome (D14): experience and EVs are gained, HP (with
 // what levelling up raised, D24), moves, PP and status stay. Badly poisoned becomes poisoned. A
-// held item used up (a berry, a herb) is gone; any other change (knocked off, stolen, swapped by
-// Trick) is undone, as in Gen 4. The party is in the order the battle started with: it can't
-// change during a battle.
-func Apply(party pokemon.Party, o *battlev1.SideOutcome, mapID string) {
+// held item used up (a berry, a herb) is gone; in a trainer battle any other change (stolen, swapped
+// by Trick) is undone, while a wild battle keeps what Thief, Covet or Trick brought (Gen 4; mic-battles
+// already gives a knocked off item back). Pickup's finds are held after. The party is in the order
+// the battle started with: it can't change during a battle.
+func Apply(party pokemon.Party, o *battlev1.SideOutcome, wild bool, mapID string) {
 	for i, out := range o.GetPokemon() {
 		p := party.At(i)
 		if p == nil {
@@ -42,8 +43,11 @@ func Apply(party pokemon.Party, o *battlev1.SideOutcome, mapID string) {
 		if !p.ApplyMoves(out.GetMoves(), out.GetPp()) {
 			slog.Warn("battle outcome: move not learnable", "species", p.Species, "level", p.Level, "moves", out.GetMoves())
 		}
-		if out.GetHeldItem() == itemv1.Item_ITEM_UNSPECIFIED && usedUp(p.HeldItem) {
-			p.HeldItem = itemv1.Item_ITEM_UNSPECIFIED
+		if wild || (out.GetHeldItem() == itemv1.Item_ITEM_UNSPECIFIED && usedUp(p.HeldItem)) {
+			p.HeldItem = out.GetHeldItem()
+		}
+		if i < len(o.GetPickedUp()) && o.GetPickedUp()[i] != itemv1.Item_ITEM_UNSPECIFIED && p.HeldItem == itemv1.Item_ITEM_UNSPECIFIED {
+			p.HeldItem = o.GetPickedUp()[i]
 		}
 	}
 }

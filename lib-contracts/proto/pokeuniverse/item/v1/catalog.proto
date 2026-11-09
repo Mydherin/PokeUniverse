@@ -79,6 +79,8 @@ enum BattleUse {
   BATTLE_USE_SELF = 3;
   // Thrown: a trainer blocks it, and it's spent all the same.
   BATTLE_USE_BALL = 4;
+  // Ends a wild battle (POKé DOLL, FLUFFY TAIL); refused in trainer battles.
+  BATTLE_USE_ESCAPE = 5;
 }
 
 // What using an item does to its target: the one table mic-battles plays and the client checks.
@@ -202,8 +204,8 @@ enum Item {
   ITEM_X_SPEED = 77 [(info) = {pocket: POCKET_ITEMS, price: 350, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_SELF, effect: {friendship: [1, 1, 0]}}];
   ITEM_X_ACCURACY = 78 [(info) = {pocket: POCKET_ITEMS, price: 950, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_SELF, effect: {friendship: [1, 1, 0]}}];
   ITEM_X_SPECIAL = 79 [(info) = {pocket: POCKET_ITEMS, price: 350, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_SELF, effect: {friendship: [1, 1, 0]}}];
-  ITEM_POKE_DOLL = 80 [(info) = {pocket: POCKET_ITEMS, price: 1000, field_use: FIELD_USE_NOT_NOW}];
-  ITEM_FLUFFY_TAIL = 81 [(info) = {pocket: POCKET_ITEMS, price: 1000, field_use: FIELD_USE_NOT_NOW}];
+  ITEM_POKE_DOLL = 80 [(info) = {pocket: POCKET_ITEMS, price: 1000, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_ESCAPE}];
+  ITEM_FLUFFY_TAIL = 81 [(info) = {pocket: POCKET_ITEMS, price: 1000, field_use: FIELD_USE_NOT_NOW, battle_use: BATTLE_USE_ESCAPE}];
   ITEM_SUPER_REPEL = 83 [(info) = {pocket: POCKET_ITEMS, price: 500, field_use: FIELD_USE_REPEL, param: 200}];
   ITEM_MAX_REPEL = 84 [(info) = {pocket: POCKET_ITEMS, price: 700, field_use: FIELD_USE_REPEL, param: 250}];
   ITEM_ESCAPE_ROPE = 85 [(info) = {pocket: POCKET_ITEMS, price: 550, field_use: FIELD_USE_ESCAPE_ROPE}];

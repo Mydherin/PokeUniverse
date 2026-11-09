@@ -76,6 +76,9 @@ function applyEffect(battle: Battle, item: number, e: ItemEffect, target: Pokemo
   for (const slot of e.pp || e.ppMax ? ppSlots(target, e, moveSlot) : []) slot.pp = e.ppMax ? slot.maxpp : Math.min(slot.maxpp, slot.pp + e.pp);
 }
 
+/** POKé DOLL, FLUFFY TAIL: RUN from the bag (wild.ts). */
+export const isEscapeItem = (item: number) => INFOS.get(item)?.battleUse === BattleUse.ESCAPE;
+
 /** Whether using it now does something: the player's choice is refused otherwise. */
 export function bagItemWorks(user: Pokemon, action: ItemAction): boolean {
   const item = INFOS.get(action.item);

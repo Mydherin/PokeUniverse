@@ -4,6 +4,7 @@
 // Shadow Force: `GEN4_BATTLE_STRINGS` in `make text`) or nothing.
 
 import {
+  EscapeHow,
   BattleStat,
   Condition,
   ConditionPhase,
@@ -335,6 +336,22 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     case "itemUsed":
       if (k.value.item === Item.POKE_FLUTE) return msg(k.value.awoke ? "sText_PlayedThe" : "sText_PlayedFluteCatchyTune", { item: k.value.item });
       return msg(k.value.foe ? "sText_Trainer1UsedItem" : "sText_PlayerUsedItem", { item: k.value.item });
+    case "escaped": {
+      // RUN, Smoke Ball, Run Away, a POKé DOLL / FLUFFY TAIL (BattleScript_RunByUsingItem), Teleport, or the foe's Roar.
+      const { how, item, ability, move, battler } = k.value;
+      if (how === EscapeHow.ABILITY) return msg("sText_PkmnFledUsing", { atk: battler, ability });
+      if (how === EscapeHow.ITEM && item === Item.SMOKE_BALL) return msg("sText_PkmnFledUsingIts", { atk: battler, item });
+      if (how === EscapeHow.ITEM) return [...msg("sText_PlayerUsedItem", { item }), ...msg("sText_GotAwaySafely")];
+      if (how === EscapeHow.MOVE && move === Move.TELEPORT) return msg("sText_PkmnFledFromBattle", { atk: battler });
+      if (how === EscapeHow.MOVE) return msg("sText_PkmnBlownAway", { def: battler });
+      return msg("sText_GotAwaySafely");
+    }
+    case "escapeFailed":
+      return msg("sText_CantEscape2");
+    case "wildFled":
+      if (k.value.move === Move.TELEPORT) return msg("sText_PkmnFledFromBattle", { atk: k.value.battler });
+      if (k.value.move) return msg("sText_PkmnBlownAway", { def: k.value.battler });
+      return msg("sText_WildPkmnFled", { buff1: k.value.battler && texts.name(k.value.battler) });
     case "transform":
       return msg("sText_PkmnTransformedInto", { atk: k.value.battler, buff1: texts.name(k.value.target) });
     case "exp":

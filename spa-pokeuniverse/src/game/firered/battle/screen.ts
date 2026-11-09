@@ -21,6 +21,7 @@ import {
   type BattleTurn,
   type BattleView,
   type PositionRequest,
+  type EscapeBlock,
 } from "@pokeuniverse/contracts/battle/v1/view";
 import { BattleUse, Item as ItemId, Pocket, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { itemInfo } from "../../world/items";
@@ -275,7 +276,7 @@ export class BattleScreen implements PlaybackHost {
     const asked = this.positionsAsked(r);
     const chosen: BattleAction["kind"][] = [];
     for (let i = 0; i < asked.length; ) {
-      const kind = r.kind === RequestKind.SWITCH ? yield* this.chooseReplacement(chosen) : yield* this.chooseFor(asked[i], i > 0, chosen);
+      const kind = r.kind === RequestKind.SWITCH ? yield* this.chooseReplacement(chosen) : yield* this.chooseFor(asked[i], i > 0, chosen, r.escape);
       if (kind === null) {
         if (i === 0) return;
         chosen.pop();
@@ -299,7 +300,7 @@ export class BattleScreen implements PlaybackHost {
   }
 
   /** One position's FIGHT, BAG, POKéMON or RUN; null when B went back to the partner's. */
-  private *chooseFor(asked: Pick<PositionRequest, "position" | "moves" | "noEffectItems">, canGoBack: boolean, chosen: readonly BattleAction["kind"][]): Generator<void, BattleAction["kind"] | null, void> {
+  private *chooseFor(asked: Pick<PositionRequest, "position" | "moves" | "noEffectItems">, canGoBack: boolean, chosen: readonly BattleAction["kind"][], escape?: EscapeBlock): Generator<void, BattleAction["kind"] | null, void> {
     const { state } = this;
     const active = state.side(false).active[asked.position]?.battler;
     if (!active) return null;
@@ -321,6 +322,10 @@ export class BattleScreen implements PlaybackHost {
         if (used) return { case: "item", value: { $typeName: "pokeuniverse.battle.v1.ItemAction", item: used.item, partySlot: used.slot, moveSlot: used.move } };
       } else if (state.kind === BattleKind.TRAINER) {
         yield* this.scene.message(this.texts.format("sText_NoRunningFromTrainers"), 0);
+      } else if (escape?.blocked) {
+        // IsRunningFromBattleImpossible: the foe's trapping ability, or a move.
+        const text = escape.byAbility && escape.foe ? this.texts.format("sText_PreventsEscape", { scr: escape.foe, ability: escape.byAbility }) : this.texts.format("sText_CantEscape");
+        yield* this.scene.message(text, 0);
       } else return { case: "run", value: { $typeName: "pokeuniverse.battle.v1.RunAction" } };
     }
   }

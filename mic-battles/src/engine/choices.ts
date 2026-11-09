@@ -2,11 +2,13 @@
 
 import type { Battle } from "@pkmn/sim";
 import type { StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
+import { BattleKind } from "@pokeuniverse/contracts/battle/v1/view";
 import { create } from "@bufbuild/protobuf";
 import { BattleEventSchema, type BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
 import { ItemActionSchema, type BattleAction, type ItemAction } from "@pokeuniverse/contracts/battle/v1/view";
 import { decide, isAiSide, type AiMemory } from "../ai/index.ts";
-import { bagItemWorks, chooseBagItem } from "./bag.ts";
+import { bagItemWorks, chooseBagItem, isEscapeItem } from "./bag.ts";
+import { chooseRun, escapeBlock } from "./wild.ts";
 import type { ExpState } from "../exp.ts";
 import { learnMove, moveOptions, partySlot, pokemonAt, positionsToChoose, type Pokemon, type Side } from "./battle.ts";
 import { moveNumber } from "./lookup.ts";
@@ -14,8 +16,8 @@ import { moveNumber } from "./lookup.ts";
 /** A choice the request doesn't allow. The step isn't played: the side gets its request again. */
 export class InvalidChoice extends Error {}
 
-/** One Pokémon's part of its side's choice: Showdown's words, or a bag item. */
-type Part = string | ItemAction;
+/** One Pokémon's part of its side's choice: Showdown's words, a bag item, or RUN (an escape item's number, or 0). */
+type Part = string | ItemAction | { run: number };
 
 /** A side's whole choice: a part per position asked; Showdown's locked moves and passes are filled in. */
 function choose(battle: Battle, side: number, parts: Part[]): void {
@@ -36,21 +38,22 @@ function choose(battle: Battle, side: number, parts: Part[]): void {
 
 function choosePart(s: Side, pokemon: Pokemon, part: Part | undefined): boolean {
   if (part === undefined) return false;
-  if (typeof part !== "string") return chooseBagItem(pokemon, part);
+  if (typeof part !== "string") return "run" in part ? chooseRun(pokemon, part.run) : chooseBagItem(pokemon, part);
   const [verb, what, target] = part.split(" ");
   return !!(verb === "switch" ? s.chooseSwitch(what) : s.chooseMove(Number(what), Number(target ?? 0)));
 }
 
-export function applyChoice(battle: Battle, side: number, action: BattleAction | undefined, partner?: BattleAction): void {
+export function applyChoice(battle: Battle, start: StartBattle, side: number, action: BattleAction | undefined, partner?: BattleAction): void {
   const s = battle.sides[side];
   const req = s.activeRequest;
   if (!req || req.wait || s.isChoiceDone()) throw new InvalidChoice(`side ${side} has nothing to choose`);
   const positions = positionsToChoose(battle, s);
-  choose(battle, side, [action, partner].filter((a) => a !== undefined).map((a, i) => toPart(battle, side, positions[i], a)));
+  choose(battle, side, [action, partner].filter((a) => a !== undefined).map((a, i) => toPart(battle, start, side, positions[i], a)));
 }
 
 /** A player's action as the position's part of the choice. */
-function toPart(battle: Battle, side: number, position: number | undefined, action: BattleAction): Part {
+function toPart(battle: Battle, start: StartBattle, side: number, position: number | undefined, action: BattleAction): Part {
+  const wild = start.kind === BattleKind.WILD;
   const s = battle.sides[side];
   if (position === undefined) throw new InvalidChoice(`side ${side}: too many choices`);
   switch (action.kind.case) {
@@ -65,10 +68,19 @@ function toPart(battle: Battle, side: number, position: number | undefined, acti
     case "switch":
       return `switch ${pokemonAt(battle, side, action.kind.value.partySlot).position + 1}`;
     case "item":
-      if (s.activeRequest?.forceSwitch || !bagItemWorks(s.active[position], action.kind.value)) throw new InvalidChoice(`item ${action.kind.value.item} can't be used`);
+      if (s.activeRequest?.forceSwitch) throw new InvalidChoice(`item ${action.kind.value.item} can't be used now`);
+      // POKé DOLL, FLUFFY TAIL: a wild battle only, trapped or not.
+      if (isEscapeItem(action.kind.value.item)) {
+        if (!wild) throw new InvalidChoice(`item ${action.kind.value.item} can't be used in this battle`);
+        return { run: action.kind.value.item };
+      }
+      if (!bagItemWorks(s.active[position], action.kind.value)) throw new InvalidChoice(`item ${action.kind.value.item} can't be used`);
       return action.kind.value;
+    case "run":
+      // No running from a trainer; IsRunningFromBattleImpossible refuses it before the turn.
+      if (!wild || s.activeRequest?.forceSwitch || escapeBlock(s.active[position]).blocked) throw new InvalidChoice("can't run");
+      return { run: 0 };
     default:
-      // RUN: trainer battles can't be fled; wild battles come in Phase 7.
       throw new InvalidChoice(`unsupported action ${action.kind.case}`);
   }
 }

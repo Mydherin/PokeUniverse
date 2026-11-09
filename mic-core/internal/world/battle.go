@@ -204,11 +204,20 @@ func (z *zone) checkAction(p *Player, a *battlev1.BattleAction) ([]itemv1.Item, 
 	case *battlev1.BattleAction_Learn:
 		return nil, canForget(p.battle.request, k.Learn)
 	case *battlev1.BattleAction_Item:
-		return []itemv1.Item{k.Item.GetItem()}, usableInBattle(p, k.Item.GetItem())
+		id := k.Item.GetItem()
+		if info, _ := item.Info(id); info.GetBattleUse() == itemv1.BattleUse_BATTLE_USE_ESCAPE && !p.battle.wild() {
+			return nil, false
+		}
+		return []itemv1.Item{id}, usableInBattle(p, id)
+	case *battlev1.BattleAction_Run:
+		// No running from a trainer (the client says so first); mic-battles checks trapping.
+		return nil, p.battle.wild()
 	}
-	// RUN: there's no running from a trainer battle (the client says so first).
 	return nil, false
 }
+
+// wild: a wild battle has no NPC trainer.
+func (b *inBattle) wild() bool { return b.Trainer == "" }
 
 // choiceItems: the bag items a choice uses.
 func choiceItems(c *battlev1.BattleChoice) []*battlev1.ItemAction {
@@ -370,27 +379,33 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	if t := battle.Trainers[b.Trainer]; t != nil && t.League() {
 		p.party.LeagueFriendship(z.m.ID)
 	}
-	battle.Apply(p.party, o.GetSides()[battle.PlayerSide], z.m.ID)
+	side := o.GetSides()[battle.PlayerSide]
+	battle.Apply(p.party, side, b.wild(), z.m.ID)
 	for _, f := range b.Friendship {
 		info, _ := item.Info(itemv1.Item(f.Item))
 		p.party.ChangeFriendshipByItem(info.GetEffect(), int(f.Slot), z.m.ID)
 	}
 	won := result == battlev1.BattleResult_BATTLE_RESULT_WON || result == battlev1.BattleResult_BATTLE_RESULT_FORFEIT_WON
-	delta := 0
+	// Ran (RUN, an escape item, Roar, Teleport): HP, status and PP stay, no money either way.
+	lost := !won && result != battlev1.BattleResult_BATTLE_RESULT_RAN
+	delta, payDay := 0, 0
 	if won {
+		prize := 0
 		if t := battle.Trainers[b.Trainer]; t != nil {
-			prize := t.Prize()
+			prize = t.Prize()
 			if o.GetDoublePrize() {
 				prize *= 2
 			}
-			delta = min(prize, battle.MaxMoney-p.money)
 		}
-	} else {
+		// Pay Day comes first (BattleScript_PayDayMoneyAndPickUpItems before the prize).
+		payDay = min(int(side.GetPayDay()), battle.MaxMoney-p.money)
+		delta = min(payDay+prize, battle.MaxMoney-p.money)
+	} else if lost {
 		delta = -battle.WhiteOutLoss(p.party, p.money)
 		p.party.Heal()
 	}
 	p.money += delta
-	p.pokedex = p.pokedex.See(o.GetSides()[battle.PlayerSide].GetSeen()...)
+	p.pokedex = p.pokedex.See(side.GetSeen()...)
 
 	applied, err := z.saveOutcome(p, b.ID, result, delta)
 	if err != nil || !applied {
@@ -418,13 +433,13 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 		p.evolving.pending = pokemon.Evolutions(p.party, party, night(time.Now()))
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_BattleEnded{BattleEnded: &battlev1.BattleEnded{
-		BattleId: b.ID, Result: result, Money: uint32(max(delta, -delta)), Evolutions: p.evolving.proto(),
+		BattleId: b.ID, Result: result, Money: uint32(max(delta, -delta)), Evolutions: p.evolving.proto(), PayDay: uint32(payDay),
 	}}})
 	z.sendParty(p)
 	if !p.pokedex.Same(dex) {
 		z.sendPokedex(p)
 	}
-	if !won {
+	if lost {
 		p.script, p.pcScript = 0, 0
 		p.pos, p.facing = Point{Start.X, Start.Y}, Start.Facing
 		p.elevation, p.dirty = z.m.Elevation(p.pos), true

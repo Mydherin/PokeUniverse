@@ -163,6 +163,11 @@ message SideOutcome {
   repeated MonOutcome pokemon = 2;
   // The other side's species that came out, for the Pokédex.
   repeated pokeuniverse.species.v1.Species seen = 3;
+  // Pickup (Gen 4): what each party slot picked up after the battle (unspecified: nothing), in
+  // party order. mic-core gives it as the slot's held item.
+  repeated pokeuniverse.item.v1.Item picked_up = 4;
+  // Pay Day: the money scattered for this side ("<PLAYER> picked up ¥X!").
+  uint32 pay_day = 5;
 }
 
 message BattleOutcome {

@@ -8,6 +8,7 @@ import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import type { Stats } from "@pokeuniverse/contracts/pokemon/v1/stats";
 import { DOUBLES_FORMAT, FORMAT } from "../rules.ts";
 import { registerBagItems } from "./bag.ts";
+import { registerExtras, type Extras } from "./wild.ts";
 import { abilityId, genderId, itemId, moveId, natureName, speciesId, statusId } from "./lookup.ts";
 
 const MAX_MOVES = 4;
@@ -19,9 +20,10 @@ export type Side = Battle["sides"][number];
 export const sideId = (side: number) => `p${side + 1}` as "p1" | "p2";
 
 /** Creates the battle and plays its start (send-outs) into battle.log. */
-export function createBattle(start: StartBattle): Battle {
+export function createBattle(start: StartBattle, extras: Extras): Battle {
   const battle = new Battle({ formatid: (start.doubles ? DOUBLES_FORMAT : FORMAT) as never, seed: `gen5,${start.seed.toString(16).padStart(16, "0")}` });
   registerBagItems(battle);
+  registerExtras(battle, start, extras);
   // Hold the start until both teams carry their HP, PP and status.
   start.sides.forEach((team, side) => {
     battle.started = side > 0;
@@ -35,14 +37,15 @@ export function createBattle(start: StartBattle): Battle {
   return battle;
 }
 
-export function restoreBattle(state: string): Battle {
+export function restoreBattle(state: string, start: StartBattle, extras: Extras): Battle {
   const battle = State.deserializeBattle(state);
   registerBagItems(battle);
+  registerExtras(battle, start, extras);
   return battle;
 }
 
 /** The state to save. The log is cleared first: it was already translated, and it would only grow.
- *  Runtime listeners (registerBagItems) can't be serialized; restoreBattle adds them back. */
+ *  Runtime listeners (registerBagItems, registerExtras) can't be serialized; restoreBattle adds them back. */
 export function serializeBattle(battle: Battle): string {
   battle.log.length = 0;
   battle.inputLog.length = 0;

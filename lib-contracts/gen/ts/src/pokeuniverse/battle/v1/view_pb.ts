@@ -8,6 +8,8 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Ability } from "../../ability/v1/catalog_pb";
+import { file_pokeuniverse_ability_v1_catalog } from "../../ability/v1/catalog_pb";
 import type { BattleEvent, Battler, BattlerInfo, Health, Weather } from "./event_pb";
 import { file_pokeuniverse_battle_v1_event } from "./event_pb";
 import type { Item } from "../../item/v1/catalog_pb";
@@ -26,7 +28,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/battle/v1/view.proto.
  */
 export const file_pokeuniverse_battle_v1_view: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2UvYmF0dGxlL3YxL3ZpZXcucHJvdG8SFnBva2V1bml2ZXJzZS5iYXR0bGUudjEigAEKCkJhdHRsZVNpZGUSCwoDZm9lGAEgASgIEjMKBmFjdGl2ZRgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlckluZm8SMAoFYmFsbHMYAyADKA4yIS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLlBhcnR5QmFsbCKyAwoKQmF0dGxlVmlldxIRCgliYXR0bGVfaWQYASABKAkSMAoEa2luZBgCIAEoDjIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlS2luZBIxCgVzaWRlcxgDIAMoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlU2lkZRIwCgd3ZWF0aGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5XZWF0aGVyEjYKB3JlcXVlc3QYBSABKAsyJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVJlcXVlc3QSNgoHdHJhaW5lchgGIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlVHJhaW5lchIPCgdkb3VibGVzGAcgASgIEjYKB3RlcnJhaW4YCCABKA4yJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVRlcnJhaW4SQQoPd2lsZF90cmFuc2l0aW9uGAkgASgOMigucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVUcmFuc2l0aW9uIlYKDUJhdHRsZVRyYWluZXISFQoNdHJhaW5lcl9jbGFzcxgBIAEoCRIMCgRuYW1lGAIgASgJEgsKA3BpYxgDIAEoCRITCgtkZWZlYXRfdGV4dBgEIAEoCSJlCgtSZXF1ZXN0TW92ZRIoCgRtb3ZlGAEgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRIKCgJwcBgCIAEoDRIOCgZtYXhfcHAYAyABKA0SEAoIZGlzYWJsZWQYBCABKAgi/gIKC1BhcnR5TWVtYmVyEhIKCnBhcnR5X3Nsb3QYASABKA0SLgoGaGVhbHRoGAIgASgLMh4ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5IZWFsdGgSLwoGc3RhdHVzGAMgASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHVzEi0KCWhlbGRfaXRlbRgEIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SCgoCcHAYBSADKA0SDgoGYWN0aXZlGAYgASgIEg0KBWxldmVsGAcgASgNEgsKA2V4cBgIIAEoDRIRCglsZXZlbF9leHAYCSABKA0SFgoObmV4dF9sZXZlbF9leHAYCiABKA0SLQoFc3RhdHMYCyABKAsyHi5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0cxIpCgVtb3ZlcxgMIAMoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSDgoGbWF4X3BwGA0gAygNIlAKEExlYXJuTW92ZVJlcXVlc3QSEgoKcGFydHlfc2xvdBgBIAEoDRIoCgRtb3ZlGAIgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZSKdAQoPUG9zaXRpb25SZXF1ZXN0EhAKCHBvc2l0aW9uGAEgASgNEjIKBW1vdmVzGAIgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5SZXF1ZXN0TW92ZRIPCgd0cmFwcGVkGAMgASgIEjMKD25vX2VmZmVjdF9pdGVtcxgEIAMoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iqgMKDUJhdHRsZVJlcXVlc3QSMQoEa2luZBgBIAEoDjIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUmVxdWVzdEtpbmQSDAoEc3RlcBgCIAEoDRIyCgVtb3ZlcxgDIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUmVxdWVzdE1vdmUSDwoHdHJhcHBlZBgEIAEoCBIyCgVwYXJ0eRgFIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUGFydHlNZW1iZXISNwoFbGVhcm4YBiABKAsyKC5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkxlYXJuTW92ZVJlcXVlc3QSNQoIbmV4dF9mb2UYByABKAsyIy5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZXJJbmZvEjoKCXBvc2l0aW9ucxgIIAMoCzInLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUG9zaXRpb25SZXF1ZXN0EjMKD25vX2VmZmVjdF9pdGVtcxgJIAMoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0iSwoKTW92ZUFjdGlvbhIMCgRzbG90GAEgASgNEi8KBnRhcmdldBgCIAEoCzIfLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlciIiCgxTd2l0Y2hBY3Rpb24SEgoKcGFydHlfc2xvdBgBIAEoDSJdCgpJdGVtQWN0aW9uEigKBGl0ZW0YASABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEhIKCnBhcnR5X3Nsb3QYAiABKA0SEQoJbW92ZV9zbG90GAMgASgNIgsKCVJ1bkFjdGlvbiI7Cg9MZWFybk1vdmVBY3Rpb24SGAoLZm9yZ2V0X3Nsb3QYASABKA1IAIgBAUIOCgxfZm9yZ2V0X3Nsb3QiNQoLU2hpZnRBY3Rpb24SFwoKcGFydHlfc2xvdBgBIAEoDUgAiAEBQg0KC19wYXJ0eV9zbG90ItgCCgxCYXR0bGVBY3Rpb24SMgoEbW92ZRgBIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuTW92ZUFjdGlvbkgAEjYKBnN3aXRjaBgCIAEoCzIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuU3dpdGNoQWN0aW9uSAASMgoEaXRlbRgDIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuSXRlbUFjdGlvbkgAEjAKA3J1bhgEIAEoCzIhLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUnVuQWN0aW9uSAASOAoFbGVhcm4YBSABKAsyJy5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkxlYXJuTW92ZUFjdGlvbkgAEjQKBXNoaWZ0GAYgASgLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5TaGlmdEFjdGlvbkgAQgYKBGtpbmQinAEKDEJhdHRsZUNob2ljZRIRCgliYXR0bGVfaWQYASABKAkSDAoEc3RlcBgCIAEoDRI0CgZhY3Rpb24YAyABKAsyJC5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZUFjdGlvbhI1CgdwYXJ0bmVyGAQgASgLMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVBY3Rpb24idgoNQmF0dGxlU3RhcnRlZBIwCgR2aWV3GAEgASgLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVWaWV3EjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQijAEKCkJhdHRsZVR1cm4SEQoJYmF0dGxlX2lkGAEgASgJEjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQSNgoHcmVxdWVzdBgDIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVxdWVzdCKiAQoLQmF0dGxlRW5kZWQSEQoJYmF0dGxlX2lkGAEgASgJEjQKBnJlc3VsdBgCIAEoDjIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVzdWx0Eg0KBW1vbmV5GAMgASgNEjsKCmV2b2x1dGlvbnMYBCADKAsyJy5wb2tldW5pdmVyc2UucGFydHkudjEuUGVuZGluZ0V2b2x1dGlvbipYCgpCYXR0bGVLaW5kEhsKF0JBVFRMRV9LSU5EX1VOU1BFQ0lGSUVEEAASFwoTQkFUVExFX0tJTkRfVFJBSU5FUhABEhQKEEJBVFRMRV9LSU5EX1dJTEQQAipuCglQYXJ0eUJhbGwSGgoWUEFSVFlfQkFMTF9VTlNQRUNJRklFRBAAEhYKElBBUlRZX0JBTExfSEVBTFRIWRABEhUKEVBBUlRZX0JBTExfU1RBVFVTEAISFgoSUEFSVFlfQkFMTF9GQUlOVEVEEAMqwAIKDUJhdHRsZVRlcnJhaW4SHgoaQkFUVExFX1RFUlJBSU5fVU5TUEVDSUZJRUQQABIYChRCQVRUTEVfVEVSUkFJTl9HUkFTUxABEh0KGUJBVFRMRV9URVJSQUlOX0xPTkdfR1JBU1MQAhIXChNCQVRUTEVfVEVSUkFJTl9TQU5EEAMSHQoZQkFUVExFX1RFUlJBSU5fVU5ERVJXQVRFUhAEEhgKFEJBVFRMRV9URVJSQUlOX1dBVEVSEAUSFwoTQkFUVExFX1RFUlJBSU5fUE9ORBAGEhsKF0JBVFRMRV9URVJSQUlOX01PVU5UQUlOEAcSFwoTQkFUVExFX1RFUlJBSU5fQ0FWRRAIEhsKF0JBVFRMRV9URVJSQUlOX0JVSUxESU5HEAkSGAoUQkFUVExFX1RFUlJBSU5fUExBSU4QCiqZAgoQQmF0dGxlVHJhbnNpdGlvbhIhCh1CQVRUTEVfVFJBTlNJVElPTl9VTlNQRUNJRklFRBAAEhsKF0JBVFRMRV9UUkFOU0lUSU9OX1NMSUNFEAESJQohQkFUVExFX1RSQU5TSVRJT05fV0hJVEVfQkFSU19GQURFEAISJAogQkFUVExFX1RSQU5TSVRJT05fQ0xPQ0tXSVNFX1dJUEUQAxIiCh5CQVRUTEVfVFJBTlNJVElPTl9HUklEX1NRVUFSRVMQBBIaChZCQVRUTEVfVFJBTlNJVElPTl9CTFVSEAUSGgoWQkFUVExFX1RSQU5TSVRJT05fV0FWRRAGEhwKGEJBVFRMRV9UUkFOU0lUSU9OX1JJUFBMRRAHKqkBCgtSZXF1ZXN0S2luZBIcChhSRVFVRVNUX0tJTkRfVU5TUEVDSUZJRUQQABIVChFSRVFVRVNUX0tJTkRfV0FJVBABEhcKE1JFUVVFU1RfS0lORF9BQ1RJT04QAhIXChNSRVFVRVNUX0tJTkRfU1dJVENIEAMSGwoXUkVRVUVTVF9LSU5EX0xFQVJOX01PVkUQBBIWChJSRVFVRVNUX0tJTkRfU0hJRlQQBSrGAQoMQmF0dGxlUmVzdWx0Eh0KGUJBVFRMRV9SRVNVTFRfVU5TUEVDSUZJRUQQABIVChFCQVRUTEVfUkVTVUxUX1dPThABEhYKEkJBVFRMRV9SRVNVTFRfTE9TVBACEhUKEUJBVFRMRV9SRVNVTFRfVElFEAMSHQoZQkFUVExFX1JFU1VMVF9GT1JGRUlUX1dPThAEEhsKF0JBVFRMRV9SRVNVTFRfRk9SRkVJVEVEEAUSFQoRQkFUVExFX1JFU1VMVF9SQU4QBkJDWkFwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2JhdHRsZS92MTtiYXR0bGV2MWIGcHJvdG8z", [file_pokeuniverse_battle_v1_event, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats]);
+  fileDesc("CiFwb2tldW5pdmVyc2UvYmF0dGxlL3YxL3ZpZXcucHJvdG8SFnBva2V1bml2ZXJzZS5iYXR0bGUudjEigAEKCkJhdHRsZVNpZGUSCwoDZm9lGAEgASgIEjMKBmFjdGl2ZRgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlckluZm8SMAoFYmFsbHMYAyADKA4yIS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLlBhcnR5QmFsbCKyAwoKQmF0dGxlVmlldxIRCgliYXR0bGVfaWQYASABKAkSMAoEa2luZBgCIAEoDjIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlS2luZBIxCgVzaWRlcxgDIAMoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlU2lkZRIwCgd3ZWF0aGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5XZWF0aGVyEjYKB3JlcXVlc3QYBSABKAsyJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVJlcXVlc3QSNgoHdHJhaW5lchgGIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlVHJhaW5lchIPCgdkb3VibGVzGAcgASgIEjYKB3RlcnJhaW4YCCABKA4yJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVRlcnJhaW4SQQoPd2lsZF90cmFuc2l0aW9uGAkgASgOMigucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVUcmFuc2l0aW9uIlYKDUJhdHRsZVRyYWluZXISFQoNdHJhaW5lcl9jbGFzcxgBIAEoCRIMCgRuYW1lGAIgASgJEgsKA3BpYxgDIAEoCRITCgtkZWZlYXRfdGV4dBgEIAEoCSJlCgtSZXF1ZXN0TW92ZRIoCgRtb3ZlGAEgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRIKCgJwcBgCIAEoDRIOCgZtYXhfcHAYAyABKA0SEAoIZGlzYWJsZWQYBCABKAgi/gIKC1BhcnR5TWVtYmVyEhIKCnBhcnR5X3Nsb3QYASABKA0SLgoGaGVhbHRoGAIgASgLMh4ucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5IZWFsdGgSLwoGc3RhdHVzGAMgASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHVzEi0KCWhlbGRfaXRlbRgEIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SCgoCcHAYBSADKA0SDgoGYWN0aXZlGAYgASgIEg0KBWxldmVsGAcgASgNEgsKA2V4cBgIIAEoDRIRCglsZXZlbF9leHAYCSABKA0SFgoObmV4dF9sZXZlbF9leHAYCiABKA0SLQoFc3RhdHMYCyABKAsyHi5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0cxIpCgVtb3ZlcxgMIAMoDjIaLnBva2V1bml2ZXJzZS5tb3ZlLnYxLk1vdmUSDgoGbWF4X3BwGA0gAygNIlAKEExlYXJuTW92ZVJlcXVlc3QSEgoKcGFydHlfc2xvdBgBIAEoDRIoCgRtb3ZlGAIgASgOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZSKdAQoPUG9zaXRpb25SZXF1ZXN0EhAKCHBvc2l0aW9uGAEgASgNEjIKBW1vdmVzGAIgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5SZXF1ZXN0TW92ZRIPCgd0cmFwcGVkGAMgASgIEjMKD25vX2VmZmVjdF9pdGVtcxgEIAMoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0i3wMKDUJhdHRsZVJlcXVlc3QSMQoEa2luZBgBIAEoDjIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUmVxdWVzdEtpbmQSDAoEc3RlcBgCIAEoDRIyCgVtb3ZlcxgDIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUmVxdWVzdE1vdmUSDwoHdHJhcHBlZBgEIAEoCBIyCgVwYXJ0eRgFIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUGFydHlNZW1iZXISNwoFbGVhcm4YBiABKAsyKC5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkxlYXJuTW92ZVJlcXVlc3QSNQoIbmV4dF9mb2UYByABKAsyIy5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZXJJbmZvEjoKCXBvc2l0aW9ucxgIIAMoCzInLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUG9zaXRpb25SZXF1ZXN0EjMKD25vX2VmZmVjdF9pdGVtcxgJIAMoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SMwoGZXNjYXBlGAogASgLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5Fc2NhcGVCbG9jayKCAQoLRXNjYXBlQmxvY2sSDwoHYmxvY2tlZBgBIAEoCBI0CgpieV9hYmlsaXR5GAIgASgOMiAucG9rZXVuaXZlcnNlLmFiaWxpdHkudjEuQWJpbGl0eRIsCgNmb2UYAyABKAsyHy5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZXIiSwoKTW92ZUFjdGlvbhIMCgRzbG90GAEgASgNEi8KBnRhcmdldBgCIAEoCzIfLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlciIiCgxTd2l0Y2hBY3Rpb24SEgoKcGFydHlfc2xvdBgBIAEoDSJdCgpJdGVtQWN0aW9uEigKBGl0ZW0YASABKA4yGi5wb2tldW5pdmVyc2UuaXRlbS52MS5JdGVtEhIKCnBhcnR5X3Nsb3QYAiABKA0SEQoJbW92ZV9zbG90GAMgASgNIgsKCVJ1bkFjdGlvbiI7Cg9MZWFybk1vdmVBY3Rpb24SGAoLZm9yZ2V0X3Nsb3QYASABKA1IAIgBAUIOCgxfZm9yZ2V0X3Nsb3QiNQoLU2hpZnRBY3Rpb24SFwoKcGFydHlfc2xvdBgBIAEoDUgAiAEBQg0KC19wYXJ0eV9zbG90ItgCCgxCYXR0bGVBY3Rpb24SMgoEbW92ZRgBIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuTW92ZUFjdGlvbkgAEjYKBnN3aXRjaBgCIAEoCzIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuU3dpdGNoQWN0aW9uSAASMgoEaXRlbRgDIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuSXRlbUFjdGlvbkgAEjAKA3J1bhgEIAEoCzIhLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuUnVuQWN0aW9uSAASOAoFbGVhcm4YBSABKAsyJy5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkxlYXJuTW92ZUFjdGlvbkgAEjQKBXNoaWZ0GAYgASgLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5TaGlmdEFjdGlvbkgAQgYKBGtpbmQinAEKDEJhdHRsZUNob2ljZRIRCgliYXR0bGVfaWQYASABKAkSDAoEc3RlcBgCIAEoDRI0CgZhY3Rpb24YAyABKAsyJC5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZUFjdGlvbhI1CgdwYXJ0bmVyGAQgASgLMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVBY3Rpb24idgoNQmF0dGxlU3RhcnRlZBIwCgR2aWV3GAEgASgLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVWaWV3EjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQijAEKCkJhdHRsZVR1cm4SEQoJYmF0dGxlX2lkGAEgASgJEjMKBmV2ZW50cxgCIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlRXZlbnQSNgoHcmVxdWVzdBgDIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVxdWVzdCKzAQoLQmF0dGxlRW5kZWQSEQoJYmF0dGxlX2lkGAEgASgJEjQKBnJlc3VsdBgCIAEoDjIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVzdWx0Eg0KBW1vbmV5GAMgASgNEjsKCmV2b2x1dGlvbnMYBCADKAsyJy5wb2tldW5pdmVyc2UucGFydHkudjEuUGVuZGluZ0V2b2x1dGlvbhIPCgdwYXlfZGF5GAUgASgNKlgKCkJhdHRsZUtpbmQSGwoXQkFUVExFX0tJTkRfVU5TUEVDSUZJRUQQABIXChNCQVRUTEVfS0lORF9UUkFJTkVSEAESFAoQQkFUVExFX0tJTkRfV0lMRBACKm4KCVBhcnR5QmFsbBIaChZQQVJUWV9CQUxMX1VOU1BFQ0lGSUVEEAASFgoSUEFSVFlfQkFMTF9IRUFMVEhZEAESFQoRUEFSVFlfQkFMTF9TVEFUVVMQAhIWChJQQVJUWV9CQUxMX0ZBSU5URUQQAyrAAgoNQmF0dGxlVGVycmFpbhIeChpCQVRUTEVfVEVSUkFJTl9VTlNQRUNJRklFRBAAEhgKFEJBVFRMRV9URVJSQUlOX0dSQVNTEAESHQoZQkFUVExFX1RFUlJBSU5fTE9OR19HUkFTUxACEhcKE0JBVFRMRV9URVJSQUlOX1NBTkQQAxIdChlCQVRUTEVfVEVSUkFJTl9VTkRFUldBVEVSEAQSGAoUQkFUVExFX1RFUlJBSU5fV0FURVIQBRIXChNCQVRUTEVfVEVSUkFJTl9QT05EEAYSGwoXQkFUVExFX1RFUlJBSU5fTU9VTlRBSU4QBxIXChNCQVRUTEVfVEVSUkFJTl9DQVZFEAgSGwoXQkFUVExFX1RFUlJBSU5fQlVJTERJTkcQCRIYChRCQVRUTEVfVEVSUkFJTl9QTEFJThAKKpkCChBCYXR0bGVUcmFuc2l0aW9uEiEKHUJBVFRMRV9UUkFOU0lUSU9OX1VOU1BFQ0lGSUVEEAASGwoXQkFUVExFX1RSQU5TSVRJT05fU0xJQ0UQARIlCiFCQVRUTEVfVFJBTlNJVElPTl9XSElURV9CQVJTX0ZBREUQAhIkCiBCQVRUTEVfVFJBTlNJVElPTl9DTE9DS1dJU0VfV0lQRRADEiIKHkJBVFRMRV9UUkFOU0lUSU9OX0dSSURfU1FVQVJFUxAEEhoKFkJBVFRMRV9UUkFOU0lUSU9OX0JMVVIQBRIaChZCQVRUTEVfVFJBTlNJVElPTl9XQVZFEAYSHAoYQkFUVExFX1RSQU5TSVRJT05fUklQUExFEAcqqQEKC1JlcXVlc3RLaW5kEhwKGFJFUVVFU1RfS0lORF9VTlNQRUNJRklFRBAAEhUKEVJFUVVFU1RfS0lORF9XQUlUEAESFwoTUkVRVUVTVF9LSU5EX0FDVElPThACEhcKE1JFUVVFU1RfS0lORF9TV0lUQ0gQAxIbChdSRVFVRVNUX0tJTkRfTEVBUk5fTU9WRRAEEhYKElJFUVVFU1RfS0lORF9TSElGVBAFKsYBCgxCYXR0bGVSZXN1bHQSHQoZQkFUVExFX1JFU1VMVF9VTlNQRUNJRklFRBAAEhUKEUJBVFRMRV9SRVNVTFRfV09OEAESFgoSQkFUVExFX1JFU1VMVF9MT1NUEAISFQoRQkFUVExFX1JFU1VMVF9USUUQAxIdChlCQVRUTEVfUkVTVUxUX0ZPUkZFSVRfV09OEAQSGwoXQkFUVExFX1JFU1VMVF9GT1JGRUlURUQQBRIVChFCQVRUTEVfUkVTVUxUX1JBThAGQkNaQXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvYmF0dGxlL3YxO2JhdHRsZXYxYgZwcm90bzM", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_battle_v1_event, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats]);
 
 /**
  * One side of the field.
@@ -430,6 +432,13 @@ export type BattleRequest = Message<"pokeuniverse.battle.v1.BattleRequest"> & {
    * @generated from field: repeated pokeuniverse.item.v1.Item no_effect_items = 9;
    */
   noEffectItems: Item[];
+
+  /**
+   * ACTION, wild battles: RUN can't be chosen now (IsRunningFromBattleImpossible).
+   *
+   * @generated from field: pokeuniverse.battle.v1.EscapeBlock escape = 10;
+   */
+  escape?: EscapeBlock | undefined;
 };
 
 /**
@@ -438,6 +447,38 @@ export type BattleRequest = Message<"pokeuniverse.battle.v1.BattleRequest"> & {
  */
 export const BattleRequestSchema: GenMessage<BattleRequest> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_battle_v1_view, 7);
+
+/**
+ * Why RUN is refused before the turn: "Can't escape!", or the foe's ability's text
+ * ("<FOE> prevents escape with <ABILITY>!").
+ *
+ * @generated from message pokeuniverse.battle.v1.EscapeBlock
+ */
+export type EscapeBlock = Message<"pokeuniverse.battle.v1.EscapeBlock"> & {
+  /**
+   * @generated from field: bool blocked = 1;
+   */
+  blocked: boolean;
+
+  /**
+   * The foe's Shadow Tag, Arena Trap or Magnet Pull; unspecified for moves (Mean Look, a bind…).
+   *
+   * @generated from field: pokeuniverse.ability.v1.Ability by_ability = 2;
+   */
+  byAbility: Ability;
+
+  /**
+   * @generated from field: pokeuniverse.battle.v1.Battler foe = 3;
+   */
+  foe?: Battler | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.EscapeBlock.
+ * Use `create(EscapeBlockSchema)` to create a new message.
+ */
+export const EscapeBlockSchema: GenMessage<EscapeBlock> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_view, 8);
 
 /**
  * FIGHT: one of the active Pokémon's moves.
@@ -465,7 +506,7 @@ export type MoveAction = Message<"pokeuniverse.battle.v1.MoveAction"> & {
  * Use `create(MoveActionSchema)` to create a new message.
  */
 export const MoveActionSchema: GenMessage<MoveAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 8);
+  messageDesc(file_pokeuniverse_battle_v1_view, 9);
 
 /**
  * POKéMON: send out another party Pokémon.
@@ -486,7 +527,7 @@ export type SwitchAction = Message<"pokeuniverse.battle.v1.SwitchAction"> & {
  * Use `create(SwitchActionSchema)` to create a new message.
  */
 export const SwitchActionSchema: GenMessage<SwitchAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 9);
+  messageDesc(file_pokeuniverse_battle_v1_view, 10);
 
 /**
  * BAG: use an item (phase-5 D12).
@@ -519,7 +560,7 @@ export type ItemAction = Message<"pokeuniverse.battle.v1.ItemAction"> & {
  * Use `create(ItemActionSchema)` to create a new message.
  */
 export const ItemActionSchema: GenMessage<ItemAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 10);
+  messageDesc(file_pokeuniverse_battle_v1_view, 11);
 
 /**
  * RUN.
@@ -534,7 +575,7 @@ export type RunAction = Message<"pokeuniverse.battle.v1.RunAction"> & {
  * Use `create(RunActionSchema)` to create a new message.
  */
 export const RunActionSchema: GenMessage<RunAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 11);
+  messageDesc(file_pokeuniverse_battle_v1_view, 12);
 
 /**
  * The answer to a LEARN_MOVE request.
@@ -555,7 +596,7 @@ export type LearnMoveAction = Message<"pokeuniverse.battle.v1.LearnMoveAction"> 
  * Use `create(LearnMoveActionSchema)` to create a new message.
  */
 export const LearnMoveActionSchema: GenMessage<LearnMoveAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 12);
+  messageDesc(file_pokeuniverse_battle_v1_view, 13);
 
 /**
  * The answer to a SHIFT request.
@@ -576,7 +617,7 @@ export type ShiftAction = Message<"pokeuniverse.battle.v1.ShiftAction"> & {
  * Use `create(ShiftActionSchema)` to create a new message.
  */
 export const ShiftActionSchema: GenMessage<ShiftAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 13);
+  messageDesc(file_pokeuniverse_battle_v1_view, 14);
 
 /**
  * @generated from message pokeuniverse.battle.v1.BattleAction
@@ -629,7 +670,7 @@ export type BattleAction = Message<"pokeuniverse.battle.v1.BattleAction"> & {
  * Use `create(BattleActionSchema)` to create a new message.
  */
 export const BattleActionSchema: GenMessage<BattleAction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 14);
+  messageDesc(file_pokeuniverse_battle_v1_view, 15);
 
 /**
  * Client -> server: the player's choice for the request with this step.
@@ -665,7 +706,7 @@ export type BattleChoice = Message<"pokeuniverse.battle.v1.BattleChoice"> & {
  * Use `create(BattleChoiceSchema)` to create a new message.
  */
 export const BattleChoiceSchema: GenMessage<BattleChoice> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 15);
+  messageDesc(file_pokeuniverse_battle_v1_view, 16);
 
 /**
  * Server -> client: a battle started. Draw `view`, then play `events` (the send-outs).
@@ -689,7 +730,7 @@ export type BattleStarted = Message<"pokeuniverse.battle.v1.BattleStarted"> & {
  * Use `create(BattleStartedSchema)` to create a new message.
  */
 export const BattleStartedSchema: GenMessage<BattleStarted> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 16);
+  messageDesc(file_pokeuniverse_battle_v1_view, 17);
 
 /**
  * Server -> client: what happened after a choice, then the next request (WAIT once it's over).
@@ -718,7 +759,7 @@ export type BattleTurn = Message<"pokeuniverse.battle.v1.BattleTurn"> & {
  * Use `create(BattleTurnSchema)` to create a new message.
  */
 export const BattleTurnSchema: GenMessage<BattleTurn> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 17);
+  messageDesc(file_pokeuniverse_battle_v1_view, 18);
 
 /**
  * Server -> client: the battle is over (after the last BattleTurn). The party follows as
@@ -750,6 +791,13 @@ export type BattleEnded = Message<"pokeuniverse.battle.v1.BattleEnded"> & {
    * @generated from field: repeated pokeuniverse.party.v1.PendingEvolution evolutions = 4;
    */
   evolutions: PendingEvolution[];
+
+  /**
+   * Pay Day's coins picked up after a win ("<PLAYER> picked up ¥X!"), included in `money`.
+   *
+   * @generated from field: uint32 pay_day = 5;
+   */
+  payDay: number;
 };
 
 /**
@@ -757,7 +805,7 @@ export type BattleEnded = Message<"pokeuniverse.battle.v1.BattleEnded"> & {
  * Use `create(BattleEndedSchema)` to create a new message.
  */
 export const BattleEndedSchema: GenMessage<BattleEnded> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_battle_v1_view, 18);
+  messageDesc(file_pokeuniverse_battle_v1_view, 19);
 
 /**
  * @generated from enum pokeuniverse.battle.v1.BattleKind
@@ -776,7 +824,7 @@ export enum BattleKind {
   TRAINER = 1,
 
   /**
-   * Phase 7.
+   * Against one wild Pokémon (Phase 7): RUN, escape items and balls; no money but Pay Day.
    *
    * @generated from enum value: BATTLE_KIND_WILD = 2;
    */

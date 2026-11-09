@@ -33,7 +33,7 @@ Look each up once in `references/pokeheartgold/` (grep the names in quotes) and 
 - **Balls** (M5): Ultra ×2, Great ×1.5, Poké, Premier, Luxury, Heal ×1; Safari ×1.5 (Phase 12); Net ×3 on Water or Bug; Dive ×3.5 on water encounters (Surf, rods); Nest `(40 − level) / 10`, at least 1; Repeat ×3 if the species is already caught; Timer `(turns + 10) / 10`, at most 4; Quick ×4 on the first turn; Dusk ×3.5 at night or in a cave.
 - **Escape** (M4): FireRed's `TryRunFromBattle` is the same rule (faster or equal escapes; else `speed·128/foeSpeed + 30·tries > rand8`). Smoke Ball and Run Away always escape; trapping abilities and moves block, except the Gen 4 differences Showdown's request already applies.
 - **Lead abilities** (M2, M3): rate ×½ Stench, White Smoke, Quick Feet, Sand Veil in sandstorm, Snow Cloak in hail; ×2 Illuminate, Arena Trap, No Guard. Pokémon made: Synchronize 50% same nature; Cute Charm 2/3 opposite gender; Compound Eyes item chances 60% / 20%; Hustle, Pressure, Vital Spirit 50% max level of the slot; Intimidate, Keen Eye 50% skip foes 5+ levels below the lead; Static, Magnet Pull 50% an Electric / Steel slot. Sticky Hold, Suction Cups (rods' bite) wait for Phase 12.
-- **Pickup** (M4): after every battle, each party Pokémon with Pickup and no held item has 10% to get an item from Gen 4's table for its level band.
+- **Pickup** (M4): after a won battle (Gen 4 `BattleWin`), each party Pokémon with Pickup and no held item has 10% to get an item from Gen 4's table for its level band.
 
 ## FireRed Reference Map
 

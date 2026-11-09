@@ -13,9 +13,10 @@ package battlev1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/ability/v1"
 	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
-	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
+	v14 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
 	reflect "reflect"
 	sync "sync"
@@ -35,7 +36,7 @@ const (
 	BattleKind_BATTLE_KIND_UNSPECIFIED BattleKind = 0
 	// Against an NPC trainer: no running, money for the winner.
 	BattleKind_BATTLE_KIND_TRAINER BattleKind = 1
-	// Phase 7.
+	// Against one wild Pokémon (Phase 7): RUN, escape items and balls; no money but Pay Day.
 	BattleKind_BATTLE_KIND_WILD BattleKind = 2
 )
 
@@ -1014,6 +1015,8 @@ type BattleRequest struct {
 	// ACTION: items the active Pokémon uses itself that would do nothing now ("It won't have any
 	// effect." in the BAG, BattleUseFunc_StatBooster). In doubles, the first one's.
 	NoEffectItems []v12.Item `protobuf:"varint,9,rep,packed,name=no_effect_items,json=noEffectItems,proto3,enum=pokeuniverse.item.v1.Item" json:"no_effect_items,omitempty"`
+	// ACTION, wild battles: RUN can't be chosen now (IsRunningFromBattleImpossible).
+	Escape        *EscapeBlock `protobuf:"bytes,10,opt,name=escape,proto3" json:"escape,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1111,6 +1114,76 @@ func (x *BattleRequest) GetNoEffectItems() []v12.Item {
 	return nil
 }
 
+func (x *BattleRequest) GetEscape() *EscapeBlock {
+	if x != nil {
+		return x.Escape
+	}
+	return nil
+}
+
+// Why RUN is refused before the turn: "Can't escape!", or the foe's ability's text
+// ("<FOE> prevents escape with <ABILITY>!").
+type EscapeBlock struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Blocked bool                   `protobuf:"varint,1,opt,name=blocked,proto3" json:"blocked,omitempty"`
+	// The foe's Shadow Tag, Arena Trap or Magnet Pull; unspecified for moves (Mean Look, a bind…).
+	ByAbility     v13.Ability `protobuf:"varint,2,opt,name=by_ability,json=byAbility,proto3,enum=pokeuniverse.ability.v1.Ability" json:"by_ability,omitempty"`
+	Foe           *Battler    `protobuf:"bytes,3,opt,name=foe,proto3" json:"foe,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EscapeBlock) Reset() {
+	*x = EscapeBlock{}
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EscapeBlock) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EscapeBlock) ProtoMessage() {}
+
+func (x *EscapeBlock) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EscapeBlock.ProtoReflect.Descriptor instead.
+func (*EscapeBlock) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *EscapeBlock) GetBlocked() bool {
+	if x != nil {
+		return x.Blocked
+	}
+	return false
+}
+
+func (x *EscapeBlock) GetByAbility() v13.Ability {
+	if x != nil {
+		return x.ByAbility
+	}
+	return v13.Ability(0)
+}
+
+func (x *EscapeBlock) GetFoe() *Battler {
+	if x != nil {
+		return x.Foe
+	}
+	return nil
+}
+
 // FIGHT: one of the active Pokémon's moves.
 type MoveAction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1124,7 +1197,7 @@ type MoveAction struct {
 
 func (x *MoveAction) Reset() {
 	*x = MoveAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[8]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1136,7 +1209,7 @@ func (x *MoveAction) String() string {
 func (*MoveAction) ProtoMessage() {}
 
 func (x *MoveAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[8]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1149,7 +1222,7 @@ func (x *MoveAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveAction.ProtoReflect.Descriptor instead.
 func (*MoveAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{8}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *MoveAction) GetSlot() uint32 {
@@ -1177,7 +1250,7 @@ type SwitchAction struct {
 
 func (x *SwitchAction) Reset() {
 	*x = SwitchAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[9]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1189,7 +1262,7 @@ func (x *SwitchAction) String() string {
 func (*SwitchAction) ProtoMessage() {}
 
 func (x *SwitchAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[9]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1202,7 +1275,7 @@ func (x *SwitchAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchAction.ProtoReflect.Descriptor instead.
 func (*SwitchAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{9}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SwitchAction) GetPartySlot() uint32 {
@@ -1226,7 +1299,7 @@ type ItemAction struct {
 
 func (x *ItemAction) Reset() {
 	*x = ItemAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[10]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1238,7 +1311,7 @@ func (x *ItemAction) String() string {
 func (*ItemAction) ProtoMessage() {}
 
 func (x *ItemAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[10]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1251,7 +1324,7 @@ func (x *ItemAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ItemAction.ProtoReflect.Descriptor instead.
 func (*ItemAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{10}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ItemAction) GetItem() v12.Item {
@@ -1284,7 +1357,7 @@ type RunAction struct {
 
 func (x *RunAction) Reset() {
 	*x = RunAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[11]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1296,7 +1369,7 @@ func (x *RunAction) String() string {
 func (*RunAction) ProtoMessage() {}
 
 func (x *RunAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[11]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1309,7 +1382,7 @@ func (x *RunAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunAction.ProtoReflect.Descriptor instead.
 func (*RunAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{11}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{12}
 }
 
 // The answer to a LEARN_MOVE request.
@@ -1323,7 +1396,7 @@ type LearnMoveAction struct {
 
 func (x *LearnMoveAction) Reset() {
 	*x = LearnMoveAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[12]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1335,7 +1408,7 @@ func (x *LearnMoveAction) String() string {
 func (*LearnMoveAction) ProtoMessage() {}
 
 func (x *LearnMoveAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[12]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1348,7 +1421,7 @@ func (x *LearnMoveAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LearnMoveAction.ProtoReflect.Descriptor instead.
 func (*LearnMoveAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{12}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *LearnMoveAction) GetForgetSlot() uint32 {
@@ -1369,7 +1442,7 @@ type ShiftAction struct {
 
 func (x *ShiftAction) Reset() {
 	*x = ShiftAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[13]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1454,7 @@ func (x *ShiftAction) String() string {
 func (*ShiftAction) ProtoMessage() {}
 
 func (x *ShiftAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[13]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1394,7 +1467,7 @@ func (x *ShiftAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShiftAction.ProtoReflect.Descriptor instead.
 func (*ShiftAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{13}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ShiftAction) GetPartySlot() uint32 {
@@ -1421,7 +1494,7 @@ type BattleAction struct {
 
 func (x *BattleAction) Reset() {
 	*x = BattleAction{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[14]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1433,7 +1506,7 @@ func (x *BattleAction) String() string {
 func (*BattleAction) ProtoMessage() {}
 
 func (x *BattleAction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[14]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1446,7 +1519,7 @@ func (x *BattleAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleAction.ProtoReflect.Descriptor instead.
 func (*BattleAction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{14}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BattleAction) GetKind() isBattleAction_Kind {
@@ -1564,7 +1637,7 @@ type BattleChoice struct {
 
 func (x *BattleChoice) Reset() {
 	*x = BattleChoice{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[15]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1576,7 +1649,7 @@ func (x *BattleChoice) String() string {
 func (*BattleChoice) ProtoMessage() {}
 
 func (x *BattleChoice) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[15]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1589,7 +1662,7 @@ func (x *BattleChoice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleChoice.ProtoReflect.Descriptor instead.
 func (*BattleChoice) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{15}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *BattleChoice) GetBattleId() string {
@@ -1631,7 +1704,7 @@ type BattleStarted struct {
 
 func (x *BattleStarted) Reset() {
 	*x = BattleStarted{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[16]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1643,7 +1716,7 @@ func (x *BattleStarted) String() string {
 func (*BattleStarted) ProtoMessage() {}
 
 func (x *BattleStarted) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[16]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1656,7 +1729,7 @@ func (x *BattleStarted) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleStarted.ProtoReflect.Descriptor instead.
 func (*BattleStarted) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{16}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BattleStarted) GetView() *BattleView {
@@ -1685,7 +1758,7 @@ type BattleTurn struct {
 
 func (x *BattleTurn) Reset() {
 	*x = BattleTurn{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[17]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1697,7 +1770,7 @@ func (x *BattleTurn) String() string {
 func (*BattleTurn) ProtoMessage() {}
 
 func (x *BattleTurn) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[17]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1710,7 +1783,7 @@ func (x *BattleTurn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleTurn.ProtoReflect.Descriptor instead.
 func (*BattleTurn) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{17}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BattleTurn) GetBattleId() string {
@@ -1743,14 +1816,16 @@ type BattleEnded struct {
 	// Money won (WON) or lost (LOST: FireRed's whiteout).
 	Money uint32 `protobuf:"varint,3,opt,name=money,proto3" json:"money,omitempty"`
 	// Who evolves now, in party order: the scene plays, then EvolvePokemon unless B stops it.
-	Evolutions    []*v13.PendingEvolution `protobuf:"bytes,4,rep,name=evolutions,proto3" json:"evolutions,omitempty"`
+	Evolutions []*v14.PendingEvolution `protobuf:"bytes,4,rep,name=evolutions,proto3" json:"evolutions,omitempty"`
+	// Pay Day's coins picked up after a win ("<PLAYER> picked up ¥X!"), included in `money`.
+	PayDay        uint32 `protobuf:"varint,5,opt,name=pay_day,json=payDay,proto3" json:"pay_day,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BattleEnded) Reset() {
 	*x = BattleEnded{}
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[18]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1762,7 +1837,7 @@ func (x *BattleEnded) String() string {
 func (*BattleEnded) ProtoMessage() {}
 
 func (x *BattleEnded) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[18]
+	mi := &file_pokeuniverse_battle_v1_view_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1775,7 +1850,7 @@ func (x *BattleEnded) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleEnded.ProtoReflect.Descriptor instead.
 func (*BattleEnded) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{18}
+	return file_pokeuniverse_battle_v1_view_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *BattleEnded) GetBattleId() string {
@@ -1799,18 +1874,25 @@ func (x *BattleEnded) GetMoney() uint32 {
 	return 0
 }
 
-func (x *BattleEnded) GetEvolutions() []*v13.PendingEvolution {
+func (x *BattleEnded) GetEvolutions() []*v14.PendingEvolution {
 	if x != nil {
 		return x.Evolutions
 	}
 	return nil
 }
 
+func (x *BattleEnded) GetPayDay() uint32 {
+	if x != nil {
+		return x.PayDay
+	}
+	return 0
+}
+
 var File_pokeuniverse_battle_v1_view_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\n" +
-	"!pokeuniverse/battle/v1/view.proto\x12\x16pokeuniverse.battle.v1\x1a\"pokeuniverse/battle/v1/event.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a!pokeuniverse/party/v1/party.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\"\x94\x01\n" +
+	"!pokeuniverse/battle/v1/view.proto\x12\x16pokeuniverse.battle.v1\x1a%pokeuniverse/ability/v1/catalog.proto\x1a\"pokeuniverse/battle/v1/event.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a!pokeuniverse/party/v1/party.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\"\x94\x01\n" +
 	"\n" +
 	"BattleSide\x12\x10\n" +
 	"\x03foe\x18\x01 \x01(\bR\x03foe\x12;\n" +
@@ -1862,7 +1944,7 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\bposition\x18\x01 \x01(\rR\bposition\x129\n" +
 	"\x05moves\x18\x02 \x03(\v2#.pokeuniverse.battle.v1.RequestMoveR\x05moves\x12\x18\n" +
 	"\atrapped\x18\x03 \x01(\bR\atrapped\x12B\n" +
-	"\x0fno_effect_items\x18\x04 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\rnoEffectItems\"\xf7\x03\n" +
+	"\x0fno_effect_items\x18\x04 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\rnoEffectItems\"\xb4\x04\n" +
 	"\rBattleRequest\x127\n" +
 	"\x04kind\x18\x01 \x01(\x0e2#.pokeuniverse.battle.v1.RequestKindR\x04kind\x12\x12\n" +
 	"\x04step\x18\x02 \x01(\rR\x04step\x129\n" +
@@ -1872,7 +1954,14 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\x05learn\x18\x06 \x01(\v2(.pokeuniverse.battle.v1.LearnMoveRequestR\x05learn\x12>\n" +
 	"\bnext_foe\x18\a \x01(\v2#.pokeuniverse.battle.v1.BattlerInfoR\anextFoe\x12E\n" +
 	"\tpositions\x18\b \x03(\v2'.pokeuniverse.battle.v1.PositionRequestR\tpositions\x12B\n" +
-	"\x0fno_effect_items\x18\t \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\rnoEffectItems\"Y\n" +
+	"\x0fno_effect_items\x18\t \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\rnoEffectItems\x12;\n" +
+	"\x06escape\x18\n" +
+	" \x01(\v2#.pokeuniverse.battle.v1.EscapeBlockR\x06escape\"\x9b\x01\n" +
+	"\vEscapeBlock\x12\x18\n" +
+	"\ablocked\x18\x01 \x01(\bR\ablocked\x12?\n" +
+	"\n" +
+	"by_ability\x18\x02 \x01(\x0e2 .pokeuniverse.ability.v1.AbilityR\tbyAbility\x121\n" +
+	"\x03foe\x18\x03 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\x03foe\"Y\n" +
 	"\n" +
 	"MoveAction\x12\x12\n" +
 	"\x04slot\x18\x01 \x01(\rR\x04slot\x127\n" +
@@ -1915,14 +2004,15 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"BattleTurn\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12;\n" +
 	"\x06events\x18\x02 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\x12?\n" +
-	"\arequest\x18\x03 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\"\xc7\x01\n" +
+	"\arequest\x18\x03 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\"\xe0\x01\n" +
 	"\vBattleEnded\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12<\n" +
 	"\x06result\x18\x02 \x01(\x0e2$.pokeuniverse.battle.v1.BattleResultR\x06result\x12\x14\n" +
 	"\x05money\x18\x03 \x01(\rR\x05money\x12G\n" +
 	"\n" +
 	"evolutions\x18\x04 \x03(\v2'.pokeuniverse.party.v1.PendingEvolutionR\n" +
-	"evolutions*X\n" +
+	"evolutions\x12\x17\n" +
+	"\apay_day\x18\x05 \x01(\rR\x06payDay*X\n" +
 	"\n" +
 	"BattleKind\x12\x1b\n" +
 	"\x17BATTLE_KIND_UNSPECIFIED\x10\x00\x12\x17\n" +
@@ -1984,7 +2074,7 @@ func file_pokeuniverse_battle_v1_view_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_battle_v1_view_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_pokeuniverse_battle_v1_view_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_pokeuniverse_battle_v1_view_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_pokeuniverse_battle_v1_view_proto_goTypes = []any{
 	(BattleKind)(0),              // 0: pokeuniverse.battle.v1.BattleKind
 	(PartyBall)(0),               // 1: pokeuniverse.battle.v1.PartyBall
@@ -2000,75 +2090,80 @@ var file_pokeuniverse_battle_v1_view_proto_goTypes = []any{
 	(*LearnMoveRequest)(nil),     // 11: pokeuniverse.battle.v1.LearnMoveRequest
 	(*PositionRequest)(nil),      // 12: pokeuniverse.battle.v1.PositionRequest
 	(*BattleRequest)(nil),        // 13: pokeuniverse.battle.v1.BattleRequest
-	(*MoveAction)(nil),           // 14: pokeuniverse.battle.v1.MoveAction
-	(*SwitchAction)(nil),         // 15: pokeuniverse.battle.v1.SwitchAction
-	(*ItemAction)(nil),           // 16: pokeuniverse.battle.v1.ItemAction
-	(*RunAction)(nil),            // 17: pokeuniverse.battle.v1.RunAction
-	(*LearnMoveAction)(nil),      // 18: pokeuniverse.battle.v1.LearnMoveAction
-	(*ShiftAction)(nil),          // 19: pokeuniverse.battle.v1.ShiftAction
-	(*BattleAction)(nil),         // 20: pokeuniverse.battle.v1.BattleAction
-	(*BattleChoice)(nil),         // 21: pokeuniverse.battle.v1.BattleChoice
-	(*BattleStarted)(nil),        // 22: pokeuniverse.battle.v1.BattleStarted
-	(*BattleTurn)(nil),           // 23: pokeuniverse.battle.v1.BattleTurn
-	(*BattleEnded)(nil),          // 24: pokeuniverse.battle.v1.BattleEnded
-	(*BattlerInfo)(nil),          // 25: pokeuniverse.battle.v1.BattlerInfo
-	(Weather)(0),                 // 26: pokeuniverse.battle.v1.Weather
-	(v1.Move)(0),                 // 27: pokeuniverse.move.v1.Move
-	(*Health)(nil),               // 28: pokeuniverse.battle.v1.Health
-	(v11.Status)(0),              // 29: pokeuniverse.pokemon.v1.Status
-	(v12.Item)(0),                // 30: pokeuniverse.item.v1.Item
-	(*v11.Stats)(nil),            // 31: pokeuniverse.pokemon.v1.Stats
-	(*Battler)(nil),              // 32: pokeuniverse.battle.v1.Battler
-	(*BattleEvent)(nil),          // 33: pokeuniverse.battle.v1.BattleEvent
-	(*v13.PendingEvolution)(nil), // 34: pokeuniverse.party.v1.PendingEvolution
+	(*EscapeBlock)(nil),          // 14: pokeuniverse.battle.v1.EscapeBlock
+	(*MoveAction)(nil),           // 15: pokeuniverse.battle.v1.MoveAction
+	(*SwitchAction)(nil),         // 16: pokeuniverse.battle.v1.SwitchAction
+	(*ItemAction)(nil),           // 17: pokeuniverse.battle.v1.ItemAction
+	(*RunAction)(nil),            // 18: pokeuniverse.battle.v1.RunAction
+	(*LearnMoveAction)(nil),      // 19: pokeuniverse.battle.v1.LearnMoveAction
+	(*ShiftAction)(nil),          // 20: pokeuniverse.battle.v1.ShiftAction
+	(*BattleAction)(nil),         // 21: pokeuniverse.battle.v1.BattleAction
+	(*BattleChoice)(nil),         // 22: pokeuniverse.battle.v1.BattleChoice
+	(*BattleStarted)(nil),        // 23: pokeuniverse.battle.v1.BattleStarted
+	(*BattleTurn)(nil),           // 24: pokeuniverse.battle.v1.BattleTurn
+	(*BattleEnded)(nil),          // 25: pokeuniverse.battle.v1.BattleEnded
+	(*BattlerInfo)(nil),          // 26: pokeuniverse.battle.v1.BattlerInfo
+	(Weather)(0),                 // 27: pokeuniverse.battle.v1.Weather
+	(v1.Move)(0),                 // 28: pokeuniverse.move.v1.Move
+	(*Health)(nil),               // 29: pokeuniverse.battle.v1.Health
+	(v11.Status)(0),              // 30: pokeuniverse.pokemon.v1.Status
+	(v12.Item)(0),                // 31: pokeuniverse.item.v1.Item
+	(*v11.Stats)(nil),            // 32: pokeuniverse.pokemon.v1.Stats
+	(v13.Ability)(0),             // 33: pokeuniverse.ability.v1.Ability
+	(*Battler)(nil),              // 34: pokeuniverse.battle.v1.Battler
+	(*BattleEvent)(nil),          // 35: pokeuniverse.battle.v1.BattleEvent
+	(*v14.PendingEvolution)(nil), // 36: pokeuniverse.party.v1.PendingEvolution
 }
 var file_pokeuniverse_battle_v1_view_proto_depIdxs = []int32{
-	25, // 0: pokeuniverse.battle.v1.BattleSide.active:type_name -> pokeuniverse.battle.v1.BattlerInfo
+	26, // 0: pokeuniverse.battle.v1.BattleSide.active:type_name -> pokeuniverse.battle.v1.BattlerInfo
 	1,  // 1: pokeuniverse.battle.v1.BattleSide.balls:type_name -> pokeuniverse.battle.v1.PartyBall
 	0,  // 2: pokeuniverse.battle.v1.BattleView.kind:type_name -> pokeuniverse.battle.v1.BattleKind
 	6,  // 3: pokeuniverse.battle.v1.BattleView.sides:type_name -> pokeuniverse.battle.v1.BattleSide
-	26, // 4: pokeuniverse.battle.v1.BattleView.weather:type_name -> pokeuniverse.battle.v1.Weather
+	27, // 4: pokeuniverse.battle.v1.BattleView.weather:type_name -> pokeuniverse.battle.v1.Weather
 	13, // 5: pokeuniverse.battle.v1.BattleView.request:type_name -> pokeuniverse.battle.v1.BattleRequest
 	8,  // 6: pokeuniverse.battle.v1.BattleView.trainer:type_name -> pokeuniverse.battle.v1.BattleTrainer
 	2,  // 7: pokeuniverse.battle.v1.BattleView.terrain:type_name -> pokeuniverse.battle.v1.BattleTerrain
 	3,  // 8: pokeuniverse.battle.v1.BattleView.wild_transition:type_name -> pokeuniverse.battle.v1.BattleTransition
-	27, // 9: pokeuniverse.battle.v1.RequestMove.move:type_name -> pokeuniverse.move.v1.Move
-	28, // 10: pokeuniverse.battle.v1.PartyMember.health:type_name -> pokeuniverse.battle.v1.Health
-	29, // 11: pokeuniverse.battle.v1.PartyMember.status:type_name -> pokeuniverse.pokemon.v1.Status
-	30, // 12: pokeuniverse.battle.v1.PartyMember.held_item:type_name -> pokeuniverse.item.v1.Item
-	31, // 13: pokeuniverse.battle.v1.PartyMember.stats:type_name -> pokeuniverse.pokemon.v1.Stats
-	27, // 14: pokeuniverse.battle.v1.PartyMember.moves:type_name -> pokeuniverse.move.v1.Move
-	27, // 15: pokeuniverse.battle.v1.LearnMoveRequest.move:type_name -> pokeuniverse.move.v1.Move
+	28, // 9: pokeuniverse.battle.v1.RequestMove.move:type_name -> pokeuniverse.move.v1.Move
+	29, // 10: pokeuniverse.battle.v1.PartyMember.health:type_name -> pokeuniverse.battle.v1.Health
+	30, // 11: pokeuniverse.battle.v1.PartyMember.status:type_name -> pokeuniverse.pokemon.v1.Status
+	31, // 12: pokeuniverse.battle.v1.PartyMember.held_item:type_name -> pokeuniverse.item.v1.Item
+	32, // 13: pokeuniverse.battle.v1.PartyMember.stats:type_name -> pokeuniverse.pokemon.v1.Stats
+	28, // 14: pokeuniverse.battle.v1.PartyMember.moves:type_name -> pokeuniverse.move.v1.Move
+	28, // 15: pokeuniverse.battle.v1.LearnMoveRequest.move:type_name -> pokeuniverse.move.v1.Move
 	9,  // 16: pokeuniverse.battle.v1.PositionRequest.moves:type_name -> pokeuniverse.battle.v1.RequestMove
-	30, // 17: pokeuniverse.battle.v1.PositionRequest.no_effect_items:type_name -> pokeuniverse.item.v1.Item
+	31, // 17: pokeuniverse.battle.v1.PositionRequest.no_effect_items:type_name -> pokeuniverse.item.v1.Item
 	4,  // 18: pokeuniverse.battle.v1.BattleRequest.kind:type_name -> pokeuniverse.battle.v1.RequestKind
 	9,  // 19: pokeuniverse.battle.v1.BattleRequest.moves:type_name -> pokeuniverse.battle.v1.RequestMove
 	10, // 20: pokeuniverse.battle.v1.BattleRequest.party:type_name -> pokeuniverse.battle.v1.PartyMember
 	11, // 21: pokeuniverse.battle.v1.BattleRequest.learn:type_name -> pokeuniverse.battle.v1.LearnMoveRequest
-	25, // 22: pokeuniverse.battle.v1.BattleRequest.next_foe:type_name -> pokeuniverse.battle.v1.BattlerInfo
+	26, // 22: pokeuniverse.battle.v1.BattleRequest.next_foe:type_name -> pokeuniverse.battle.v1.BattlerInfo
 	12, // 23: pokeuniverse.battle.v1.BattleRequest.positions:type_name -> pokeuniverse.battle.v1.PositionRequest
-	30, // 24: pokeuniverse.battle.v1.BattleRequest.no_effect_items:type_name -> pokeuniverse.item.v1.Item
-	32, // 25: pokeuniverse.battle.v1.MoveAction.target:type_name -> pokeuniverse.battle.v1.Battler
-	30, // 26: pokeuniverse.battle.v1.ItemAction.item:type_name -> pokeuniverse.item.v1.Item
-	14, // 27: pokeuniverse.battle.v1.BattleAction.move:type_name -> pokeuniverse.battle.v1.MoveAction
-	15, // 28: pokeuniverse.battle.v1.BattleAction.switch:type_name -> pokeuniverse.battle.v1.SwitchAction
-	16, // 29: pokeuniverse.battle.v1.BattleAction.item:type_name -> pokeuniverse.battle.v1.ItemAction
-	17, // 30: pokeuniverse.battle.v1.BattleAction.run:type_name -> pokeuniverse.battle.v1.RunAction
-	18, // 31: pokeuniverse.battle.v1.BattleAction.learn:type_name -> pokeuniverse.battle.v1.LearnMoveAction
-	19, // 32: pokeuniverse.battle.v1.BattleAction.shift:type_name -> pokeuniverse.battle.v1.ShiftAction
-	20, // 33: pokeuniverse.battle.v1.BattleChoice.action:type_name -> pokeuniverse.battle.v1.BattleAction
-	20, // 34: pokeuniverse.battle.v1.BattleChoice.partner:type_name -> pokeuniverse.battle.v1.BattleAction
-	7,  // 35: pokeuniverse.battle.v1.BattleStarted.view:type_name -> pokeuniverse.battle.v1.BattleView
-	33, // 36: pokeuniverse.battle.v1.BattleStarted.events:type_name -> pokeuniverse.battle.v1.BattleEvent
-	33, // 37: pokeuniverse.battle.v1.BattleTurn.events:type_name -> pokeuniverse.battle.v1.BattleEvent
-	13, // 38: pokeuniverse.battle.v1.BattleTurn.request:type_name -> pokeuniverse.battle.v1.BattleRequest
-	5,  // 39: pokeuniverse.battle.v1.BattleEnded.result:type_name -> pokeuniverse.battle.v1.BattleResult
-	34, // 40: pokeuniverse.battle.v1.BattleEnded.evolutions:type_name -> pokeuniverse.party.v1.PendingEvolution
-	41, // [41:41] is the sub-list for method output_type
-	41, // [41:41] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	31, // 24: pokeuniverse.battle.v1.BattleRequest.no_effect_items:type_name -> pokeuniverse.item.v1.Item
+	14, // 25: pokeuniverse.battle.v1.BattleRequest.escape:type_name -> pokeuniverse.battle.v1.EscapeBlock
+	33, // 26: pokeuniverse.battle.v1.EscapeBlock.by_ability:type_name -> pokeuniverse.ability.v1.Ability
+	34, // 27: pokeuniverse.battle.v1.EscapeBlock.foe:type_name -> pokeuniverse.battle.v1.Battler
+	34, // 28: pokeuniverse.battle.v1.MoveAction.target:type_name -> pokeuniverse.battle.v1.Battler
+	31, // 29: pokeuniverse.battle.v1.ItemAction.item:type_name -> pokeuniverse.item.v1.Item
+	15, // 30: pokeuniverse.battle.v1.BattleAction.move:type_name -> pokeuniverse.battle.v1.MoveAction
+	16, // 31: pokeuniverse.battle.v1.BattleAction.switch:type_name -> pokeuniverse.battle.v1.SwitchAction
+	17, // 32: pokeuniverse.battle.v1.BattleAction.item:type_name -> pokeuniverse.battle.v1.ItemAction
+	18, // 33: pokeuniverse.battle.v1.BattleAction.run:type_name -> pokeuniverse.battle.v1.RunAction
+	19, // 34: pokeuniverse.battle.v1.BattleAction.learn:type_name -> pokeuniverse.battle.v1.LearnMoveAction
+	20, // 35: pokeuniverse.battle.v1.BattleAction.shift:type_name -> pokeuniverse.battle.v1.ShiftAction
+	21, // 36: pokeuniverse.battle.v1.BattleChoice.action:type_name -> pokeuniverse.battle.v1.BattleAction
+	21, // 37: pokeuniverse.battle.v1.BattleChoice.partner:type_name -> pokeuniverse.battle.v1.BattleAction
+	7,  // 38: pokeuniverse.battle.v1.BattleStarted.view:type_name -> pokeuniverse.battle.v1.BattleView
+	35, // 39: pokeuniverse.battle.v1.BattleStarted.events:type_name -> pokeuniverse.battle.v1.BattleEvent
+	35, // 40: pokeuniverse.battle.v1.BattleTurn.events:type_name -> pokeuniverse.battle.v1.BattleEvent
+	13, // 41: pokeuniverse.battle.v1.BattleTurn.request:type_name -> pokeuniverse.battle.v1.BattleRequest
+	5,  // 42: pokeuniverse.battle.v1.BattleEnded.result:type_name -> pokeuniverse.battle.v1.BattleResult
+	36, // 43: pokeuniverse.battle.v1.BattleEnded.evolutions:type_name -> pokeuniverse.party.v1.PendingEvolution
+	44, // [44:44] is the sub-list for method output_type
+	44, // [44:44] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_view_proto_init() }
@@ -2077,9 +2172,9 @@ func file_pokeuniverse_battle_v1_view_proto_init() {
 		return
 	}
 	file_pokeuniverse_battle_v1_event_proto_init()
-	file_pokeuniverse_battle_v1_view_proto_msgTypes[12].OneofWrappers = []any{}
 	file_pokeuniverse_battle_v1_view_proto_msgTypes[13].OneofWrappers = []any{}
-	file_pokeuniverse_battle_v1_view_proto_msgTypes[14].OneofWrappers = []any{
+	file_pokeuniverse_battle_v1_view_proto_msgTypes[14].OneofWrappers = []any{}
+	file_pokeuniverse_battle_v1_view_proto_msgTypes[15].OneofWrappers = []any{
 		(*BattleAction_Move)(nil),
 		(*BattleAction_Switch)(nil),
 		(*BattleAction_Item)(nil),
@@ -2093,7 +2188,7 @@ func file_pokeuniverse_battle_v1_view_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_battle_v1_view_proto_rawDesc), len(file_pokeuniverse_battle_v1_view_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   19,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
