@@ -13,8 +13,6 @@ import { cloneMon, END, F, flip, goneAtAnimEnd, J, monSprite } from "./util";
 
 /** BG_ANIM 1's palette (status.ts). */
 const ANIM_PALETTE = 8;
-/** BATTLE_TERRAIN_BUILDING: the only terrain battles use for now (BattleScene.drawTerrain). */
-const TERRAIN_BUILDING = 8;
 const SMOKESCREEN = "SMOKESCREEN_IMPACT";
 
 /**
@@ -232,7 +230,7 @@ export const UTILITY_TASKS: Record<string, AnimTask> = {
   },
 
   *AnimTask_GetBattleTerrain(run) {
-    run.args[0] = TERRAIN_BUILDING;
+    run.args[0] = run.backdrop.terrainId;
   },
 
   /** AnimTask_GetFrustrationPowerLevel: by friendship; the battle doesn't send it, so from the move's power. */

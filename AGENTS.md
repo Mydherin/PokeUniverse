@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7 M6: Wild battle screen](docs/phases/phase-7-wild-battles-catching/milestones/m06-wild-battle-screen.md): next; read its Resume Here. M5 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7 M6: Wild battle screen](docs/phases/phase-7-wild-battles-catching/milestones/m06-wild-battle-screen.md): in progress; read its Resume Here. M5 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

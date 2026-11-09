@@ -51,7 +51,7 @@ import { evolutionScene, type EvolutionHost } from "./evolution";
 import { askToLearnMove } from "./learn";
 import { Action, chooseAction, chooseMove, choosesTarget, chooseTarget, type Cursors } from "./menus";
 import { all, Playback, wait, type PlaybackHost } from "./playback";
-import { BattleScene, Page } from "./scene";
+import { BattleScene, Page, terrainId } from "./scene";
 import { BattleTexts } from "./text";
 import { battleTransition } from "./transition";
 
@@ -184,7 +184,7 @@ export class BattleScreen implements PlaybackHost {
     gba.reset();
     gba.video.transparentBackdrop = true;
     gba.setVBlank(gba.standardVBlank);
-    gba.sound.playBgm("mus_vs_trainer");
+    gba.sound.playBgm(state.trainer ? "mus_vs_trainer" : "mus_vs_wild");
     yield* battleTransition(flow);
 
     const scene = this.newScene();
@@ -243,7 +243,7 @@ export class BattleScreen implements PlaybackHost {
   private *redrawJob(events: readonly BattleEvent[]): Generator<void, void, void> {
     this.newScene();
     this.drawField();
-    this.flow.gba.sound.playBgm("mus_vs_trainer");
+    this.flow.gba.sound.playBgm(this.state.trainer ? "mus_vs_trainer" : "mus_vs_wild");
     this.fadeIn();
     yield* this.playJob(events, false);
     yield* this.requestJob(this.state.request);
@@ -379,8 +379,14 @@ export class BattleScreen implements PlaybackHost {
       yield* this.waitPress();
       yield* this.scene.message(texts.format("sText_PlayerGotMoney", { buff1: money }), 0);
     } else if (this.sceneNow && (e.result === BattleResult.LOST || e.result === BattleResult.TIE)) {
+      // BattleScript_LocalBattleLostPrintWhiteOut (wild): out of Pokémon, then the money lost and the whiteout.
       yield* this.scene.message(texts.format(state.trainer ? "sText_PlayerWhiteoutAgainstTrainer" : "sText_PlayerWhiteout"), 0);
       if (state.trainer) yield* this.scene.message(texts.format("sText_PlayerPaidAsPrizeMoney", { buff1: money }), 0);
+      else yield* this.scene.message(texts.format(e.money > 0 ? "sText_PlayerPanicked" : "sText_PlayerWhiteout2", { buff1: money }), 0);
+    }
+    // Cmd_givepaydaymoney: after a win, the coins Pay Day scattered.
+    if (this.sceneNow && e.result === BattleResult.WON && e.payDay > 0) {
+      yield* this.scene.message(texts.format("sText_PkmnPickedUpItem", { buff1: decimalText(e.payDay, NumberMode.LeftAlign, String(e.payDay).length) }), 0);
     }
     const { gba } = flow;
     gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
@@ -521,7 +527,7 @@ export class BattleScreen implements PlaybackHost {
   }
 
   private newScene(): BattleScene {
-    this.sceneNow = new BattleScene(this.flow, this.host.gender, this.state.doubles);
+    this.sceneNow = new BattleScene(this.flow, this.host.gender, this.state.doubles, terrainId(this.state.terrain));
     return this.sceneNow;
   }
 

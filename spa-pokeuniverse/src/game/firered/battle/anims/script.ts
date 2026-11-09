@@ -66,6 +66,8 @@ export interface AnimProgram {
 export interface AnimBackdrop {
   showMoveBackground(art: Graphic): void;
   drawTerrain(split?: boolean): void;
+  /** BATTLE_TERRAIN_* of the battle (AnimTask_GetBattleTerrain). */
+  readonly terrainId: number;
   /** The background's scroll in pixels. */
   scrollX: number;
   scrollY: number;

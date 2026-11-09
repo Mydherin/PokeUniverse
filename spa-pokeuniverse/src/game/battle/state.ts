@@ -4,7 +4,7 @@
 
 import { clone } from "@bufbuild/protobuf";
 import { BattlerInfoSchema, ConditionPhase, Weather, type BattleEvent, type Battler, type BattlerInfo } from "@pokeuniverse/contracts/battle/v1/event";
-import { PartyBall, RequestKind, type BattleKind, type BattleRequest, type BattleTrainer, type BattleView, type PartyMember } from "@pokeuniverse/contracts/battle/v1/view";
+import { PartyBall, RequestKind, type BattleKind, type BattleRequest, type BattleTerrain, type BattleTransition, type BattleTrainer, type BattleView, type PartyMember } from "@pokeuniverse/contracts/battle/v1/view";
 import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 
 /** One side of the field: its active Pokémon (null while one must be replaced) and its party's balls. */
@@ -19,6 +19,9 @@ export class BattleState {
   readonly kind: BattleKind;
   readonly trainer: BattleTrainer | undefined;
   readonly doubles: boolean;
+  /** Where it's fought (the terrain's art and intro) and, for a wild battle, its transition. */
+  readonly terrain: BattleTerrain;
+  readonly wildTransition: BattleTransition;
   /** The player's side, then the foe's. */
   readonly sides: readonly [SideState, SideState];
   weather: Weather;
@@ -30,6 +33,8 @@ export class BattleState {
     this.kind = view.kind;
     this.trainer = view.trainer;
     this.doubles = view.doubles;
+    this.terrain = view.terrain;
+    this.wildTransition = view.wildTransition;
     const side = (foe: boolean): SideState => {
       const s = view.sides.find((x) => x.foe === foe);
       // By position: with one gone, the view lists only the other.

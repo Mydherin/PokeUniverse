@@ -84,6 +84,14 @@ const BACK_PIC_ANIMS: SpriteTemplate["anims"] = [
 ];
 
 const TILES = 0x400;
+/** sBattleTerrainTable's art folders by BATTLE_TERRAIN_* (plain is building's art in plain colors). */
+const TERRAIN_ART = ["grass", "longgrass", "sand", "underwater", "water", "pond", "mountain", "cave", "building", "building"] as const;
+export const TERRAIN_BUILDING = 8;
+export const TERRAIN_PLAIN = 9;
+/** BattleTerrain (the contract's, one more than FireRed's) to BATTLE_TERRAIN_*; unset is a building. */
+export function terrainId(terrain: number): number {
+  return terrain > 0 && terrain <= TERRAIN_ART.length ? terrain - 1 : TERRAIN_BUILDING;
+}
 
 /** A Pokémon's sprite: its picture copied into its own tiles, so it can sink out of sight as it faints. */
 export class MonSprite {
@@ -148,6 +156,8 @@ export class BattleScene {
     private readonly flow: Flow,
     private readonly gender: Gender,
     readonly doubles: boolean,
+    /** FireRed's BATTLE_TERRAIN_* (0 grass … 9 plain). */
+    readonly terrainId: number = TERRAIN_BUILDING,
   ) {
     const { gba, assets } = flow;
     const { video, palettes } = gba;
@@ -186,10 +196,13 @@ export class BattleScene {
     gba.setVBlank(gba.standardVBlank);
   }
 
-  /** The building terrain (indoors) on BG3 (DrawMainBattleBackground); `split`: in halves on BG3 and BG2, for the intro's slide. */
+  /** The terrain on BG3 (DrawMainBattleBackground, sBattleTerrainTable); `split`: in halves on BG3 and BG2, for the intro's slide. */
   drawTerrain(split = false): void {
-    const terrain = this.flow.assets.get("battleTerrainBuilding");
-    this.flow.gba.palettes.load(terrain.palette, 2 * 16, 48);
+    const { assets } = this.flow;
+    const name = TERRAIN_ART[this.terrainId] ?? "building";
+    const terrain = assets.get(`battleTerrain_${name}`);
+    const palette = this.terrainId === TERRAIN_PLAIN ? assets.get("battleTerrainPlainPal").palette : terrain.palette;
+    this.flow.gba.palettes.load(palette, 2 * 16, 48);
     this.terrain.forEach((bg, half) => {
       bg.tiles = terrain.tiles;
       bg.map.set(terrain.map!.subarray(0, bg.map.length));
@@ -197,6 +210,11 @@ export class BattleScene {
       bg.x = bg.y = 0;
       bg.visible = split || half === 0;
     });
+  }
+
+  /** The terrain's entry art (LoadBattleTerrainEntryGfx: the grass, sand or waves the intro slides in on BG1). */
+  terrainEntry(): Graphic {
+    return this.flow.assets.get(`battleTerrainEntry_${TERRAIN_ART[this.terrainId] ?? "building"}`);
   }
 
   /** gBattle_BG3_X / Y: the terrain's (or a move background's) scroll, in pixels. */

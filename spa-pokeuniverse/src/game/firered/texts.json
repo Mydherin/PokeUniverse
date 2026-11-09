@@ -123,7 +123,7 @@
   "gText_Shift", "gText_PkmnAlreadyInBattle", "gText_PkmnAlreadySelected", "gText_PkmnHasNoEnergy",
   "sText_AllyPkmnPrefix", "sText_FoePkmnPrefix2",
   "sText_PkmnRestoredHPUsing", "sText_PkmnSleptHealthy", "sText_BellChimed", "sText_SoothingAroma", "sText_PkmnCutHPMaxedAttack",
-  "sText_PkmnCopiedStatChanges", "sText_PkmnReducedPP", "sText_ExclamationMark", "sText_PlayerWhiteoutAgainstTrainer",
+  "sText_PkmnCopiedStatChanges", "sText_PkmnReducedPP", "sText_ExclamationMark", "sText_PlayerWhiteoutAgainstTrainer", "sText_PlayerPanicked", "sText_PlayerWhiteout2", "sText_PkmnPickedUpItem",
   "sText_PkmnVanishedInstantly", "sText_PkmnTwistedDimensions", "sText_TrickRoomEnds", "sText_GravityIntensified", "sText_GravityEnds", "sText_ElectricityWeakened", "sText_FireWeakened",
   "gText_PkmnHPRestoredByVar2",
   "gText_PkmnElevatedToLvVar2", "gText_PkmnLearnedMove3", "gText_PkmnNeedsToReplaceMove", "gText_StopLearningMove2", "gText_MoveNotLearned", "gText_WhichMoveToForget", "gText_12PoofForgotMove", "gText_Huh",

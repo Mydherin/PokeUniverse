@@ -6,7 +6,7 @@
 // a send-out throws the ball and the Pokémon comes out with its cry, its healthbox sliding in.
 // Each event changes the battle's state as it is shown.
 
-import { Condition, ConditionPhase, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned, type MoveUsed } from "@pokeuniverse/contracts/battle/v1/event";
+import { Condition, ConditionPhase, EscapeHow, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned, type MoveUsed } from "@pokeuniverse/contracts/battle/v1/event";
 import { BattleUse, Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { itemInfo } from "../../world/items";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
@@ -214,6 +214,8 @@ export function* wait(frames: number): Generator<void, void, void> {
 
 export class Playback {
   private readonly recent: Recent = { itemUsed: false, flute: false, eaten: Item.UNSPECIFIED };
+  /** gBattleStruct->wildVictorySong: the wild victory music already started. */
+  private wildVictory = false;
   /** The event before this one (what `recent.eaten` lasts for). */
   private previous: BattleEvent["kind"]["case"] = undefined;
   private readonly balls: PokeBalls;
@@ -425,6 +427,12 @@ export class Playback {
         if (name) yield* this.animateGeneral(name, PLAYER_LEFT);
         return;
       }
+      case "escaped":
+        // BattleScript_SmokeBallEscape: the smoke, then the line.
+        if (k.value.how === EscapeHow.ITEM && k.value.item === Item.SMOKE_BALL && k.value.battler) yield* this.animateEffect("B_ANIM_SMOKEBALL_ESCAPE", k.value.battler);
+        state.apply(e);
+        for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
+        return;
       case "itemUsed":
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
@@ -440,6 +448,11 @@ export class Playback {
         return;
       case "exp": {
         const { battler, exp, levelExp, nextLevelExp } = k.value;
+        // Cmd_getexp: the wild victory music once, when the player's Pokémon still stands.
+        if (!state.trainer && !this.wildVictory && (state.side(false).active[0]?.health?.hp ?? 0) > 0) {
+          this.wildVictory = true;
+          this.host.flow.gba.sound.playBgm("mus_victory_wild");
+        }
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         state.apply(e);
         if (battler && state.battler(battler)) yield* scene.healthbox(battler).moveExp(exp, levelExp, nextLevelExp);

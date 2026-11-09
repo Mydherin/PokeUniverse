@@ -16,7 +16,7 @@ import { startMainMenu } from "./main-menu";
 import { Assets, NEW_GAME_SOUNDS, type SoundId } from "./manifest";
 
 /** {PLAY_SE} in the game's strings, by song number (songs.h). */
-const TEXT_SONGS: Record<number, SoundId> = { 49: "se_ball_bounce_1" };
+const TEXT_SONGS: Record<number, SoundId> = { 17: "se_flee", 49: "se_ball_bounce_1" };
 import { startNewGame } from "./new-game";
 import { textScrollSpeed, validOptions, type Options } from "./options";
 import { startOverworld } from "./overworld";

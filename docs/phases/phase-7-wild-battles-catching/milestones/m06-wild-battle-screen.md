@@ -1,4 +1,4 @@
-# M6 The Wild Battle Screen ⬜
+# M6 The Wild Battle Screen 🔄
 
 Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M4. Rules: [context.md](context.md); Phase 5's [M7 battle screen](../../phase-5-battle-system/milestones/m07-battle-screen.md).
 
@@ -6,7 +6,23 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M4. Rules: [c
 
 ## Resume Here
 
-**Not started.** First step: read `battle/transition.ts` (the only transition, `B_TRANSITION_ANGLED_WIPES`) and `battle/scene.ts` `drawTerrain` (building only), then add the terrain table.
+**In progress (session 1, 2026-11-09).** Typecheck passes (`cd spa-pokeuniverse && npx tsc --noEmit -p .`); `make graphics`, `make text`, `make audio` **not run yet** (needed for the new terrain art, texts and songs). Nothing played yet.
+
+**Next step:** the wild intro in `battle/screen.ts` `introJob` (~line 176), then the slides' BG1 entry art, then the transitions, shiny, caught mark; then build and Play It.
+
+Done this session (files touched):
+- Terrain table: `Makefile` (all `battle_terrain/<t>/terrain.* anim.*` + `indoor/plain.pal`), `manifest.ts` (`battleTerrain_<t>`, `battleTerrainEntry_<t>`, `battleTerrainPlainPal`), `battle/scene.ts` (`TERRAIN_ART`, `terrainId()`, ctor's `terrainId`, `drawTerrain` by it, `terrainEntry()`), `battle/state.ts` (`terrain`, `wildTransition` from the view), `screen.ts` `newScene` passes it, `anims/script.ts` `AnimBackdrop.terrainId`, `anims/behaviors/utility.ts` `AnimTask_GetBattleTerrain` reads it. Unset terrain = building (trainer battles).
+- Music: `sounds.json` + `BATTLE_SOUNDS` get `mus_vs_wild`, `mus_victory_wild`, `se_flee`; intro and redraw play `mus_vs_wild` when no trainer; `playback.ts` `exp` case plays `mus_victory_wild` once (Cmd_getexp ~3219: wild, player's mon alive, `wildVictory` flag). `boot.ts` `TEXT_SONGS` 17 → `se_flee` (the texts' `{PLAY_SE SE_FLEE}`).
+- Messages: RUN lines were already done in M4 (`messages.ts` `escaped`/`escapeFailed`/`wildFled`); "Wild"/"Foe" prefix already in `text.ts` `nameWithPrefix`. Added: `playback.ts` `escaped` case plays `B_ANIM_SMOKEBALL_ESCAPE` first for Smoke Ball; `screen.ts` `endJob` wild loss: `sText_PlayerWhiteout` then `sText_PlayerPanicked` (money > 0) or `sText_PlayerWhiteout2`; won with `e.payDay > 0`: `sText_PkmnPickedUpItem` (Cmd_givepaydaymoney). `texts.json` gets the three strings.
+
+Looked up (don't re-read):
+- `sBattleIntroSlideFuncs`: Slide1 grass, long grass, pond, mountain, cave; Slide2 sand, underwater, water; Slide3 building, plain. Plain = building art + `indoor/plain.pal`.
+- BG1 = entry art (`anim.png/bin`, 32×14 tiles, terrain palette), template charbase 1, size 2 (256×512), priority 0; cleared at the slide's end. Every slide: case0 1 frame, case1 1 frame, case2 band opens 1 line/frame to 48, case3 32-frame delay, band 4/frame, halves slide 240→0 by 2.
+- Slide1: BG1_X += 6/frame; after the 32-frame delay BG1_Y −1/frame to −56 (long grass −2 to −80). No blend.
+- Slide2: BG1_X += 8 (sand, water) / 6 (underwater); water: BG1_Y = cos(d)·4096/512 − 8, d += 4 (<180) else 6, wraps 360. After the delay: blend BG1 over BG3+OBJ, EVA 16−k / EVB k, k+1 every 4 frames until EVA 0.
+- Slide3: BG1_X += 8; blend 8/8 from the start; after the delay EVA−1/EVB+1 every 6 frames until EVA 0.
+- Wild mon (battle_main.c 1883 `SpriteCB_EnemyMon`): OBJ palette 1 faded to RGB(8,8,8) at 10/16; x2 from −240 +2/frame while sliding (with the halves); at 0 `PlayCry_Normal`; when its anim ends: healthbox slides in, palette fades 10→0 (2 a frame). Then party balls (player's only), `STRINGID_INTROMSG` wild ("Wild X appeared!"), then the player's send-out. The foe's switchIn event must be taken out of the intro's playback list.
+- Victory music: `battle_script_commands.c` 3219. Whiteout: `battle_scripts_1.s` 2930. Strings: `battle_message.c` 74-78, 178.
 
 ## Tasks
 
@@ -16,7 +32,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M4. Rules: [c
 
 ### Terrains (`firered/battle/scene.ts`, `make graphics`)
 
-- [ ] FireRed's terrain table (`src/battle_bg.c`, grep `sBattleTerrainTable`): tiles, map, palette and entry art per terrain (grass, long grass, sand, underwater, water, pond, mountain, cave, building, plain); `make graphics` copies them from `graphics/battle_terrain/`. `drawTerrain` reads `BattleView.terrain`.
+- [x] FireRed's terrain table (`src/battle_bg.c`, grep `sBattleTerrainTable`): tiles, map, palette and entry art per terrain (grass, long grass, sand, underwater, water, pond, mountain, cave, building, plain); `make graphics` copies them from `graphics/battle_terrain/`. `drawTerrain` reads `BattleView.terrain`.
 
 ### Intro (`firered/battle/screen.ts`)
 
@@ -27,14 +43,14 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M4. Rules: [c
 
 ### Music and sounds
 
-- [ ] `MUS_VS_WILD` from the transition, `MUS_VICTORY_WILD` on a win (check FireRed's choice in `src/battle_main.c` / `battle_setup.c`); `make audio` renders them; add them to `BATTLE_SOUNDS` for wild battles ([audio.md](../../../audio.md)). `SE_FLEE` on escape.
+- [x] `MUS_VS_WILD` from the transition, `MUS_VICTORY_WILD` on a win (check FireRed's choice in `src/battle_main.c` / `battle_setup.c`); `make audio` renders them; add them to `BATTLE_SOUNDS` for wild battles ([audio.md](../../../audio.md)). `SE_FLEE` on escape.
 
 ### Messages (`firered/battle/messages.ts`, `make text`)
 
-- [ ] RUN: "Got away safely!" (`STRINGID_GOTAWAYSAFELY`), "Can't escape!" and its variants, "{mon} fled using its {item}!" with `B_ANIM_SMOKEBALL_ESCAPE` (written in Phase 5 M9, not hooked), "{mon} fled using {ability}!", the escape item's use text ("{PLAYER} used POKé DOLL!"), "Wild {mon} fled!" (Roar, Teleport), the trainer-battle RUN refusal stays.
-- [ ] Wild whiteout: "{PLAYER} is out of usable POKéMON!", "{PLAYER} panicked and lost ¥X…", "… … … …", "{PLAYER} whited out!" (`STRINGID_PLAYERWHITEOUT`, `WHITEOUT2`, `PLAYERWHITEDOUT`); the ending fade as FireRed.
-- [ ] The wild Pokémon's name in move messages: "Wild X used …" vs "Foe X used …" (check `B_OPPONENT_MON1_NAME`'s prefix rule).
-- [ ] Pay Day's message.
+- [x] RUN: "Got away safely!" (`STRINGID_GOTAWAYSAFELY`), "Can't escape!" and its variants, "{mon} fled using its {item}!" with `B_ANIM_SMOKEBALL_ESCAPE` (written in Phase 5 M9, not hooked), "{mon} fled using {ability}!", the escape item's use text ("{PLAYER} used POKé DOLL!"), "Wild {mon} fled!" (Roar, Teleport), the trainer-battle RUN refusal stays.
+- [x] Wild whiteout (texts; the ending fade is the existing one): "{PLAYER} is out of usable POKéMON!", "{PLAYER} panicked and lost ¥X…", "… … … …", "{PLAYER} whited out!" (`STRINGID_PLAYERWHITEOUT`, `WHITEOUT2`, `PLAYERWHITEDOUT`); the ending fade as FireRed.
+- [x] The wild Pokémon's name in move messages: "Wild X used …" vs "Foe X used …" (check `B_OPPONENT_MON1_NAME`'s prefix rule).
+- [x] Pay Day's message.
 
 ## Play It
 
