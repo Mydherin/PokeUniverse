@@ -75,3 +75,8 @@ Documentation must always reflect the current state of the project.
 
 - **No automated tests in the repository:** no unit, integration or end-to-end test suites.
 - **Manual tests only when the user explicitly asks** (e.g. run the app and check a behavior). Don't commit anything they leave behind.
+
+### Git
+
+- **Work directly on `main`:** develop, build and commit there. Don't create feature branches to merge later (from 2026-11-09, after `gen4-battles` was merged).
+- Commit or push only when the user asks.
