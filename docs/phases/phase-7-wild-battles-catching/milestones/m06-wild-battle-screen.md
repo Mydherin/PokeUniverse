@@ -1,4 +1,4 @@
-# M6 The Wild Battle Screen 🔄
+# M6 The Wild Battle Screen ✅
 
 Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M4. Rules: [context.md](context.md); Phase 5's [M7 battle screen](../../phase-5-battle-system/milestones/m07-battle-screen.md).
 
@@ -6,11 +6,22 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M4. Rules: [c
 
 ## Resume Here
 
-**In progress (session 2 ended 2026-11-09).** All code tasks written; typecheck passes (`cd spa-pokeuniverse && npx tsc --noEmit -p .`). `make graphics` and `make text` ran OK (693 strings). **Not done:** `make audio` (new songs `mus_vs_wild`, `mus_victory_wild`, `se_flee`), the build, and the whole Play It; nothing has been run in the game yet.
+**Done 2026-11-09** (session 3: `make audio`, build, Play It). Next: [M7](m07-catch-scene.md).
 
-**Next step:** `make audio` (long: run in background), build the SPA, then Play It (below) in order. Fix what it shows; then mark M6 ✅ and point Resume Here / phase file / `index.md` / AGENTS.md **Now** at M7 (`m07-catch-scene.md`).
+Play It results (session 3, test grass 1F, Lucario L50 lead):
+- SLICE by level (gray flashes, then rows split both ways) ✓; grass intro: BG1 tall-grass entry art slides and drops, the darkened Rattata slides in from the left with the trainer from the right, cry, healthbox slides in as its colors come back, player's balls, "Wild RATTATA appeared!", then the send-out ✓. Caught ball 16 px left of the foe's bar ✓ (every species is caught on account 2, so "no mark" wasn't seen).
+- Sounds (logged by buffer length): `mus_vs_wild` from the transition ✓, `mus_victory_wild` on a win, then the map music ✓, `se_flee` with "Got away safely!" ✓, `se_shiny` ✓.
+- Shiny (temporary client override): gold stars circle and cross 60 frames after the healthbox ✓.
+- Forced once each (temporary override in `battle/state.ts` / `screen.ts`, deleted, git clean): WHITE_BARS_FADE + long grass, CLOCKWISE_WIPE + sand, GRID_SQUARES + underwater (pale blue is FireRed's palette), BLUR + water (waves), WAVE + pond, RIPPLE + mountain, SLICE + cave, building, plain (building art, green palette) ✓.
+- Wild whiteout (Lucario 1 HP, others fainted, SQL): "AA is out of usable POKéMON!", "AA panicked and lost ¥400…", "… … … …", "AA whited out!", home ✓.
+- Not played: Smoke Ball's `B_ANIM_SMOKEBALL_ESCAPE` before its message (hooked in `playback.ts` `escaped`; O4 moved to M8). Other RUN messages passed in M4.
+- Test data restored: party Snorlax 0 HP, Lucario 136, Charizard 143, Garchomp 171; money 2560; 1F 10,5; test refresh tokens revoked.
 
-Things to check first in play (written blind): Phaser `snapshotArea` coords/scale give the right field picture (`world/scene.ts` `snapshot`); BG1 entry art shows over the wild mon and its map palette rows are right (`scene.ts` `entrySlide`); the caught ball sits 16 px left of the foe's bar; the gold stars' tile split (16×16 = tiles 0-3, small = 4, 5).
+Gotchas (Play It in the browser pane):
+- Frame recorder: wrap `requestAnimationFrame` so after each callback every Nth frame `drawImage(canvas)` into a 256×192 2D canvas; show a contact sheet in a fixed `<img>` and screenshot it. Start it when a WebSocket message > 300 bytes arrives (the battle start).
+- Walking: arrow presses must last ~260 ms (60 ms only turns). Sounds: wrap `AudioBufferSourceNode.prototype.start` and log `buffer.duration` (mus_vs_wild 76.9 s, mus_victory_wild 29.5, se_flee 0.73, se_shiny 0.88).
+- Pane hidden: rAF stops; use the M3 recipe (rAF via setTimeout, fake ResizeObserver, `import` the index script) and capture `canvas.toDataURL()` right after the frame callback.
+- `docker compose up -d --build spa-pokeuniverse` also restarts mic-core.
 
 Done in session 2 (typecheck passes; not played):
 - Intro: `screen.ts` `introJob` rewritten: two setup frames, band/halves as before, `scene.entrySlide()` (new in `scene.ts`: BG1 entry art, Slide1/2/3 motion and blend by terrain, `step(moving)` after the 32-frame delay, `end()`). Wild: foe switchIn events taken out of the playback list, art loaded during the transition (`playback.prepare`, now public, replaces `loadArt` + cry loading), mon shown darkened (blendPalette 10/16 to RGB(8,8,8)), x2 = −slide, cry at x2 0, then `playback.showHealthbox` (new, public: slide + shiny) with the palette back 2 a frame; then player's balls, `sText_WildPkmnAppeared` (added to `texts.json`), player's send-out.

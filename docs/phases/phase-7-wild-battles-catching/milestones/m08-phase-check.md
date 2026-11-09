@@ -11,7 +11,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M1-M7. Rules:
 ## The Run
 
 1. Walk into the test grass with the follower: both rustle; a wild battle starts with the right transition, intro and music.
-2. RUN once (escape), once against a faster foe until it fails.
+2. RUN once (escape), once against a faster foe until it fails, once holding a Smoke Ball: its escape animation before the message (O4, hooked in M6, not played there).
 3. Weaken a foe, throw a POKé BALL until it catches; Pokédex page (new species), name it, see it in POKéMON with its ball and name.
 4. Fill the party, catch another: sent to the PC; find it in BILL'S PC.
 5. Repel: no low-level battles, then the wore-off message. Black Flute, Cleanse Tag, an Illuminate lead: rate changes (rough counts).
