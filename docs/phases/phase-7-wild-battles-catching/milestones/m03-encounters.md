@@ -1,4 +1,4 @@
-# M3 Encounters on the Map 🟡
+# M3 Encounters on the Map ✅
 
 Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M2. Rules: [context.md](context.md) D1, D3, D4, D7, D8; [lead abilities](context.md#gen-4-rules-used-by-several-milestones).
 
@@ -6,23 +6,19 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M2. Rules: [c
 
 ## Resume Here
 
-**Play It mostly passed, Sweet Scent and the flutes in play left** (2026-11-09). Code committed (`be2ebc4`, `8004ea9`); nothing changed since. `make up` ran; the stack is up.
+**Done** (2026-11-09). Code committed (`be2ebc4`, `8004ea9`); Play It passed with no bugs. Next: [M4](m04-wild-battle-rules.md). The test team was restored from the pre-Play-It backup (account 2's Pokémon and items; `flute = 'none'`, `repel_steps = 0`).
 
-Next steps, in order:
+How to drive the game from the built-in browser (pane hidden: JS key events, canvas capture, starting the game when the page doesn't render): the shared notes folder's `m3-playit-helpers.md`.
 
-1. **Sweet Scent** (already set up by SQL, game closed: test team's Snorlax, slot 0, has Sweet Scent as move 4; `flute = 'white'`, `repel_steps = 0`, player on 1F (11,6) in the grass): open the game, START → POKéMON → Snorlax → SWEET SCENT. Check: red fade, player unfaded, a battle starts; then step off the grass (row 4 or column 9) and use it again: "Looks like there's nothing here…" and the fade back.
-2. **Flutes in play** (short sanity, the rates are already measured): walk the grass with the White Flute set (~4 steps per battle over ~8 battles), then SQL `flute = 'black'` with the game closed (~16). A warp (stairs) clears the flute.
-3. Restore the test team with the game closed: the data-only dump of `trainers`, `trainer_items`, `trainer_pokemon` from before this Play It is `m3-account2-backup.sql` in the shared notes folder (or just set Snorlax's moves back to `{34,89,156,174}`, pp `{15,10,10,10}`, `flute = 'none'`; one REPEL ×1 was added to the bag, slot 14).
-4. Mark M3 done: milestone ✅, phase file M3 row and Resume Here → M4, `AGENTS.md` **Now** → M4, `index.md` (Current, 3 / 8, O4's Cleanse Tag / Pure Incense part and O5's Sweet Scent part closed).
-
-How to drive the game from the built-in browser (the pane is often hidden, the tool's key presses don't reach the game): the shared notes folder's `m3-playit-helpers.md` (JS key events, canvas mirror, battle detection, title and bag key sequences).
-
-Play It results so far:
+Play It results:
 
 - ✅ **Rate:** 19 battles in 152 steps in the test grass (13, 4, 6, 12, 4, 10, 6, 6, 11, 10, 10, 12, 6, 6, 6, 9, 7, 6, 8) = 8.0 steps per battle; none in 150 steps on the floor around it. Species and levels from the test table (Caterpie 2-3, Pidgey, Skarmory 20, Snorlax 42…); the battles still use the trainer look ("sent out CATERPIE!", M6).
 - ✅ **Rates by the server code** (temporary `go run` over `encounter.State.Step` with the test table, 400 000 steps each, deleted): plain 7.9, Black Flute 16.2, White Flute 4.1, Cleanse Tag 10.7, Pure Incense 10.7, Illuminate lead 3.4 steps per battle; Repel with a Lv50 lead: none (table tops at 42); Repel with a Lv5 lead: lowest level met 5. `cooldown` checked line by line against `HandleWildEncounterCooldown`.
 - ✅ **Repel:** `repel_steps = 3` by SQL: 3 steps without battles, then "REPEL's effect wore off…"; REPEL from the bag: "AA used the REPEL." (stays in the bag, ×2 → ×1); a second one: "But the effects of a REPEL lingered…"; 70 steps in the grass under it with the Lv50 lead: no battles; `repel_steps` saved 30 on leaving.
 - ✅ **Grass rustle:** blades over the feet of the player and the follower in the grass, none off it; spawned standing in the grass shows it at rest.
+- ✅ **Sweet Scent:** in the grass (1F (11,6)): red fade with the player and the grass at their feet unfaded (the follower fades), then a wild battle (Snorlax Lv42). Off the grass ((11,3)): the red fades in and back, then "Looks like there's nothing here…".
+- ✅ **Flutes in play:** White Flute 3, 3, 4, 4, 5 steps per battle (~4); Black Flute 12, 19, 18 (~16).
+- RUN in a wild battle does nothing yet (refused in `choices.ts`): M4's task, not a bug; the Play It battles were won with FIGHT.
 - No bugs found. The fainting lead mid-run was the test's own (no healing between 19 battles).
 
 Client (all in `spa-pokeuniverse/src/game/firered/`):
@@ -73,10 +69,10 @@ Decisions: Repel steps live in memory per step, saved when they wear off and on 
 
 ## Play It
 
-- Walk the test grass: battles come at a plausible rate (count steps over ~20 battles; write them here); none on the floor around it.
-- Repel with a strong lead: no battles from lower-level slots; after its steps the message shows; a second Repel while active refuses.
-- Black Flute fewer battles, White more; Cleanse Tag on the lead fewer; an Illuminate lead more (SQL on the test team, game closed).
-- Sweet Scent in the grass starts a battle; outside it says nothing's there.
+- ✅ Walk the test grass: battles come at a plausible rate (count steps over ~20 battles; write them here); none on the floor around it.
+- ✅ Repel with a strong lead: no battles from lower-level slots; after its steps the message shows; a second Repel while active refuses.
+- ✅ Black Flute fewer battles, White more; Cleanse Tag on the lead fewer; an Illuminate lead more (SQL on the test team, game closed).
+- ✅ Sweet Scent in the grass starts a battle; outside it says nothing's there.
 
 ## Gotchas
 
