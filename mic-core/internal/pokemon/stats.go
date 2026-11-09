@@ -12,7 +12,8 @@ type Stats [6]int
 // MaxIV is the highest IV.
 const MaxIV = 31
 
-func statsFrom(s *pokemonv1.Stats) Stats {
+// StatsFrom reads a contract's six stats.
+func StatsFrom(s *pokemonv1.Stats) Stats {
 	return Stats{int(s.GetHp()), int(s.GetAttack()), int(s.GetDefense()), int(s.GetSpeed()), int(s.GetSpAttack()), int(s.GetSpDefense())}
 }
 

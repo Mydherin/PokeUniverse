@@ -191,3 +191,9 @@ message LearnMoveResult {
 message PartyChanged {
   Party party = 1;
 }
+
+// Client -> server: the name for the Pokémon just caught (phase-7 D10). Empty: keep the
+// species' name (cancel or "NO"). Answered with PartyChanged (or BoxView when it is in a box).
+message NameCaughtPokemon {
+  string name = 1;
+}

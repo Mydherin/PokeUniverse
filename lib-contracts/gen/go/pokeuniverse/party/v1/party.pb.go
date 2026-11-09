@@ -1182,6 +1182,52 @@ func (x *PartyChanged) GetParty() *Party {
 	return nil
 }
 
+// Client -> server: the name for the Pokémon just caught (phase-7 D10). Empty: keep the
+// species' name (cancel or "NO"). Answered with PartyChanged (or BoxView when it is in a box).
+type NameCaughtPokemon struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NameCaughtPokemon) Reset() {
+	*x = NameCaughtPokemon{}
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NameCaughtPokemon) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NameCaughtPokemon) ProtoMessage() {}
+
+func (x *NameCaughtPokemon) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_party_v1_party_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NameCaughtPokemon.ProtoReflect.Descriptor instead.
+func (*NameCaughtPokemon) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_party_v1_party_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *NameCaughtPokemon) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 var File_pokeuniverse_party_v1_party_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
@@ -1262,7 +1308,9 @@ const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
 	"\n" +
 	"evolves_to\x18\x02 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\tevolvesTo\"B\n" +
 	"\fPartyChanged\x122\n" +
-	"\x05party\x18\x01 \x01(\v2\x1c.pokeuniverse.party.v1.PartyR\x05party*\xec\x02\n" +
+	"\x05party\x18\x01 \x01(\v2\x1c.pokeuniverse.party.v1.PartyR\x05party\"'\n" +
+	"\x11NameCaughtPokemon\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name*\xec\x02\n" +
 	"\x10FieldMoveOutcome\x12\"\n" +
 	"\x1eFIELD_MOVE_OUTCOME_UNSPECIFIED\x10\x00\x12$\n" +
 	" FIELD_MOVE_OUTCOME_CANT_USE_HERE\x10\x01\x12%\n" +
@@ -1287,57 +1335,58 @@ func file_pokeuniverse_party_v1_party_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_party_v1_party_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_party_v1_party_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_pokeuniverse_party_v1_party_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_pokeuniverse_party_v1_party_proto_goTypes = []any{
-	(FieldMoveOutcome)(0),    // 0: pokeuniverse.party.v1.FieldMoveOutcome
-	(*Pokemon)(nil),          // 1: pokeuniverse.party.v1.Pokemon
-	(*Move)(nil),             // 2: pokeuniverse.party.v1.Move
-	(*Party)(nil),            // 3: pokeuniverse.party.v1.Party
-	(*SwapPartySlots)(nil),   // 4: pokeuniverse.party.v1.SwapPartySlots
-	(*SwapPokemonMoves)(nil), // 5: pokeuniverse.party.v1.SwapPokemonMoves
-	(*GivePartyItem)(nil),    // 6: pokeuniverse.party.v1.GivePartyItem
-	(*TakePartyItem)(nil),    // 7: pokeuniverse.party.v1.TakePartyItem
-	(*UsePartyItem)(nil),     // 8: pokeuniverse.party.v1.UsePartyItem
-	(*UseFieldMove)(nil),     // 9: pokeuniverse.party.v1.UseFieldMove
-	(*FieldMoveResult)(nil),  // 10: pokeuniverse.party.v1.FieldMoveResult
-	(*PendingEvolution)(nil), // 11: pokeuniverse.party.v1.PendingEvolution
-	(*EvolvePokemon)(nil),    // 12: pokeuniverse.party.v1.EvolvePokemon
-	(*PokemonEvolved)(nil),   // 13: pokeuniverse.party.v1.PokemonEvolved
-	(*LearnMove)(nil),        // 14: pokeuniverse.party.v1.LearnMove
-	(*LearnMoveResult)(nil),  // 15: pokeuniverse.party.v1.LearnMoveResult
-	(*PartyChanged)(nil),     // 16: pokeuniverse.party.v1.PartyChanged
-	(v1.Species)(0),          // 17: pokeuniverse.species.v1.Species
-	(*v11.Stats)(nil),        // 18: pokeuniverse.pokemon.v1.Stats
-	(v11.Status)(0),          // 19: pokeuniverse.pokemon.v1.Status
-	(v12.Item)(0),            // 20: pokeuniverse.item.v1.Item
-	(v13.Ability)(0),         // 21: pokeuniverse.ability.v1.Ability
-	(v11.Nature)(0),          // 22: pokeuniverse.pokemon.v1.Nature
-	(v11.Gender)(0),          // 23: pokeuniverse.pokemon.v1.Gender
-	(v14.Gender)(0),          // 24: pokeuniverse.trainer.v1.Gender
-	(v15.Move)(0),            // 25: pokeuniverse.move.v1.Move
+	(FieldMoveOutcome)(0),     // 0: pokeuniverse.party.v1.FieldMoveOutcome
+	(*Pokemon)(nil),           // 1: pokeuniverse.party.v1.Pokemon
+	(*Move)(nil),              // 2: pokeuniverse.party.v1.Move
+	(*Party)(nil),             // 3: pokeuniverse.party.v1.Party
+	(*SwapPartySlots)(nil),    // 4: pokeuniverse.party.v1.SwapPartySlots
+	(*SwapPokemonMoves)(nil),  // 5: pokeuniverse.party.v1.SwapPokemonMoves
+	(*GivePartyItem)(nil),     // 6: pokeuniverse.party.v1.GivePartyItem
+	(*TakePartyItem)(nil),     // 7: pokeuniverse.party.v1.TakePartyItem
+	(*UsePartyItem)(nil),      // 8: pokeuniverse.party.v1.UsePartyItem
+	(*UseFieldMove)(nil),      // 9: pokeuniverse.party.v1.UseFieldMove
+	(*FieldMoveResult)(nil),   // 10: pokeuniverse.party.v1.FieldMoveResult
+	(*PendingEvolution)(nil),  // 11: pokeuniverse.party.v1.PendingEvolution
+	(*EvolvePokemon)(nil),     // 12: pokeuniverse.party.v1.EvolvePokemon
+	(*PokemonEvolved)(nil),    // 13: pokeuniverse.party.v1.PokemonEvolved
+	(*LearnMove)(nil),         // 14: pokeuniverse.party.v1.LearnMove
+	(*LearnMoveResult)(nil),   // 15: pokeuniverse.party.v1.LearnMoveResult
+	(*PartyChanged)(nil),      // 16: pokeuniverse.party.v1.PartyChanged
+	(*NameCaughtPokemon)(nil), // 17: pokeuniverse.party.v1.NameCaughtPokemon
+	(v1.Species)(0),           // 18: pokeuniverse.species.v1.Species
+	(*v11.Stats)(nil),         // 19: pokeuniverse.pokemon.v1.Stats
+	(v11.Status)(0),           // 20: pokeuniverse.pokemon.v1.Status
+	(v12.Item)(0),             // 21: pokeuniverse.item.v1.Item
+	(v13.Ability)(0),          // 22: pokeuniverse.ability.v1.Ability
+	(v11.Nature)(0),           // 23: pokeuniverse.pokemon.v1.Nature
+	(v11.Gender)(0),           // 24: pokeuniverse.pokemon.v1.Gender
+	(v14.Gender)(0),           // 25: pokeuniverse.trainer.v1.Gender
+	(v15.Move)(0),             // 26: pokeuniverse.move.v1.Move
 }
 var file_pokeuniverse_party_v1_party_proto_depIdxs = []int32{
-	17, // 0: pokeuniverse.party.v1.Pokemon.species:type_name -> pokeuniverse.species.v1.Species
-	18, // 1: pokeuniverse.party.v1.Pokemon.stats:type_name -> pokeuniverse.pokemon.v1.Stats
+	18, // 0: pokeuniverse.party.v1.Pokemon.species:type_name -> pokeuniverse.species.v1.Species
+	19, // 1: pokeuniverse.party.v1.Pokemon.stats:type_name -> pokeuniverse.pokemon.v1.Stats
 	2,  // 2: pokeuniverse.party.v1.Pokemon.moves:type_name -> pokeuniverse.party.v1.Move
-	19, // 3: pokeuniverse.party.v1.Pokemon.status:type_name -> pokeuniverse.pokemon.v1.Status
-	20, // 4: pokeuniverse.party.v1.Pokemon.held_item:type_name -> pokeuniverse.item.v1.Item
-	21, // 5: pokeuniverse.party.v1.Pokemon.ability:type_name -> pokeuniverse.ability.v1.Ability
-	22, // 6: pokeuniverse.party.v1.Pokemon.nature:type_name -> pokeuniverse.pokemon.v1.Nature
-	23, // 7: pokeuniverse.party.v1.Pokemon.gender:type_name -> pokeuniverse.pokemon.v1.Gender
-	20, // 8: pokeuniverse.party.v1.Pokemon.ball:type_name -> pokeuniverse.item.v1.Item
-	24, // 9: pokeuniverse.party.v1.Pokemon.ot_gender:type_name -> pokeuniverse.trainer.v1.Gender
-	25, // 10: pokeuniverse.party.v1.Move.move:type_name -> pokeuniverse.move.v1.Move
+	20, // 3: pokeuniverse.party.v1.Pokemon.status:type_name -> pokeuniverse.pokemon.v1.Status
+	21, // 4: pokeuniverse.party.v1.Pokemon.held_item:type_name -> pokeuniverse.item.v1.Item
+	22, // 5: pokeuniverse.party.v1.Pokemon.ability:type_name -> pokeuniverse.ability.v1.Ability
+	23, // 6: pokeuniverse.party.v1.Pokemon.nature:type_name -> pokeuniverse.pokemon.v1.Nature
+	24, // 7: pokeuniverse.party.v1.Pokemon.gender:type_name -> pokeuniverse.pokemon.v1.Gender
+	21, // 8: pokeuniverse.party.v1.Pokemon.ball:type_name -> pokeuniverse.item.v1.Item
+	25, // 9: pokeuniverse.party.v1.Pokemon.ot_gender:type_name -> pokeuniverse.trainer.v1.Gender
+	26, // 10: pokeuniverse.party.v1.Move.move:type_name -> pokeuniverse.move.v1.Move
 	1,  // 11: pokeuniverse.party.v1.Party.pokemon:type_name -> pokeuniverse.party.v1.Pokemon
-	20, // 12: pokeuniverse.party.v1.GivePartyItem.item:type_name -> pokeuniverse.item.v1.Item
-	20, // 13: pokeuniverse.party.v1.UsePartyItem.item:type_name -> pokeuniverse.item.v1.Item
-	25, // 14: pokeuniverse.party.v1.UseFieldMove.move:type_name -> pokeuniverse.move.v1.Move
+	21, // 12: pokeuniverse.party.v1.GivePartyItem.item:type_name -> pokeuniverse.item.v1.Item
+	21, // 13: pokeuniverse.party.v1.UsePartyItem.item:type_name -> pokeuniverse.item.v1.Item
+	26, // 14: pokeuniverse.party.v1.UseFieldMove.move:type_name -> pokeuniverse.move.v1.Move
 	0,  // 15: pokeuniverse.party.v1.FieldMoveResult.outcome:type_name -> pokeuniverse.party.v1.FieldMoveOutcome
-	17, // 16: pokeuniverse.party.v1.PendingEvolution.species:type_name -> pokeuniverse.species.v1.Species
-	25, // 17: pokeuniverse.party.v1.PokemonEvolved.learned:type_name -> pokeuniverse.move.v1.Move
-	25, // 18: pokeuniverse.party.v1.PokemonEvolved.to_learn:type_name -> pokeuniverse.move.v1.Move
-	25, // 19: pokeuniverse.party.v1.LearnMove.move:type_name -> pokeuniverse.move.v1.Move
-	17, // 20: pokeuniverse.party.v1.LearnMoveResult.evolves_to:type_name -> pokeuniverse.species.v1.Species
+	18, // 16: pokeuniverse.party.v1.PendingEvolution.species:type_name -> pokeuniverse.species.v1.Species
+	26, // 17: pokeuniverse.party.v1.PokemonEvolved.learned:type_name -> pokeuniverse.move.v1.Move
+	26, // 18: pokeuniverse.party.v1.PokemonEvolved.to_learn:type_name -> pokeuniverse.move.v1.Move
+	26, // 19: pokeuniverse.party.v1.LearnMove.move:type_name -> pokeuniverse.move.v1.Move
+	18, // 20: pokeuniverse.party.v1.LearnMoveResult.evolves_to:type_name -> pokeuniverse.species.v1.Species
 	3,  // 21: pokeuniverse.party.v1.PartyChanged.party:type_name -> pokeuniverse.party.v1.Party
 	22, // [22:22] is the sub-list for method output_type
 	22, // [22:22] is the sub-list for method input_type
@@ -1358,7 +1407,7 @@ func file_pokeuniverse_party_v1_party_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_party_v1_party_proto_rawDesc), len(file_pokeuniverse_party_v1_party_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   16,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

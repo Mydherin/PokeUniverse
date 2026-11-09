@@ -79,6 +79,9 @@ function applyEffect(battle: Battle, item: number, e: ItemEffect, target: Pokemo
 /** POKé DOLL, FLUFFY TAIL: RUN from the bag (wild.ts). */
 export const isEscapeItem = (item: number) => INFOS.get(item)?.battleUse === BattleUse.ESCAPE;
 
+/** A POKé BALL of any kind: thrown at the foe (catch.ts). */
+export const isBall = (item: number) => INFOS.get(item)?.battleUse === BattleUse.BALL;
+
 /** Whether using it now does something: the player's choice is refused otherwise. */
 export function bagItemWorks(user: Pokemon, action: ItemAction): boolean {
   const item = INFOS.get(action.item);

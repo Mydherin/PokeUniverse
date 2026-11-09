@@ -110,6 +110,7 @@ func (z *zone) startWild(p *Player, script uint32) {
 	start := battle.NewWildStart(p.party, p.trainerID, mon)
 	start.Terrain = terrain(z.m, p.pos)
 	start.WildTransition = wildTransition(z.m, p.pos, mon.Level, p.party)
+	start.CatchFacts = &battlev1.CatchFacts{SpeciesCaught: []bool{p.pokedex.HasCaught(mon.Species)}, Night: night(time.Now())}
 	z.launch(p, start, "")
 }
 
@@ -183,16 +184,39 @@ func (z *zone) battleChoice(p *Player, c *battlev1.BattleChoice) {
 		return
 	}
 	req := &battlev1.TurnRequest{BattleId: b.ID, Step: c.GetStep(), Choices: []*battlev1.SideChoice{{Side: battle.PlayerSide, Action: c.GetAction(), Partner: c.GetPartner()}}}
+	// BattleUseFunc_PokeBallEtc: no ball with the party and every box full ("The BOX is full.").
+	checkStorage := throwsBall(c) && len(p.party) >= pokemon.PartySize
 	z.ask(p, func(ctx context.Context) (*battlev1.BattleUpdate, error) {
+		if checkStorage {
+			if full, err := pokemon.StorageFull(ctx, db.New(z.w.pool), p.accountID); err != nil {
+				return nil, err
+			} else if full {
+				return nil, errStorageFull
+			}
+		}
 		return z.w.battles.Turn(ctx, req)
 	}, func(u *battlev1.BattleUpdate, err error) {
 		if err != nil {
-			z.w.log.Error("battle turn", "account_id", p.accountID, "battle", b.ID, "step", req.Step, "err", err)
+			if err != errStorageFull {
+				z.w.log.Error("battle turn", "account_id", p.accountID, "battle", b.ID, "step", req.Step, "err", err)
+			}
 			z.refuseChoice(p)
 			return
 		}
 		z.played(p, u, req.Step, choiceItems(c))
 	})
+}
+
+var errStorageFull = errors.New("party and boxes full")
+
+// throwsBall: the choice throws a POKé BALL.
+func throwsBall(c *battlev1.BattleChoice) bool {
+	for _, a := range choiceItems(c) {
+		if info, _ := item.Info(a.GetItem()); info.GetBattleUse() == itemv1.BattleUse_BATTLE_USE_BALL {
+			return true
+		}
+	}
+	return false
 }
 
 // checkAction checks what mic-core can of one action: the items it would spend, and whether it

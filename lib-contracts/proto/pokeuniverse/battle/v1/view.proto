@@ -12,6 +12,7 @@ import "pokeuniverse/move/v1/catalog.proto";
 import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/pokemon/v1/pokemon.proto";
 import "pokeuniverse/pokemon/v1/stats.proto";
+import "pokeuniverse/species/v1/catalog.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1";
 
@@ -277,6 +278,8 @@ enum BattleResult {
   BATTLE_RESULT_FORFEITED = 5;
   // Ran away (wild battles).
   BATTLE_RESULT_RAN = 6;
+  // The wild Pokémon was caught (phase-7 M5).
+  BATTLE_RESULT_CAUGHT = 7;
 }
 
 // Server -> client: the battle is over (after the last BattleTurn). The party follows as
@@ -290,4 +293,29 @@ message BattleEnded {
   repeated pokeuniverse.party.v1.PendingEvolution evolutions = 4;
   // Pay Day's coins picked up after a win ("<PLAYER> picked up ¥X!"), included in `money`.
   uint32 pay_day = 5;
+  // CAUGHT: where the Pokémon went, saved with the rest of the outcome.
+  CaughtPokemon caught = 6;
+}
+
+enum CaughtWhere {
+  CAUGHT_WHERE_UNSPECIFIED = 0;
+  CAUGHT_WHERE_PARTY = 1;
+  CAUGHT_WHERE_BOX = 2;
+}
+
+// The Pokémon just caught. Its nickname is asked after (phase-7 D10): NameCaughtPokemon.
+message CaughtPokemon {
+  pokeuniverse.species.v1.Species species = 1;
+  // The nickname question comes next (always after a catch; a restart asks it again).
+  bool nickname_pending = 2;
+  CaughtWhere where = 3;
+  // BOX: the box index (0-13) and its name, for "<MON> was transferred to <BOX>!".
+  uint32 box = 4;
+  string box_name = 5;
+  // BOX: the current box was full, so it went to another (FireRed's "<BOX> was full" variant).
+  bool box_full_before = 6;
+  // First time caught: the Pokédex page shows (FireRed's "Registered in the POKéDEX").
+  bool new_in_pokedex = 7;
+  // PARTY: its slot.
+  uint32 slot = 8;
 }

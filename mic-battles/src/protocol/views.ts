@@ -9,6 +9,8 @@ import { BattleKind, BattleResult, PartyBall, RequestKind, type BattleRequestSch
 import type { ShiftOffer } from "../engine/choices.ts";
 import { moveOptions, partySlot, pokemonAt, positionsToChoose, statsOf, type Pokemon, type Side } from "../engine/battle.ts";
 import { selfItemsWithNoEffect } from "../engine/bag.ts";
+import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { escapeBlock, pickUp, type Extras } from "../engine/wild.ts";
 import { abilityNumber, itemNumber, moveNumber, statusNumber, weatherNumber } from "../engine/lookup.ts";
 import { levelSpan, seenBy, totalExp, type ExpState } from "../exp.ts";
@@ -114,22 +116,7 @@ export function outcome(battle: Battle, start: StartBattle, exp: ExpState, extra
     doublePrize: exp.doublePrize ?? false,
     sides: start.sides.map((team, side) => {
       const won = result(battle, side, extras, forfeit) === BattleResult.WON && side === 0 && (start.kind === BattleKind.TRAINER || start.kind === BattleKind.WILD);
-      const pokemon = team.pokemon.map((mon, slot) => {
-        const p = pokemonAt(battle, side, slot);
-        const gain = exp.gains[side][slot];
-        const [hp, attack, defense, speed, spAttack, spDefense] = gain.evs;
-        return {
-          hp: p.hp,
-          status: status(p),
-          pp: p.baseMoveSlots.map((m) => m.pp),
-          // Knock Off (Gen 4): the item comes back after the battle.
-          heldItem: p.itemKnockedOff && !p.item ? mon.heldItem : itemNumber(p.item),
-          exp: gain.exp,
-          faints: gain.faints ?? [],
-          evs: { hp, attack, defense, speed, spAttack, spDefense },
-          moves: p.baseMoveSlots.map((m) => moveNumber(m.id)),
-        };
-      });
+      const pokemon = team.pokemon.map((mon, slot) => monOutcome(battle, exp, side, slot, mon.heldItem));
       return {
         result: result(battle, side, extras, forfeit),
         seen: seenBy(start, exp, side),
@@ -137,13 +124,40 @@ export function outcome(battle: Battle, start: StartBattle, exp: ExpState, extra
         // BattleWin's end-of-battle items and Pay Day: a won battle only.
         pickedUp: won ? pickUp(battle, side, pokemon.map((p) => p.heldItem)) : [],
         payDay: won ? (extras?.payDay ?? 0) * (exp.doublePrize ? 2 : 1) : 0,
+        ...(side === 0 && extras?.caught ? caughtOutcome(battle, start, exp, extras.caught) : {}),
       };
     }),
   };
 }
 
+function monOutcome(battle: Battle, exp: ExpState, side: number, slot: number, heldBefore: number) {
+  const p = pokemonAt(battle, side, slot);
+  const gain = exp.gains[side][slot];
+  const [hp, attack, defense, speed, spAttack, spDefense] = gain.evs;
+  return {
+    hp: p.hp,
+    status: status(p),
+    pp: p.baseMoveSlots.map((m) => m.pp),
+    // Knock Off (Gen 4): the item comes back after the battle.
+    heldItem: p.itemKnockedOff && !p.item ? heldBefore : itemNumber(p.item),
+    exp: gain.exp,
+    faints: gain.faints ?? [],
+    evs: { hp, attack, defense, speed, spAttack, spDefense },
+    moves: p.baseMoveSlots.map((m) => moveNumber(m.id)),
+  };
+}
+
+/** The caught foe as it ends the battle (D9); Heal Ball restores HP and status (MonSetCatchData). */
+function caughtOutcome(battle: Battle, start: StartBattle, exp: ExpState, caught: { slot: number; ball: number }) {
+  const mon = monOutcome(battle, exp, 1, caught.slot, start.sides[1].pokemon[caught.slot].heldItem);
+  if (caught.ball === Item.HEAL_BALL) Object.assign(mon, { hp: pokemonAt(battle, 1, caught.slot).maxhp, status: Status.UNSPECIFIED });
+  return { caughtBall: caught.ball, caughtSlot: caught.slot, caught: { ...mon, exp: 0, evs: {}, faints: [] } };
+}
+
 function result(battle: Battle, side: number, extras: Extras | undefined, forfeit?: number): BattleResult {
   if (forfeit !== undefined) return side === forfeit ? BattleResult.FORFEITED : BattleResult.FORFEIT_WON;
+  // A wild Pokémon caught.
+  if (extras?.caught) return BattleResult.CAUGHT;
   // A wild battle someone left (RUN, an escape item, Roar, Teleport): nobody won.
   if (extras?.left) return BattleResult.RAN;
   if (!battle.winner) return BattleResult.TIE;

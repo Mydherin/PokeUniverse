@@ -188,6 +188,10 @@ export function toEvents(line: Line, ctx: Context): BattleEvent[] {
       else add({ case: "wildFled", value: { battler: left, move: Number(args[4]) } });
       break;
     }
+    case "ball":
+      // Our line (engine/catch.ts): `|ball|<user>|<ball>|<target>|<shakes>|<caught|blocked|>`.
+      add({ case: "ballThrown", value: { ball: Number(args[1]), target: who(2), shakes: Number(args[3]), caught: args[4] === "caught", blocked: args[4] === "blocked" } });
+      break;
     case "escapefail":
       add({ case: "escapeFailed", value: { battler: who(0) } });
       break;

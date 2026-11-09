@@ -7,7 +7,8 @@ import { create } from "@bufbuild/protobuf";
 import { BattleEventSchema, type BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
 import { ItemActionSchema, type BattleAction, type ItemAction } from "@pokeuniverse/contracts/battle/v1/view";
 import { decide, isAiSide, type AiMemory } from "../ai/index.ts";
-import { bagItemWorks, chooseBagItem, isEscapeItem } from "./bag.ts";
+import { bagItemWorks, chooseBagItem, isBall, isEscapeItem } from "./bag.ts";
+import { chooseBall } from "./catch.ts";
 import { chooseRun, escapeBlock } from "./wild.ts";
 import type { ExpState } from "../exp.ts";
 import { learnMove, moveOptions, partySlot, pokemonAt, positionsToChoose, type Pokemon, type Side } from "./battle.ts";
@@ -16,8 +17,8 @@ import { moveNumber } from "./lookup.ts";
 /** A choice the request doesn't allow. The step isn't played: the side gets its request again. */
 export class InvalidChoice extends Error {}
 
-/** One Pokémon's part of its side's choice: Showdown's words, a bag item, or RUN (an escape item's number, or 0). */
-type Part = string | ItemAction | { run: number };
+/** One Pokémon's part of its side's choice: Showdown's words, a bag item, RUN (an escape item's number, or 0) or a ball. */
+type Part = string | ItemAction | { run: number } | { ball: number };
 
 /** A side's whole choice: a part per position asked; Showdown's locked moves and passes are filled in. */
 function choose(battle: Battle, side: number, parts: Part[]): void {
@@ -38,7 +39,7 @@ function choose(battle: Battle, side: number, parts: Part[]): void {
 
 function choosePart(s: Side, pokemon: Pokemon, part: Part | undefined): boolean {
   if (part === undefined) return false;
-  if (typeof part !== "string") return "run" in part ? chooseRun(pokemon, part.run) : chooseBagItem(pokemon, part);
+  if (typeof part !== "string") return "run" in part ? chooseRun(pokemon, part.run) : "ball" in part ? chooseBall(pokemon, part.ball) : chooseBagItem(pokemon, part);
   const [verb, what, target] = part.split(" ");
   return !!(verb === "switch" ? s.chooseSwitch(what) : s.chooseMove(Number(what), Number(target ?? 0)));
 }
@@ -73,6 +74,11 @@ function toPart(battle: Battle, start: StartBattle, side: number, position: numb
       if (isEscapeItem(action.kind.value.item)) {
         if (!wild) throw new InvalidChoice(`item ${action.kind.value.item} can't be used in this battle`);
         return { run: action.kind.value.item };
+      }
+      // Balls: side 0 only (a trainer's Pokémon blocks it, catch.ts).
+      if (isBall(action.kind.value.item)) {
+        if (side !== 0 || !start.kind) throw new InvalidChoice(`item ${action.kind.value.item} can't be used in this battle`);
+        return { ball: action.kind.value.item };
       }
       if (!bagItemWorks(s.active[position], action.kind.value)) throw new InvalidChoice(`item ${action.kind.value.item} can't be used`);
       return action.kind.value;

@@ -69,7 +69,7 @@ func (p *Pokemon) Shiny() bool { return ShinyOf(p.OT.ID, p.Personality) }
 
 // Stats is its six stats now.
 func (p *Pokemon) Stats() Stats {
-	return CalcStats(p.Species, statsFrom(p.info().GetBaseStats()), p.IVs, p.EVs, p.Level, p.Nature())
+	return CalcStats(p.Species, StatsFrom(p.info().GetBaseStats()), p.IVs, p.EVs, p.Level, p.Nature())
 }
 
 // Ability is the species' ability its slot picks (the first when the species has one).

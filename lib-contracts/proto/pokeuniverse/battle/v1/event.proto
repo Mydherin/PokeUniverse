@@ -141,6 +141,7 @@ message BattleEvent {
     Escaped escaped = 35;
     EscapeFailed escape_failed = 36;
     WildFled wild_fled = 37;
+    BallThrown ball_thrown = 38;
   }
   // Changes the battle's state only (HP, status…): no text, animation or sound.
   bool silent = 50;
@@ -479,4 +480,17 @@ message EscapeFailed {
 message WildFled {
   Battler battler = 1;
   pokeuniverse.move.v1.Move move = 2;
+}
+
+// The reader's side threw a ball at the foe (resolved before the turn's moves, phase-7 D6).
+// Not caught: the turn goes on and the foe moves. Caught: the battle ends CAUGHT after this event.
+message BallThrown {
+  pokeuniverse.item.v1.Item ball = 1;
+  // The foe it was thrown at.
+  Battler target = 2;
+  // Shake checks passed, 0-4 (Gen 4): the ball shakes min(shakes, 3) times; 4 = caught.
+  uint32 shakes = 3;
+  bool caught = 4;
+  // A trainer's Pokémon: "The TRAINER blocked the BALL!" "Don't be a thief!" (no shake roll).
+  bool blocked = 5;
 }

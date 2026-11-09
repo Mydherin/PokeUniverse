@@ -102,6 +102,16 @@ message StartBattle {
   // it again; mic-battles doesn't read them.
   BattleTerrain terrain = 6;
   BattleTransition wild_transition = 7;
+  // Facts the catch formula needs that mic-battles can't know (phase-7 M5); terrain gives cave
+  // (Dusk Ball) and water (Dive Ball).
+  CatchFacts catch_facts = 8;
+}
+
+message CatchFacts {
+  // The wild species is already caught in the player's Pokédex (Repeat Ball), by side-1 party slot.
+  repeated bool species_caught = 1;
+  // The server's game clock says night (Dusk Ball), as Phase 5's day / night evolutions.
+  bool night = 2;
 }
 
 // One side's choice.
@@ -168,6 +178,11 @@ message SideOutcome {
   repeated pokeuniverse.item.v1.Item picked_up = 4;
   // Pay Day: the money scattered for this side ("<PLAYER> picked up ¥X!").
   uint32 pay_day = 5;
+  // CAUGHT: the ball and the caught foe's state at the end (D9: HP, status, PP, held item), in
+  // its slot of the other side; Heal Ball already restored.
+  pokeuniverse.item.v1.Item caught_ball = 6;
+  uint32 caught_slot = 7;
+  MonOutcome caught = 8;
 }
 
 message BattleOutcome {

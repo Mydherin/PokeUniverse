@@ -126,6 +126,12 @@ func AddCaught(ctx context.Context, q *db.Queries, accountID int64, save time.Ti
 	return party, box, false, nil
 }
 
+// StorageFull is IsPlayerPartyAndPokemonStorageFull's box half: no box has a free slot.
+func StorageFull(ctx context.Context, q *db.Queries, accountID int64) (bool, error) {
+	box, _, err := freeBoxSlot(ctx, q, accountID)
+	return box == 0 && err == nil, err
+}
+
 // freeBoxSlot is SendMonToPC's search: the first empty slot from the current box on, wrapping
 // around; box 0 when every box is full.
 func freeBoxSlot(ctx context.Context, q *db.Queries, accountID int64) (box, slot int, err error) {

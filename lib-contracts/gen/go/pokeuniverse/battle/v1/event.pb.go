@@ -886,6 +886,7 @@ type BattleEvent struct {
 	//	*BattleEvent_Escaped
 	//	*BattleEvent_EscapeFailed
 	//	*BattleEvent_WildFled
+	//	*BattleEvent_BallThrown
 	Kind isBattleEvent_Kind `protobuf_oneof:"kind"`
 	// Changes the battle's state only (HP, status…): no text, animation or sound.
 	Silent        bool `protobuf:"varint,50,opt,name=silent,proto3" json:"silent,omitempty"`
@@ -1263,6 +1264,15 @@ func (x *BattleEvent) GetWildFled() *WildFled {
 	return nil
 }
 
+func (x *BattleEvent) GetBallThrown() *BallThrown {
+	if x != nil {
+		if x, ok := x.Kind.(*BattleEvent_BallThrown); ok {
+			return x.BallThrown
+		}
+	}
+	return nil
+}
+
 func (x *BattleEvent) GetSilent() bool {
 	if x != nil {
 		return x.Silent
@@ -1422,6 +1432,10 @@ type BattleEvent_WildFled struct {
 	WildFled *WildFled `protobuf:"bytes,37,opt,name=wild_fled,json=wildFled,proto3,oneof"`
 }
 
+type BattleEvent_BallThrown struct {
+	BallThrown *BallThrown `protobuf:"bytes,38,opt,name=ball_thrown,json=ballThrown,proto3,oneof"`
+}
+
 func (*BattleEvent_TurnStart) isBattleEvent_Kind() {}
 
 func (*BattleEvent_SwitchIn) isBattleEvent_Kind() {}
@@ -1495,6 +1509,8 @@ func (*BattleEvent_Escaped) isBattleEvent_Kind() {}
 func (*BattleEvent_EscapeFailed) isBattleEvent_Kind() {}
 
 func (*BattleEvent_WildFled) isBattleEvent_Kind() {}
+
+func (*BattleEvent_BallThrown) isBattleEvent_Kind() {}
 
 // A new turn begins (1, 2…).
 type TurnStart struct {
@@ -3904,6 +3920,87 @@ func (x *WildFled) GetMove() v12.Move {
 	return v12.Move(0)
 }
 
+// The reader's side threw a ball at the foe (resolved before the turn's moves, phase-7 D6).
+// Not caught: the turn goes on and the foe moves. Caught: the battle ends CAUGHT after this event.
+type BallThrown struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Ball  v14.Item               `protobuf:"varint,1,opt,name=ball,proto3,enum=pokeuniverse.item.v1.Item" json:"ball,omitempty"`
+	// The foe it was thrown at.
+	Target *Battler `protobuf:"bytes,2,opt,name=target,proto3" json:"target,omitempty"`
+	// Shake checks passed, 0-4 (Gen 4): the ball shakes min(shakes, 3) times; 4 = caught.
+	Shakes uint32 `protobuf:"varint,3,opt,name=shakes,proto3" json:"shakes,omitempty"`
+	Caught bool   `protobuf:"varint,4,opt,name=caught,proto3" json:"caught,omitempty"`
+	// A trainer's Pokémon: "The TRAINER blocked the BALL!" "Don't be a thief!" (no shake roll).
+	Blocked       bool `protobuf:"varint,5,opt,name=blocked,proto3" json:"blocked,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BallThrown) Reset() {
+	*x = BallThrown{}
+	mi := &file_pokeuniverse_battle_v1_event_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BallThrown) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BallThrown) ProtoMessage() {}
+
+func (x *BallThrown) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_event_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BallThrown.ProtoReflect.Descriptor instead.
+func (*BallThrown) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_event_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *BallThrown) GetBall() v14.Item {
+	if x != nil {
+		return x.Ball
+	}
+	return v14.Item(0)
+}
+
+func (x *BallThrown) GetTarget() *Battler {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *BallThrown) GetShakes() uint32 {
+	if x != nil {
+		return x.Shakes
+	}
+	return 0
+}
+
+func (x *BallThrown) GetCaught() bool {
+	if x != nil {
+		return x.Caught
+	}
+	return false
+}
+
+func (x *BallThrown) GetBlocked() bool {
+	if x != nil {
+		return x.Blocked
+	}
+	return false
+}
+
 var File_pokeuniverse_battle_v1_event_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_battle_v1_event_proto_rawDesc = "" +
@@ -3934,7 +4031,7 @@ const file_pokeuniverse_battle_v1_event_proto_rawDesc = "" +
 	"\x06status\x18\x04 \x01(\x0e2\x1f.pokeuniverse.pokemon.v1.StatusH\x00R\x06status\x12;\n" +
 	"\aweather\x18\x05 \x01(\x0e2\x1f.pokeuniverse.battle.v1.WeatherH\x00R\aweather\x12A\n" +
 	"\tcondition\x18\x06 \x01(\x0e2!.pokeuniverse.battle.v1.ConditionH\x00R\tconditionB\x06\n" +
-	"\x04kind\"\xe5\x13\n" +
+	"\x04kind\"\xac\x14\n" +
 	"\vBattleEvent\x12B\n" +
 	"\n" +
 	"turn_start\x18\x01 \x01(\v2!.pokeuniverse.battle.v1.TurnStartH\x00R\tturnStart\x12?\n" +
@@ -3982,7 +4079,9 @@ const file_pokeuniverse_battle_v1_event_proto_rawDesc = "" +
 	"\fmove_learned\x18\" \x01(\v2#.pokeuniverse.battle.v1.MoveLearnedH\x00R\vmoveLearned\x12;\n" +
 	"\aescaped\x18# \x01(\v2\x1f.pokeuniverse.battle.v1.EscapedH\x00R\aescaped\x12K\n" +
 	"\rescape_failed\x18$ \x01(\v2$.pokeuniverse.battle.v1.EscapeFailedH\x00R\fescapeFailed\x12?\n" +
-	"\twild_fled\x18% \x01(\v2 .pokeuniverse.battle.v1.WildFledH\x00R\bwildFled\x12\x16\n" +
+	"\twild_fled\x18% \x01(\v2 .pokeuniverse.battle.v1.WildFledH\x00R\bwildFled\x12E\n" +
+	"\vball_thrown\x18& \x01(\v2\".pokeuniverse.battle.v1.BallThrownH\x00R\n" +
+	"ballThrown\x12\x16\n" +
 	"\x06silent\x182 \x01(\bR\x06silentB\x06\n" +
 	"\x04kind\"\x1f\n" +
 	"\tTurnStart\x12\x12\n" +
@@ -4152,7 +4251,14 @@ const file_pokeuniverse_battle_v1_event_proto_rawDesc = "" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\"u\n" +
 	"\bWildFled\x129\n" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\x12.\n" +
-	"\x04move\x18\x02 \x01(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x04move*\xdb\x01\n" +
+	"\x04move\x18\x02 \x01(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x04move\"\xbf\x01\n" +
+	"\n" +
+	"BallThrown\x12.\n" +
+	"\x04ball\x18\x01 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x04ball\x127\n" +
+	"\x06target\x18\x02 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\x06target\x12\x16\n" +
+	"\x06shakes\x18\x03 \x01(\rR\x06shakes\x12\x16\n" +
+	"\x06caught\x18\x04 \x01(\bR\x06caught\x12\x18\n" +
+	"\ablocked\x18\x05 \x01(\bR\ablocked*\xdb\x01\n" +
 	"\n" +
 	"BattleStat\x12\x1b\n" +
 	"\x17BATTLE_STAT_UNSPECIFIED\x10\x00\x12\x16\n" +
@@ -4222,7 +4328,7 @@ func file_pokeuniverse_battle_v1_event_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_battle_v1_event_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_pokeuniverse_battle_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_pokeuniverse_battle_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
 var file_pokeuniverse_battle_v1_event_proto_goTypes = []any{
 	(BattleStat)(0),        // 0: pokeuniverse.battle.v1.BattleStat
 	(Weather)(0),           // 1: pokeuniverse.battle.v1.Weather
@@ -4273,25 +4379,26 @@ var file_pokeuniverse_battle_v1_event_proto_goTypes = []any{
 	(*Escaped)(nil),        // 46: pokeuniverse.battle.v1.Escaped
 	(*EscapeFailed)(nil),   // 47: pokeuniverse.battle.v1.EscapeFailed
 	(*WildFled)(nil),       // 48: pokeuniverse.battle.v1.WildFled
-	(v1.Species)(0),        // 49: pokeuniverse.species.v1.Species
-	(v11.Gender)(0),        // 50: pokeuniverse.pokemon.v1.Gender
-	(v11.Status)(0),        // 51: pokeuniverse.pokemon.v1.Status
-	(v12.Move)(0),          // 52: pokeuniverse.move.v1.Move
-	(v13.Ability)(0),       // 53: pokeuniverse.ability.v1.Ability
-	(v14.Item)(0),          // 54: pokeuniverse.item.v1.Item
-	(v1.Type)(0),           // 55: pokeuniverse.species.v1.Type
-	(*v11.Stats)(nil),      // 56: pokeuniverse.pokemon.v1.Stats
+	(*BallThrown)(nil),     // 49: pokeuniverse.battle.v1.BallThrown
+	(v1.Species)(0),        // 50: pokeuniverse.species.v1.Species
+	(v11.Gender)(0),        // 51: pokeuniverse.pokemon.v1.Gender
+	(v11.Status)(0),        // 52: pokeuniverse.pokemon.v1.Status
+	(v12.Move)(0),          // 53: pokeuniverse.move.v1.Move
+	(v13.Ability)(0),       // 54: pokeuniverse.ability.v1.Ability
+	(v14.Item)(0),          // 55: pokeuniverse.item.v1.Item
+	(v1.Type)(0),           // 56: pokeuniverse.species.v1.Type
+	(*v11.Stats)(nil),      // 57: pokeuniverse.pokemon.v1.Stats
 }
 var file_pokeuniverse_battle_v1_event_proto_depIdxs = []int32{
 	7,   // 0: pokeuniverse.battle.v1.BattlerInfo.battler:type_name -> pokeuniverse.battle.v1.Battler
-	49,  // 1: pokeuniverse.battle.v1.BattlerInfo.species:type_name -> pokeuniverse.species.v1.Species
-	50,  // 2: pokeuniverse.battle.v1.BattlerInfo.gender:type_name -> pokeuniverse.pokemon.v1.Gender
+	50,  // 1: pokeuniverse.battle.v1.BattlerInfo.species:type_name -> pokeuniverse.species.v1.Species
+	51,  // 2: pokeuniverse.battle.v1.BattlerInfo.gender:type_name -> pokeuniverse.pokemon.v1.Gender
 	8,   // 3: pokeuniverse.battle.v1.BattlerInfo.health:type_name -> pokeuniverse.battle.v1.Health
-	51,  // 4: pokeuniverse.battle.v1.BattlerInfo.status:type_name -> pokeuniverse.pokemon.v1.Status
-	52,  // 5: pokeuniverse.battle.v1.Effect.move:type_name -> pokeuniverse.move.v1.Move
-	53,  // 6: pokeuniverse.battle.v1.Effect.ability:type_name -> pokeuniverse.ability.v1.Ability
-	54,  // 7: pokeuniverse.battle.v1.Effect.item:type_name -> pokeuniverse.item.v1.Item
-	51,  // 8: pokeuniverse.battle.v1.Effect.status:type_name -> pokeuniverse.pokemon.v1.Status
+	52,  // 4: pokeuniverse.battle.v1.BattlerInfo.status:type_name -> pokeuniverse.pokemon.v1.Status
+	53,  // 5: pokeuniverse.battle.v1.Effect.move:type_name -> pokeuniverse.move.v1.Move
+	54,  // 6: pokeuniverse.battle.v1.Effect.ability:type_name -> pokeuniverse.ability.v1.Ability
+	55,  // 7: pokeuniverse.battle.v1.Effect.item:type_name -> pokeuniverse.item.v1.Item
+	52,  // 8: pokeuniverse.battle.v1.Effect.status:type_name -> pokeuniverse.pokemon.v1.Status
 	1,   // 9: pokeuniverse.battle.v1.Effect.weather:type_name -> pokeuniverse.battle.v1.Weather
 	2,   // 10: pokeuniverse.battle.v1.Effect.condition:type_name -> pokeuniverse.battle.v1.Condition
 	12,  // 11: pokeuniverse.battle.v1.BattleEvent.turn_start:type_name -> pokeuniverse.battle.v1.TurnStart
@@ -4331,119 +4438,122 @@ var file_pokeuniverse_battle_v1_event_proto_depIdxs = []int32{
 	46,  // 45: pokeuniverse.battle.v1.BattleEvent.escaped:type_name -> pokeuniverse.battle.v1.Escaped
 	47,  // 46: pokeuniverse.battle.v1.BattleEvent.escape_failed:type_name -> pokeuniverse.battle.v1.EscapeFailed
 	48,  // 47: pokeuniverse.battle.v1.BattleEvent.wild_fled:type_name -> pokeuniverse.battle.v1.WildFled
-	9,   // 48: pokeuniverse.battle.v1.SwitchIn.pokemon:type_name -> pokeuniverse.battle.v1.BattlerInfo
-	7,   // 49: pokeuniverse.battle.v1.MoveUsed.battler:type_name -> pokeuniverse.battle.v1.Battler
-	52,  // 50: pokeuniverse.battle.v1.MoveUsed.move:type_name -> pokeuniverse.move.v1.Move
-	7,   // 51: pokeuniverse.battle.v1.MoveUsed.target:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 52: pokeuniverse.battle.v1.MoveUsed.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 53: pokeuniverse.battle.v1.Prepare.battler:type_name -> pokeuniverse.battle.v1.Battler
-	52,  // 54: pokeuniverse.battle.v1.Prepare.move:type_name -> pokeuniverse.move.v1.Move
-	7,   // 55: pokeuniverse.battle.v1.Prepare.target:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 56: pokeuniverse.battle.v1.Cant.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 57: pokeuniverse.battle.v1.Cant.reason:type_name -> pokeuniverse.battle.v1.Effect
-	52,  // 58: pokeuniverse.battle.v1.Cant.move:type_name -> pokeuniverse.move.v1.Move
-	7,   // 59: pokeuniverse.battle.v1.MoveResult.battler:type_name -> pokeuniverse.battle.v1.Battler
-	3,   // 60: pokeuniverse.battle.v1.MoveResult.result:type_name -> pokeuniverse.battle.v1.HitResult
-	10,  // 61: pokeuniverse.battle.v1.MoveResult.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 62: pokeuniverse.battle.v1.HitCount.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 63: pokeuniverse.battle.v1.Fail.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 64: pokeuniverse.battle.v1.Fail.effect:type_name -> pokeuniverse.battle.v1.Effect
-	10,  // 65: pokeuniverse.battle.v1.Fail.from:type_name -> pokeuniverse.battle.v1.Effect
-	0,   // 66: pokeuniverse.battle.v1.Fail.stat:type_name -> pokeuniverse.battle.v1.BattleStat
-	7,   // 67: pokeuniverse.battle.v1.Damage.battler:type_name -> pokeuniverse.battle.v1.Battler
-	8,   // 68: pokeuniverse.battle.v1.Damage.health:type_name -> pokeuniverse.battle.v1.Health
-	10,  // 69: pokeuniverse.battle.v1.Damage.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 70: pokeuniverse.battle.v1.Damage.source:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 71: pokeuniverse.battle.v1.Heal.battler:type_name -> pokeuniverse.battle.v1.Battler
-	8,   // 72: pokeuniverse.battle.v1.Heal.health:type_name -> pokeuniverse.battle.v1.Health
-	10,  // 73: pokeuniverse.battle.v1.Heal.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 74: pokeuniverse.battle.v1.Heal.source:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 75: pokeuniverse.battle.v1.SetHealth.battler:type_name -> pokeuniverse.battle.v1.Battler
-	8,   // 76: pokeuniverse.battle.v1.SetHealth.health:type_name -> pokeuniverse.battle.v1.Health
-	10,  // 77: pokeuniverse.battle.v1.SetHealth.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 78: pokeuniverse.battle.v1.Faint.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 79: pokeuniverse.battle.v1.StatusSet.battler:type_name -> pokeuniverse.battle.v1.Battler
-	51,  // 80: pokeuniverse.battle.v1.StatusSet.status:type_name -> pokeuniverse.pokemon.v1.Status
-	10,  // 81: pokeuniverse.battle.v1.StatusSet.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 82: pokeuniverse.battle.v1.StatusSet.source:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 83: pokeuniverse.battle.v1.StatusCured.battler:type_name -> pokeuniverse.battle.v1.Battler
-	51,  // 84: pokeuniverse.battle.v1.StatusCured.status:type_name -> pokeuniverse.pokemon.v1.Status
-	10,  // 85: pokeuniverse.battle.v1.StatusCured.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 86: pokeuniverse.battle.v1.TeamCured.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 87: pokeuniverse.battle.v1.TeamCured.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 88: pokeuniverse.battle.v1.StatChange.battler:type_name -> pokeuniverse.battle.v1.Battler
-	0,   // 89: pokeuniverse.battle.v1.StatChange.stat:type_name -> pokeuniverse.battle.v1.BattleStat
-	10,  // 90: pokeuniverse.battle.v1.StatChange.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 91: pokeuniverse.battle.v1.StatSet.battler:type_name -> pokeuniverse.battle.v1.Battler
-	0,   // 92: pokeuniverse.battle.v1.StatSet.stat:type_name -> pokeuniverse.battle.v1.BattleStat
-	10,  // 93: pokeuniverse.battle.v1.StatSet.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 94: pokeuniverse.battle.v1.StatsReset.battler:type_name -> pokeuniverse.battle.v1.Battler
-	4,   // 95: pokeuniverse.battle.v1.StatsReset.kind:type_name -> pokeuniverse.battle.v1.StatsResetKind
-	10,  // 96: pokeuniverse.battle.v1.StatsReset.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 97: pokeuniverse.battle.v1.StatsCopied.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 98: pokeuniverse.battle.v1.StatsCopied.source:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 99: pokeuniverse.battle.v1.StatsCopied.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 100: pokeuniverse.battle.v1.VolatileStart.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 101: pokeuniverse.battle.v1.VolatileStart.effect:type_name -> pokeuniverse.battle.v1.Effect
-	10,  // 102: pokeuniverse.battle.v1.VolatileStart.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 103: pokeuniverse.battle.v1.VolatileStart.source:type_name -> pokeuniverse.battle.v1.Battler
-	55,  // 104: pokeuniverse.battle.v1.VolatileStart.type:type_name -> pokeuniverse.species.v1.Type
-	52,  // 105: pokeuniverse.battle.v1.VolatileStart.move:type_name -> pokeuniverse.move.v1.Move
-	7,   // 106: pokeuniverse.battle.v1.VolatileEnd.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 107: pokeuniverse.battle.v1.VolatileEnd.effect:type_name -> pokeuniverse.battle.v1.Effect
-	10,  // 108: pokeuniverse.battle.v1.VolatileEnd.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 109: pokeuniverse.battle.v1.Activate.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 110: pokeuniverse.battle.v1.Activate.effect:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 111: pokeuniverse.battle.v1.Activate.source:type_name -> pokeuniverse.battle.v1.Battler
-	52,  // 112: pokeuniverse.battle.v1.Activate.move:type_name -> pokeuniverse.move.v1.Move
-	54,  // 113: pokeuniverse.battle.v1.Activate.item:type_name -> pokeuniverse.item.v1.Item
-	1,   // 114: pokeuniverse.battle.v1.WeatherChange.weather:type_name -> pokeuniverse.battle.v1.Weather
-	5,   // 115: pokeuniverse.battle.v1.WeatherChange.phase:type_name -> pokeuniverse.battle.v1.ConditionPhase
-	10,  // 116: pokeuniverse.battle.v1.WeatherChange.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 117: pokeuniverse.battle.v1.WeatherChange.source:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 118: pokeuniverse.battle.v1.SideCondition.effect:type_name -> pokeuniverse.battle.v1.Effect
-	5,   // 119: pokeuniverse.battle.v1.SideCondition.phase:type_name -> pokeuniverse.battle.v1.ConditionPhase
-	10,  // 120: pokeuniverse.battle.v1.FieldCondition.effect:type_name -> pokeuniverse.battle.v1.Effect
-	5,   // 121: pokeuniverse.battle.v1.FieldCondition.phase:type_name -> pokeuniverse.battle.v1.ConditionPhase
-	7,   // 122: pokeuniverse.battle.v1.FieldCondition.source:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 123: pokeuniverse.battle.v1.AbilityShown.battler:type_name -> pokeuniverse.battle.v1.Battler
-	53,  // 124: pokeuniverse.battle.v1.AbilityShown.ability:type_name -> pokeuniverse.ability.v1.Ability
-	10,  // 125: pokeuniverse.battle.v1.AbilityShown.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 126: pokeuniverse.battle.v1.AbilityShown.source:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 127: pokeuniverse.battle.v1.ItemShown.battler:type_name -> pokeuniverse.battle.v1.Battler
-	54,  // 128: pokeuniverse.battle.v1.ItemShown.item:type_name -> pokeuniverse.item.v1.Item
-	10,  // 129: pokeuniverse.battle.v1.ItemShown.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 130: pokeuniverse.battle.v1.ItemShown.source:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 131: pokeuniverse.battle.v1.ItemEnded.battler:type_name -> pokeuniverse.battle.v1.Battler
-	54,  // 132: pokeuniverse.battle.v1.ItemEnded.item:type_name -> pokeuniverse.item.v1.Item
-	10,  // 133: pokeuniverse.battle.v1.ItemEnded.from:type_name -> pokeuniverse.battle.v1.Effect
-	54,  // 134: pokeuniverse.battle.v1.ItemUsed.item:type_name -> pokeuniverse.item.v1.Item
-	7,   // 135: pokeuniverse.battle.v1.ItemUsed.target:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 136: pokeuniverse.battle.v1.Transform.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 137: pokeuniverse.battle.v1.Transform.target:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 138: pokeuniverse.battle.v1.FormeChange.battler:type_name -> pokeuniverse.battle.v1.Battler
-	10,  // 139: pokeuniverse.battle.v1.FormeChange.from:type_name -> pokeuniverse.battle.v1.Effect
-	7,   // 140: pokeuniverse.battle.v1.Exp.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 141: pokeuniverse.battle.v1.LevelUp.battler:type_name -> pokeuniverse.battle.v1.Battler
-	8,   // 142: pokeuniverse.battle.v1.LevelUp.health:type_name -> pokeuniverse.battle.v1.Health
-	56,  // 143: pokeuniverse.battle.v1.LevelUp.before:type_name -> pokeuniverse.pokemon.v1.Stats
-	56,  // 144: pokeuniverse.battle.v1.LevelUp.stats:type_name -> pokeuniverse.pokemon.v1.Stats
-	7,   // 145: pokeuniverse.battle.v1.MoveLearned.battler:type_name -> pokeuniverse.battle.v1.Battler
-	52,  // 146: pokeuniverse.battle.v1.MoveLearned.move:type_name -> pokeuniverse.move.v1.Move
-	52,  // 147: pokeuniverse.battle.v1.MoveLearned.forgot:type_name -> pokeuniverse.move.v1.Move
-	6,   // 148: pokeuniverse.battle.v1.Escaped.how:type_name -> pokeuniverse.battle.v1.EscapeHow
-	54,  // 149: pokeuniverse.battle.v1.Escaped.item:type_name -> pokeuniverse.item.v1.Item
-	53,  // 150: pokeuniverse.battle.v1.Escaped.ability:type_name -> pokeuniverse.ability.v1.Ability
-	52,  // 151: pokeuniverse.battle.v1.Escaped.move:type_name -> pokeuniverse.move.v1.Move
-	7,   // 152: pokeuniverse.battle.v1.Escaped.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 153: pokeuniverse.battle.v1.EscapeFailed.battler:type_name -> pokeuniverse.battle.v1.Battler
-	7,   // 154: pokeuniverse.battle.v1.WildFled.battler:type_name -> pokeuniverse.battle.v1.Battler
-	52,  // 155: pokeuniverse.battle.v1.WildFled.move:type_name -> pokeuniverse.move.v1.Move
-	156, // [156:156] is the sub-list for method output_type
-	156, // [156:156] is the sub-list for method input_type
-	156, // [156:156] is the sub-list for extension type_name
-	156, // [156:156] is the sub-list for extension extendee
-	0,   // [0:156] is the sub-list for field type_name
+	49,  // 48: pokeuniverse.battle.v1.BattleEvent.ball_thrown:type_name -> pokeuniverse.battle.v1.BallThrown
+	9,   // 49: pokeuniverse.battle.v1.SwitchIn.pokemon:type_name -> pokeuniverse.battle.v1.BattlerInfo
+	7,   // 50: pokeuniverse.battle.v1.MoveUsed.battler:type_name -> pokeuniverse.battle.v1.Battler
+	53,  // 51: pokeuniverse.battle.v1.MoveUsed.move:type_name -> pokeuniverse.move.v1.Move
+	7,   // 52: pokeuniverse.battle.v1.MoveUsed.target:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 53: pokeuniverse.battle.v1.MoveUsed.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 54: pokeuniverse.battle.v1.Prepare.battler:type_name -> pokeuniverse.battle.v1.Battler
+	53,  // 55: pokeuniverse.battle.v1.Prepare.move:type_name -> pokeuniverse.move.v1.Move
+	7,   // 56: pokeuniverse.battle.v1.Prepare.target:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 57: pokeuniverse.battle.v1.Cant.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 58: pokeuniverse.battle.v1.Cant.reason:type_name -> pokeuniverse.battle.v1.Effect
+	53,  // 59: pokeuniverse.battle.v1.Cant.move:type_name -> pokeuniverse.move.v1.Move
+	7,   // 60: pokeuniverse.battle.v1.MoveResult.battler:type_name -> pokeuniverse.battle.v1.Battler
+	3,   // 61: pokeuniverse.battle.v1.MoveResult.result:type_name -> pokeuniverse.battle.v1.HitResult
+	10,  // 62: pokeuniverse.battle.v1.MoveResult.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 63: pokeuniverse.battle.v1.HitCount.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 64: pokeuniverse.battle.v1.Fail.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 65: pokeuniverse.battle.v1.Fail.effect:type_name -> pokeuniverse.battle.v1.Effect
+	10,  // 66: pokeuniverse.battle.v1.Fail.from:type_name -> pokeuniverse.battle.v1.Effect
+	0,   // 67: pokeuniverse.battle.v1.Fail.stat:type_name -> pokeuniverse.battle.v1.BattleStat
+	7,   // 68: pokeuniverse.battle.v1.Damage.battler:type_name -> pokeuniverse.battle.v1.Battler
+	8,   // 69: pokeuniverse.battle.v1.Damage.health:type_name -> pokeuniverse.battle.v1.Health
+	10,  // 70: pokeuniverse.battle.v1.Damage.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 71: pokeuniverse.battle.v1.Damage.source:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 72: pokeuniverse.battle.v1.Heal.battler:type_name -> pokeuniverse.battle.v1.Battler
+	8,   // 73: pokeuniverse.battle.v1.Heal.health:type_name -> pokeuniverse.battle.v1.Health
+	10,  // 74: pokeuniverse.battle.v1.Heal.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 75: pokeuniverse.battle.v1.Heal.source:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 76: pokeuniverse.battle.v1.SetHealth.battler:type_name -> pokeuniverse.battle.v1.Battler
+	8,   // 77: pokeuniverse.battle.v1.SetHealth.health:type_name -> pokeuniverse.battle.v1.Health
+	10,  // 78: pokeuniverse.battle.v1.SetHealth.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 79: pokeuniverse.battle.v1.Faint.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 80: pokeuniverse.battle.v1.StatusSet.battler:type_name -> pokeuniverse.battle.v1.Battler
+	52,  // 81: pokeuniverse.battle.v1.StatusSet.status:type_name -> pokeuniverse.pokemon.v1.Status
+	10,  // 82: pokeuniverse.battle.v1.StatusSet.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 83: pokeuniverse.battle.v1.StatusSet.source:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 84: pokeuniverse.battle.v1.StatusCured.battler:type_name -> pokeuniverse.battle.v1.Battler
+	52,  // 85: pokeuniverse.battle.v1.StatusCured.status:type_name -> pokeuniverse.pokemon.v1.Status
+	10,  // 86: pokeuniverse.battle.v1.StatusCured.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 87: pokeuniverse.battle.v1.TeamCured.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 88: pokeuniverse.battle.v1.TeamCured.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 89: pokeuniverse.battle.v1.StatChange.battler:type_name -> pokeuniverse.battle.v1.Battler
+	0,   // 90: pokeuniverse.battle.v1.StatChange.stat:type_name -> pokeuniverse.battle.v1.BattleStat
+	10,  // 91: pokeuniverse.battle.v1.StatChange.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 92: pokeuniverse.battle.v1.StatSet.battler:type_name -> pokeuniverse.battle.v1.Battler
+	0,   // 93: pokeuniverse.battle.v1.StatSet.stat:type_name -> pokeuniverse.battle.v1.BattleStat
+	10,  // 94: pokeuniverse.battle.v1.StatSet.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 95: pokeuniverse.battle.v1.StatsReset.battler:type_name -> pokeuniverse.battle.v1.Battler
+	4,   // 96: pokeuniverse.battle.v1.StatsReset.kind:type_name -> pokeuniverse.battle.v1.StatsResetKind
+	10,  // 97: pokeuniverse.battle.v1.StatsReset.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 98: pokeuniverse.battle.v1.StatsCopied.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 99: pokeuniverse.battle.v1.StatsCopied.source:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 100: pokeuniverse.battle.v1.StatsCopied.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 101: pokeuniverse.battle.v1.VolatileStart.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 102: pokeuniverse.battle.v1.VolatileStart.effect:type_name -> pokeuniverse.battle.v1.Effect
+	10,  // 103: pokeuniverse.battle.v1.VolatileStart.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 104: pokeuniverse.battle.v1.VolatileStart.source:type_name -> pokeuniverse.battle.v1.Battler
+	56,  // 105: pokeuniverse.battle.v1.VolatileStart.type:type_name -> pokeuniverse.species.v1.Type
+	53,  // 106: pokeuniverse.battle.v1.VolatileStart.move:type_name -> pokeuniverse.move.v1.Move
+	7,   // 107: pokeuniverse.battle.v1.VolatileEnd.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 108: pokeuniverse.battle.v1.VolatileEnd.effect:type_name -> pokeuniverse.battle.v1.Effect
+	10,  // 109: pokeuniverse.battle.v1.VolatileEnd.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 110: pokeuniverse.battle.v1.Activate.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 111: pokeuniverse.battle.v1.Activate.effect:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 112: pokeuniverse.battle.v1.Activate.source:type_name -> pokeuniverse.battle.v1.Battler
+	53,  // 113: pokeuniverse.battle.v1.Activate.move:type_name -> pokeuniverse.move.v1.Move
+	55,  // 114: pokeuniverse.battle.v1.Activate.item:type_name -> pokeuniverse.item.v1.Item
+	1,   // 115: pokeuniverse.battle.v1.WeatherChange.weather:type_name -> pokeuniverse.battle.v1.Weather
+	5,   // 116: pokeuniverse.battle.v1.WeatherChange.phase:type_name -> pokeuniverse.battle.v1.ConditionPhase
+	10,  // 117: pokeuniverse.battle.v1.WeatherChange.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 118: pokeuniverse.battle.v1.WeatherChange.source:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 119: pokeuniverse.battle.v1.SideCondition.effect:type_name -> pokeuniverse.battle.v1.Effect
+	5,   // 120: pokeuniverse.battle.v1.SideCondition.phase:type_name -> pokeuniverse.battle.v1.ConditionPhase
+	10,  // 121: pokeuniverse.battle.v1.FieldCondition.effect:type_name -> pokeuniverse.battle.v1.Effect
+	5,   // 122: pokeuniverse.battle.v1.FieldCondition.phase:type_name -> pokeuniverse.battle.v1.ConditionPhase
+	7,   // 123: pokeuniverse.battle.v1.FieldCondition.source:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 124: pokeuniverse.battle.v1.AbilityShown.battler:type_name -> pokeuniverse.battle.v1.Battler
+	54,  // 125: pokeuniverse.battle.v1.AbilityShown.ability:type_name -> pokeuniverse.ability.v1.Ability
+	10,  // 126: pokeuniverse.battle.v1.AbilityShown.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 127: pokeuniverse.battle.v1.AbilityShown.source:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 128: pokeuniverse.battle.v1.ItemShown.battler:type_name -> pokeuniverse.battle.v1.Battler
+	55,  // 129: pokeuniverse.battle.v1.ItemShown.item:type_name -> pokeuniverse.item.v1.Item
+	10,  // 130: pokeuniverse.battle.v1.ItemShown.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 131: pokeuniverse.battle.v1.ItemShown.source:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 132: pokeuniverse.battle.v1.ItemEnded.battler:type_name -> pokeuniverse.battle.v1.Battler
+	55,  // 133: pokeuniverse.battle.v1.ItemEnded.item:type_name -> pokeuniverse.item.v1.Item
+	10,  // 134: pokeuniverse.battle.v1.ItemEnded.from:type_name -> pokeuniverse.battle.v1.Effect
+	55,  // 135: pokeuniverse.battle.v1.ItemUsed.item:type_name -> pokeuniverse.item.v1.Item
+	7,   // 136: pokeuniverse.battle.v1.ItemUsed.target:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 137: pokeuniverse.battle.v1.Transform.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 138: pokeuniverse.battle.v1.Transform.target:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 139: pokeuniverse.battle.v1.FormeChange.battler:type_name -> pokeuniverse.battle.v1.Battler
+	10,  // 140: pokeuniverse.battle.v1.FormeChange.from:type_name -> pokeuniverse.battle.v1.Effect
+	7,   // 141: pokeuniverse.battle.v1.Exp.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 142: pokeuniverse.battle.v1.LevelUp.battler:type_name -> pokeuniverse.battle.v1.Battler
+	8,   // 143: pokeuniverse.battle.v1.LevelUp.health:type_name -> pokeuniverse.battle.v1.Health
+	57,  // 144: pokeuniverse.battle.v1.LevelUp.before:type_name -> pokeuniverse.pokemon.v1.Stats
+	57,  // 145: pokeuniverse.battle.v1.LevelUp.stats:type_name -> pokeuniverse.pokemon.v1.Stats
+	7,   // 146: pokeuniverse.battle.v1.MoveLearned.battler:type_name -> pokeuniverse.battle.v1.Battler
+	53,  // 147: pokeuniverse.battle.v1.MoveLearned.move:type_name -> pokeuniverse.move.v1.Move
+	53,  // 148: pokeuniverse.battle.v1.MoveLearned.forgot:type_name -> pokeuniverse.move.v1.Move
+	6,   // 149: pokeuniverse.battle.v1.Escaped.how:type_name -> pokeuniverse.battle.v1.EscapeHow
+	55,  // 150: pokeuniverse.battle.v1.Escaped.item:type_name -> pokeuniverse.item.v1.Item
+	54,  // 151: pokeuniverse.battle.v1.Escaped.ability:type_name -> pokeuniverse.ability.v1.Ability
+	53,  // 152: pokeuniverse.battle.v1.Escaped.move:type_name -> pokeuniverse.move.v1.Move
+	7,   // 153: pokeuniverse.battle.v1.Escaped.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 154: pokeuniverse.battle.v1.EscapeFailed.battler:type_name -> pokeuniverse.battle.v1.Battler
+	7,   // 155: pokeuniverse.battle.v1.WildFled.battler:type_name -> pokeuniverse.battle.v1.Battler
+	53,  // 156: pokeuniverse.battle.v1.WildFled.move:type_name -> pokeuniverse.move.v1.Move
+	55,  // 157: pokeuniverse.battle.v1.BallThrown.ball:type_name -> pokeuniverse.item.v1.Item
+	7,   // 158: pokeuniverse.battle.v1.BallThrown.target:type_name -> pokeuniverse.battle.v1.Battler
+	159, // [159:159] is the sub-list for method output_type
+	159, // [159:159] is the sub-list for method input_type
+	159, // [159:159] is the sub-list for extension type_name
+	159, // [159:159] is the sub-list for extension extendee
+	0,   // [0:159] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_event_proto_init() }
@@ -4497,6 +4607,7 @@ func file_pokeuniverse_battle_v1_event_proto_init() {
 		(*BattleEvent_Escaped)(nil),
 		(*BattleEvent_EscapeFailed)(nil),
 		(*BattleEvent_WildFled)(nil),
+		(*BattleEvent_BallThrown)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -4504,7 +4615,7 @@ func file_pokeuniverse_battle_v1_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_battle_v1_event_proto_rawDesc), len(file_pokeuniverse_battle_v1_event_proto_rawDesc)),
 			NumEnums:      7,
-			NumMessages:   42,
+			NumMessages:   43,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -11,12 +11,13 @@ import { EscapeHow } from "@pokeuniverse/contracts/battle/v1/event";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { pokemonAt, type Pokemon } from "./battle.ts";
 import { itemNumber, moveNumber } from "./lookup.ts";
+import { registerCatch } from "./catch.ts";
 
 const ORDER = 101;
 
 /** Our state beside Showdown's (saved in the battle's meta): RUN tries (BattleTryRun's
  *  runAttempts), who left, Pay Day's coins (the player's side only, as FireRed). */
-export type Extras = { runTries: number; left?: { side: number; how: EscapeHow }; payDay: number };
+export type Extras = { runTries: number; left?: { side: number; how: EscapeHow }; payDay: number; caught?: { slot: number; ball: number } };
 
 export const newExtras = (): Extras => ({ runTries: 0, payDay: 0 });
 
@@ -72,6 +73,7 @@ const NO_STEALING = new Set(["thief", "covet", "trick", "switcheroo"]);
 
 /** Runs on every created or restored battle: listeners aren't part of the saved state. */
 export function registerExtras(battle: Battle, start: StartBattle, extras: Extras): void {
+  registerCatch(battle, start, extras);
   battle.onEvent("Run", battle.format, (user: Pokemon) => {
     const run = user.m.run as { item: number } | undefined;
     if (!run) return;

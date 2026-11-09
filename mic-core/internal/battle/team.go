@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	battlev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1"
+	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	partyv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
 	"pokeuniverse/mic-core/internal/pokemon"
 )
@@ -79,4 +80,25 @@ func NewID() string {
 func uuid(id string) (pgtype.UUID, error) {
 	var u pgtype.UUID
 	return u, u.Scan(id)
+}
+
+// Caught is the wild Pokémon of the start's side 1, slot `slot`, as it is saved after a catch
+// (Gen 4: it keeps its battle state, phase-7 D9; MonSetCatchData's caught data).
+func Caught(start *battlev1.StartBattle, slot int, out *battlev1.MonOutcome, ball itemv1.Item, ot pokemon.Trainer, mapID string) *pokemon.Pokemon {
+	m := start.GetSides()[1].GetPokemon()[slot]
+	info, _ := pokemon.SpeciesInfo(m.GetSpecies())
+	p := &pokemon.Pokemon{
+		Species: m.GetSpecies(), Level: int(m.GetLevel()), Exp: int(m.GetExp()), Personality: m.GetPersonality(),
+		IVs: pokemon.StatsFrom(m.GetIvs()), EVs: pokemon.StatsFrom(m.GetEvs()), AbilitySlot: pokemon.AbilitySlotOf(m.GetPersonality()),
+		HeldItem: out.GetHeldItem(), HP: int(out.GetHp()), Status: out.GetStatus(),
+		Friendship: int(info.GetBaseFriendship()), Ball: ball, OT: ot, MetLevel: int(m.GetLevel()), MetMap: mapID,
+	}
+	for i, mv := range m.GetMoves() {
+		pp := int(mv.GetPp())
+		if i < len(out.GetPp()) {
+			pp = int(out.GetPp()[i])
+		}
+		p.Moves = append(p.Moves, pokemon.Move{ID: mv.GetMove(), PP: pp})
+	}
+	return p
 }

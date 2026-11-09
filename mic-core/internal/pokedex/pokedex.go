@@ -90,6 +90,12 @@ func (p Pokedex) Catch(species ...speciesv1.Species) Pokedex {
 	return p.See(species...)
 }
 
+// HasCaught is whether this species is caught (Repeat Ball, a new Pokédex entry).
+func (p Pokedex) HasCaught(species speciesv1.Species) bool {
+	i := int(species) - 1
+	return species >= 1 && int(species) <= NationalCount && i/8 < len(p.Caught) && p.Caught[i/8]&(1<<(i%8)) != 0
+}
+
 // Same is whether both have the same species seen and caught.
 func (p Pokedex) Same(o Pokedex) bool {
 	return bytes.Equal(p.Seen, o.Seen) && bytes.Equal(p.Caught, o.Caught)

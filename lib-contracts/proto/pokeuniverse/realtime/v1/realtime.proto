@@ -53,6 +53,7 @@ message ClientMessage {
     pokeuniverse.party.v1.MoveHeldItem move_held_item = 34;
     pokeuniverse.party.v1.StoreHeldItem store_held_item = 35;
     pokeuniverse.party.v1.GiveHeldItem give_held_item = 36;
+    pokeuniverse.party.v1.NameCaughtPokemon name_caught_pokemon = 37;
   }
 }
 
