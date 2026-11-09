@@ -540,4 +540,5 @@ enum Item {
   ITEM_ROWAP_BERRY = 470 [(info) = {pocket: POCKET_BERRY_POUCH, price: 20, field_use: FIELD_USE_NOT_NOW}];
   ITEM_LUCK_INCENSE = 471 [(info) = {pocket: POCKET_ITEMS, price: 9600, field_use: FIELD_USE_NOT_NOW}];
   ITEM_PURE_INCENSE = 472 [(info) = {pocket: POCKET_ITEMS, price: 9600, field_use: FIELD_USE_NOT_NOW}];
+  ITEM_HONEY = 473 [(info) = {pocket: POCKET_ITEMS, price: 100, field_use: FIELD_USE_NOT_NOW}];
 }

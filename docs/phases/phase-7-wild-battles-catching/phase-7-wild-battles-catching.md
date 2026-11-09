@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** start [M2](milestones/m02-wild-pokemon.md) at its Resume Here; read only that file, then the [context.md](milestones/context.md) sections it names. M1 done 2026-11-09 (wild held items are Gen 4's HGSS table, D5). The open items aimed at this phase are O4, O5 and O11 in the [phase index](../index.md#open-items).
+**Next step:** start [M2](milestones/m02-wild-pokemon.md) at its Resume Here; read only that file, then the [context.md](milestones/context.md) sections it names. M1 done 2026-11-09 (wild held items are Gen 4's HGSS table, D5). The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 

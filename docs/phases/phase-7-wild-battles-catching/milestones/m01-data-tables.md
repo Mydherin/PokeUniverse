@@ -6,7 +6,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** nothing. Rule
 
 ## Resume Here
 
-**Done** (2026-11-09). Next: [M2](m02-wild-pokemon.md). One question left for the user, tracked as O11 in the [phase index](../../index.md#open-items): Combee's wild item is Honey (100%), which the item catalog doesn't have, so Combee holds nothing until they say whether to add it. If yes: add `ITEM_HONEY` to `item/v1/catalog.proto` (number it as the other Gen 4 items in the catalog are numbered; check before choosing), then put `item_common: N, item_rare: N` into Combee (415) with a one-line edit, and run `make contracts`.
+**Done** (2026-11-09). Next: [M2](m02-wild-pokemon.md).
 
 ## Tasks
 
@@ -18,7 +18,7 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** nothing. Rule
 
 ### Catalog data
 
-- [x] Wild held items, Gen 4's table for 1-493 (user, 2026-11-09, option A): `infra/pokemon/wild-items.mjs` reads `references/pokeheartgold/files/poketool/personal/personal.json` (`baseStats[n].items` = [common, rare]; index = National number), maps Gen 4's old spellings (`SILVERPOWDER`, `TINYMUSHROOM`, `DEEPSEASCALE`, ...) to our names, writes `item_common: N, item_rare: N` before each species' `}];`. Run once: 199 species got items; left out only Combee's `HONEY` (O11). Spot-checked: Snorlax Leftovers/Leftovers, Chansey Oval Stone/Lucky Egg, Pikachu Oran Berry/Light Ball, Mothim rare Silver Powder, Starly rare Yache Berry. **Why not FireRed + the expansion:** they're Gen 3's and later gens' items (157 species differ); wild items are a Gen 4 rule (D5). AGENTS.md, tech-stack.md and D5 allow this one pokeheartgold data conversion. `DRY=1` prints without writing; never run it again (it appends).
+- [x] Wild held items, Gen 4's table for 1-493 (user, 2026-11-09, option A): `infra/pokemon/wild-items.mjs` reads `references/pokeheartgold/files/poketool/personal/personal.json` (`baseStats[n].items` = [common, rare]; index = National number), maps Gen 4's old spellings (`SILVERPOWDER`, `TINYMUSHROOM`, `DEEPSEASCALE`, ...) to our names, writes `item_common: N, item_rare: N` before each species' `}];`. Run once: 199 species got items; left out only Combee's `HONEY`, then added by hand (user, 2026-11-09): `ITEM_HONEY = 473` (after FireRed's and Gen 4's items; ITEMS, price 100 as Gen 4, `FIELD_USE_NOT_NOW` as in DPPt away from Honey trees), `473: "honey"` in `mic-battles/src/engine/ids.ts` (Showdown has no Honey; it's held with no effect), Combee `item_common: 473, item_rare: 473`. `make text` and `make graphics` pick up its name, description and icon from the expansion. Spot-checked: Snorlax Leftovers/Leftovers, Chansey Oval Stone/Lucky Egg, Pikachu Oran Berry/Light Ball, Mothim rare Silver Powder, Starly rare Yache Berry. **Why not FireRed + the expansion:** they're Gen 3's and later gens' items (157 species differ); wild items are a Gen 4 rule (D5). AGENTS.md, tech-stack.md and D5 allow this one pokeheartgold data conversion. `DRY=1` prints without writing; never run it again (it appends).
 
 ### Maps (`tool-maps`, `lib-maps`, [maps.md](../../../maps.md))
 

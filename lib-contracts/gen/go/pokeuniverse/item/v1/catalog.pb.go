@@ -692,6 +692,7 @@ const (
 	Item_ITEM_ROWAP_BERRY    Item = 470
 	Item_ITEM_LUCK_INCENSE   Item = 471
 	Item_ITEM_PURE_INCENSE   Item = 472
+	Item_ITEM_HONEY          Item = 473
 )
 
 // Enum value maps for Item.
@@ -1103,6 +1104,7 @@ var (
 		470: "ITEM_ROWAP_BERRY",
 		471: "ITEM_LUCK_INCENSE",
 		472: "ITEM_PURE_INCENSE",
+		473: "ITEM_HONEY",
 	}
 	Item_value = map[string]int32{
 		"ITEM_UNSPECIFIED":    0,
@@ -1511,6 +1513,7 @@ var (
 		"ITEM_ROWAP_BERRY":    470,
 		"ITEM_LUCK_INCENSE":   471,
 		"ITEM_PURE_INCENSE":   472,
+		"ITEM_HONEY":          473,
 	}
 )
 
@@ -1925,7 +1928,7 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x10BATTLE_USE_PARTY\x10\x01\x12\x13\n" +
 	"\x0fBATTLE_USE_MOVE\x10\x02\x12\x13\n" +
 	"\x0fBATTLE_USE_SELF\x10\x03\x12\x13\n" +
-	"\x0fBATTLE_USE_BALL\x10\x04*\x90u\n" +
+	"\x0fBATTLE_USE_BALL\x10\x04*\xadu\n" +
 	"\x04Item\x12\x14\n" +
 	"\x10ITEM_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x10ITEM_MASTER_BALL\x10\x01\x1a\b\x82\xb5\x18\x04\b\x03H\x04\x12 \n" +
@@ -2512,7 +2515,10 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x10ITEM_ROWAP_BERRY\x10\xd6\x03\x1a\n" +
 	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12#\n" +
 	"\x11ITEM_LUCK_INCENSE\x10\xd7\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
-	"\x11ITEM_PURE_INCENSE\x10\xd8\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01:W\n" +
+	"\x11ITEM_PURE_INCENSE\x10\xd8\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12\x1b\n" +
+	"\n" +
+	"ITEM_HONEY\x10\xd9\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10d(\x01:W\n" +
 	"\x04info\x12!.google.protobuf.EnumValueOptions\x18І\x03 \x01(\v2\x1e.pokeuniverse.item.v1.ItemInfoR\x04infoB?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
 
 var (

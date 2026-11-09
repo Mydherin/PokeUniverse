@@ -4233,7 +4233,8 @@ enum Species {
     catch_rate: 120, base_exp: 63, ev_yield: {speed: 1}, base_friendship: 70,
     level_moves: [{level: 1, move: 16}, {level: 1, move: 230}, {level: 13, move: 450}],
     evolutions: [{method: EVOLUTION_METHOD_LEVEL, species: 416, level: 21, gender: GENDER_FEMALE}],
-    tutor_moves: [81, 129, 173, 189, 283, 314, 366, 450, 466]
+    tutor_moves: [81, 129, 173, 189, 283, 314, 366, 450, 466],
+    item_common: 473, item_rare: 473
   }];
   SPECIES_VESPIQUEN = 416 [(info) = {
     type1: TYPE_BUG, type2: TYPE_FLYING, height: 12, weight: 385,

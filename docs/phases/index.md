@@ -25,7 +25,7 @@ Current state of **every phase** of the project and everything still open, in on
 | 4 | [Player's Room](phase-4-players-room.md) | ✅ | Moved: O1, O2 | Walk in your room, server-authoritative; START menu and PC like FireRed; maps edited as text |
 | 5 | [Battle System](phase-5-battle-system/phase-5-battle-system.md) | ✅ | O3 (user); moved: O4 | A Gen 4 battle against a test trainer plays to the end like FireRed ([milestones](phase-5-battle-system/phase-5-battle-system.md#milestones)) |
 | 6 | [Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md) | ✅ | Moved: O4-O8 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you ([milestones](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones)) |
-| 7 | [Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) | 🚧 M2 next | O4, O5, O11 | Wild battles and catching work, on a test grass patch ([milestones](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones)) |
+| 7 | [Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) | 🚧 M2 next | O4, O5 | Wild battles and catching work, on a test grass patch ([milestones](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones)) |
 | 8 | [Multiplayer World](phase-8-multiplayer-world.md) | ⬜ | O7 | Many players move together smoothly, with chat |
 | 9 | [Social](phase-9-social.md) | ⬜ | | Players use the social menus, trade and battle each other |
 | 10 | [Pallet Town](phase-10-pallet-town.md) | ⬜ | O1, O6, O9 | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
@@ -49,4 +49,3 @@ Everything a phase left open, reopened or handed to another phase. An item leave
 | O8 | Field moves on the map; the follower with sight trainers and walking NPCs | 6 | 12 | [Phase 6](phase-6-pokemon-party/phase-6-pokemon-party.md#scope-outside-this-phase) |
 | O9 | Remove the test content: test team, room trainer, test grass patch | 5, 7 | 10 | [Phase 10](phase-10-pallet-town.md) |
 | O10 | Real encounter tables, Surf, Rock Smash and rod encounters, Safari Zone, roamers, `FLAG_SYS_NOT_SOMEONES_PC` | 7 | 12 | [Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#scope) |
-| O11 | Honey for Combee's wild held item: add the item? (user to answer) | 7 | 7 | [M1](phase-7-wild-battles-catching/milestones/m01-data-tables.md#resume-here) |

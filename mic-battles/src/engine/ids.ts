@@ -1538,4 +1538,5 @@ export const ITEMS: Readonly<Record<number, string>> = {
   470: "rowapberry",
   471: "luckincense",
   472: "pureincense",
+  473: "honey",
 };
