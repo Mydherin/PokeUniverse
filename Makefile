@@ -33,7 +33,7 @@ FIRERED_GFX_FILES := weather/fog_horizontal.png fonts/latin_normal.png fonts/lat
 	interface/menu_info.png interface/pokemon_types.pal interface/dex_caught_pokeball.pal \
 	misc/option_menu.pal misc/markings2.png misc/mon_markings.png \
 	$(foreach t,grass longgrass sand underwater water pond mountain cave building,$(addprefix battle_terrain/$(t)/,terrain.png terrain.bin terrain.pal anim.png anim.bin)) \
-	battle_terrain/indoor/plain.pal interface/text_pp.pal \
+	battle_terrain/indoor/plain.pal interface/text_pp.pal battle_transitions/grid_square.png battle_transitions/sliding_pokeball.pal \
 	trainers/front_pics/cool_trainer_m_front_pic.png trainers/palettes/cool_trainer_m.pal \
 	trainers/back_pics/red_back_pic.png trainers/back_pics/leaf_back_pic.png trainers/palettes/red_back_pic.pal trainers/palettes/leaf_back_pic.pal
 # The expansion's Gen 4 art FireRed has no slot for (phase-5 D10), under graphics/expansion/.

@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** continue [M6](milestones/m06-wild-battle-screen.md) (in progress; M7 needs it): read only its Resume Here. M1-M5 done 2026-11-09. The open item aimed at this phase is O4 in the [phase index](../index.md#open-items) (O5, catching into the boxes, done in M5).
+**Next step:** continue [M6](milestones/m06-wild-battle-screen.md) (code written, not played; next: `make audio`, build, Play It; M7 needs it): read only its Resume Here. M1-M5 done 2026-11-09. The open item aimed at this phase is O4 in the [phase index](../index.md#open-items) (O5, catching into the boxes, done in M5).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 

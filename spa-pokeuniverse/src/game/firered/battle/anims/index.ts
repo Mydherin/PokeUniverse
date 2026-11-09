@@ -58,6 +58,11 @@ function ownProgram(move: Move): AnimProgram | null {
   return null;
 }
 
+/** A tag's art files (ANIM_TAG_*), once the scripts are loaded. */
+export function animTagArt(tag: string): AnimArtFiles | null {
+  return games?.firered.art.tags[tag] ?? null;
+}
+
 /** A general, status or special animation of FireRed's (B_ANIM_*), if it can play. */
 export function generalAnimation(name: string): AnimProgram | null {
   if (!games) return null;

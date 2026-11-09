@@ -24,6 +24,7 @@ const GFX = {
   hpRed: 56,
   hpLeftBorder: 65,
   partyBall: 66,
+  ballCaught: 70,
 } as const;
 
 /** The status icons' first tile, by battler ID. */
@@ -99,6 +100,8 @@ export interface HealthboxMon {
   hp: number;
   maxHp: number;
   status: Status;
+  /** A wild foe whose species is caught: the ball by its HP bar (TryAddPokeballIconToHealthbox). */
+  caught?: boolean;
   /** The player's only: experience into the level, out of the level's span (0 of 0 at Lv. 100). */
   exp?: [number, number];
 }
@@ -183,6 +186,8 @@ export class Healthbox {
   private readonly main: Sprite;
   private readonly other: Sprite;
   private readonly bar: Sprite;
+  /** The foe's 8×8 piece left of its bar (tile 8 of the bar's sheet): the caught ball. */
+  private readonly ball: Sprite | null;
   private readonly window = new Window(new Background(), { left: 0, top: 0, width: 8, height: 2, palette: 0, baseBlock: 0 });
   private mon: HealthboxMon | null = null;
   private readonly tags: string[];
@@ -203,11 +208,13 @@ export class Healthbox {
     this.detailed = !foe && !doubles;
     const sheetTag = `healthbox${this.battler}`;
     const barTag = `healthbar${this.battler}`;
-    this.tags = [sheetTag, barTag];
+    const ballTag = `healthball${this.battler}`;
+    this.tags = [sheetTag, barTag, ballTag];
     this.sheet = new Uint8Array(assets.get(layout.image).tiles);
-    this.barSheet = new Uint8Array(8 * 64);
+    this.barSheet = new Uint8Array(9 * 64);
     gba.sprites.loadSheet(sheetTag, this.sheet);
-    gba.sprites.loadSheet(barTag, this.barSheet);
+    gba.sprites.loadSheet(barTag, this.barSheet.subarray(0, 8 * 64));
+    gba.sprites.loadSheet(ballTag, this.barSheet.subarray(8 * 64));
     gba.palettes.loadSpritePalette("healthbox", assets.get("healthboxPal").palette);
     gba.palettes.loadSpritePalette("healthbar", assets.get("healthbarPal").palette);
     const box = (image: number): SpriteTemplate => ({ sheet: sheetTag, palette: "healthbox", width: 64, height: layout.height, priority: 1, anims: [[{ image, duration: 0 }, "end"]] });
@@ -217,17 +224,19 @@ export class Healthbox {
     this.main = gba.sprites.create(box(0), layout.x, boxY, 1)!;
     this.other = gba.sprites.create(box(layout.other), layout.x + 64, boxY, 1)!;
     this.bar = gba.sprites.create({ sheet: barTag, palette: "healthbar", width: 64, height: 8, priority: 1 }, layout.x + layout.barDx + 32, layout.y + 4, 0)!;
+    // sHealthBar_Subsprites_Opponent: 16 pixels left of the bar.
+    this.ball = foe ? gba.sprites.create({ sheet: ballTag, palette: "healthbar", width: 8, height: 8, priority: 1 }, layout.x + layout.barDx - 12, layout.y + 4, 0) : null;
     this.copyElement(GFX.hpText, this.barSheet, 0, 2);
     this.visible = false;
   }
 
   set visible(on: boolean) {
-    for (const s of [this.main, this.other, this.bar]) s.invisible = !on;
+    for (const s of [this.main, this.other, this.bar, ...(this.ball ? [this.ball] : [])]) s.invisible = !on;
   }
 
   /** Slides the box (the sprites' x2), as the slide-in and the hit shake do. */
   set offset(x2: number) {
-    for (const s of [this.main, this.other, this.bar]) s.x2 = x2;
+    for (const s of [this.main, this.other, this.bar, ...(this.ball ? [this.ball] : [])]) s.x2 = x2;
   }
 
   get offset(): number {
@@ -235,7 +244,7 @@ export class Healthbox {
   }
 
   set offsetY(y2: number) {
-    for (const s of [this.main, this.other, this.bar]) s.y2 = y2;
+    for (const s of [this.main, this.other, this.bar, ...(this.ball ? [this.ball] : [])]) s.y2 = y2;
   }
 
   /** The shown HP. */
@@ -345,7 +354,7 @@ export class Healthbox {
 
   destroy(): void {
     const { gba } = this.flow;
-    for (const s of [this.main, this.other, this.bar]) gba.sprites.destroy(s);
+    for (const s of [this.main, this.other, this.bar, ...(this.ball ? [this.ball] : [])]) gba.sprites.destroy(s);
     for (const t of this.tags) gba.sprites.freeSheet(t);
   }
 
@@ -392,8 +401,10 @@ export class Healthbox {
     if (!gfx) {
       for (let i = 0; i < 3; i++) this.copyElement(GFX.statusNone, this.sheet, at + i, 1);
       this.copyElement(GFX.hpText, this.barSheet, 0, 2);
+      if (this.mon!.caught) this.copyElement(GFX.ballCaught, this.barSheet, 8, 1);
       return;
     }
+    if (this.mon!.caught) this.copyElement(GFX.transparent, this.barSheet, 8, 1);
     const { palettes } = this.flow.gba;
     palettes.load([STATUS_COLORS[status]!], 256 + palettes.spritePaletteSlot("healthbox") * 16 + 12 + battler, 1);
     this.copyElement(gfx[battler], this.sheet, at, 3);

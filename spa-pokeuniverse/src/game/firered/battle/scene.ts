@@ -10,7 +10,7 @@ import type { IndexedImage } from "../../gba/assets";
 import { Button } from "../../gba/input";
 import type { Sprite, SpriteTemplate } from "../../gba/sprites";
 import { FontId, Window, type Text, type WindowTemplate } from "../../gba/text";
-import { Layer, rgb, RGB_BLACK, type Background } from "../../gba/video";
+import { Effect, Layer, rgb, RGB_BLACK, type Background } from "../../gba/video";
 import type { BattleState } from "../../battle/state";
 import { initBg } from "../common";
 import type { Flow } from "../flow";
@@ -215,6 +215,69 @@ export class BattleScene {
   /** The terrain's entry art (LoadBattleTerrainEntryGfx: the grass, sand or waves the intro slides in on BG1). */
   terrainEntry(): Graphic {
     return this.flow.assets.get(`battleTerrainEntry_${TERRAIN_ART[this.terrainId] ?? "building"}`);
+  }
+
+  /**
+   * The intro's entry art on BG1 (LoadBattleTerrainEntryGfx) and how it moves, by
+   * sBattleIntroSlideFuncs: `step` once a frame, `moving` once the 32 frames after the band's
+   * first opening are over; `end` clears it with the slide.
+   */
+  entrySlide(): { step(moving: boolean): void; end(): void } {
+    const { video } = this.flow.gba;
+    const bg1 = video.bgs[1];
+    const art = this.terrainEntry();
+    initBg(bg1, 2, 0);
+    bg1.tiles = art.tiles;
+    if (art.map) bg1.map.set(art.map.subarray(0, Math.min(art.map.length, bg1.map.length)));
+    bg1.visible = true;
+    const t = this.terrainId;
+    const slide = t === 2 || t === 3 || t === 4 ? 2 : t === TERRAIN_BUILDING || t === TERRAIN_PLAIN ? 3 : 1;
+    const dx = slide === 1 || t === 3 ? 6 : 8;
+    let x = 0;
+    let y = 0;
+    let degrees = 0;
+    // BLDALPHA: EVA | EVB << 8.
+    let alpha = slide === 3 ? 8 | (8 << 8) : 16;
+    let wait = 1;
+    let blending = slide === 3;
+    const blend = () => {
+      video.effect = blending ? Effect.Blend : Effect.None;
+      video.target1 = Layer.BG1;
+      video.target2 = Layer.BG3 | Layer.OBJ;
+      video.eva = alpha & 0x1f;
+      video.evb = alpha >> 8;
+    };
+    blend();
+    return {
+      step(moving: boolean) {
+        x += dx;
+        if (slide === 1 && moving) y = Math.max(t === 1 ? -80 : -56, y - (t === 1 ? 2 : 1));
+        if (slide === 2 && t === 4) {
+          y = Math.trunc(Math.round(Math.cos((degrees * Math.PI) / 180) * 4096) / 512) - 8;
+          degrees += degrees < 180 ? 4 : 6;
+          if (degrees === 360) degrees = 0;
+        }
+        if (moving) {
+          blending = true;
+          // Slide2 fades the art out a step every 4 frames, Slide3 every 6.
+          if ((alpha & (slide === 2 ? 0x1f : 0xf)) && --wait === 0) {
+            alpha += 0xff;
+            wait = slide === 2 ? 4 : 6;
+          }
+        }
+        if (slide === 1) blending = false;
+        bg1.x = x * 256;
+        bg1.y = y * 256;
+        blend();
+      },
+      end() {
+        bg1.visible = false;
+        bg1.map.fill(0);
+        bg1.x = bg1.y = 0;
+        video.effect = Effect.None;
+        video.eva = video.evb = 0;
+      },
+    };
   }
 
   /** gBattle_BG3_X / Y: the terrain's (or a move background's) scroll, in pixels. */

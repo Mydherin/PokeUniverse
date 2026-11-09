@@ -47,4 +47,6 @@ export interface WorldView {
   setCamera(x: number, y: number): void;
   /** Fades toward `color` (BGR555) by y/16, as a palette fade does. */
   setFade(y: number, color: number): void;
+  /** The screen as drawn now, 240×160 in BGR555 (what a battle transition distorts). */
+  snapshot(): Promise<Uint16Array>;
 }

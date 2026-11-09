@@ -36,7 +36,7 @@ import type { IndexedImage } from "../../gba/assets";
 import { Button } from "../../gba/input";
 import { PALETTES_ALL } from "../../gba/palette";
 import { decimalText, NumberMode, type Text } from "../../gba/text";
-import { RGB_BLACK } from "../../gba/video";
+import { rgb, RGB_BLACK } from "../../gba/video";
 import { BattleState } from "../../battle/state";
 import { PartyState } from "../../world/party";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "../bag";
@@ -62,6 +62,8 @@ export interface BattleHost {
   readonly playerName: Text;
   readonly gender: Gender;
   readonly nationalDex: boolean;
+  /** Whether the Pokédex has the species caught (the wild foe's healthbox shows a ball). */
+  caught(species: number): boolean;
   /** The bag BAG opens (items are only chosen there; the battle uses them). */
   readonly bag: BagHost;
   /** The choice for the request with this step (BattleChoice); `partner`: the second position's, in doubles. */
@@ -173,49 +175,88 @@ export class BattleScreen implements PlaybackHost {
   }
 
   /**
-   * The transition on the field, then the intro: BattleIntroSlide3 (the black band opens, the
-   * terrain's halves and the trainers slide in), the party balls, "<CLASS> <NAME> would like to
-   * battle!", and the send-outs.
+   * The transition on the field, then the intro (HandleIntroSlide): the black band opens, the
+   * terrain's halves slide in with its entry art on BG1, and the trainers, or the wild Pokémon,
+   * darkened, with them; the wild one cries, its healthbox slides in and its colors come back.
+   * Then the party balls, "<CLASS> <NAME> would like to battle!" or "Wild X appeared!", and the
+   * send-outs.
    */
   private *introJob(events: readonly BattleEvent[]): Generator<void, void, void> {
-    const { flow, state } = this;
+    const { flow, state, playback } = this;
     const { gba } = flow;
     gba.setVBlank(null);
     gba.reset();
     gba.video.transparentBackdrop = true;
     gba.setVBlank(gba.standardVBlank);
     gba.sound.playBgm(state.trainer ? "mus_vs_trainer" : "mus_vs_wild");
-    yield* battleTransition(flow);
+    // A wild Pokémon is there from the start, not sent out: its art loads during the transition.
+    const wildEvents = state.trainer ? [] : events.filter(isFoeSwitchIn);
+    const wild = wildEvents.flatMap((e) => (e.kind.case === "switchIn" && e.kind.value.pokemon ? [e.kind.value.pokemon] : []));
+    yield* all(battleTransition(flow, state.trainer ? undefined : state.wildTransition), ...wild.map((info) => playback.prepare(info)));
 
     const scene = this.newScene();
     scene.drawTerrain(true);
+    const entry = scene.entrySlide();
     const foeTrainer = state.trainer ? scene.showTrainer(true, state.trainer.pic) : null;
     const player = scene.showTrainer(false, "");
+    for (const e of wildEvents) state.apply(e);
+    const wildMons = wild.map((info) => scene.showMon(info));
+    for (const mon of wildMons) mon?.sprite.startAffineAnim(0);
+    // SpriteCB_EnemyMon: its palette darkened 10/16 toward RGB(8, 8, 8).
+    const shade = (coeff: number) => {
+      for (const mon of wildMons) if (mon) gba.palettes.blendPalette(256 + mon.sprite.paletteNum * 16, 16, coeff, rgb(8, 8, 8));
+    };
+    shade(10);
     let top = 80;
     let bottom = 81;
     let slide = 240;
+    let delay = 32;
     const place = () => {
       scene.setReveal(top, bottom);
       scene.terrainSlide = slide;
       if (foeTrainer) foeTrainer.x2 = -slide;
+      for (const mon of wildMons) if (mon) mon.sprite.x2 = -slide;
       if (player) player.x2 = slide;
     };
     place();
-    // The band opens a line a frame up and down, then four, while the halves slide 2 pixels a frame.
-    while (slide > 0 || top > 0) {
+    // Two frames of setup, then the band opens a line a frame up and down to 48, then four a frame
+    // while the halves slide 2 pixels a frame; BG1's art starts moving 32 frames after that.
+    for (let i = 0; i < 2; i++) {
+      entry.step(false);
       yield;
-      if (top > 48) {
-        top--;
-        bottom++;
-      } else {
-        top = Math.max(0, top - 4);
-        bottom = Math.min(160, bottom + 4);
-        slide = Math.max(0, slide - 2);
-      }
-      place();
     }
-    scene.setReveal(0, 160);
-    scene.drawTerrain();
+    // The wild Pokémon's cry and healthbox, from the frame it stands in place.
+    const arrive = function* (): Generator<void, void, void> {
+      while (slide > 0 || top > 48) yield;
+      for (const info of wild) flow.playCry(info.species);
+      yield* all(...wild.map((info) => playback.showHealthbox(info)), (function* () {
+        for (let coeff = 10; coeff > 0; coeff -= 2) {
+          yield;
+          shade(coeff - 2);
+        }
+      })());
+    };
+    const slideIn = function* (): Generator<void, void, void> {
+      while (slide > 0 || top > 0) {
+        yield;
+        if (top > 48) {
+          top--;
+          bottom++;
+          entry.step(false);
+        } else {
+          top = Math.max(0, top - 4);
+          bottom = Math.min(160, bottom + 4);
+          slide = Math.max(0, slide - 2);
+          entry.step(delay === 0);
+          if (delay > 0) delay--;
+        }
+        place();
+      }
+      entry.end();
+      scene.setReveal(0, 160);
+      scene.drawTerrain();
+    };
+    yield* all(slideIn(), arrive());
 
     const summaries = [new PartySummary(flow, false, this.playerBalls()), ...(state.trainer ? [new PartySummary(flow, true, state.side(true).balls)] : [])];
     const tray = function* (): Generator<void, void, void> {
@@ -226,6 +267,7 @@ export class BattleScreen implements PlaybackHost {
     };
     yield* tray();
     if (state.trainer) yield* scene.message(this.texts.format("sText_Trainer1WantsToBattle"), 0);
+    else if (wild[0]?.battler) yield* scene.message(this.texts.format("sText_WildPkmnAppeared", { atk: wild[0].battler }), 0);
     for (const s of summaries) s.leave();
     this.starting = true;
     // Every tray moves each frame (not `some`, which would stop at the first one still moving).
@@ -233,7 +275,7 @@ export class BattleScreen implements PlaybackHost {
       while (summaries.map((s) => s.update()).includes(true)) yield;
     };
     // FireRed sends the foe's out first; Showdown logs the player's first.
-    const foeFirst = [...events].sort((a, b) => Number(isFoeSwitchIn(b)) - Number(isFoeSwitchIn(a)));
+    const foeFirst = [...events].filter((e) => !wildEvents.includes(e)).sort((a, b) => Number(isFoeSwitchIn(b)) - Number(isFoeSwitchIn(a)));
     yield* all(out(), this.playback.play(foeFirst));
     this.starting = false;
     yield* this.requestJob(state.request);
@@ -603,6 +645,7 @@ export class BattleScreen implements PlaybackHost {
       hp: info.health?.hp ?? 0,
       maxHp: info.health?.maxHp ?? 0,
       status: info.status,
+      caught: !!b?.foe && !this.state.trainer && this.host.caught(info.species),
     };
     if (b && !b.foe) {
       const p = this.state.party.find((m) => m.partySlot === b.partySlot) ?? this.host.party.pokemon[b.partySlot];

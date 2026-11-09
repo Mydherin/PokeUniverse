@@ -510,6 +510,7 @@ class Overworld {
       playerName: this.playerName,
       gender: this.flow.trainer!.gender,
       nationalDex: this.pokedex.national,
+      caught: (species) => this.pokedex.caught(species),
       get bag() {
         return self.bagHost();
       },

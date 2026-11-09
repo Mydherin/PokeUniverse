@@ -113,6 +113,24 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     this.fade.setFillStyle(rgb, Math.min(y, 16) / 16);
   }
 
+  snapshot(): Promise<Uint16Array> {
+    const { scale, left, top } = fitScreen(this.scale.width, this.scale.height);
+    return new Promise((resolve) => {
+      this.game.renderer.snapshotArea(left, top, Math.round(WIDTH * scale), Math.round(HEIGHT * scale), (image) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = WIDTH;
+        canvas.height = HEIGHT;
+        const ctx = canvas.getContext("2d")!;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(image as HTMLImageElement, 0, 0, WIDTH, HEIGHT);
+        const data = ctx.getImageData(0, 0, WIDTH, HEIGHT).data;
+        const out = new Uint16Array(WIDTH * HEIGHT);
+        for (let i = 0; i < out.length; i++) out[i] = (data[i * 4] >> 3) | ((data[i * 4 + 1] >> 3) << 5) | ((data[i * 4 + 2] >> 3) << 10);
+        resolve(out);
+      });
+    });
+  }
+
   private clear(): void {
     for (const tilemap of this.tilemaps) tilemap.destroy();
     this.tilemaps = [];

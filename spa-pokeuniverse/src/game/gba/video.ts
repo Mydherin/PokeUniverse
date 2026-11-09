@@ -142,6 +142,8 @@ export class Video {
   objOn = true;
   /** The backdrop is drawn transparent, showing the world drawn under the screen. */
   transparentBackdrop = false;
+  /** Shown where the backdrop is transparent, in BGR555 (240×160): a battle transition's distorted field. */
+  underlay: Uint16Array | null = null;
 
   readonly win0: Window = { left: 0, right: 0, top: 0, bottom: 0 };
   readonly win1: Window = { left: 0, right: 0, top: 0, bottom: 0 };
@@ -192,6 +194,7 @@ export class Video {
     this.objs = [];
     this.objOn = true;
     this.transparentBackdrop = false;
+    this.underlay = null;
     Object.assign(this.win0, { left: 0, right: 0, top: 0, bottom: 0 });
     Object.assign(this.win1, { left: 0, right: 0, top: 0, bottom: 0 });
     this.win0On = this.win1On = this.objWinOn = false;
@@ -318,7 +321,7 @@ export class Video {
           }
         }
       }
-      this.rgba[base + x] = topLayer === Layer.BD && this.transparentBackdrop ? 0 : this.lut[color & 0x7fff];
+      this.rgba[base + x] = topLayer === Layer.BD && this.transparentBackdrop ? (this.underlay ? this.lut[this.underlay[base + x]] : 0) : this.lut[color & 0x7fff];
     }
     void palette;
   }

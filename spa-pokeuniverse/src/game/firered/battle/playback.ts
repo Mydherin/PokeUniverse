@@ -24,6 +24,7 @@ import { PokeBalls } from "../pokeball";
 import { generalAnimation, moveAnimation, playAnimation, type AnimContext, type AnimMon } from "./anims";
 import type { HealthboxMon } from "./healthbox";
 import { levelUpBox, levelUpStripes } from "./level-up";
+import { shinySparkle } from "./shiny";
 import { eventMessages, type Recent } from "./messages";
 import type { BattleScene, MonSprite, Spot } from "./scene";
 import type { BattleTexts } from "./text";
@@ -676,16 +677,12 @@ export class Playback {
    * the trainers leave as they send theirs out; in doubles, both of a side's come out together.
    */
   private *switchIn(...events: BattleEvent[]): Generator<void, void, void> {
-    const { flow, scene, state, texts } = this.host;
+    const { scene, state, texts } = this.host;
     const infos = events.flatMap((e) => (e.kind.case === "switchIn" && e.kind.value.pokemon ? [e.kind.value.pokemon] : []));
     const b = infos[0].battler!;
     const foe = b.foe;
     const side = foe ? 1 : 0;
-    for (const info of infos) {
-      texts.remember(info);
-      void flow.gba.sound.load([Assets.cryId(info.species), Assets.faintCryId(info.species)], Assets.cryUrl).catch(() => {});
-    }
-    yield* all(...infos.map((info) => this.loadArt(info)));
+    yield* all(...infos.map((info) => this.prepare(info)));
 
     const previous = state.side(foe).active[b.position];
     if (previous && scene.mon(b)) yield* this.recall(previous);
@@ -736,7 +733,13 @@ export class Playback {
       }
       if (!cried) flow.playCry(info.species);
     } else flow.playCry(info.species);
-    yield* this.slideHealthbox(info);
+    yield* this.showHealthbox(info);
+  }
+
+  /** The healthbox sliding in, with the shiny sparkle on a shiny Pokémon (Intro_TryShinyAnimShowHealthbox). */
+  *showHealthbox(info: BattlerInfo): Generator<void, void, void> {
+    const sparkle = info.shiny && info.battler ? shinySparkle(this.host.flow, ...this.host.scene.spot(info.battler)) : wait(0);
+    yield* all(this.slideHealthbox(info), sparkle);
   }
 
   /** FireRed's "Go!" lines by how hurt the foe is (gBattleStruct->hpScale). */
@@ -844,9 +847,11 @@ export class Playback {
     }
   }
 
-  /** The species' pictures (and the player's back pic) before it shows. */
-  private *loadArt(info: BattlerInfo): Generator<void, void, void> {
-    const { flow, backPics } = this.host;
+  /** A Pokémon about to show: its name remembered, its cries and pictures (and the player's back pic) loaded. */
+  *prepare(info: BattlerInfo): Generator<void, void, void> {
+    const { flow, backPics, texts } = this.host;
+    texts.remember(info);
+    void flow.gba.sound.load([Assets.cryId(info.species), Assets.faintCryId(info.species)], Assets.cryUrl).catch(() => {});
     let ready = false;
     const foe = info.battler?.foe ?? false;
     void Promise.all([flow.assets.pokemonArt(info.species), foe ? null : flow.assets.backPic(info.species).then((pic) => backPics.set(info.species, pic))]).then(
