@@ -17,6 +17,8 @@ import { Assets, NEW_GAME_SOUNDS, type SoundId } from "./manifest";
 
 /** {PLAY_SE} in the game's strings, by song number (songs.h). */
 const TEXT_SONGS: Record<number, SoundId> = { 17: "se_flee", 49: "se_ball_bounce_1" };
+/** {PLAY_BGM} songs in our strings, by number (songs.h). */
+const TEXT_MUSIC: Record<number, SoundId> = { 322: "mus_caught" };
 import { startNewGame } from "./new-game";
 import { textScrollSpeed, validOptions, type Options } from "./options";
 import { startOverworld } from "./overworld";
@@ -121,6 +123,8 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
       input: gba.input,
       playSelect: () => gba.sound.play("se_select"),
       playSong: (song) => TEXT_SONGS[song] && gba.sound.play(TEXT_SONGS[song]),
+      playBgm: (song) => TEXT_MUSIC[song] && gba.sound.playBgm(TEXT_MUSIC[song]),
+      sePlaying: () => gba.sound.isPlaying("se"),
       canABSpeedUpPrint: false,
       get scrollSpeed() {
         return textScrollSpeed(options);

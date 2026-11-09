@@ -349,6 +349,10 @@ export interface TextContext {
   playSelect(): void;
   /** {PLAY_SE}: the game's song number. */
   playSong(song: number): void;
+  /** {PLAY_BGM}: the game's song number, as music. */
+  playBgm?(song: number): void;
+  /** Whether a sound effect plays ({WAIT_SE}). */
+  sePlaying?(): boolean;
   /** gTextFlags.canABSpeedUpPrint. */
   canABSpeedUpPrint: boolean;
   /** Pixels a prompt scroll moves per frame (by text speed: 1, 2, 4). */
@@ -529,7 +533,8 @@ export class TextPrinter {
         } else this.state = RenderState.HandleChar;
         return Render.Update;
       case RenderState.WaitSe:
-        this.state = RenderState.HandleChar;
+        // {WAIT_SE}: until the sound effect ends (IsSEPlaying).
+        if (!this.ctx?.sePlaying?.()) this.state = RenderState.HandleChar;
         return Render.Update;
       case RenderState.Pause:
         if (this.delayCounter) this.delayCounter--;
@@ -573,6 +578,12 @@ export class TextPrinter {
       case 0x0a:
         this.state = RenderState.WaitSe;
         return Render.Update;
+      case 0x0b: {
+        // {PLAY_BGM}: the music changes (Gotcha's MUS_CAUGHT).
+        const low = this.next();
+        this.ctx?.playBgm?.(low | (this.next() << 8));
+        return Render.Repeat;
+      }
       case 0x10: {
         const low = this.next();
         this.ctx?.playSong(low | (this.next() << 8));

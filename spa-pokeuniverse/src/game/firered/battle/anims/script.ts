@@ -6,6 +6,7 @@
 import type { AffineCmd, AnimCmd, Sprite } from "../../../gba/sprites";
 import type { AnimArtFiles, Graphic, SoundId } from "../../manifest";
 import type { Flow } from "../../flow";
+import type { BallId } from "../../pokeball";
 
 /** Who a command points at (ANIM_ATTACKER, ANIM_TARGET). */
 export const enum AnimBattler {
@@ -115,6 +116,8 @@ export interface AnimContext {
   readonly animArg?: number;
   /** A status condition's animation (statusAnimActive): its sounds play at its battler's side. */
   readonly statusAnim?: boolean;
+  /** The thrown ball and ballThrowCaseId (0-3 shakes, 4 caught, 5 a trainer's block), for B_ANIM_BALL_THROW. */
+  readonly ballThrow?: { readonly ball: BallId; readonly result: number };
 }
 
 /** A sprite template's behavior (its callback): starts the sprite from the command's args. */

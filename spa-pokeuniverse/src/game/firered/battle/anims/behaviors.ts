@@ -5,6 +5,7 @@
 
 import type { AnimArtFiles } from "../../manifest";
 import type { AnimSpriteTemplate, AnimTask } from "./script";
+import { BALL_TASK_SOUNDS, BALL_TASKS } from "./behaviors/ball";
 import { BG_TASKS } from "./behaviors/bg";
 import { BUG_TEMPLATES } from "./behaviors/bug";
 import { BLEND_TASKS, BLEND_TEMPLATES } from "./behaviors/blend";
@@ -90,6 +91,7 @@ export const TASKS: Record<string, AnimTask> = {
   ...UTILITY_TASKS,
   ...GENERAL_TASKS,
   ...GEN4_TASKS,
+  ...BALL_TASKS,
 };
 
 /** Art a behavior draws besides its tag's (masks, backgrounds of its own), by name. */
@@ -99,7 +101,7 @@ export const ART: Record<string, AnimArtFiles> = { ...STATUS_ART, ...WEATHER_ART
 export const TASK_ART: Record<string, readonly string[]> = { ...STATUS_TASK_ART, ...WEATHER_TASK_ART, ...DARK_TASK_ART, ...ICE_TASK_ART, ...WATER_TASK_ART, ...EFFECTS_2_TASK_ART, ...EFFECTS_3_TASK_ART, ...UTILITY_TASK_ART, ...GENERAL_TASK_ART };
 
 /** The sounds a task or sprite template plays by name (not in the script), loaded before it starts. */
-export const TASK_SOUNDS: Record<string, readonly string[]> = { ...ROCK_TASK_SOUNDS, ...FIRE_TASK_SOUNDS, ...ELECTRIC_TASK_SOUNDS, ...PSYCHIC_TASK_SOUNDS, ...EFFECTS_1_TASK_SOUNDS, ...EFFECTS_2_TASK_SOUNDS, ...EFFECTS_3_TASK_SOUNDS, ...SOUND_TASK_SOUNDS, ...GENERAL_TASK_SOUNDS, ...GEN4_TASK_SOUNDS };
+export const TASK_SOUNDS: Record<string, readonly string[]> = { ...ROCK_TASK_SOUNDS, ...FIRE_TASK_SOUNDS, ...ELECTRIC_TASK_SOUNDS, ...PSYCHIC_TASK_SOUNDS, ...EFFECTS_1_TASK_SOUNDS, ...EFFECTS_2_TASK_SOUNDS, ...EFFECTS_3_TASK_SOUNDS, ...SOUND_TASK_SOUNDS, ...GENERAL_TASK_SOUNDS, ...GEN4_TASK_SOUNDS, ...BALL_TASK_SOUNDS };
 
 /** The tags a task or sprite template draws on its own: the expansion's scripts load no art (TryLoadSpriteAssets in its C). */
 export const TASK_TAGS: Record<string, readonly string[]> = GEN4_TASK_TAGS;

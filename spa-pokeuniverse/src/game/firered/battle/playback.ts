@@ -7,7 +7,7 @@
 // Each event changes the battle's state as it is shown.
 
 import { Condition, ConditionPhase, EscapeHow, HitResult, Weather, type BattleEvent, type Battler, type BattlerInfo, type Effect, type LevelUp, type MoveLearned, type MoveUsed } from "@pokeuniverse/contracts/battle/v1/event";
-import { BattleUse, Item } from "@pokeuniverse/contracts/item/v1/catalog";
+import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { itemInfo } from "../../world/items";
 import { Move } from "@pokeuniverse/contracts/move/v1/catalog";
 import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
@@ -20,7 +20,7 @@ import type { Flow } from "../flow";
 import { HpBarLevel, hpBarLevel } from "../hp-bar";
 import { Assets } from "../manifest";
 import { moveInfo } from "../../world/moves";
-import { PokeBalls } from "../pokeball";
+import { BallId, ballIdOf, PokeBalls } from "../pokeball";
 import { generalAnimation, moveAnimation, playAnimation, type AnimContext, type AnimMon } from "./anims";
 import type { HealthboxMon } from "./healthbox";
 import { levelUpBox, levelUpStripes } from "./level-up";
@@ -38,6 +38,8 @@ export interface PlaybackHost {
   /** Back pictures loaded for the player's Pokémon, by species. */
   readonly backPics: Map<number, IndexedImage>;
   healthboxMon(info: BattlerInfo): HealthboxMon;
+  /** The ball the player's Pokémon in this party slot was caught in (its send-out's ball). */
+  ballOf(slot: number): Item;
   /** The player sent out the Pokémon in this party slot at this position (the battle party's order follows). */
   sentOut(slot: number, position: number): void;
   /** The battle's first send-outs: the trainers still stand there. */
@@ -49,6 +51,9 @@ const AFTER_HIT = new Set([HitResult.CRITICAL, HitResult.SUPER_EFFECTIVE, HitRes
 
 const key = (b: Spot | undefined) => (b ? `${b.foe ? 1 : 0}:${b.position}` : "");
 const PLAYER_LEFT: Spot = { foe: false, position: 0 };
+const FOE_LEFT: Spot = { foe: true, position: 0 };
+/** gBallEscapeStringIds: by the shakes before it broke free. */
+const BALL_ESCAPE_TEXTS = ["sText_PkmnBrokeFree", "sText_ItAppearedCaught", "sText_AarghAlmostHadIt", "sText_ShootSoClose"] as const;
 
 /**
  * Showdown says how a move landed before the damage; FireRed shows the hit, then "A critical
@@ -434,6 +439,23 @@ export class Playback {
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
         return;
+      case "ballThrown": {
+        // BattleScript_ThrowBall (Cmd_handleballthrow): the throw, then the shakes' line, a
+        // trainer's block, or BattleScript_SuccessBallThrow's "Gotcha!" (the rest after the ending).
+        const { ball, target, shakes, caught, blocked } = k.value;
+        state.apply(e);
+        yield* scene.message(texts.format("sText_PlayerUsedItem", { item: ball }));
+        const result = blocked ? 5 : caught ? 4 : Math.min(shakes, 3);
+        yield* this.animateGeneral("B_ANIM_BALL_THROW", PLAYER_LEFT, { target: target ?? FOE_LEFT, ballThrow: { ball: ballIdOf(ball), result } });
+        if (blocked) {
+          yield* scene.message(texts.text("sText_TrainerBlockedBall"));
+          yield* scene.message(texts.text("sText_DontBeAThief"));
+        } else if (caught) {
+          if (target) this.hidden.add(key(target));
+          yield* scene.message(texts.format("sText_GotchaPkmnCaught", { atk: target }));
+        } else yield* scene.message(texts.format(BALL_ESCAPE_TEXTS[result], { atk: target }));
+        return;
+      }
       case "itemUsed":
         state.apply(e);
         for (const m of eventMessages(texts, e, this.recent)) yield* scene.message(m);
@@ -444,8 +466,7 @@ export class Playback {
           this.host.flow.gba.sound.playFanfare("mus_poke_flute");
           while (this.host.flow.gba.sound.isPlaying("fanfare")) yield;
           yield* scene.message(texts.format("sText_PkmnHearingFluteAwoke"));
-        } else if (itemInfo(k.value.item)?.battleUse === BattleUse.BALL) yield* this.ballBlocked();
-        else if (itemInfo(k.value.item)?.effect?.pp || itemInfo(k.value.item)?.effect?.ppMax) yield* scene.message(texts.text("gText_PPWasRestored"));
+        } else if (itemInfo(k.value.item)?.effect?.pp || itemInfo(k.value.item)?.effect?.ppMax) yield* scene.message(texts.text("gText_PPWasRestored"));
         return;
       case "exp": {
         const { battler, exp, levelExp, nextLevelExp } = k.value;
@@ -611,7 +632,7 @@ export class Playback {
   }
 
   /** A general animation on one battler (Cmd_playanimation): stat changes and weather play even with BATTLE SCENE off. */
-  private *animateGeneral(name: string, attacker: Spot, opts: { animArg?: number; statusAnim?: boolean; target?: Spot } = {}): Generator<void, void, void> {
+  private *animateGeneral(name: string, attacker: Spot, opts: { animArg?: number; statusAnim?: boolean; target?: Spot; ballThrow?: AnimContext["ballThrow"] } = {}): Generator<void, void, void> {
     const program = generalAnimation(name);
     if (!program) return;
     const { target = attacker, ...rest } = opts;
@@ -720,7 +741,7 @@ export class Playback {
       // the right-hand ball opens 25 frames later (SpriteCB_ReleaseMon2FromBall).
       const ballY = (foe ? scene.spot(info.battler!)[1] : y) + 24;
       const stagger = this.host.starting && info.battler!.position === 1 ? 25 : 0;
-      const ball = this.balls.releaseInBattle(mon.sprite, x, ballY, 2, 0, (foe ? 16 : 24) + stagger);
+      const ball = this.balls.releaseInBattle(mon.sprite, x, ballY, 2, 0, (foe ? 16 : 24) + stagger, this.ballOf(info));
       if (!foe) yield* this.throwBall(ball);
       // The cry as the Pokémon comes out of the ball.
       let cried = false;
@@ -767,11 +788,17 @@ export class Playback {
     scene.healthbox(b).visible = false;
   }
 
+  /** The ball a battler comes out of: the player's own Pokémon's, a trainer's always a Poké Ball (FireRed's trainer parties). */
+  private ballOf(info: BattlerInfo): BallId {
+    const b = info.battler;
+    return b && !b.foe ? ballIdOf(this.host.ballOf(b.partySlot)) : BallId.Poke;
+  }
+
   /** Special_SwitchOutPlayerMon: the ball's effect, and 10 frames in the Pokémon shrinks onto the ground. */
   private *switchOut(info: BattlerInfo, mon: Sprite): Generator<void, void, void> {
     const { scene } = this.host;
     const [x, y] = scene.spot(info.battler!);
-    const effect = this.balls.switchOutEffect(mon, x, y + 32);
+    const effect = this.balls.switchOutEffect(mon, x, y + 32, this.ballOf(info));
     yield* wait(10);
     // AnimTask_SwitchOutShrinkMon with SetBattlerSpriteYOffsetFromYScale: its feet stay where they are.
     const height = 64 - scene.monYDelta(info) * 2;
@@ -785,25 +812,6 @@ export class Playback {
     }
     mon.invisible = true;
     while (effect.active) yield;
-  }
-
-  /** BALL_TRAINER_BLOCK: the ball flies at the foe and is knocked away; a trainer's Pokémon can't be caught. */
-  private *ballBlocked(): Generator<void, void, void> {
-    const { flow, scene, texts } = this.host;
-    const foe = scene.mon({ foe: true, position: 0 }) ?? scene.mon({ foe: true, position: 1 });
-    if (foe) {
-      const ball = this.balls.flying(foe.sprite.x, foe.sprite.y, 2, 0);
-      yield* this.throwBall(ball);
-      flow.play("se_ball_bounce_1");
-      for (let i = 0; i < 24; i++) {
-        ball.x2 += 2;
-        ball.y2 = Math.round((i - 8) ** 2 / 4 - 16);
-        yield;
-      }
-      flow.gba.sprites.destroy(ball);
-    }
-    yield* scene.message(texts.text("sText_TrainerBlockedBall"));
-    yield* scene.message(texts.text("sText_DontBeAThief"));
   }
 
   /** The player's ball flies from the trainer's hand to the Pokémon's spot (SE_BALL_THROW). */

@@ -626,6 +626,11 @@ export class BattleScreen implements PlaybackHost {
 
   // PlaybackHost
 
+  /** The ball the player's Pokémon in this party slot was caught in. */
+  ballOf(slot: number): Item {
+    return this.host.party.pokemon[slot]?.ball ?? ItemId.POKE_BALL;
+  }
+
   /** The player sent a Pokémon out at a position: it and the one it replaced trade places on the party menu (gBattlePartyCurrentOrder). */
   sentOut(slot: number, position: number): void {
     // SwitchInClearSetData: the newcomer's cursors start over.
