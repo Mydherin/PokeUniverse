@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7 M7: Ball throw and the catch scene](docs/phases/phase-7-wild-battles-catching/milestones/m07-catch-scene.md): in progress (all code, docs and the build done; only its Play It is left); read its Resume Here. M6 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7 M7: Ball throw and the catch scene](docs/phases/phase-7-wild-battles-catching/milestones/m07-catch-scene.md): in progress (Play It half done in session 4, two fixes built; next: dex page, naming, full box, trainer block, then remove the TEMP-PLAYIT override and restore test data); read its Resume Here. M6 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

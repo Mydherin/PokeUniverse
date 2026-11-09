@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** continue [M7](milestones/m07-catch-scene.md) (in progress: all code, docs and the build done; only its Play It is left): read only its Resume Here. M1-M6 done 2026-11-09. O4's last part (Smoke Ball's escape animation, hooked in M6, not played) moved to M8; see the [phase index](../index.md#open-items).
+**Next step:** continue [M7](milestones/m07-catch-scene.md) (in progress: Play It half done, two fixes built; the rest of the Play It, then cleanup and test-data restore): read only its Resume Here. M1-M6 done 2026-11-09. O4's last part (Smoke Ball's escape animation, hooked in M6, not played) moved to M8; see the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 

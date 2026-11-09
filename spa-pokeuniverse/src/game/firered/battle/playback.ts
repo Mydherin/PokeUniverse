@@ -451,7 +451,13 @@ export class Playback {
           yield* scene.message(texts.text("sText_TrainerBlockedBall"));
           yield* scene.message(texts.text("sText_DontBeAThief"));
         } else if (caught) {
-          if (target) this.hidden.add(key(target));
+          // The ball's sprite took the Pokémon (DestroySprite); the engine's clean-up shows the
+          // battlers again, so hide it once more.
+          if (target) {
+            this.hidden.add(key(target));
+            const sprite = this.sprite(target);
+            if (sprite) sprite.invisible = true;
+          }
           yield* scene.message(texts.format("sText_GotchaPkmnCaught", { atk: target }));
         } else yield* scene.message(texts.format(BALL_ESCAPE_TEXTS[result], { atk: target }));
         return;

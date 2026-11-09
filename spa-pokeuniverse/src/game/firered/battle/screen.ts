@@ -473,7 +473,11 @@ export class BattleScreen implements PlaybackHost {
       while (gba.palettes.fadeActive) yield;
       let back = false;
       this.away = true;
-      registerMonToPokedex(flow, host.gender, host.pokedex, c.species, () => (back = true));
+      // The Pokédex's art and texts load the first time it opens, as from the START menu.
+      flow.assets.loadPokedex().then(
+        () => registerMonToPokedex(flow, host.gender, host.pokedex, c.species, () => (back = true)),
+        () => (back = true),
+      );
       while (!back) yield;
       this.away = false;
       gba.setMain(() => this.frame());
