@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** continue [M8](milestones/m08-phase-check.md) (the phase check, in progress): read only its Resume Here; first fix the nickname question lost after a restart (client side). M1-M7 done 2026-11-09. O4's Smoke Ball escape animation played in M8 ✓.
+**Next step:** continue [M8](milestones/m08-phase-check.md) (the phase check, in progress): read only its Resume Here; nickname-after-restart bug fixed and played, restarts, crash and reload ✅; next: Run 5 rest, Runs 6-8, follower, restore test data, close. M1-M7 done 2026-11-09. O4's Smoke Ball escape animation played in M8 ✓.
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 

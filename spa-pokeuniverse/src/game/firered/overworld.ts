@@ -18,7 +18,8 @@
 
 import { create } from "@bufbuild/protobuf";
 import type { BattleEvent } from "@pokeuniverse/contracts/battle/v1/event";
-import { BattleResult, type BattleEnded, type BattleStarted, type BattleTurn, type BattleView } from "@pokeuniverse/contracts/battle/v1/view";
+import { BattleResult, CaughtWhere, type BattleEnded, type BattleStarted, type BattleTurn, type BattleView, type CaughtPokemon } from "@pokeuniverse/contracts/battle/v1/view";
+import { Gender as MonGender } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
 import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
@@ -32,7 +33,7 @@ import type { Correction, Follower, FollowerChanged, PcScreen, PlayersPc, Script
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
 import type { Task } from "../gba/tasks";
-import { expandPlaceholders, FontId, PLACEHOLDER_PLAYER, type Text } from "../gba/text";
+import { decodeText, expandPlaceholders, FontId, PLACEHOLDER_PLAYER, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, type Text } from "../gba/text";
 import { rgb, RGB_BLACK } from "../gba/video";
 import { Avatar, type AvatarInput } from "../world/avatar";
 import { BagState, StoredItems } from "../world/items";
@@ -63,12 +64,16 @@ import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
 import { BattleScreen, prepareBattle, type BattleHost } from "./battle/screen";
 import { TallGrass } from "./tall-grass";
+import { startNamingScreen } from "./naming-screen";
 
 /** StartSweetScentFieldEffect's fade: delay 4, up to 8/16 toward RGB(31, 0, 0); TrySweetScentEncounter's 64 frames. */
 const SWEET_SCENT_DELAY = 4;
 const SWEET_SCENT_Y = 8;
 const SWEET_SCENT_COLOR = rgb(31, 0, 0);
 const SWEET_SCENT_FRAMES = 64;
+/** {STR_VAR_3}, and the battle string's {B_OPPONENT_MON1_NAME}. */
+const STR_VAR_3 = 0x04;
+const B_OPPONENT_MON1_NAME = 0x06;
 
 /** Sweet Scent on the field: back from the menu, red, fading back; mic-core's script once it arrives. */
 interface SweetScent {
@@ -94,6 +99,8 @@ export function startOverworld(flow: Flow): void {
   let overworld: Overworld | null = null;
   // While a map loads, the newest snapshot (a reconnect may send another one).
   let pending: WorldSnapshot | null = null;
+  // The nickname question mic-core asks again on joining comes while the map still loads.
+  let pendingNaming: BattleEnded | null = null;
   const enter = (snapshot: WorldSnapshot) => {
     pending = snapshot;
     // A warp's load still running ends first: two world.show can't cross.
@@ -106,6 +113,8 @@ export function startOverworld(flow: Flow): void {
         pending = null;
         if (latest.map !== map.id) return enter(latest);
         overworld = new Overworld(flow, map, latest, leave);
+        if (pendingNaming) overworld.battleEnded(pendingNaming);
+        pendingNaming = null;
       },
       () => leave(),
     );
@@ -139,7 +148,10 @@ export function startOverworld(flow: Flow): void {
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
     battleTurn: (b) => overworld?.battleTurn(b),
-    battleEnded: (b) => overworld?.battleEnded(b),
+    battleEnded: (b) => {
+      if (overworld) overworld.battleEnded(b);
+      else if (b.caught?.nicknamePending) pendingNaming = b;
+    },
     noTrainer: leave,
   });
 }
@@ -272,6 +284,8 @@ class Overworld {
   private itemAnswers: ((r: ItemResult) => void)[] = [];
   /** An item's message on the field (SELECT, or back from the bag); the player can't move. */
   private fieldItem: ItemMessagePlayer | null = null;
+  /** The nickname question asked on the field: a restart lost the battle screen it came after. */
+  private caughtAsk: Generator<void, void, void> | null = null;
   /** The screen a registered item opens once the world faded to black. */
   private fieldOpening: (() => void) | null = null;
   private pc: OpenPc | null = null;
@@ -470,7 +484,72 @@ class Overworld {
     else {
       if (this.battleScreen) this.leaveBattle();
       this.afterBattle(b.result);
+      if (b.caught?.nicknamePending) this.caughtAsk = this.askCaughtName(b.caught);
     }
+  }
+
+  /**
+   * The battle's nickname question (Cmd_trygivecaughtmonnick) after a restart: mic-core asks it
+   * again on joining, with the battle screen gone, so it comes in the field's message box. FireRed
+   * has no reconnect; the texts, the YES/NO and the naming screen are the battle's.
+   */
+  private *askCaughtName(c: CaughtPokemon): Generator<void, void, void> {
+    const { flow } = this;
+    const { gba } = flow;
+    // The species' names come with the party set, and the naming screen's icon with its art: the field may have neither yet.
+    let loaded = false;
+    Promise.all([flow.assets.loadParty(), flow.assets.pokemonArt(c.species)]).then(
+      () => (loaded = true),
+      () => (loaded = true),
+    );
+    while (!loaded) yield;
+    const speciesName = flow.assets.species(c.species).name;
+    const toPc = c.where === CaughtWhere.BOX;
+    const box = (n: Text | null) =>
+      expandPlaceholders(flow.assets.text(c.boxFullBefore ? "Text_MonSentToBoxSomeonesBoxFull" : "Text_MonSentToBoxInSomeonesPC"), {
+        [PLACEHOLDER_STR_VAR_1]: flow.encode(c.boxName),
+        [PLACEHOLDER_STR_VAR_2]: n ?? speciesName,
+        [STR_VAR_3]: flow.encode(c.fullBoxName),
+      });
+    const pressed = () => {
+      if (!gba.input.isPressed(Button.A | Button.B)) return false;
+      gba.input.pressed &= ~(Button.A | Button.B);
+      return true;
+    };
+    this.message.show(expandPlaceholders(flow.assets.text("sText_GiveNicknameCaptured"), { [B_OPPONENT_MON1_NAME]: speciesName }), false);
+    while (this.message.printing) yield;
+    const menu = fieldYesNo(flow);
+    let answer: number;
+    while ((answer = menu.processInput()) === MENU_NOTHING_CHOSEN) yield;
+    gba.input.pressed &= ~(Button.A | Button.B);
+    if (answer !== 0) {
+      flow.link.nameCaughtPokemon("");
+      if (!toPc) return;
+      this.message.show(box(null), false);
+      while (this.message.printing || !pressed()) yield;
+      return;
+    }
+    this.message.hide();
+    gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+    // frame() runs this again once the fade is over.
+    yield;
+    const mon = c.where === CaughtWhere.PARTY ? this.party.pokemon[c.slot] : undefined;
+    const gender = mon?.gender === MonGender.MALE ? "male" : mon?.gender === MonGender.FEMALE ? "female" : null;
+    let named: Text | null | undefined;
+    this.away = true;
+    startNamingScreen(
+      flow,
+      "caughtMon",
+      flow.trainer!.gender,
+      (n) => {
+        named = n;
+        this.away = false;
+        this.enter(false);
+      },
+      { species: c.species, name: speciesName, gender, sentToPc: toPc ? box : undefined },
+    );
+    while (named === undefined) yield;
+    flow.link.nameCaughtPokemon(named ? decodeText(flow.assets.charmap, named) : "");
   }
 
   private showBattle(view: BattleView, events: BattleEvent[], intro: boolean): void {
@@ -833,6 +912,10 @@ class Overworld {
       this.fieldItem = null;
       this.message.hide();
     }
+    if (this.caughtAsk && !this.away && !this.flow.gba.palettes.fadeActive && this.warp === null && this.caughtAsk.next().done) {
+      this.caughtAsk = null;
+      this.message.hide();
+    }
     // The button that closes the menu doesn't also act in the world.
     const menuOpen = this.menu !== null;
     if (this.menu) this.runMenu();
@@ -845,7 +928,7 @@ class Overworld {
       select: input.isPressed(Button.Select),
     };
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
-    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.sweetScent !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
+    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.sweetScent !== null || this.battle !== null || this.fieldItem !== null || this.caughtAsk !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
     this.follower.update();
     this.draw();
