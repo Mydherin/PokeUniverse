@@ -7,7 +7,7 @@
 - NPCs, dialogue and story events for all of Kanto, on the event system from [Phase 10](phase-10-pallet-town.md).
 - Where items come from (found, given, bought) and the effects still missing, on the item catalog, bag and money from [Phase 4](phase-4-players-room.md); Pokémon Centers, PokéMarts.
 - Gyms, badges, Elite Four and Champion.
-- Field moves needed to progress (e.g. Cut, Surf, Strength).
+- Field moves needed to progress (e.g. Cut, Surf, Strength), with their cut-in of the Pokémon (`CreateFieldEffectShowMon`), Sweet Scent's too ([O11](index.md#open-items), from Phase 7 M3).
 - All Kanto maps, story trainers (spotting the player by sight range) and encounters; the Pokédex area page shows where each species lives (FireRed's area markers, Sevii Islands maps once unlocked).
 - Public art for all of Kanto, as done for Pallet Town in [Phase 11](phase-11-pallet-town-art.md).
 

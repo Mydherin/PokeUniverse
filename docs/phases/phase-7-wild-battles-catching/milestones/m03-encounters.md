@@ -6,15 +6,19 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M2. Rules: [c
 
 ## Resume Here
 
-**Server done, client next** (2026-11-09). `mic-core` builds and vets (Go isn't on the host: `docker run --rm -v "$PWD":/repo -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build -w /repo/mic-core golang:1.27-alpine sh -c 'go build ./... && go vet ./...'` from the repo root); `make contracts` and `make text` ran (678 strings). No client edit yet; nothing played yet.
+**Code done, Play It next** (2026-11-09). Server and client written; nothing played yet. `mic-core` builds and vets (Go isn't on the host: `docker run --rm -v "$PWD":/repo -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build -w /repo/mic-core golang:1.27-alpine sh -c 'go build ./... && go vet ./...'` from the repo root); `make contracts`, `make text` (678 strings) and `make graphics` ran. Client: `npx tsc --noEmit` in `spa-pokeuniverse` passes; `vite build` doesn't run on the host (rolldown's native binding is missing there; the container builds it).
 
-Next steps, in order (all in `spa-pokeuniverse/src/game/firered/`; the client typechecks with the project's usual TS build):
+Next steps, in order:
 
-1. **Wild battle step** in `overworld.ts`: `runScript` (~891) gets a `wildBattle` case copied from `trainerBattle` (~932: `s.battling = true; this.message.hide(); this.flow.link.scriptBattle(s.id)`), sent only once the avatar's current step has ended (check `avatar` for a moving flag). `run()` (~745) also calls `prepareBattle` when a step is `wildBattle`. Win/loss reuse `afterBattle` / `leaveBattle` (~446-460).
-2. **Sweet Scent** (`FieldMoveOutcome.SWEET_SCENT`): `party-menu.ts` `useFieldMove` (~1478) closes the menu to the field without the START menu (FireRed: `FieldCallback_PrepareFadeInFromMenu`) instead of `refuseFieldMove`. The menu is opened by `overworld.ts` `openScreen` (~870, `back(withMenu=false)` → `enter(false)`); the answer arrives in `fieldMoveResult` (~393) through `askFieldMove` (~534). In `overworld.ts`, a pending Sweet Scent holds the Script the server sends right after (`run()` would otherwise run it while `away`: `frame()` runs scripts before its `away` check, ~780-788). Once back on the field: `FldEff_SweetScent` (`src/fldeff_sweetscent.c`): `se_m_sweet_scent`, `beginFade` of every palette except the player sprite's, delay 4, 0→8 toward `RGB(31,0,0)`; wait until done, then 64 frames; with a `wildBattle` step run the script (the battle starts from the pink field); else fade 8→0, then run the script (the sign message). `CreateFieldEffectShowMon` (the Pokémon's cut-in) is left for Phase 12 with the HMs' field effects: add it to the phase index as an open item aimed at 12 when closing this step. Check `se_m_sweet_scent` is in `make audio`'s list.
-3. **Grass rustle**: `FLDEFF_TALL_GRASS` (`FldEff_TallGrass` in `src/field_effect_helpers.c`, art in `graphics/field_effects/`, `make graphics` copies it), over the player's feet on entering a `tall_grass` cell, also the follower's.
-4. **Messages**: REPEL and flute messages already exist (`item-messages.ts`); `common.repel_wore_off` and `common.sweet_scent_nothing` come as sign messages in server scripts (`WORLD_TEXTS` in `manifest.ts`).
-5. **Play It** below (`make up`), then mark M3 done: milestone ✅, phase file M3 row and Resume Here → M4, `AGENTS.md` **Now** → M4, `index.md` (Current, 3 / 8, O4 Cleanse Tag / Pure Incense part and O5 Sweet Scent part closed).
+1. **Play It** below (`make up`; SQL on the test team with the game closed). Write the step counts here.
+2. Then mark M3 done: milestone ✅, phase file M3 row and Resume Here → M4, `AGENTS.md` **Now** → M4, `index.md` (Current, 3 / 8, O4's Cleanse Tag / Pure Incense part and O5's Sweet Scent part closed).
+
+Client, built this session (all in `spa-pokeuniverse/src/game/firered/`):
+
+- `overworld.ts`: `runScript`'s `wildBattle` case shares `trainerBattle`'s, but waits while `avatar.action` is set (the step into the grass ends first); `run()` calls `prepareBattle` for it too. `afterBattle` goes on after `WON` or `RAN` (a wild script ends with `scriptDone`, which clears `p.wild`).
+- Sweet Scent: `party-menu.ts` closes on `SWEET_SCENT`; `overworld.ts` `fieldMoveResult` sets `sweetScent` (`phase` menu → red → back), `openScreen`'s back skips the START menu then, `run()` holds the script that follows, `runSweetScent` (called in `frame()` while not `away`, the player locked) plays `se_m_sweet_scent` (added to `NEW_GAME_SOUNDS` in `manifest.ts`), fades `PALETTES_ALL` 0→8 toward `rgb(31,0,0)` with delay 4, waits 64 frames, then runs a `wildBattle` script from the red field or fades back 8→0 first. The player stays out of the fade: `CharacterView.setOverFade` (`world/view.ts`, `scene.ts` depth 5 over the fade rectangle), `PlayerSprite.overFade`; cleared in `showBattle`, and `endScript` fades back if the battle never started. Offline (the script never comes) it fades back with nothing.
+- Grass rustle: `tall-grass.ts` (`TallGrass`: `enter(walker, x, y, spawned)`, `forget`, `update`), one blade per step into a `TALL_GRASS` cell, frames 1-4 then 0, 10 frames each; spawned = at rest. A blade goes when its walker left the cell and the one it came from and the animation ended. Drawn over the feet with `CharacterSheet.ahead = 1` (scene's y-sort). `overworld.ts`: the avatar's `move` callback enters the player's destination and the follower's new cell (or spawned when it appears); `regrass()` after `place`, `resume`, `correct`, `followerChanged`. `sheetOf` (`player-sprite.ts`) now also reads frames in a column (the field effect PNGs are 16×80). Art: `fxTallGrass`, `fxGeneral1Pal` in `manifest.ts`; the Makefile's `FIRERED_GFX_FILES` copies `field_effects/pics/tall_grass.png`, `field_effects/palettes/general_1.pal`.
+- Messages: nothing new needed (REPEL and flutes in `item-messages.ts`; `common.repel_wore_off`, `common.sweet_scent_nothing` in `WORLD_TEXTS`).
 
 Built so far (what the next steps use):
 
@@ -42,7 +46,7 @@ Decisions: Repel steps live in memory per step, saved when they wear off and on 
 
 - [x] **Repel** (`FIELD_USE_REPEL`, Super / Max Repel): steps saved on the trainer (`trainers.repel_steps` already existed, Phase 4; D8), `UpdateRepelCounter` (576) on every step; at 0 the field message "REPEL's effect wore off…" (`EventScript_RepelWoreOff`: grep it in `data/scripts/`; FireRed asks nothing more). Using one while active: FireRed's `ItemUseOutOfBattle_Repel` text ("But the effects of a REPEL lingered from earlier."); find both strings in `data/text/` for `make text`.
 - [x] **White / Black Flute** (`FIELD_USE_BLACK_WHITE_FLUTE`): `ItemUseOutOfBattle_BlackWhiteFlute` sets `FLAG_SYS_WHITE_FLUTE_ACTIVE` / `BLACK`; grep where FireRed clears them (map change?) and copy that lifetime; its messages and sound.
-- [ ] **Sweet Scent** from the party menu (server done; the client's fade left) (Phase 6 M5 refused it): `SweetScentWildEncounter` (464) on a land or water cell with a table starts a battle with no rate roll and no Repel check; otherwise "Looks like there's nothing here…". The screen's pink fade (`FLDEFF_SWEET_SCENT`, grep `sweet_scent` in `src/`). Update Phase 6 M5's refusal list. M2's `encounter.Generate` needs a Sweet Scent flag: Intimidate / Keen Eye never skip there (HGSS `DoesAbilitySuppressEncounter` 1145); call it with `RepelLevel: 0`.
+- [x] **Sweet Scent** from the party menu (its cut-in of the Pokémon, `CreateFieldEffectShowMon`, is [O11](../../index.md#open-items), Phase 12) (Phase 6 M5 refused it): `SweetScentWildEncounter` (464) on a land or water cell with a table starts a battle with no rate roll and no Repel check; otherwise "Looks like there's nothing here…". The screen's pink fade (`FLDEFF_SWEET_SCENT`, grep `sweet_scent` in `src/`). Update Phase 6 M5's refusal list. M2's `encounter.Generate` needs a Sweet Scent flag: Intimidate / Keen Eye never skip there (HGSS `DoesAbilitySuppressEncounter` 1145); call it with `RepelLevel: 0`.
 
 ### Starting the battle (`mic-core/internal/world/battle.go`)
 
@@ -52,8 +56,8 @@ Decisions: Repel steps live in memory per step, saved when they wear off and on 
 
 ### Client
 
-- [ ] Tall grass rustle: `FLDEFF_TALL_GRASS` (grep `FldEff_TallGrass` in `src/field_effect_helpers.c`, its art in `graphics/field_effects/`): drawn over the player's feet when entering a `tall_grass` cell, also for the follower (HeartGold's follower does). `make graphics` copies its sheet.
-- [ ] The REPEL and flute messages; Sweet Scent's fade and message.
+- [x] Tall grass rustle: `FLDEFF_TALL_GRASS` (grep `FldEff_TallGrass` in `src/field_effect_helpers.c`, its art in `graphics/field_effects/`): drawn over the player's feet when entering a `tall_grass` cell, also for the follower (HeartGold's follower does). `make graphics` copies its sheet.
+- [x] The REPEL and flute messages; Sweet Scent's fade and message.
 
 ## Play It
 
@@ -65,3 +69,4 @@ Decisions: Repel steps live in memory per step, saved when they wear off and on 
 ## Gotchas
 
 - The step check runs on the server step, after the move is accepted: a correction or a warp step must not roll.
+- During Sweet Scent's red the grass over the player's feet is drawn unfaded too (FireRed fades it; the player's sprite is above our fade rectangle, so its grass has to be).

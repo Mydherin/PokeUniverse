@@ -48,7 +48,7 @@ export function characterSheet(key: string, palette: Uint16Array, parts: [image:
   return sheetOf(key, palette, parts, FRAME_W, FRAME_H);
 }
 
-/** The same with frames of any size, e.g. a following Pokémon's 32×32 or 64×64. */
+/** The same with frames of any size, e.g. a following Pokémon's 32×32 or 64×64; an image's frames go left to right, then down (a field effect's are in a column). */
 export function sheetOf(key: string, palette: Uint16Array, parts: [image: IndexedImage, from: number, count: number][], w: number, h: number): CharacterSheet {
   const canvas = document.createElement("canvas");
   canvas.width = parts.reduce((n, [, , count]) => n + count, 0) * w;
@@ -58,12 +58,16 @@ export function sheetOf(key: string, palette: Uint16Array, parts: [image: Indexe
   const pixels = new Uint32Array(out.data.buffer);
   let to = 0;
   for (const [image, from, count] of parts) {
-    for (let f = 0; f < count; f++)
+    const perRow = Math.max(1, Math.floor(image.width / w));
+    for (let f = 0; f < count; f++) {
+      const fx = ((from + f) % perRow) * w;
+      const fy = Math.floor((from + f) / perRow) * h;
       for (let y = 0; y < h; y++)
         for (let x = 0; x < w; x++) {
-          const i = image.pixels[y * image.width + (from + f) * w + x] & 15;
+          const i = image.pixels[(fy + y) * image.width + fx + x] & 15;
           if (i) pixels[y * canvas.width + (to + f) * w + x] = rgba(palette[i]);
         }
+    }
     to += count;
   }
   ctx.putImageData(out, 0, 0);
@@ -109,6 +113,8 @@ export class PlayerSprite {
   offsetY = 0;
   /** Drawn over the tiles whatever the elevation, e.g. leaving by the stairs. */
   forceOver = false;
+  /** Left out of the field's fade (Sweet Scent's, which skips the player's palette). */
+  overFade = false;
   private readonly view: CharacterView;
 
   constructor(world: WorldView, assets: Assets, gender: Gender) {
@@ -120,6 +126,7 @@ export class PlayerSprite {
     this.view.setPosition(avatar.pixelX + this.offsetX, avatar.pixelY - 16 + this.offsetY);
     this.view.setFrame(frameOf(avatar.facing, avatar.action), avatar.facing === Direction.EAST);
     this.view.setOverTiles(this.forceOver || avatar.overTiles);
+    this.view.setOverFade(this.overFade);
   }
 
   destroy(): void {

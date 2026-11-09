@@ -147,6 +147,9 @@ const NEW_GAME_GRAPHICS = {
   owCooltrainerM: { png: "object_events/pics/people/cooltrainer_m.png" },
   owMom: { png: "object_events/pics/people/mom.png" },
   owNpcBluePal: { pal: "object_events/palettes/npc_blue.pal" },
+  // Field effects (tall-grass.ts): the grass over the feet in tall grass, and its palette
+  fxTallGrass: { png: "field_effects/pics/tall_grass.png" },
+  fxGeneral1Pal: { pal: "field_effects/palettes/general_1.pal" },
   owGreenRun: { png: "object_events/pics/people/green_surf_run.png" },
   signpostFrame: { png: "text_window/signpost.png" },
   textWindowPal1: { pal: "text_window/stdpal_1.pal" },
@@ -412,6 +415,8 @@ export const NEW_GAME_SOUNDS = [
   "se_repel",
   "se_glass_flute",
   "se_use_item",
+  // Sweet Scent on the field (FldEff_SweetScent)
+  "se_m_sweet_scent",
   // The item scene (use-item-scene.ts)
   "se_ball_tray_exit",
   "se_m_swagger2",

@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 7, [M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) in progress (server done, client next). **Updated:** 2026-11-09.
+**Current:** Phase 7, [M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) in progress (code done, Play It next). **Updated:** 2026-11-09.
 
 ## Milestones of Phases With Folders
 
@@ -30,7 +30,7 @@ Current state of **every phase** of the project and everything still open, in on
 | 9 | [Social](phase-9-social.md) | ⬜ | | Players use the social menus, trade and battle each other |
 | 10 | [Pallet Town](phase-10-pallet-town.md) | ⬜ | O1, O6, O9 | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
 | 11 | [Pallet Town Art Upgrade](phase-11-pallet-town-art.md) | ⬜ | | Pallet Town with awesome public art, same game |
-| 12 | [World Content](phase-12-world-content.md) | ⬜ | O2, O8, O10 | All of Kanto playable start to end |
+| 12 | [World Content](phase-12-world-content.md) | ⬜ | O2, O8, O10, O11 | All of Kanto playable start to end |
 | 13 | [Polish and Launch](phase-13-polish-launch.md) | ⬜ | | Game is public and stable |
 
 ## Open Items
@@ -49,3 +49,4 @@ Everything a phase left open, reopened or handed to another phase. An item leave
 | O8 | Field moves on the map; the follower with sight trainers and walking NPCs | 6 | 12 | [Phase 6](phase-6-pokemon-party/phase-6-pokemon-party.md#scope-outside-this-phase) |
 | O9 | Remove the test content: test team, room trainer, test grass patch | 5, 7 | 10 | [Phase 10](phase-10-pallet-town.md) |
 | O10 | Real encounter tables, Surf, Rock Smash and rod encounters, Safari Zone, roamers, `FLAG_SYS_NOT_SOMEONES_PC` | 7 | 12 | [Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#scope) |
+| O11 | Field moves' cut-in of the Pokémon (`CreateFieldEffectShowMon`), Sweet Scent's included | 7 | 12 | [Phase 7 M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) |

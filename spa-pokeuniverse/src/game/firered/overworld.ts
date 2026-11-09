@@ -26,7 +26,7 @@ import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
-import { FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import { FieldMoveOutcome, FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import type { Correction, Follower, FollowerChanged, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
@@ -39,6 +39,7 @@ import { BagState, StoredItems } from "../world/items";
 import { PartyState } from "../world/party";
 import { PokedexState } from "../world/pokedex";
 import { behaviorAt, loadMap, TILE } from "../world/map";
+import { DELTAS } from "../world/rules";
 import { FieldMessage, fieldYesNo } from "./field-message";
 import { MENU_NOTHING_CHOSEN, type YesNoMenu } from "./menu";
 import { NpcSprite } from "./npc-sprite";
@@ -61,6 +62,20 @@ import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
 import { startTrainerCard } from "./trainer-card";
 import { BattleScreen, prepareBattle, type BattleHost } from "./battle/screen";
+import { TallGrass } from "./tall-grass";
+
+/** StartSweetScentFieldEffect's fade: delay 4, up to 8/16 toward RGB(31, 0, 0); TrySweetScentEncounter's 64 frames. */
+const SWEET_SCENT_DELAY = 4;
+const SWEET_SCENT_Y = 8;
+const SWEET_SCENT_COLOR = rgb(31, 0, 0);
+const SWEET_SCENT_FRAMES = 64;
+
+/** Sweet Scent on the field: back from the menu, red, fading back; mic-core's script once it arrives. */
+interface SweetScent {
+  phase: "menu" | "red" | "back";
+  frames: number;
+  script: Script | null;
+}
 
 /** The player's cell on screen: 7 tiles in, under the BG scrolled 40 pixels down (field_camera.c). */
 const PLAYER_X = 7 * TILE;
@@ -188,7 +203,7 @@ interface Running {
   waiting: boolean;
   /** The YES/NO menu of a yesNo step, while it waits for an answer. */
   yesNo: YesNoMenu | null;
-  /** A trainerBattle step was sent: waiting for the battle to end. */
+  /** A trainerBattle or wildBattle step was sent: waiting for the battle to end. */
   battling: boolean;
 }
 
@@ -219,6 +234,7 @@ class Overworld {
   /** The party's lead walking behind the player (HeartGold's), as mic-core last said plus predicted steps. */
   private follower!: FollowerModel;
   private followerSprite!: FollowerSprite;
+  private tallGrass!: TallGrass;
   private npcs!: NpcSprite[];
   private readonly gender: Gender;
   private warp: Warp | null = null;
@@ -244,6 +260,8 @@ class Overworld {
   private evolveAnswer: ((p: PokemonEvolved) => void) | null = null;
   /** Who waits for mic-core's LearnMoveResult. */
   private learnAnswer: ((r: LearnMoveResult) => void) | null = null;
+  /** Sweet Scent was used from the party menu: its fade on the field, then the script mic-core sent. */
+  private sweetScent: SweetScent | null = null;
   /** Who waits for mic-core's FieldMoveResult. */
   private fieldMoveAnswer: ((r: FieldMoveResult) => void) | null = null;
   /** Who waits for mic-core's BoxViews, by the seq of the message asking (BoxView.request). */
@@ -294,7 +312,12 @@ class Overworld {
     this.avatar = new Avatar(map, x, y, facing, canRun, {
       move: (step, d, run, x, y) => {
         link.move(step, d, run, x, y);
+        this.tallGrass.enter("player", x + DELTAS[d][0], y + DELTAS[d][1]);
+        const { x: fx, y: fy, hidden } = this.follower;
         this.follower.follow(x, y, run);
+        if (!this.follower.species) return;
+        if (fx !== x || fy !== y) this.tallGrass.enter("follower", x, y);
+        else if (hidden) this.tallGrass.enter("follower", x, y, true);
       },
       turn: (d) => link.turn(d),
       warp: (d, x, y) => this.leaveByStairs(d, x, y),
@@ -307,6 +330,17 @@ class Overworld {
     this.follower = new FollowerModel(follower);
     this.followerSprite = new FollowerSprite(world, flow.assets);
     this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
+    this.tallGrass = new TallGrass(world, flow.assets, map);
+    this.regrass();
+  }
+
+  /** The grass over the feet of the player and a shown follower, standing where they are now. */
+  private regrass(): void {
+    this.tallGrass.forget("player");
+    this.tallGrass.forget("follower");
+    this.tallGrass.enter("player", this.avatar.x, this.avatar.y, true);
+    const f = this.follower;
+    if (f.species && !f.hidden) this.tallGrass.enter("follower", f.x, f.y, true);
   }
 
   /**
@@ -348,6 +382,7 @@ class Overworld {
     this.cancelWarp();
     this.avatar.snap(p.x, p.y, p.facing);
     this.follower.set(p.follower);
+    this.regrass();
     this.avatar.waiting = false;
     this.endScript(false);
     if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
@@ -390,6 +425,7 @@ class Overworld {
   }
 
   fieldMoveResult(r: FieldMoveResult): void {
+    if (r.outcome === FieldMoveOutcome.SWEET_SCENT) this.sweetScent = { phase: "menu", frames: 0, script: null };
     this.fieldMoveAnswer?.(r);
     this.fieldMoveAnswer = null;
   }
@@ -399,6 +435,7 @@ class Overworld {
   /** The party changed its lead: another Pokémon follows, or none. */
   followerChanged(f: FollowerChanged): void {
     this.follower.set(f.follower);
+    this.regrass();
   }
 
   boxView(v: BoxView): void {
@@ -440,6 +477,7 @@ class Overworld {
     this.message.hide();
     this.menu = null;
     this.away = true;
+    this.sprite.overFade = false;
     this.battleScreen = new BattleScreen(this.flow, this.battleHost(), view, events, intro);
   }
 
@@ -452,12 +490,12 @@ class Overworld {
     if (this.map.music) this.flow.gba.sound.playBgm(this.map.music);
   }
 
-  /** After a win the script goes on; a loss (whiteout) or a battle that couldn't start ends it. */
+  /** After a win (or running from a wild Pokémon) the script goes on; a loss (whiteout) or a battle that couldn't start ends it. */
   private afterBattle(result: BattleResult): void {
     const s = this.script;
     if (!s?.battling) return;
     s.battling = false;
-    if (result === BattleResult.WON) s.index++;
+    if (result === BattleResult.WON || result === BattleResult.RAN) s.index++;
     else this.endScript(false);
   }
 
@@ -680,6 +718,7 @@ class Overworld {
     this.cancelWarp();
     this.avatar.snap(c.x, c.y, c.facing);
     this.follower.set(c.follower);
+    this.regrass();
   }
 
   /** mic-core took the player through; a warp cancelled by an older correction fades out first. */
@@ -745,10 +784,15 @@ class Overworld {
   /** The answer to an interaction: nothing, or a script to show. */
   run(s: Script): void {
     this.avatar.waiting = false;
+    // Sweet Scent's answer waits for its fade on the field.
+    if (this.sweetScent && !this.sweetScent.script) {
+      this.sweetScent.script = s;
+      return;
+    }
     if (!s.steps.length) return;
     this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false };
     // A trainer's script: the battle's art and sounds load while they talk.
-    if (s.steps.some((step) => step.action.case === "trainerBattle")) void prepareBattle(this.flow).catch(() => {});
+    if (s.steps.some((step) => step.action.case === "trainerBattle" || step.action.case === "wildBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
     if (facing) this.npcs.find((n) => n.npc.id === s.npc)?.face(facing);
   }
@@ -762,6 +806,7 @@ class Overworld {
   private destroySprites(): void {
     this.sprite.destroy();
     this.followerSprite.destroy();
+    this.tallGrass.destroy();
     for (const npc of this.npcs) npc.destroy();
   }
 
@@ -777,6 +822,7 @@ class Overworld {
       this.fieldOpening = null;
       return open();
     }
+    if (this.sweetScent && !this.away) this.runSweetScent();
     if (this.script) this.runScript();
     if (this.fieldItem && !this.flow.gba.palettes.fadeActive && this.fieldItem.update()) {
       this.fieldItem = null;
@@ -794,7 +840,7 @@ class Overworld {
       select: input.isPressed(Button.Select),
     };
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
-    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
+    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.sweetScent !== null || this.battle !== null || this.fieldItem !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
     this.follower.update();
     this.draw();
@@ -876,7 +922,8 @@ class Overworld {
       this.away = true;
       open((withMenu = true) => {
         this.away = false;
-        this.enter(withMenu);
+        // FieldCallback_PrepareFadeInFromMenu: Sweet Scent comes back without the START menu.
+        this.enter(withMenu && !this.sweetScent);
       });
     };
   }
@@ -884,7 +931,42 @@ class Overworld {
   private draw(): void {
     this.sprite.update(this.avatar);
     this.followerSprite.update(this.follower, this.avatar.overTiles);
+    this.tallGrass.overFade = this.sprite.overFade;
+    this.tallGrass.update();
     this.flow.world.setCamera(this.avatar.pixelX - PLAYER_X, this.avatar.pixelY - PLAYER_Y);
+  }
+
+  /**
+   * FldEff_SweetScent once the field has faded in (its cut-in of the Pokémon is phase 12's, with the
+   * HMs' field effects): everything but the player fades to red, 64 frames, then a wild battle
+   * starts from the red field; nothing there fades back first, then its message.
+   */
+  private runSweetScent(): void {
+    const e = this.sweetScent!;
+    const { gba, link } = this.flow;
+    if (gba.palettes.fadeActive) return;
+    if (e.phase === "menu") {
+      this.flow.play("se_m_sweet_scent");
+      this.sprite.overFade = true;
+      gba.palettes.beginFade(PALETTES_ALL, SWEET_SCENT_DELAY, 0, SWEET_SCENT_Y, SWEET_SCENT_COLOR);
+      e.phase = "red";
+      return;
+    }
+    if (e.phase === "red") {
+      if (e.frames < SWEET_SCENT_FRAMES) return void e.frames++;
+      // mic-core's script comes right after its answer; offline it never will.
+      if (!e.script && link.inWorld) return;
+      if (e.script?.steps.some((step) => step.action.case === "wildBattle")) {
+        this.sweetScent = null;
+        return this.run(e.script);
+      }
+      gba.palettes.beginFade(PALETTES_ALL, SWEET_SCENT_DELAY, SWEET_SCENT_Y, 0, SWEET_SCENT_COLOR);
+      e.phase = "back";
+      return;
+    }
+    this.sweetScent = null;
+    this.sprite.overFade = false;
+    if (e.script) this.run(e.script);
   }
 
   /** One frame of the running script: sounds play at once; messages wait for A or B once printed. */
@@ -929,7 +1011,9 @@ class Overworld {
         }
         continue;
       }
-      if (step.action.case === "trainerBattle") {
+      // A wild Pokémon: the battle starts once the step into the grass has ended.
+      if (step.action.case === "wildBattle" && !s.battling && this.avatar.action) return;
+      if (step.action.case === "trainerBattle" || step.action.case === "wildBattle") {
         if (!s.battling) {
           s.battling = true;
           this.message.hide();
@@ -979,6 +1063,11 @@ class Overworld {
   private endScript(done: boolean): void {
     if (this.script && done) this.flow.link.scriptDone(this.script.id);
     this.script = null;
+    // Sweet Scent's battle didn't start: the field comes back from its red.
+    if (this.sprite.overFade) {
+      this.sprite.overFade = false;
+      if (!this.away) this.flow.gba.palettes.beginFade(PALETTES_ALL, SWEET_SCENT_DELAY, SWEET_SCENT_Y, 0, SWEET_SCENT_COLOR);
+    }
     if (this.scriptMusic) {
       this.scriptMusic = false;
       if (this.map.music) this.flow.gba.sound.playBgm(this.map.music);

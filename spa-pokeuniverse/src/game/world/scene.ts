@@ -17,6 +17,7 @@ const DEPTH_CHARACTERS = 1;
 const DEPTH_ABOVE = 2;
 const DEPTH_CHARACTERS_OVER = 3;
 const DEPTH_FADE = 4;
+const DEPTH_OVER_FADE = 5;
 /** A character's y as a fraction of its layer's depth: any map's pixels stay under 1. */
 const Y_SORT_OFFSET = 1 << 10;
 const Y_SORT_SCALE = 1 << 20;
@@ -70,9 +71,10 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     const sprite = this.add.sprite(0, 0, sheet.key, 0).setOrigin(0);
     this.characters.add(sprite);
     let layer = DEPTH_CHARACTERS;
+    let overFade = false;
     // Within a layer, the lower on the map is in front (FireRed's subpriority by y): by the feet, as
     // frames of different heights (a 64×64 follower beside a 16×32 trainer) stand on their cells.
-    const sort = () => sprite.setDepth(layer + (sprite.y + sheet.frameHeight + Y_SORT_OFFSET) / Y_SORT_SCALE);
+    const sort = () => sprite.setDepth((overFade ? DEPTH_OVER_FADE : layer) + (sprite.y + sheet.frameHeight + (sheet.ahead ?? 0) + Y_SORT_OFFSET) / Y_SORT_SCALE);
     sort();
     return {
       setPosition: (x, y) => {
@@ -82,6 +84,10 @@ export class WorldScene extends Phaser.Scene implements WorldView {
       setFrame: (frame, hFlip) => sprite.setFrame(frame).setFlipX(hFlip),
       setOverTiles: (over) => {
         layer = over ? DEPTH_CHARACTERS_OVER : DEPTH_CHARACTERS;
+        sort();
+      },
+      setOverFade: (over) => {
+        overFade = over;
         sort();
       },
       setVisible: (visible) => sprite.setVisible(visible),

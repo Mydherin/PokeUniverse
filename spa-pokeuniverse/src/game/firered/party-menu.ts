@@ -1480,6 +1480,8 @@ class PartyMenu {
     const answer = this.host.useFieldMove?.(this.slotId, move);
     if (!answer) return this.refuseFieldMove(FieldMoveOutcome.CANT_USE_HERE);
     this.ask(answer, ({ outcome }) => {
+      // SetUpFieldMove_SweetScent: straight back to the field, where the move works.
+      if (outcome === FieldMoveOutcome.SWEET_SCENT) return this.close();
       if (outcome !== FieldMoveOutcome.CHOOSE_TARGET) return this.refuseFieldMove(outcome);
       this.sharing = move;
       this.chooseWhoToHeal();

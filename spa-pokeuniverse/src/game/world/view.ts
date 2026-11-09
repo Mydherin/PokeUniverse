@@ -18,6 +18,8 @@ export interface CharacterSheet {
   image: HTMLCanvasElement;
   frameWidth: number;
   frameHeight: number;
+  /** Pixels added to its feet in the drawing order: a field effect drawn over whoever stands on its cell. */
+  ahead?: number;
 }
 
 /** A character drawn between the map's layers. */
@@ -27,6 +29,8 @@ export interface CharacterView {
   setFrame(frame: number, hFlip: boolean): void;
   /** Over the tiles that usually cover characters (or under them). */
   setOverTiles(over: boolean): void;
+  /** Over the screen's fade too: left out of it, as a palette fade that skips the sprite's palette. */
+  setOverFade(over: boolean): void;
   setVisible(visible: boolean): void;
   destroy(): void;
 }

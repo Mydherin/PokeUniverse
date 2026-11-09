@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** resume [M3](milestones/m03-encounters.md) at its Resume Here (server done 2026-11-09; client next: wild battle step, Sweet Scent's fade, grass rustle). Read only that file. M1 and M2 done 2026-11-09. The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
+**Next step:** resume [M3](milestones/m03-encounters.md) at its Resume Here (code done 2026-11-09, server and client; next: Play It, then mark it done). Read only that file. M1 and M2 done 2026-11-09. The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 
@@ -33,7 +33,7 @@ M1 → M2 → M3 → M4 is a chain. After M4, M5 and M6 can go in either order; 
 - **Wild Pokémon:** random IVs, nature, gender and ability, shiny at 1/8192, held items by species (FireRed's and the expansion's `itemCommon` / `itemRare`).
 - **Wild battles:** FireRed's transitions, terrains, intro and music; RUN with the Gen 4 rules and escape items; moves that end a wild battle; items stolen and kept; Pay Day; Pickup after battles; whiteout against a wild Pokémon.
 - **Catching:** every ball in the catalog (FireRed's twelve and Gen 4's Heal, Dusk and Quick) with the Gen 4 formula; FireRed's throw and catch scene; the Pokédex page for a new species; nicknaming; the party, or the PC when it's full.
-- **Not here:** Safari Zone, static and roaming legendaries, the Old Man's catching demo, Pokédex area pages and every real table (Phase 12); using the rods and Surf on water maps (Phase 12); other players seeing a player in battle (Phase 8); Pokémon Center respawn (Phase 10).
+- **Not here:** the field moves' cut-in of the Pokémon, Sweet Scent's included (O11, Phase 12); Safari Zone, static and roaming legendaries, the Old Man's catching demo, Pokédex area pages and every real table (Phase 12); using the rods and Surf on water maps (Phase 12); other players seeing a player in battle (Phase 8); Pokémon Center respawn (Phase 10).
 
 ## Done When
 
