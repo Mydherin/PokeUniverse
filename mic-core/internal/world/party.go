@@ -143,6 +143,9 @@ func (z *zone) useFieldMove(p *Player, m *partyv1.UseFieldMove) {
 		}
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_FieldMoveResult{FieldMoveResult: &partyv1.FieldMoveResult{Outcome: outcome}}})
+	if outcome == partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_SWEET_SCENT {
+		z.sweetScent(p)
+	}
 }
 
 // useRareCandy raises the level; what to learn and who it may evolve into come with the answer.

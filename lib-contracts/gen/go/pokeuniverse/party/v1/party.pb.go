@@ -52,6 +52,9 @@ const (
 	FieldMoveOutcome_FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON FieldMoveOutcome = 6
 	// HP moved from the user to the target, and it was saved.
 	FieldMoveOutcome_FIELD_MOVE_OUTCOME_HP_SHARED FieldMoveOutcome = 7
+	// Sweet Scent (SetUpFieldMove_SweetScent): the menu closes and its pink fade plays; a Script
+	// follows with a wild battle or "Looks like there's nothing here…" (SweetScentWildEncounter).
+	FieldMoveOutcome_FIELD_MOVE_OUTCOME_SWEET_SCENT FieldMoveOutcome = 8
 )
 
 // Enum value maps for FieldMoveOutcome.
@@ -65,6 +68,7 @@ var (
 		5: "FIELD_MOVE_OUTCOME_CHOOSE_TARGET",
 		6: "FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON",
 		7: "FIELD_MOVE_OUTCOME_HP_SHARED",
+		8: "FIELD_MOVE_OUTCOME_SWEET_SCENT",
 	}
 	FieldMoveOutcome_value = map[string]int32{
 		"FIELD_MOVE_OUTCOME_UNSPECIFIED":             0,
@@ -75,6 +79,7 @@ var (
 		"FIELD_MOVE_OUTCOME_CHOOSE_TARGET":           5,
 		"FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON": 6,
 		"FIELD_MOVE_OUTCOME_HP_SHARED":               7,
+		"FIELD_MOVE_OUTCOME_SWEET_SCENT":             8,
 	}
 )
 
@@ -1257,7 +1262,7 @@ const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
 	"\n" +
 	"evolves_to\x18\x02 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\tevolvesTo\"B\n" +
 	"\fPartyChanged\x122\n" +
-	"\x05party\x18\x01 \x01(\v2\x1c.pokeuniverse.party.v1.PartyR\x05party*\xc8\x02\n" +
+	"\x05party\x18\x01 \x01(\v2\x1c.pokeuniverse.party.v1.PartyR\x05party*\xec\x02\n" +
 	"\x10FieldMoveOutcome\x12\"\n" +
 	"\x1eFIELD_MOVE_OUTCOME_UNSPECIFIED\x10\x00\x12$\n" +
 	" FIELD_MOVE_OUTCOME_CANT_USE_HERE\x10\x01\x12%\n" +
@@ -1266,7 +1271,8 @@ const file_pokeuniverse_party_v1_party_proto_rawDesc = "" +
 	" FIELD_MOVE_OUTCOME_NOT_ENOUGH_HP\x10\x04\x12$\n" +
 	" FIELD_MOVE_OUTCOME_CHOOSE_TARGET\x10\x05\x12.\n" +
 	"*FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON\x10\x06\x12 \n" +
-	"\x1cFIELD_MOVE_OUTCOME_HP_SHARED\x10\aBAZ?pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1;partyv1b\x06proto3"
+	"\x1cFIELD_MOVE_OUTCOME_HP_SHARED\x10\a\x12\"\n" +
+	"\x1eFIELD_MOVE_OUTCOME_SWEET_SCENT\x10\bBAZ?pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1;partyv1b\x06proto3"
 
 var (
 	file_pokeuniverse_party_v1_party_proto_rawDescOnce sync.Once

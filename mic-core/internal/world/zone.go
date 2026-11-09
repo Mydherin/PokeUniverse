@@ -163,6 +163,7 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 	p.followStep(p.pos)
 	p.pos, p.dirty, p.corrected = to, true, false
 	z.countFriendshipStep(p)
+	z.stepped(p)
 }
 
 // countFriendshipStep is UpdateFriendshipStepCounter. A failed save undoes the change.

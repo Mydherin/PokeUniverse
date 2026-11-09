@@ -32,7 +32,7 @@
   "gText_Var1IsSelected", "gOtherText_Use", "gOtherText_Toss", "gOtherText_Register", "gOtherText_Give", "gOtherText_Check",
   "gOtherText_Open", "gOtherText_Walk", "gOtherText_Deselect", "gText_ThereIsNoPokemon", "gText_OakForbidsUseOfItemHere",
   "gText_ItemCantBeHeld", "gText_TossOutHowManyStrVar1s", "gText_ThrowAwayStrVar2OfThisItemQM", "gText_ThrewAwayStrVar2StrVar1s",
-  "gText_CoinCase", "gText_PowderQty", "gText_PlayedPokeFluteCatchy", "gText_RepelEffectsLingered", "gText_PlayerUsedVar2",
+  "gText_CoinCase", "gText_PowderQty", "gText_PlayedPokeFluteCatchy", "gText_RepelEffectsLingered", "Text_RepelWoreOff", "Text_LooksLikeNothingHere", "gText_PlayerUsedVar2",
   "gText_UsedVar2WildLured", "gText_UsedVar2WildRepelled", "gOtherText_WhereShouldTheStrVar1BePlaced",
   "gText_NopeTheresNoResponse", "Text_BagItemCanBeRegistered",
   "gText_TMCase", "gText_BerryPouch", "gText_Close", "gText_TMCaseWillBePutAway", "gText_TheBerryPouchWillBePutAway",

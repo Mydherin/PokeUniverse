@@ -35,6 +35,19 @@ func NewStart(party pokemon.Party, trainerID uint32, key string, t *Trainer) *ba
 	}
 }
 
+// NewWildStart is a wild battle against one Pokémon (DoStandardWildBattle): side 1 has no
+// trainer and no AI flags (mic-battles picks its moves at random).
+func NewWildStart(party pokemon.Party, trainerID uint32, wild *pokemon.Pokemon) *battlev1.StartBattle {
+	var seed [8]byte
+	_, _ = rand.Read(seed[:])
+	return &battlev1.StartBattle{
+		BattleId: NewID(),
+		Kind:     battlev1.BattleKind_BATTLE_KIND_WILD,
+		Sides:    []*battlev1.BattleTeam{team(party, trainerID), team(pokemon.Party{wild}, 0)},
+		Seed:     binary.LittleEndian.Uint64(seed[:]),
+	}
+}
+
 // team is a party as it enters a battle. trainerID 0: no Pokémon counts as traded.
 func team(party pokemon.Party, trainerID uint32) *battlev1.BattleTeam {
 	out := &battlev1.BattleTeam{Pokemon: make([]*battlev1.BattleMon, len(party))}

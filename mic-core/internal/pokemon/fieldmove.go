@@ -34,7 +34,8 @@ var fieldMoves = map[movev1.Move]fieldMoveRule{
 	movev1.Move_MOVE_DIG:         refuses(partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_CANT_USE_HERE),
 	movev1.Move_MOVE_MILK_DRINK:  sharesHP,
 	movev1.Move_MOVE_SOFT_BOILED: sharesHP,
-	movev1.Move_MOVE_SWEET_SCENT: refuses(partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_CANT_USE_HERE),
+	// Always used; mic-core then looks for a wild Pokémon where the player stands.
+	movev1.Move_MOVE_SWEET_SCENT: refuses(partyv1.FieldMoveOutcome_FIELD_MOVE_OUTCOME_SWEET_SCENT),
 }
 
 // UseFieldMove answers the move's rule; with a target, a move that asks for one acts on it. The

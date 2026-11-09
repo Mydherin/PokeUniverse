@@ -42,9 +42,15 @@ type inBattle struct {
 	asking bool
 }
 
-// ScriptBattle starts the running script's trainer battle (the player said YES).
+// ScriptBattle starts the running script's trainer battle (the player said YES) or wild battle.
 func (p *Player) ScriptBattle(m *worldv1.ScriptBattle) {
-	p.zone.do(func() { p.zone.startBattle(p, m.GetScript()) })
+	p.zone.do(func() {
+		if p.wild != nil {
+			p.zone.startWild(p, m.GetScript())
+		} else {
+			p.zone.startBattle(p, m.GetScript())
+		}
+	})
 }
 
 // BattleChoice is the player's choice for the battle's request.
@@ -75,6 +81,42 @@ func (z *zone) startBattle(p *Player, script uint32) {
 		return
 	}
 	start := battle.NewStart(p.party, p.trainerID, key, t)
+	start.Terrain = terrain(z.m, p.pos)
+	z.launch(p, start, key)
+}
+
+// startWild starts the wild battle the script's WildBattle step reached (StartWildBattle): the
+// species is seen as it appears (FireRed sets it at the battle's start), saved first.
+func (z *zone) startWild(p *Player, script uint32) {
+	mon := p.wild
+	if _, ok := z.players[p]; !ok || script == 0 || script != p.script || mon == nil || p.battle != nil {
+		return
+	}
+	p.wild = nil
+	p.evolving = evolving{}
+	if !p.party.CanBattle() {
+		z.battleFailed(p, "")
+		return
+	}
+	if dex := p.pokedex; !dex.Same(dex.See(mon.Species)) {
+		p.pokedex = dex.See(mon.Species)
+		if !z.transact(p, func(ctx context.Context, q *db.Queries, save time.Time) error { return savePokedex(ctx, q, p, save) }) {
+			p.pokedex = dex
+			z.battleFailed(p, "")
+			return
+		}
+		z.sendPokedex(p)
+	}
+	start := battle.NewWildStart(p.party, p.trainerID, mon)
+	start.Terrain = terrain(z.m, p.pos)
+	start.WildTransition = wildTransition(z.m, p.pos, mon.Level, p.party)
+	z.launch(p, start, "")
+}
+
+// launch saves the battle as the player's active one and asks mic-battles to start it. Every
+// battle restarts the wild encounter state (RestartWildEncounterImmunitySteps in Task_BattleStart).
+func (z *zone) launch(p *Player, start *battlev1.StartBattle, key string) {
+	p.encounter.Reset()
 	data, _ := proto.Marshal(start)
 	a := battle.Active{ID: start.BattleId, Trainer: key, Save: p.gen, Start: data}
 	p.battle = &inBattle{Active: a}
@@ -116,7 +158,7 @@ func (z *zone) battleFailed(p *Player, id string) {
 
 // showBattle draws the battle on the client: at its start, or redrawn after a resume.
 func (z *zone) showBattle(p *Player, view *battlev1.BattleView, events []*battlev1.BattleEvent) {
-	withTrainer(view, p.battle.Trainer)
+	withStart(view, &p.battle.Active)
 	p.battle.request = view.GetRequest()
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_BattleStarted{BattleStarted: &battlev1.BattleStarted{View: view, Events: events}}})
 }
@@ -446,15 +488,23 @@ func (w *World) joinBattle(ctx context.Context, accountID, save int64, takeOver 
 	defer cancel()
 	if view, err := w.battleView(vctx, a); err == nil && view.GetRequest().GetKind() != battlev1.RequestKind_REQUEST_KIND_WAIT {
 		b.request = view.GetRequest()
-		return b, withTrainer(view, a.Trainer), nil
+		return b, withStart(view, a), nil
 	}
-	return b, withTrainer(&battlev1.BattleView{BattleId: a.ID, Kind: battlev1.BattleKind_BATTLE_KIND_TRAINER}, a.Trainer), nil
+	return b, withStart(&battlev1.BattleView{BattleId: a.ID}, a), nil
 }
 
-// withTrainer adds the NPC trainer to a view (mic-core owns the trainer table).
-func withTrainer(view *battlev1.BattleView, trainer string) *battlev1.BattleView {
-	if t := battle.Trainers[trainer]; t != nil {
+// withStart adds what mic-core keeps of the battle to a view: the NPC trainer (mic-core owns the
+// trainer table), the terrain and the wild transition; a view with no kind yet takes the start's.
+func withStart(view *battlev1.BattleView, a *battle.Active) *battlev1.BattleView {
+	if t := battle.Trainers[a.Trainer]; t != nil {
 		view.Trainer = t.View()
+	}
+	start := &battlev1.StartBattle{}
+	if proto.Unmarshal(a.Start, start) == nil {
+		view.Terrain, view.WildTransition = start.GetTerrain(), start.GetWildTransition()
+		if view.Kind == battlev1.BattleKind_BATTLE_KIND_UNSPECIFIED {
+			view.Kind = start.GetKind()
+		}
 	}
 	return view
 }

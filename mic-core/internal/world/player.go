@@ -8,6 +8,7 @@ import (
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
+	"pokeuniverse/mic-core/internal/encounter"
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/pokedex"
@@ -71,6 +72,10 @@ type Player struct {
 	scriptTrainer string
 	// The battle the player is in; nil when none. It blocks moves and every other action.
 	battle *inBattle
+	// Wild encounters' state (memory only, phase-7 D8), and the wild Pokémon met, waiting for
+	// its script's WildBattle step (nil: none).
+	encounter encounter.State
+	wild      *pokemon.Pokemon
 	// Messages waiting for the next tick, sent once the state they show is saved.
 	out []*realtimev1.ServerMessage
 }
@@ -88,7 +93,7 @@ func (p *Player) Interact(i *worldv1.Interact) { p.zone.do(func() { p.zone.inter
 func (p *Player) ScriptDone(d *worldv1.ScriptDone) {
 	p.zone.do(func() {
 		if d.Script == p.script {
-			p.script, p.pcScript, p.scriptTrainer = 0, 0, ""
+			p.script, p.pcScript, p.scriptTrainer, p.wild = 0, 0, "", nil
 			p.evolving = evolving{}
 		}
 	})

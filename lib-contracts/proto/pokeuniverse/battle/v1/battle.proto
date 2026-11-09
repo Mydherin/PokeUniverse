@@ -98,6 +98,10 @@ message StartBattle {
   uint64 seed = 4;
   // Two Pokémon a side (phase-5 D27).
   bool doubles = 5;
+  // For the view (BattleView.terrain, .wild_transition), kept with the start so a resume draws
+  // it again; mic-battles doesn't read them.
+  BattleTerrain terrain = 6;
+  BattleTransition wild_transition = 7;
 }
 
 // One side's choice.

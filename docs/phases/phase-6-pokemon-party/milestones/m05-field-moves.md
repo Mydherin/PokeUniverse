@@ -7,7 +7,7 @@ Part of [Phase 6](../phase-6-pokemon-party.md). Rules: [context.md](context.md),
 ## What Later Work Uses
 
 - **Contract:** `party.v1` `UseFieldMove` (slot, move, optional target), answered by `FieldMoveResult` with a `FieldMoveOutcome`.
-- **`mic-core`:** the table `fieldMoves` in `pokemon/fieldmove.go`, one rule per move; `zone.useFieldMove` in `world/party.go` saves HP that moved. Phase 12 fills the `refuses(...)` entries (a rule then also needs the map and the tile in front).
+- **`mic-core`:** the table `fieldMoves` in `pokemon/fieldmove.go`, one rule per move; `zone.useFieldMove` in `world/party.go` saves HP that moved. Phase 12 fills the `refuses(...)` entries (a rule then also needs the map and the tile in front). Sweet Scent answers `SWEET_SCENT` since Phase 7 M3 (`zone.sweetScent`).
 - **Client:** `party-menu.ts`: `FIELD_MOVES`, `useFieldMove`, `refuseFieldMove`, `chooseWhoToHeal`, `shareHp`, `animateHp`. `FIELD_MOVES` only decides what's listed.
 
 ## Decisions

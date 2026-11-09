@@ -49,6 +49,8 @@ const asmFiles = [
   ...readdirSync(join(src, "data/text")).filter((f) => f.endsWith(".inc")).map((f) => join("data/text", f)),
   ...readdirSync(join(src, "data/maps")).map((m) => join("data/maps", m, "text.inc")).filter((f) => existsSync(join(src, f))),
   "data/event_scripts.s",
+  "data/scripts/repel.inc",
+  "data/scripts/field_moves.inc",
 ];
 for (const file of asmFiles) {
   let label = null;

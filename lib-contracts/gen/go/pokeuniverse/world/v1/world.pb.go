@@ -970,6 +970,7 @@ type ScriptStep struct {
 	//	*ScriptStep_TrainerBattle
 	//	*ScriptStep_Music
 	//	*ScriptStep_FaceOriginal
+	//	*ScriptStep_WildBattle
 	Action        isScriptStep_Action `protobuf_oneof:"action"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1084,6 +1085,15 @@ func (x *ScriptStep) GetFaceOriginal() bool {
 	return false
 }
 
+func (x *ScriptStep) GetWildBattle() bool {
+	if x != nil {
+		if x, ok := x.Action.(*ScriptStep_WildBattle); ok {
+			return x.WildBattle
+		}
+	}
+	return false
+}
+
 type isScriptStep_Action interface {
 	isScriptStep_Action()
 }
@@ -1130,6 +1140,12 @@ type ScriptStep_FaceOriginal struct {
 	FaceOriginal bool `protobuf:"varint,8,opt,name=face_original,json=faceOriginal,proto3,oneof"`
 }
 
+type ScriptStep_WildBattle struct {
+	// A wild battle mic-core started on a step or with Sweet Scent (true): the client sends
+	// ScriptBattle and waits for BattleStarted, as for a trainer battle; mic-core holds the wild Pokémon.
+	WildBattle bool `protobuf:"varint,9,opt,name=wild_battle,json=wildBattle,proto3,oneof"`
+}
+
 func (*ScriptStep_Message) isScriptStep_Action() {}
 
 func (*ScriptStep_Sound) isScriptStep_Action() {}
@@ -1145,6 +1161,8 @@ func (*ScriptStep_TrainerBattle) isScriptStep_Action() {}
 func (*ScriptStep_Music) isScriptStep_Action() {}
 
 func (*ScriptStep_FaceOriginal) isScriptStep_Action() {}
+
+func (*ScriptStep_WildBattle) isScriptStep_Action() {}
 
 type YesNo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1236,7 +1254,7 @@ func (x *TrainerBattle) GetTrainer() string {
 	return ""
 }
 
-// The client reached the running script's TrainerBattle step: the battle starts.
+// The client reached the running script's TrainerBattle or WildBattle step: the battle starts.
 type ScriptBattle struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Script        uint32                 `protobuf:"varint,1,opt,name=script,proto3" json:"script,omitempty"`
@@ -1555,7 +1573,7 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\x06Script\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x127\n" +
 	"\x05steps\x18\x02 \x03(\v2!.pokeuniverse.world.v1.ScriptStepR\x05steps\x12\x10\n" +
-	"\x03npc\x18\x03 \x01(\tR\x03npc\"\xb2\x03\n" +
+	"\x03npc\x18\x03 \x01(\tR\x03npc\"\xd5\x03\n" +
 	"\n" +
 	"ScriptStep\x12:\n" +
 	"\amessage\x18\x01 \x01(\v2\x1e.pokeuniverse.world.v1.MessageH\x00R\amessage\x12\x16\n" +
@@ -1566,7 +1584,9 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\x06yes_no\x18\x05 \x01(\v2\x1c.pokeuniverse.world.v1.YesNoH\x00R\x05yesNo\x12M\n" +
 	"\x0etrainer_battle\x18\x06 \x01(\v2$.pokeuniverse.world.v1.TrainerBattleH\x00R\rtrainerBattle\x12\x16\n" +
 	"\x05music\x18\a \x01(\tH\x00R\x05music\x12%\n" +
-	"\rface_original\x18\b \x01(\bH\x00R\ffaceOriginalB\b\n" +
+	"\rface_original\x18\b \x01(\bH\x00R\ffaceOriginal\x12!\n" +
+	"\vwild_battle\x18\t \x01(\bH\x00R\n" +
+	"wildBattleB\b\n" +
 	"\x06action\":\n" +
 	"\x05YesNo\x121\n" +
 	"\x02no\x18\x01 \x03(\v2!.pokeuniverse.world.v1.ScriptStepR\x02no\")\n" +
@@ -1684,6 +1704,7 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 		(*ScriptStep_TrainerBattle)(nil),
 		(*ScriptStep_Music)(nil),
 		(*ScriptStep_FaceOriginal)(nil),
+		(*ScriptStep_WildBattle)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

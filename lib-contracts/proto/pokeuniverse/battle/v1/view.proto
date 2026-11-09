@@ -52,6 +52,39 @@ message BattleView {
   BattleTrainer trainer = 6;
   // Two Pokémon a side (phase-5 D27).
   bool doubles = 7;
+  // Where the battle is fought; filled in by mic-core from StartBattle.
+  BattleTerrain terrain = 8;
+  // A wild battle's transition (GetWildBattleTransition); unspecified for a trainer battle.
+  // Filled in by mic-core from StartBattle.
+  BattleTransition wild_transition = 9;
+}
+
+// FireRed's BATTLE_TERRAIN_* (constants/battle.h) plus one, from the cell and the map type
+// (BattleSetup_GetTerrainId).
+enum BattleTerrain {
+  BATTLE_TERRAIN_UNSPECIFIED = 0;
+  BATTLE_TERRAIN_GRASS = 1;
+  BATTLE_TERRAIN_LONG_GRASS = 2;
+  BATTLE_TERRAIN_SAND = 3;
+  BATTLE_TERRAIN_UNDERWATER = 4;
+  BATTLE_TERRAIN_WATER = 5;
+  BATTLE_TERRAIN_POND = 6;
+  BATTLE_TERRAIN_MOUNTAIN = 7;
+  BATTLE_TERRAIN_CAVE = 8;
+  BATTLE_TERRAIN_BUILDING = 9;
+  BATTLE_TERRAIN_PLAIN = 10;
+}
+
+// A wild battle's transition, from sBattleTransitionTable_Wild.
+enum BattleTransition {
+  BATTLE_TRANSITION_UNSPECIFIED = 0;
+  BATTLE_TRANSITION_SLICE = 1;
+  BATTLE_TRANSITION_WHITE_BARS_FADE = 2;
+  BATTLE_TRANSITION_CLOCKWISE_WIPE = 3;
+  BATTLE_TRANSITION_GRID_SQUARES = 4;
+  BATTLE_TRANSITION_BLUR = 5;
+  BATTLE_TRANSITION_WAVE = 6;
+  BATTLE_TRANSITION_RIPPLE = 7;
 }
 
 // An NPC trainer as the battle screen shows them.

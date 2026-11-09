@@ -139,6 +139,9 @@ enum FieldMoveOutcome {
   FIELD_MOVE_OUTCOME_CANT_BE_USED_ON_POKEMON = 6;
   // HP moved from the user to the target, and it was saved.
   FIELD_MOVE_OUTCOME_HP_SHARED = 7;
+  // Sweet Scent (SetUpFieldMove_SweetScent): the menu closes and its pink fade plays; a Script
+  // follows with a wild battle or "Looks like there's nothing here…" (SweetScentWildEncounter).
+  FIELD_MOVE_OUTCOME_SWEET_SCENT = 8;
 }
 
 // Server -> client: the answer to UseFieldMove.

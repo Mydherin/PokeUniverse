@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7 M3: Encounters on the map](docs/phases/phase-7-wild-battles-catching/milestones/m03-encounters.md): not started; read its Resume Here. M2 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7 M3: Encounters on the map](docs/phases/phase-7-wild-battles-catching/milestones/m03-encounters.md): server done, client next; read its Resume Here. M2 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

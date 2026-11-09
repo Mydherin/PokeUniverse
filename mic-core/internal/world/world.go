@@ -217,6 +217,7 @@ func (w *World) Leave(p *Player) {
 		pc, keptPC = p.leftPC(time.Now())
 		p.zone.remove(p)
 		p.zone.saveFriendshipSteps(p)
+		p.zone.saveTrainer(p, item.Changed{State: true}, false) // Repel's steps (phase-7 D8).
 	})
 	w.mu.Lock()
 	if w.players[p.accountID] == p {

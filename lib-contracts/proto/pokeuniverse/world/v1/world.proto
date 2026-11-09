@@ -163,6 +163,9 @@ message ScriptStep {
     string music = 7;
     // The NPC that answers turns back to where it faced as the map loaded (true).
     bool face_original = 8;
+    // A wild battle mic-core started on a step or with Sweet Scent (true): the client sends
+    // ScriptBattle and waits for BattleStarted, as for a trainer battle; mic-core holds the wild Pokémon.
+    bool wild_battle = 9;
   }
 }
 
@@ -176,7 +179,7 @@ message TrainerBattle {
   string trainer = 1;
 }
 
-// The client reached the running script's TrainerBattle step: the battle starts.
+// The client reached the running script's TrainerBattle or WildBattle step: the battle starts.
 message ScriptBattle {
   uint32 script = 1;
 }

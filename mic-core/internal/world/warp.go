@@ -6,6 +6,8 @@ import (
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
+
+	"pokeuniverse/mic-core/internal/item"
 )
 
 // UseWarp takes the player through the warp they stand on: out of this map's zone, then into
@@ -85,6 +87,11 @@ func (z *zone) arrive(p *Player, at Point) {
 	p.pos, p.facing, p.elevation = at, arrivalFacing(z.m.Behavior(at)), z.m.Elevation(at)
 	p.canRun = z.m.AllowRunning && hasRunningShoes
 	p.dirty, p.corrected = true, false
+	// A map change (LoadMapFromWarp): the encounter state restarts and the flutes stop.
+	p.encounter.Reset()
+	if p.clearFlute() {
+		z.saveTrainer(p, item.Changed{State: true}, false)
+	}
 	z.add(p)
 	p.placeFollower()
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Warped{Warped: &worldv1.Warped{

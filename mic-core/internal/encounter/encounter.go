@@ -110,6 +110,9 @@ type Options struct {
 	RepelLevel int
 	// The player who meets it: its shininess comes from their IDs.
 	Trainer pokemon.Trainer
+	// Sweet Scent: Intimidate and Keen Eye never skip (pokeheartgold DoesAbilitySuppressEncounter
+	// 1145 is only called for steps).
+	SweetScent bool
 }
 
 func (o Options) ability() abilityv1.Ability {
@@ -136,7 +139,7 @@ func Generate(w *mapv1.WildEncounters, kind Kind, opts Options, r pokemon.RNG) (
 	}
 	slot := slots[i]
 	level := ChooseLevel(slot, ability, r)
-	if leadSkips(opts.Lead, ability, level, r) {
+	if !opts.SweetScent && leadSkips(opts.Lead, ability, level, r) {
 		return nil, false
 	}
 	if opts.RepelLevel > 0 && level < opts.RepelLevel {
