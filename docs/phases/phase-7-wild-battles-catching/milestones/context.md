@@ -22,7 +22,7 @@ Same steps as Phase 6 (build, play the milestone's **Play it** list, regression 
 | D7 | **Test content:** the grass patch and its table on 1F of the player's house, marked as test content and removed in Phase 10 with the test trainer and team. |
 | D8 | **MMO:** a wild battle locks the player like a trainer battle; each player has their own encounters; no wild Pokémon is shared or visible to others. Encounter state (steps since the last, buff, previous behavior) is per player, in memory; Repel steps are saved. |
 | D9 | **The caught Pokémon keeps its battle state** (Gen 4): HP, status, PP, held item. Heal Ball restores it. Experience is not given for a catch (Gen 4). |
-| D10 | **Nickname after the save:** the MMO saves the catch with the battle's outcome; FireRed's question and naming screen come after, as a `NameCaughtPokemon` intent allowed only for the Pokémon just caught (held in the player's active battle record until answered or the battle closes). A restart at the question asks it again. |
+| D10 | **Nickname after the save:** the MMO saves the catch with the battle's outcome; FireRed's question and naming screen come after, as a `NameCaughtPokemon` intent allowed only for the Pokémon just caught (its party or box slot kept on the trainer row, `naming_box` / `naming_slot`, saved in the catch's own transaction and cleared by the answer). A restart at the question asks it again. |
 | D11 | **Whiteout respawn** stays as Phase 6 left it (same zone, `Start`'s tile) until Phase 10 brings the Pokémon Center. |
 
 ## Gen 4 Rules Used by Several Milestones

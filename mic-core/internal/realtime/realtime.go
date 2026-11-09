@@ -319,6 +319,9 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_SwapPokemonMoves:
 		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
 		return true
+	case *realtimev1.ClientMessage_NameCaughtPokemon:
+		c.player.NameCaughtPokemon(p.NameCaughtPokemon)
+		return true
 	case *realtimev1.ClientMessage_EvolvePokemon:
 		c.player.EvolvePokemon(p.EvolvePokemon)
 		return true

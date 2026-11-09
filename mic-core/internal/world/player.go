@@ -32,7 +32,7 @@ type Player struct {
 	sink      Sink
 	// The client page (one per load): a reconnect from the same page keeps its open PC.
 	instance string
-	zone      *zone
+	zone     *zone
 	// When its play time was last counted (Unix nanoseconds); swapped by keep-alive and Leave.
 	counted atomic.Int64
 
@@ -65,6 +65,10 @@ type Player struct {
 	// Species seen and caught; saved with the battle or the evolution that changed it.
 	pokedex pokedex.Pokedex
 	gender  trainerv1.Gender
+	// The trainer's name (OT of the Pokémon caught).
+	name string
+	// The Pokémon just caught whose nickname is asked (NameCaughtPokemon); saved, nil when none.
+	naming *pokemon.Place
 	// The trainer's ID (traded Pokémon) and money.
 	trainerID uint32
 	money     int

@@ -123,7 +123,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 
 	p := &Player{accountID: accountID, conn: s.Conn, instance: s.Instance, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party, pokedex: pokedex.Load(row),
-		gender: gender, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle, friendshipSteps: int(row.FriendshipSteps),
+		gender: gender, name: row.Name, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle, friendshipSteps: int(row.FriendshipSteps),
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -152,6 +152,9 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		z.add(p)
 		if p.battle != nil && p.battle.request == nil {
 			z.resumeBattle(p) // mic-battles didn't answer in time, or the battle was over.
+		}
+		if row.NamingBox.Valid {
+			z.askNaming(p, pokemon.Place{Box: int(row.NamingBox.Int16), Slot: int(row.NamingSlot.Int16)})
 		}
 	})
 

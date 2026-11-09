@@ -590,7 +590,8 @@ export const PartyChangedSchema: GenMessage<PartyChanged> = /*@__PURE__*/
 
 /**
  * Client -> server: the name for the Pokémon just caught (phase-7 D10). Empty: keep the
- * species' name (cancel or "NO"). Answered with PartyChanged (or BoxView when it is in a box).
+ * species' name (cancel or "NO"); a name the naming screen can't make (over 10 characters)
+ * counts as empty. Answered with PartyChanged when it is in the party; none when in a box.
  *
  * @generated from message pokeuniverse.party.v1.NameCaughtPokemon
  */

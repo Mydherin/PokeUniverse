@@ -77,6 +77,8 @@ type Trainer struct {
 	PokedexCaught   []byte
 	FriendshipSteps int16
 	CurrentBox      int16
+	NamingBox       pgtype.Int2
+	NamingSlot      pgtype.Int2
 }
 
 type TrainerBox struct {

@@ -100,30 +100,40 @@ func ViewBox(ctx context.Context, q *db.Queries, accountID int64, save time.Time
 }
 
 // AddCaught is GiveMonToPlayer: into the party while it has room, else SendMonToPC, inside the
-// caller's transaction. It answers the party to keep (the caller holds it in memory) and the box
-// the Pokémon went to, 0 for the party. With every box full the Pokémon isn't added: full is true
-// (MON_CANT_GIVE).
-func AddCaught(ctx context.Context, q *db.Queries, accountID int64, save time.Time, party Party, p *Pokemon) (kept Party, box int, full bool, err error) {
+// caller's transaction. It answers the party to keep (the caller holds it in memory) and where the
+// Pokémon went (box 0: the party; Moved: the current box was full). With every box full the
+// Pokémon isn't added: full is true (MON_CANT_GIVE).
+func AddCaught(ctx context.Context, q *db.Queries, accountID int64, save time.Time, party Party, p *Pokemon) (kept Party, at Placed, full bool, err error) {
 	if len(party) < PartySize {
 		kept = append(party, p)
-		return kept, 0, false, Write(ctx, q, accountID, save, kept)
+		return kept, Placed{Place: Place{Slot: len(party)}}, false, Write(ctx, q, accountID, save, kept)
 	}
 	if err := lock(ctx, q, accountID, save); err != nil {
-		return party, 0, false, err
+		return party, at, false, err
+	}
+	current, err := q.GetTrainerCurrentBox(ctx, accountID)
+	if err != nil {
+		return party, at, false, fmt.Errorf("current box: %w", err)
 	}
 	box, slot, err := freeBoxSlot(ctx, q, accountID)
 	if err != nil {
-		return party, 0, false, err
+		return party, at, false, err
 	}
 	if box == 0 {
-		return party, 0, true, nil
+		return party, at, true, nil
 	}
 	// A box keeps neither HP nor status (BoxPokemon), and SendMonToPC restores the PP.
 	p.Heal()
 	if err := q.InsertTrainerPokemon(ctx, toRow(accountID, box, slot, p)); err != nil {
-		return party, 0, false, fmt.Errorf("add to box: %w", err)
+		return party, at, false, fmt.Errorf("add to box: %w", err)
 	}
-	return party, box, false, nil
+	return party, Placed{Place: Place{Box: box, Slot: slot}, Moved: box != int(current)}, false, nil
+}
+
+// Placed is where AddCaught put a Pokémon.
+type Placed struct {
+	Place
+	Moved bool // SendMonToPC passed the current box: it was full.
 }
 
 // StorageFull is IsPlayerPartyAndPokemonStorageFull's box half: no box has a free slot.

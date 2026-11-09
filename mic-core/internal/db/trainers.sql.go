@@ -8,13 +8,15 @@ package db
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getTrainer = `-- name: GetTrainer :one
 SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
        text_speed, battle_scene, battle_style, sound, button_mode, frame,
        registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
-       pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
+       pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught, naming_box, naming_slot
 FROM trainers
 WHERE account_id = $1
 `
@@ -46,6 +48,8 @@ type GetTrainerRow struct {
 	PokedexNational bool
 	PokedexSeen     []byte
 	PokedexCaught   []byte
+	NamingBox       pgtype.Int2
+	NamingSlot      pgtype.Int2
 }
 
 // created_at identifies the save: a New Game replaces it, so live positions of the old save are ignored.
@@ -79,6 +83,8 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.PokedexNational,
 		&i.PokedexSeen,
 		&i.PokedexCaught,
+		&i.NamingBox,
+		&i.NamingSlot,
 	)
 	return i, err
 }
@@ -141,6 +147,8 @@ SET name = EXCLUDED.name,
     registered_item = DEFAULT,
     repel_steps = DEFAULT,
     friendship_steps = DEFAULT,
+    naming_box = NULL,
+    naming_slot = NULL,
     current_box = DEFAULT,
     flute = DEFAULT,
     coins = DEFAULT,
@@ -153,7 +161,7 @@ SET name = EXCLUDED.name,
 RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
           text_speed, battle_scene, battle_style, sound, button_mode, frame,
           registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
-          pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
+          pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught, naming_box, naming_slot
 `
 
 type PutTrainerParams struct {
@@ -195,6 +203,8 @@ type PutTrainerRow struct {
 	PokedexNational bool
 	PokedexSeen     []byte
 	PokedexCaught   []byte
+	NamingBox       pgtype.Int2
+	NamingSlot      pgtype.Int2
 }
 
 // New Game: the account's trainer, replaced if it already has one, at the start location, with a
@@ -240,6 +250,8 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.PokedexNational,
 		&i.PokedexSeen,
 		&i.PokedexCaught,
+		&i.NamingBox,
+		&i.NamingSlot,
 	)
 	return i, err
 }
@@ -325,6 +337,31 @@ type UpdateTrainerMoneyParams struct {
 // Money after a battle; only into the save it belongs to.
 func (q *Queries) UpdateTrainerMoney(ctx context.Context, arg UpdateTrainerMoneyParams) (int64, error) {
 	result, err := q.db.Exec(ctx, updateTrainerMoney, arg.AccountID, arg.Money, arg.CreatedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const updateTrainerNaming = `-- name: UpdateTrainerNaming :execrows
+UPDATE trainers SET naming_box = $2, naming_slot = $3 WHERE account_id = $1 AND created_at = $4
+`
+
+type UpdateTrainerNamingParams struct {
+	AccountID  int64
+	NamingBox  pgtype.Int2
+	NamingSlot pgtype.Int2
+	CreatedAt  time.Time
+}
+
+// The caught Pokémon whose nickname is asked (NULLs: answered); only into the save it belongs to.
+func (q *Queries) UpdateTrainerNaming(ctx context.Context, arg UpdateTrainerNamingParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerNaming,
+		arg.AccountID,
+		arg.NamingBox,
+		arg.NamingSlot,
+		arg.CreatedAt,
+	)
 	if err != nil {
 		return 0, err
 	}

@@ -66,6 +66,11 @@ SELECT EXISTS (
 DELETE FROM trainer_pokemon
 WHERE account_id = $1 AND box = $2 AND slot = $3;
 
+-- name: UpdateBoxPokemonNickname :execrows
+-- A box Pokémon named (the nickname asked after a catch); empty = the species' name.
+UPDATE trainer_pokemon SET nickname = $4
+WHERE account_id = $1 AND box = $2 AND slot = $3;
+
 -- name: UpsertTrainerBox :exec
 -- A box's name or wallpaper changed; the row keeps both.
 INSERT INTO trainer_boxes (account_id, box, name, wallpaper)

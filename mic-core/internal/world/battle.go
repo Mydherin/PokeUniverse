@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/proto"
 
 	battlev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1"
@@ -410,8 +411,9 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 		p.party.ChangeFriendshipByItem(info.GetEffect(), int(f.Slot), z.m.ID)
 	}
 	won := result == battlev1.BattleResult_BATTLE_RESULT_WON || result == battlev1.BattleResult_BATTLE_RESULT_FORFEIT_WON
-	// Ran (RUN, an escape item, Roar, Teleport): HP, status and PP stay, no money either way.
-	lost := !won && result != battlev1.BattleResult_BATTLE_RESULT_RAN
+	// Ran (RUN, an escape item, Roar, Teleport) or caught: HP, status and PP stay, no money either way.
+	caught := z.caught(p, o)
+	lost := !won && result != battlev1.BattleResult_BATTLE_RESULT_RAN && result != battlev1.BattleResult_BATTLE_RESULT_CAUGHT
 	delta, payDay := 0, 0
 	if won {
 		prize := 0
@@ -431,9 +433,11 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	p.money += delta
 	p.pokedex = p.pokedex.See(side.GetSeen()...)
 
-	applied, err := z.saveOutcome(p, b.ID, result, delta)
+	applied, err := z.saveOutcome(p, b.ID, result, delta, caught)
 	if err != nil || !applied {
 		p.party, p.money, p.pokedex = party, money, dex
+	} else if caught != nil && caught.ended != nil {
+		p.party, p.naming = caught.party, &caught.at.Place
 	}
 	if err != nil {
 		z.w.log.Error("save battle outcome", "account_id", p.accountID, "battle", b.ID, "err", err)
@@ -458,6 +462,7 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_BattleEnded{BattleEnded: &battlev1.BattleEnded{
 		BattleId: b.ID, Result: result, Money: uint32(max(delta, -delta)), Evolutions: p.evolving.proto(), PayDay: uint32(payDay),
+		Caught: caught.proto(applied),
 	}}})
 	z.sendParty(p)
 	if !p.pokedex.Same(dex) {
@@ -472,7 +477,81 @@ func (z *zone) finish(p *Player, o *battlev1.BattleOutcome) {
 	}
 }
 
-func (z *zone) saveOutcome(p *Player, id string, result battlev1.BattleResult, money int) (bool, error) {
+// catch is the Pokémon a CAUGHT outcome adds, and where saveOutcome put it.
+type catch struct {
+	mon      *pokemon.Pokemon
+	newInDex bool
+	// Set by saveOutcome: the party to keep, where it went, what BattleEnded tells (nil: dropped).
+	party pokemon.Party
+	at    pokemon.Placed
+	ended *battlev1.CaughtPokemon
+}
+
+// caught builds the caught Pokémon from the battle's start and its outcome (MonSetCatchData:
+// the ball, met level and location, the player as OT) and marks it caught in the Pokédex.
+func (z *zone) caught(p *Player, o *battlev1.BattleOutcome) *catch {
+	side := o.GetSides()[battle.PlayerSide]
+	if side.GetResult() != battlev1.BattleResult_BATTLE_RESULT_CAUGHT || side.GetCaught() == nil {
+		return nil
+	}
+	start := &battlev1.StartBattle{}
+	slot := int(side.GetCaughtSlot())
+	if err := proto.Unmarshal(p.battle.Start, start); err != nil || len(start.GetSides()) < 2 || slot >= len(start.GetSides()[1].GetPokemon()) {
+		z.w.log.Error("caught pokemon", "account_id", p.accountID, "battle", p.battle.ID, "err", err)
+		return nil
+	}
+	mon := battle.Caught(start, slot, side.GetCaught(), side.GetCaughtBall(), pokemon.Trainer{Name: p.name, ID: p.trainerID, Gender: p.gender}, z.m.ID)
+	c := &catch{mon: mon, newInDex: !p.pokedex.HasCaught(mon.Species)}
+	p.pokedex = p.pokedex.Catch(mon.Species)
+	return c
+}
+
+// add saves the caught Pokémon inside the outcome's transaction (GiveMonToPlayer), with the
+// nickname question pending. Every box full can't happen (balls are refused then): it's dropped.
+func (c *catch) add(ctx context.Context, q *db.Queries, p *Player, save time.Time) error {
+	c.ended = nil
+	party, at, full, err := pokemon.AddCaught(ctx, q, p.accountID, save, p.party, c.mon.Clone())
+	if err != nil || full {
+		return err
+	}
+	ended := &battlev1.CaughtPokemon{Species: c.mon.Species, NicknamePending: true, NewInPokedex: c.newInDex,
+		Where: battlev1.CaughtWhere_CAUGHT_WHERE_PARTY, Slot: uint32(at.Slot)}
+	if at.Box > 0 {
+		boxes, err := pokemon.LoadBoxes(ctx, q, p.accountID)
+		if err != nil {
+			return err
+		}
+		ended.Where, ended.Box, ended.BoxName, ended.BoxFullBefore = battlev1.CaughtWhere_CAUGHT_WHERE_BOX, uint32(at.Box-1), boxes[at.Box-1].Name, at.Moved
+	}
+	if err := saveNaming(ctx, q, p.accountID, save, &at.Place); err != nil {
+		return err
+	}
+	c.party, c.at, c.ended = party, at, ended
+	return nil
+}
+
+func (c *catch) proto(applied bool) *battlev1.CaughtPokemon {
+	if c == nil || !applied {
+		return nil
+	}
+	return c.ended
+}
+
+// saveNaming keeps the Pokémon whose nickname is asked (nil: answered) inside the caller's transaction.
+func saveNaming(ctx context.Context, q *db.Queries, accountID int64, save time.Time, at *pokemon.Place) error {
+	arg := db.UpdateTrainerNamingParams{AccountID: accountID, CreatedAt: save}
+	if at != nil {
+		arg.NamingBox = pgtype.Int2{Int16: int16(at.Box), Valid: true}
+		arg.NamingSlot = pgtype.Int2{Int16: int16(at.Slot), Valid: true}
+	}
+	n, err := q.UpdateTrainerNaming(ctx, arg)
+	if err == nil && n == 0 {
+		err = pokemon.ErrStaleSave
+	}
+	return err
+}
+
+func (z *zone) saveOutcome(p *Player, id string, result battlev1.BattleResult, money int, caught *catch) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), saveTimeout)
 	defer cancel()
 	save := time.UnixMicro(p.gen)
@@ -490,6 +569,14 @@ func (z *zone) saveOutcome(p *Player, id string, result battlev1.BattleResult, m
 		}
 		if err := pokemon.Write(ctx, q, p.accountID, save, p.party); err != nil {
 			return err
+		}
+		if caught != nil {
+			if err := caught.add(ctx, q, p, save); err != nil {
+				return err
+			}
+			if caught.ended == nil {
+				z.w.log.Error("caught pokemon dropped: storage full", "account_id", p.accountID, "battle", id)
+			}
 		}
 		if err := savePokedex(ctx, q, p, save); err != nil {
 			return err

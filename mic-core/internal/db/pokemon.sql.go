@@ -413,6 +413,32 @@ func (q *Queries) ResetTrainerPokemon(ctx context.Context, accountID int64) erro
 	return err
 }
 
+const updateBoxPokemonNickname = `-- name: UpdateBoxPokemonNickname :execrows
+UPDATE trainer_pokemon SET nickname = $4
+WHERE account_id = $1 AND box = $2 AND slot = $3
+`
+
+type UpdateBoxPokemonNicknameParams struct {
+	AccountID int64
+	Box       int16
+	Slot      int16
+	Nickname  string
+}
+
+// A box Pokémon named (the nickname asked after a catch); empty = the species' name.
+func (q *Queries) UpdateBoxPokemonNickname(ctx context.Context, arg UpdateBoxPokemonNicknameParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateBoxPokemonNickname,
+		arg.AccountID,
+		arg.Box,
+		arg.Slot,
+		arg.Nickname,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const upsertTrainerBox = `-- name: UpsertTrainerBox :exec
 INSERT INTO trainer_boxes (account_id, box, name, wallpaper)
 VALUES ($1, $2, $3, $4)
