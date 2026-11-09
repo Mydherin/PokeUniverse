@@ -472,15 +472,19 @@ export class BattleScreen implements PlaybackHost {
       gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_WHITE);
       while (gba.palettes.fadeActive) yield;
       let back = false;
+      // frame() skips the job while away, so the screen's return resumes it.
+      const ret = () => {
+        this.away = false;
+        back = true;
+        gba.setMain(() => this.frame());
+      };
       this.away = true;
       // The Pokédex's art and texts load the first time it opens, as from the START menu.
       flow.assets.loadPokedex().then(
-        () => registerMonToPokedex(flow, host.gender, host.pokedex, c.species, () => (back = true)),
-        () => (back = true),
+        () => registerMonToPokedex(flow, host.gender, host.pokedex, c.species, ret),
+        ret,
       );
       while (!back) yield;
-      this.away = false;
-      gba.setMain(() => this.frame());
       // The battle's background and text box, and the caught Pokémon's picture in the middle.
       const scene = this.newScene();
       scene.drawTerrain();
@@ -512,10 +516,18 @@ export class BattleScreen implements PlaybackHost {
     let named: Text | null | undefined;
     this.away = true;
     const gender = info?.gender === MonGender.MALE ? "male" : info?.gender === MonGender.FEMALE ? "female" : null;
-    startNamingScreen(flow, "caughtMon", host.gender, (n) => (named = n), { species: c.species, name: speciesName, gender, sentToPc: toPc ? box : undefined });
+    startNamingScreen(
+      flow,
+      "caughtMon",
+      host.gender,
+      (n) => {
+        named = n;
+        this.away = false;
+        gba.setMain(() => this.frame());
+      },
+      { species: c.species, name: speciesName, gender, sentToPc: toPc ? box : undefined },
+    );
     while (named === undefined) yield;
-    this.away = false;
-    gba.setMain(() => this.frame());
     host.nameCaught(named ? decodeText(flow.assets.charmap, named) : "");
     this.sceneNow = null;
   }

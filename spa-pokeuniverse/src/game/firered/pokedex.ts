@@ -190,6 +190,8 @@ class Pokedex {
     if (registering) {
       this.pages.lookUpCategory(registering);
       this.task = () => this.register();
+      // Opened from the battle, whose palettes are being sent: the white comes from them.
+      this.transferDisabled = false;
       // The battle faded to white: the screen comes in from it.
       gba.palettes.blendPalettes(PALETTES_ALL, 16, RGB_WHITE);
     }

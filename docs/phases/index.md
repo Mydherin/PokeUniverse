@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 7, [M7](phase-7-wild-battles-catching/milestones/m07-catch-scene.md) in progress, Play It half done (M6 done 2026-11-09). **Updated:** 2026-11-09.
+**Current:** Phase 7, [M7](phase-7-wild-battles-catching/milestones/m07-catch-scene.md) in progress, Play It done but the trainer block (M6 done 2026-11-09). **Updated:** 2026-11-09.
 
 ## Milestones of Phases With Folders
 
