@@ -6,14 +6,26 @@ Part of [Phase 7](../phase-7-wild-battles-catching.md). **Needs:** M2. Rules: [c
 
 ## Resume Here
 
-**Code done, Play It next** (2026-11-09). Server and client written; nothing played yet. `mic-core` builds and vets (Go isn't on the host: `docker run --rm -v "$PWD":/repo -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build -w /repo/mic-core golang:1.27-alpine sh -c 'go build ./... && go vet ./...'` from the repo root); `make contracts`, `make text` (678 strings) and `make graphics` ran. Client: `npx tsc --noEmit` in `spa-pokeuniverse` passes; `vite build` doesn't run on the host (rolldown's native binding is missing there; the container builds it).
+**Play It mostly passed, Sweet Scent and the flutes in play left** (2026-11-09). Code committed (`be2ebc4`, `8004ea9`); nothing changed since. `make up` ran; the stack is up.
 
 Next steps, in order:
 
-1. **Play It** below (`make up`; SQL on the test team with the game closed). Write the step counts here.
-2. Then mark M3 done: milestone ✅, phase file M3 row and Resume Here → M4, `AGENTS.md` **Now** → M4, `index.md` (Current, 3 / 8, O4's Cleanse Tag / Pure Incense part and O5's Sweet Scent part closed).
+1. **Sweet Scent** (already set up by SQL, game closed: test team's Snorlax, slot 0, has Sweet Scent as move 4; `flute = 'white'`, `repel_steps = 0`, player on 1F (11,6) in the grass): open the game, START → POKéMON → Snorlax → SWEET SCENT. Check: red fade, player unfaded, a battle starts; then step off the grass (row 4 or column 9) and use it again: "Looks like there's nothing here…" and the fade back.
+2. **Flutes in play** (short sanity, the rates are already measured): walk the grass with the White Flute set (~4 steps per battle over ~8 battles), then SQL `flute = 'black'` with the game closed (~16). A warp (stairs) clears the flute.
+3. Restore the test team with the game closed: the data-only dump of `trainers`, `trainer_items`, `trainer_pokemon` from before this Play It is `m3-account2-backup.sql` in the shared notes folder (or just set Snorlax's moves back to `{34,89,156,174}`, pp `{15,10,10,10}`, `flute = 'none'`; one REPEL ×1 was added to the bag, slot 14).
+4. Mark M3 done: milestone ✅, phase file M3 row and Resume Here → M4, `AGENTS.md` **Now** → M4, `index.md` (Current, 3 / 8, O4's Cleanse Tag / Pure Incense part and O5's Sweet Scent part closed).
 
-Client, built this session (all in `spa-pokeuniverse/src/game/firered/`):
+How to drive the game from the built-in browser (the pane is often hidden, the tool's key presses don't reach the game): the shared notes folder's `m3-playit-helpers.md` (JS key events, canvas mirror, battle detection, title and bag key sequences).
+
+Play It results so far:
+
+- ✅ **Rate:** 19 battles in 152 steps in the test grass (13, 4, 6, 12, 4, 10, 6, 6, 11, 10, 10, 12, 6, 6, 6, 9, 7, 6, 8) = 8.0 steps per battle; none in 150 steps on the floor around it. Species and levels from the test table (Caterpie 2-3, Pidgey, Skarmory 20, Snorlax 42…); the battles still use the trainer look ("sent out CATERPIE!", M6).
+- ✅ **Rates by the server code** (temporary `go run` over `encounter.State.Step` with the test table, 400 000 steps each, deleted): plain 7.9, Black Flute 16.2, White Flute 4.1, Cleanse Tag 10.7, Pure Incense 10.7, Illuminate lead 3.4 steps per battle; Repel with a Lv50 lead: none (table tops at 42); Repel with a Lv5 lead: lowest level met 5. `cooldown` checked line by line against `HandleWildEncounterCooldown`.
+- ✅ **Repel:** `repel_steps = 3` by SQL: 3 steps without battles, then "REPEL's effect wore off…"; REPEL from the bag: "AA used the REPEL." (stays in the bag, ×2 → ×1); a second one: "But the effects of a REPEL lingered…"; 70 steps in the grass under it with the Lv50 lead: no battles; `repel_steps` saved 30 on leaving.
+- ✅ **Grass rustle:** blades over the feet of the player and the follower in the grass, none off it; spawned standing in the grass shows it at rest.
+- No bugs found. The fainting lead mid-run was the test's own (no healing between 19 battles).
+
+Client (all in `spa-pokeuniverse/src/game/firered/`):
 
 - `overworld.ts`: `runScript`'s `wildBattle` case shares `trainerBattle`'s, but waits while `avatar.action` is set (the step into the grass ends first); `run()` calls `prepareBattle` for it too. `afterBattle` goes on after `WON` or `RAN` (a wild script ends with `scriptDone`, which clears `p.wild`).
 - Sweet Scent: `party-menu.ts` closes on `SWEET_SCENT`; `overworld.ts` `fieldMoveResult` sets `sweetScent` (`phase` menu → red → back), `openScreen`'s back skips the START menu then, `run()` holds the script that follows, `runSweetScent` (called in `frame()` while not `away`, the player locked) plays `se_m_sweet_scent` (added to `NEW_GAME_SOUNDS` in `manifest.ts`), fades `PALETTES_ALL` 0→8 toward `rgb(31,0,0)` with delay 4, waits 64 frames, then runs a `wildBattle` script from the red field or fades back 8→0 first. The player stays out of the fade: `CharacterView.setOverFade` (`world/view.ts`, `scene.ts` depth 5 over the fade rectangle), `PlayerSprite.overFade`; cleared in `showBattle`, and `endScript` fades back if the battle never started. Offline (the script never comes) it fades back with nothing.

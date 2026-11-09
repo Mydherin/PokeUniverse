@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 7, [M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) in progress (code done, Play It next). **Updated:** 2026-11-09.
+**Current:** Phase 7, [M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) in progress (Play It mostly passed; Sweet Scent and the flutes in play left). **Updated:** 2026-11-09.
 
 ## Milestones of Phases With Folders
 

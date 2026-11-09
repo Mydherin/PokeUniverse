@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** resume [M3](milestones/m03-encounters.md) at its Resume Here (code done 2026-11-09, server and client; next: Play It, then mark it done). Read only that file. M1 and M2 done 2026-11-09. The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
+**Next step:** resume [M3](milestones/m03-encounters.md) at its Resume Here (Play It mostly passed 2026-11-09: rate, Repel, rates by the code, grass rustle; left: Sweet Scent and the flutes in play, then mark it done). Read only that file. M1 and M2 done 2026-11-09. The open items aimed at this phase are O4 and O5 in the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 
