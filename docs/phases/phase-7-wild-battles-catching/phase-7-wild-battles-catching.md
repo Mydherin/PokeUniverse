@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Next step:** continue [M7](milestones/m07-catch-scene.md) (in progress: Play It done but the room trainer's block; override removed, test data restored): read only its Resume Here. M1-M6 done 2026-11-09. O4's last part (Smoke Ball's escape animation, hooked in M6, not played) moved to M8; see the [phase index](../index.md#open-items).
+**Next step:** start [M8](milestones/m08-phase-check.md) (the phase check): read only its Resume Here. M1-M7 done 2026-11-09. O4's last part (Smoke Ball's escape animation, hooked in M6, not played) moved to M8; see the [phase index](../index.md#open-items).
 
 Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 
@@ -22,7 +22,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M4 | [Wild battle rules](milestones/m04-wild-battle-rules.md) | ✅ | M3 | `mic-battles` wild side; RUN and the Gen 4 escape rule; Poké Doll, Fluffy Tail, Smoke Ball, Run Away; Roar, Whirlwind, Teleport; Thief/Covet; Pay Day; Pickup; wild whiteout; resume |
 | M5 | [Catching rules](milestones/m05-catching-rules.md) | ✅ | M4 | Gen 4 catch formula and every ball; trainer block; full storage; the caught Pokémon saved to party or box, Pokédex caught, the nickname intent |
 | M6 | [The wild battle screen](milestones/m06-wild-battle-screen.md) | ✅ | M4 | Wild transitions, terrains, intro slides, "Wild X appeared!", shiny sparkle, caught-ball mark, wild music, RUN and escape messages, wild whiteout text |
-| M7 | [Ball throw and the catch scene](milestones/m07-catch-scene.md) | 🚧 | M5, M6 | Throw, shakes, break free, Gotcha and its fanfare, stars, every ball's art; the Pokédex page, nickname with the naming screen, sent-to-PC messages |
+| M7 | [Ball throw and the catch scene](milestones/m07-catch-scene.md) | ✅ | M5, M6 | Throw, shakes, break free, Gotcha and its fanfare, stars, every ball's art; the Pokédex page, nickname with the naming screen, sent-to-PC messages |
 | M8 | [Phase check](milestones/m08-phase-check.md) | ⬜ | M1-M7 | The whole phase played; restarts at every new step; follower in grass; regression |
 
 M1 → M2 → M3 → M4 is a chain. After M4, M5 and M6 can go in either order; M7 needs both.
