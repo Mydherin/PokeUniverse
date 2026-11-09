@@ -5,12 +5,27 @@
 import { getOption } from "@bufbuild/protobuf";
 import type { Bag, BagChanged, BagSlot as BagSlotMessage } from "@pokeuniverse/contracts/item/v1/bag";
 import { info, Item, ItemSchema, Pocket, type ItemInfo } from "@pokeuniverse/contracts/item/v1/catalog";
+import type { Pokemon } from "@pokeuniverse/contracts/party/v1/party";
 
 const INFOS = new Map<Item, ItemInfo>(ItemSchema.values.filter((v) => v.number !== Item.UNSPECIFIED).map((v) => [v.number as Item, getOption(v, info)]));
 
 /** The item's rules; undefined for an ID that isn't an item. */
 export function itemInfo(item: Item): ItemInfo | undefined {
   return INFOS.get(item);
+}
+
+/** Whether using the item on this Pokémon changes something ("It won't have any effect" otherwise). Confusion and love aren't known here: mic-battles has the last word. */
+export function itemWorksOn(item: Item, mon: Pokemon, inBattle: boolean, moveSlot?: number): boolean {
+  const e = itemInfo(item)?.effect;
+  if (!e) return false;
+  const max = mon.stats?.hp ?? 0;
+  if (e.revive) return mon.hp === 0;
+  if (mon.hp === 0) return false;
+  if ((e.hp || e.hpPercent) && mon.hp < max) return true;
+  if (e.cures.includes(mon.status)) return true;
+  if (inBattle && (e.confusion || e.infatuation)) return true;
+  if (!e.pp && !e.ppMax) return false;
+  return mon.moves.some((m, i) => (moveSlot === undefined || i === moveSlot) && m.pp < m.maxPp);
 }
 
 export interface BagSlot {

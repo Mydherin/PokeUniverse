@@ -5,7 +5,8 @@
 // the item's description. A opens USE, GIVE, EXIT; mic-core decides what they do. B or CLOSE
 // (and SELECT when opened from the field) fade back where it was opened from.
 
-import type { ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import { create } from "@bufbuild/protobuf";
+import { ItemOutcome, ItemResultSchema, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
@@ -14,12 +15,15 @@ import type { Sprite, SpriteTemplate } from "../gba/sprites";
 import { decimalText, EOS, expandPlaceholders, FontId, joinText, NumberMode, PLACEHOLDER_STR_VAR_1, Window, type Text, type WindowTemplate } from "../gba/text";
 import { rgb, RGB_BLACK, type Background } from "../gba/video";
 import { itemInfo, type BagSlot } from "../world/items";
+import { moveInfo, tmMove } from "../world/moves";
 import type { BagHost } from "./bag";
+import { startPartyMenu } from "./party-menu";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { itemMessage, ItemMessagePlayer } from "./item-messages";
 import { LIST_CANCEL, LIST_NOTHING_CHOSEN, ListMenu, type ListMenuItem, type ListPosition } from "./list-menu";
 import { userFrame, type TextId } from "./manifest";
+import { blitMenuInfoIcon, typeIcon } from "./menu-info";
 import { clearDialogWindowAndFrameToTransparent, clearStdWindowAndFrameToTransparent, copyTiles, CursorMenu, drawDialogueFrame, drawStdFrame, MENU_B_PRESSED, MENU_NOTHING_CHOSEN } from "./menu";
 import { textSpeedDelay } from "./options";
 import { ScrollArrowPair } from "./scroll-arrows";
@@ -31,8 +35,8 @@ const position: ListPosition = { scroll: 0, row: 0 };
  * Shows the TM CASE, then `done` once it faded out. `fromField`: opened with SELECT on the
  * field, where SELECT also closes it (allowSelectClose).
  */
-export function startTmCase(flow: Flow, gender: Gender, host: BagHost, fromField: boolean, done: () => void): void {
-  new TmCase(flow, gender, host, fromField, done);
+export function startTmCase(flow: Flow, gender: Gender, host: BagHost, fromField: boolean, done: (picked?: Item) => void, pick = false): void {
+  new TmCase(flow, gender, host, fromField, done, pick);
 }
 
 /** BG0 (priority 1) and BG1 (priority 0, the case) share their tiles, like BG2 (the screen): one char base. */
@@ -77,9 +81,6 @@ const SPACE: Text = [0x00, EOS];
 const INFO_LABELS = { type: 0xa8, power: 0xc0, accuracy: 0xc8, pp: 0xe0 };
 const INFO_LABEL_WIDTH = 40;
 const INFO_HEIGHT = 12;
-/** By FireRed's type number (TYPE_NORMAL 0 to TYPE_DARK 17). */
-const TYPE_ICONS = [0x20, 0x64, 0x60, 0x80, 0x48, 0x44, 0x6c, 0x68, 0x88, 0xa4, 0x24, 0x28, 0x2c, 0x40, 0x84, 0x4c, 0xa0, 0x8c];
-const TYPE_ICON_WIDTH = 32;
 
 /** The disc (sSpriteTemplate_Disc): a TM's or an HM's shape, behind the case. */
 const DISC_TEMPLATE: SpriteTemplate = {
@@ -134,10 +135,12 @@ class TmCase {
   /** DoSetUpTMCaseUI: every step runs in the first frame. */
   constructor(
     private readonly flow: Flow,
-    gender: Gender,
+    private readonly gender: Gender,
     private readonly host: BagHost,
     private readonly fromField: boolean,
-    private readonly done: () => void,
+    private readonly done: (picked?: Item) => void,
+    /** Opened from the party menu's GIVE: A chooses the item to give. */
+    private readonly pick: boolean,
   ) {
     const { gba, assets } = flow;
     gba.setVBlank(null);
@@ -280,10 +283,10 @@ class TmCase {
     win.blitRect(this.flow.assets.get("tmCaseHm").image!, 0, 0, x, y, 16, 12);
   }
 
-  /** PrintDescription: the item's, or what CLOSE does. */
+  /** PrintDescription: the move's (four short lines, what the original shows, not the item's), or what CLOSE does. */
   private printDescription(item: Item | null): void {
     const { assets, fonts } = this.flow;
-    const text = item === null ? assets.text("gText_TMCaseWillBePutAway") : assets.itemDescription(item);
+    const text = item === null ? assets.text("gText_TMCaseWillBePutAway") : assets.moveDescription(tmMove(item));
     this.description.fill(0);
     this.description.print(fonts[FontId.Normal], 2, 3, COLORS_LIGHT, text, 1, 0);
     this.description.copyToVram();
@@ -297,12 +300,11 @@ class TmCase {
     const hyphens = assets.text("gText_ThreeHyphens");
     const print = (text: Text, row: number) => win.print(font, 7, INFO_HEIGHT * row, COLORS_MOVE_INFO, text, 0, 0);
     win.fillRect(0, 0, 0, 40, 48);
-    const move = item === null ? undefined : assets.tmMove(item);
-    if (!move) {
+    const move = item === null ? undefined : moveInfo(tmMove(item));
+    if (!move?.type) {
       for (let i = 0; i < 4; i++) print(hyphens, i);
     } else {
-      const icon = TYPE_ICONS[move.type] ?? TYPE_ICONS[0];
-      win.blitRect(assets.get("menuInfo").image!, (icon % 16) * 8, (icon >> 4) * 8, 0, 0, TYPE_ICON_WIDTH, INFO_HEIGHT);
+      blitMenuInfoIcon(this.flow, win, typeIcon(move.type), 0, 0);
       print(move.power < 2 ? hyphens : decimalText(move.power, NumberMode.RightAlign, 3), 1);
       print(move.accuracy === 0 ? hyphens : decimalText(move.accuracy, NumberMode.RightAlign, 3), 2);
       print(decimalText(move.pp, NumberMode.RightAlign, 3), 3);
@@ -352,7 +354,8 @@ class TmCase {
     this.removeScrollArrows();
     this.printCursor(COLORS_CURSOR_SELECTED);
     this.selected = this.slots[chosen];
-    this.openContextMenu();
+    if (this.pick) this.pickToGive();
+    else this.openContextMenu();
   }
 
   /** ReturnToList. */
@@ -410,18 +413,33 @@ class TmCase {
     this.selectedMsg = null;
   }
 
-  /** Action_Use: mic-core decides (no Pokémon: "There is no POKéMON."; else the party menu, to come). */
+  /** Action_Use: mic-core decides (no Pokémon: "There is no POKéMON."; else the party menu). */
   private useAction(): void {
     this.hideContextMenu();
     this.list.putTilemap();
     this.ask(this.host.use(this.selected!.item));
   }
 
-  /** Action_Give: an HM can't be held; a TM needs a Pokémon. */
+  /** Action_Give: an HM can't be held; a TM needs a Pokémon, then the party menu chooses who (CB2_ChooseMonToGiveItem). */
   private giveAction(): void {
     this.hideContextMenu();
     this.putInfoTilemaps();
-    this.ask(this.host.give(this.selected!.item));
+    const item = this.selected!.item;
+    this.step = () => {};
+    void this.host.give(item).then((r) => {
+      this.step = () => {
+        if (r.outcome !== ItemOutcome.PARTY_MENU) return this.onResult(r);
+        const { flow, gender, host, fromField, done, pick } = this;
+        this.close(undefined, () => startPartyMenu(flow, host.party, { kind: "give", item, pc: false }, () => startTmCase(flow, gender, host, fromField, done, pick)));
+      };
+    });
+  }
+
+  /** Task_SelectedTMHM_GiveParty: a TM goes back to the party menu to be given; an HM can't be held. */
+  private pickToGive(): void {
+    const { item } = this.selected!;
+    if (!itemInfo(item)?.important) return this.close(item);
+    this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.CANT_BE_HELD, item }));
   }
 
   /** Action_Exit. */
@@ -445,9 +463,15 @@ class TmCase {
     });
   }
 
-  /** PrintMessageWithFollowupTask: the answer's message, then back to the list. */
+  /**
+   * PrintMessageWithFollowupTask: the answer's message, then back to the list. USE's PARTY_MENU:
+   * the party menu to teach the move (ItemUseCB_TMHM), then back here.
+   */
   private onResult(r: ItemResult): void {
-    // PARTY_MENU: the party menu comes with the party (phase 8); until then, back to the list.
+    if (r.outcome === ItemOutcome.PARTY_MENU) {
+      const { flow, gender, host, fromField, done, pick } = this;
+      return this.close(undefined, () => startPartyMenu(flow, host.party, { kind: "use", item: r.item }, () => startTmCase(flow, gender, host, fromField, done, pick)));
+    }
     const msg = itemMessage(this.flow, r, this.host.playerName);
     if (!msg) return this.closeMessageAndReturn();
     const player = new ItemMessagePlayer(
@@ -507,7 +531,7 @@ class TmCase {
   /** TintDiscpriteByType. */
   private tintDisc(item: Item): void {
     const { palettes } = this.flow.gba;
-    const type = this.flow.assets.tmMove(item)?.type ?? 0;
+    const type = Math.max(0, moveInfo(tmMove(item)).type - 1);
     const offset = DISC_TYPE_PALETTE[type] ?? 0;
     palettes.load(this.discPalettes.subarray(offset, offset + 16), 256 + palettes.spritePaletteSlot("tmDisc") * 16, 16);
   }
@@ -549,7 +573,7 @@ class TmCase {
   }
 
   /** Task_BeginFadeOutFromTMCase. */
-  private close(): void {
+  private close(picked?: Item, next?: () => void): void {
     this.closeList();
     this.flow.gba.palettes.beginFade(PALETTES_ALL, -2, 0, 16, RGB_BLACK);
     this.step = () => {
@@ -557,7 +581,8 @@ class TmCase {
       if (gba.palettes.fadeActive) return;
       this.removeScrollArrows();
       gba.tasks.reset();
-      this.done();
+      if (next) next();
+      else this.done(picked);
     };
   }
 }
@@ -570,7 +595,7 @@ function tmLabel(flow: Flow, item: Item): Text {
   const { assets } = flow;
   const hm = item >= Item.HM01;
   const number = hm ? decimalText(item - Item.HM01 + 1, NumberMode.LeadingZeros, 1) : decimalText(item - Item.TM01 + 1, NumberMode.LeadingZeros, 2);
-  const move = assets.tmMove(item)?.name ?? [EOS];
+  const move = assets.moveName(tmMove(item));
   return joinText(assets.text("gText_FontSmall"), hm ? CLEAR_TO_18 : [EOS], assets.text("gText_NumberClear01"), number, SPACE, assets.text("gText_FontNormal"), move);
 }
 

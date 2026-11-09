@@ -5,15 +5,35 @@
 // Messages on NATS between mic-core and mic-battles.
 // Subjects: battles.<action> (tech-stack.md#mic-battles-node--showdown).
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Ability } from "../../ability/v1/catalog_pb";
+import { file_pokeuniverse_ability_v1_catalog } from "../../ability/v1/catalog_pb";
+import type { BattleEvent } from "./event_pb";
+import { file_pokeuniverse_battle_v1_event } from "./event_pb";
+import type { BattleAction, BattleKind, BattleRequest, BattleResult, BattleView } from "./view_pb";
+import { file_pokeuniverse_battle_v1_view } from "./view_pb";
+import type { Item } from "../../item/v1/catalog_pb";
+import { file_pokeuniverse_item_v1_catalog } from "../../item/v1/catalog_pb";
+import type { Move as Move$1 } from "../../move/v1/catalog_pb";
+import { file_pokeuniverse_move_v1_catalog } from "../../move/v1/catalog_pb";
+import type { Move } from "../../party/v1/party_pb";
+import { file_pokeuniverse_party_v1_party } from "../../party/v1/party_pb";
+import type { Nature } from "../../pokemon/v1/nature_pb";
+import { file_pokeuniverse_pokemon_v1_nature } from "../../pokemon/v1/nature_pb";
+import type { Gender, Status } from "../../pokemon/v1/pokemon_pb";
+import { file_pokeuniverse_pokemon_v1_pokemon } from "../../pokemon/v1/pokemon_pb";
+import type { Stats } from "../../pokemon/v1/stats_pb";
+import { file_pokeuniverse_pokemon_v1_stats } from "../../pokemon/v1/stats_pb";
+import type { Species } from "../../species/v1/catalog_pb";
+import { file_pokeuniverse_species_v1_catalog } from "../../species/v1/catalog_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file pokeuniverse/battle/v1/battle.proto.
  */
 export const file_pokeuniverse_battle_v1_battle: GenFile = /*@__PURE__*/
-  fileDesc("CiNwb2tldW5pdmVyc2UvYmF0dGxlL3YxL2JhdHRsZS5wcm90bxIWcG9rZXVuaXZlcnNlLmJhdHRsZS52MSIZCgRQaW5nEhEKCWNvcmVfdGltZRgBIAEoBCI/CgRQb25nEhEKCWNvcmVfdGltZRgBIAEoBBIUCgxiYXR0bGVzX3RpbWUYAiABKAQSDgoGZm9ybWF0GAMgASgJQkNaQXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvYmF0dGxlL3YxO2JhdHRsZXYxYgZwcm90bzM");
+  fileDesc("CiNwb2tldW5pdmVyc2UvYmF0dGxlL3YxL2JhdHRsZS5wcm90bxIWcG9rZXVuaXZlcnNlLmJhdHRsZS52MSIZCgRQaW5nEhEKCWNvcmVfdGltZRgBIAEoBCI/CgRQb25nEhEKCWNvcmVfdGltZRgBIAEoBBIUCgxiYXR0bGVzX3RpbWUYAiABKAQSDgoGZm9ybWF0GAMgASgJIrsECglCYXR0bGVNb24SMQoHc3BlY2llcxgBIAEoDjIgLnBva2V1bml2ZXJzZS5zcGVjaWVzLnYxLlNwZWNpZXMSEAoIbmlja25hbWUYAiABKAkSDQoFbGV2ZWwYAyABKA0SLwoGbmF0dXJlGAQgASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuTmF0dXJlEjEKB2FiaWxpdHkYBSABKA4yIC5wb2tldW5pdmVyc2UuYWJpbGl0eS52MS5BYmlsaXR5Ei0KCWhlbGRfaXRlbRgGIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SKwoDaXZzGAcgASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKwoDZXZzGAggASgLMh4ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHMSKgoFbW92ZXMYCSADKAsyGy5wb2tldW5pdmVyc2UucGFydHkudjEuTW92ZRIKCgJocBgKIAEoDRIvCgZzdGF0dXMYCyABKA4yHy5wb2tldW5pdmVyc2UucG9rZW1vbi52MS5TdGF0dXMSLwoGZ2VuZGVyGAwgASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuR2VuZGVyEg0KBXNoaW55GA0gASgIEhMKC3BlcnNvbmFsaXR5GA4gASgNEhIKCmZyaWVuZHNoaXAYDyABKA0SDgoGdHJhZGVkGBAgASgIEgsKA2V4cBgRIAEoDSKyAQoKQmF0dGxlVGVhbRIyCgdwb2tlbW9uGAEgAygLMiEucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVNb24SMAoIYWlfZmxhZ3MYAiADKA4yHi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkFpRmxhZxIpCgVpdGVtcxgDIAMoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SEwoLc2hpZnRfc3R5bGUYBCABKAgipAEKC1N0YXJ0QmF0dGxlEhEKCWJhdHRsZV9pZBgBIAEoCRIwCgRraW5kGAIgASgOMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVLaW5kEjEKBXNpZGVzGAMgAygLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVUZWFtEgwKBHNlZWQYBCABKAQSDwoHZG91YmxlcxgFIAEoCCKHAQoKU2lkZUNob2ljZRIMCgRzaWRlGAEgASgNEjQKBmFjdGlvbhgCIAEoCzIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlQWN0aW9uEjUKB3BhcnRuZXIYAyABKAsyJC5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZUFjdGlvbiJjCgtUdXJuUmVxdWVzdBIRCgliYXR0bGVfaWQYASABKAkSDAoEc3RlcBgCIAEoDRIzCgdjaG9pY2VzGAMgAygLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5TaWRlQ2hvaWNlIioKB0ZvcmZlaXQSEQoJYmF0dGxlX2lkGAEgASgJEgwKBHNpZGUYAiABKA0iLgoLVmlld1JlcXVlc3QSEQoJYmF0dGxlX2lkGAEgASgJEgwKBHNpZGUYAiABKA0iqwEKClNpZGVVcGRhdGUSMwoGZXZlbnRzGAEgAygLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVFdmVudBI2CgdyZXF1ZXN0GAIgASgLMiUucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVSZXF1ZXN0EjAKBHZpZXcYAyABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXci+QEKCk1vbk91dGNvbWUSCgoCaHAYASABKA0SLwoGc3RhdHVzGAIgASgOMh8ucG9rZXVuaXZlcnNlLnBva2Vtb24udjEuU3RhdHVzEgoKAnBwGAMgAygNEi0KCWhlbGRfaXRlbRgEIAEoDjIaLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW0SCwoDZXhwGAUgASgNEisKA2V2cxgGIAEoCzIeLnBva2V1bml2ZXJzZS5wb2tlbW9uLnYxLlN0YXRzEikKBW1vdmVzGAcgAygOMhoucG9rZXVuaXZlcnNlLm1vdmUudjEuTW92ZRIOCgZmYWludHMYCCADKAgiqAEKC1NpZGVPdXRjb21lEjQKBnJlc3VsdBgBIAEoDjIkLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlUmVzdWx0EjMKB3Bva2Vtb24YAiADKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLk1vbk91dGNvbWUSLgoEc2VlbhgDIAMoDjIgLnBva2V1bml2ZXJzZS5zcGVjaWVzLnYxLlNwZWNpZXMiWQoNQmF0dGxlT3V0Y29tZRIyCgVzaWRlcxgBIAMoCzIjLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuU2lkZU91dGNvbWUSFAoMZG91YmxlX3ByaXplGAIgASgIIowBCgxCYXR0bGVVcGRhdGUSEQoJYmF0dGxlX2lkGAEgASgJEjEKBXNpZGVzGAIgAygLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5TaWRlVXBkYXRlEjYKB291dGNvbWUYAyABKAsyJS5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZU91dGNvbWUq/QEKBkFpRmxhZxIXChNBSV9GTEFHX1VOU1BFQ0lGSUVEEAASGgoWQUlfRkxBR19DSEVDS19CQURfTU9WRRABEhgKFEFJX0ZMQUdfVFJZX1RPX0ZBSU5UEAISGwoXQUlfRkxBR19DSEVDS19WSUFCSUxJVFkQAxIcChhBSV9GTEFHX1NFVFVQX0ZJUlNUX1RVUk4QBBIRCg1BSV9GTEFHX1JJU0tZEAUSIQodQUlfRkxBR19QUkVGRVJfU1RST05HRVNUX01PVkUQBhIdChlBSV9GTEFHX1BSRUZFUl9CQVRPTl9QQVNTEAcSFAoQQUlfRkxBR19IUF9BV0FSRRAIQkNaQXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvYmF0dGxlL3YxO2JhdHRsZXYxYgZwcm90bzM", [file_pokeuniverse_ability_v1_catalog, file_pokeuniverse_battle_v1_event, file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_catalog, file_pokeuniverse_move_v1_catalog, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokemon_v1_nature, file_pokeuniverse_pokemon_v1_pokemon, file_pokeuniverse_pokemon_v1_stats, file_pokeuniverse_species_v1_catalog]);
 
 /**
  * Request on `battles.ping`: round-trip check from mic-core.
@@ -70,4 +90,559 @@ export type Pong = Message<"pokeuniverse.battle.v1.Pong"> & {
  */
 export const PongSchema: GenMessage<Pong> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_battle_v1_battle, 1);
+
+/**
+ * One Pokémon as it enters the battle: everything the rules need.
+ *
+ * @generated from message pokeuniverse.battle.v1.BattleMon
+ */
+export type BattleMon = Message<"pokeuniverse.battle.v1.BattleMon"> & {
+  /**
+   * @generated from field: pokeuniverse.species.v1.Species species = 1;
+   */
+  species: Species;
+
+  /**
+   * Empty: the species' name.
+   *
+   * @generated from field: string nickname = 2;
+   */
+  nickname: string;
+
+  /**
+   * @generated from field: uint32 level = 3;
+   */
+  level: number;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Nature nature = 4;
+   */
+  nature: Nature;
+
+  /**
+   * @generated from field: pokeuniverse.ability.v1.Ability ability = 5;
+   */
+  ability: Ability;
+
+  /**
+   * Unspecified: none.
+   *
+   * @generated from field: pokeuniverse.item.v1.Item held_item = 6;
+   */
+  heldItem: Item;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Stats ivs = 7;
+   */
+  ivs?: Stats | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Stats evs = 8;
+   */
+  evs?: Stats | undefined;
+
+  /**
+   * One to four, with their PP now and their max PP (PP UPs).
+   *
+   * @generated from field: repeated pokeuniverse.party.v1.Move moves = 9;
+   */
+  moves: Move[];
+
+  /**
+   * HP now: it carries over between battles (D14).
+   *
+   * @generated from field: uint32 hp = 10;
+   */
+  hp: number;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Status status = 11;
+   */
+  status: Status;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Gender gender = 12;
+   */
+  gender: Gender;
+
+  /**
+   * @generated from field: bool shiny = 13;
+   */
+  shiny: boolean;
+
+  /**
+   * @generated from field: uint32 personality = 14;
+   */
+  personality: number;
+
+  /**
+   * Return and Frustration.
+   *
+   * @generated from field: uint32 friendship = 15;
+   */
+  friendship: number;
+
+  /**
+   * Its trainer isn't its original trainer: 1.5× experience.
+   *
+   * @generated from field: bool traded = 16;
+   */
+  traded: boolean;
+
+  /**
+   * Its total experience now: it levels up during the battle (mic-battles).
+   *
+   * @generated from field: uint32 exp = 17;
+   */
+  exp: number;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.BattleMon.
+ * Use `create(BattleMonSchema)` to create a new message.
+ */
+export const BattleMonSchema: GenMessage<BattleMon> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 2);
+
+/**
+ * One side's trainer and team.
+ *
+ * @generated from message pokeuniverse.battle.v1.BattleTeam
+ */
+export type BattleTeam = Message<"pokeuniverse.battle.v1.BattleTeam"> & {
+  /**
+   * In party order: Battler.party_slot is the index.
+   *
+   * @generated from field: repeated pokeuniverse.battle.v1.BattleMon pokemon = 1;
+   */
+  pokemon: BattleMon[];
+
+  /**
+   * Empty: a player chooses for this side (or, in a wild battle, side 1 picks a random move).
+   * Otherwise mic-battles' AI does, with these flags.
+   *
+   * @generated from field: repeated pokeuniverse.battle.v1.AiFlag ai_flags = 2;
+   */
+  aiFlags: AiFlag[];
+
+  /**
+   * An AI trainer's items (up to 4, FireRed's rules: phase-5 M5). Each is used once.
+   *
+   * @generated from field: repeated pokeuniverse.item.v1.Item items = 3;
+   */
+  items: Item[];
+
+  /**
+   * This player's battle style is SHIFT: offered a change when a foe faints (phase-5 D26).
+   *
+   * @generated from field: bool shift_style = 4;
+   */
+  shiftStyle: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.BattleTeam.
+ * Use `create(BattleTeamSchema)` to create a new message.
+ */
+export const BattleTeamSchema: GenMessage<BattleTeam> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 3);
+
+/**
+ * Request on `battles.start`: create and begin a battle. Replied with BattleUpdate (views set).
+ *
+ * @generated from message pokeuniverse.battle.v1.StartBattle
+ */
+export type StartBattle = Message<"pokeuniverse.battle.v1.StartBattle"> & {
+  /**
+   * Chosen by mic-core (a UUID); the Redis key battle:<id>.
+   *
+   * @generated from field: string battle_id = 1;
+   */
+  battleId: string;
+
+  /**
+   * @generated from field: pokeuniverse.battle.v1.BattleKind kind = 2;
+   */
+  kind: BattleKind;
+
+  /**
+   * Side 0 is the player who started it; side 1 the opponent.
+   *
+   * @generated from field: repeated pokeuniverse.battle.v1.BattleTeam sides = 3;
+   */
+  sides: BattleTeam[];
+
+  /**
+   * Showdown's PRNG seed: the whole battle follows from it and the choices.
+   *
+   * @generated from field: uint64 seed = 4;
+   */
+  seed: bigint;
+
+  /**
+   * Two Pokémon a side (phase-5 D27).
+   *
+   * @generated from field: bool doubles = 5;
+   */
+  doubles: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.StartBattle.
+ * Use `create(StartBattleSchema)` to create a new message.
+ */
+export const StartBattleSchema: GenMessage<StartBattle> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 4);
+
+/**
+ * One side's choice.
+ *
+ * @generated from message pokeuniverse.battle.v1.SideChoice
+ */
+export type SideChoice = Message<"pokeuniverse.battle.v1.SideChoice"> & {
+  /**
+   * @generated from field: uint32 side = 1;
+   */
+  side: number;
+
+  /**
+   * @generated from field: pokeuniverse.battle.v1.BattleAction action = 2;
+   */
+  action?: BattleAction | undefined;
+
+  /**
+   * Doubles: the second position's choice, when two must choose.
+   *
+   * @generated from field: pokeuniverse.battle.v1.BattleAction partner = 3;
+   */
+  partner?: BattleAction | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.SideChoice.
+ * Use `create(SideChoiceSchema)` to create a new message.
+ */
+export const SideChoiceSchema: GenMessage<SideChoice> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 5);
+
+/**
+ * Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step
+ * already played answers its saved BattleUpdate again (safe retries, phase-5 D2).
+ *
+ * @generated from message pokeuniverse.battle.v1.TurnRequest
+ */
+export type TurnRequest = Message<"pokeuniverse.battle.v1.TurnRequest"> & {
+  /**
+   * @generated from field: string battle_id = 1;
+   */
+  battleId: string;
+
+  /**
+   * @generated from field: uint32 step = 2;
+   */
+  step: number;
+
+  /**
+   * @generated from field: repeated pokeuniverse.battle.v1.SideChoice choices = 3;
+   */
+  choices: SideChoice[];
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.TurnRequest.
+ * Use `create(TurnRequestSchema)` to create a new message.
+ */
+export const TurnRequestSchema: GenMessage<TurnRequest> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 6);
+
+/**
+ * Request on `battles.forfeit`: a side gives up (or left for good). Replied with BattleUpdate.
+ *
+ * @generated from message pokeuniverse.battle.v1.Forfeit
+ */
+export type Forfeit = Message<"pokeuniverse.battle.v1.Forfeit"> & {
+  /**
+   * @generated from field: string battle_id = 1;
+   */
+  battleId: string;
+
+  /**
+   * @generated from field: uint32 side = 2;
+   */
+  side: number;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.Forfeit.
+ * Use `create(ForfeitSchema)` to create a new message.
+ */
+export const ForfeitSchema: GenMessage<Forfeit> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 7);
+
+/**
+ * Request on `battles.view`: one side's BattleView, to redraw the battle after a reconnect.
+ *
+ * @generated from message pokeuniverse.battle.v1.ViewRequest
+ */
+export type ViewRequest = Message<"pokeuniverse.battle.v1.ViewRequest"> & {
+  /**
+   * @generated from field: string battle_id = 1;
+   */
+  battleId: string;
+
+  /**
+   * @generated from field: uint32 side = 2;
+   */
+  side: number;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.ViewRequest.
+ * Use `create(ViewRequestSchema)` to create a new message.
+ */
+export const ViewRequestSchema: GenMessage<ViewRequest> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 8);
+
+/**
+ * What one side sees after a start or a step.
+ *
+ * @generated from message pokeuniverse.battle.v1.SideUpdate
+ */
+export type SideUpdate = Message<"pokeuniverse.battle.v1.SideUpdate"> & {
+  /**
+   * @generated from field: repeated pokeuniverse.battle.v1.BattleEvent events = 1;
+   */
+  events: BattleEvent[];
+
+  /**
+   * @generated from field: pokeuniverse.battle.v1.BattleRequest request = 2;
+   */
+  request?: BattleRequest | undefined;
+
+  /**
+   * Only after battles.start.
+   *
+   * @generated from field: pokeuniverse.battle.v1.BattleView view = 3;
+   */
+  view?: BattleView | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.SideUpdate.
+ * Use `create(SideUpdateSchema)` to create a new message.
+ */
+export const SideUpdateSchema: GenMessage<SideUpdate> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 9);
+
+/**
+ * One Pokémon at the end of a battle: what mic-core saves (D14).
+ *
+ * @generated from message pokeuniverse.battle.v1.MonOutcome
+ */
+export type MonOutcome = Message<"pokeuniverse.battle.v1.MonOutcome"> & {
+  /**
+   * @generated from field: uint32 hp = 1;
+   */
+  hp: number;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Status status = 2;
+   */
+  status: Status;
+
+  /**
+   * In the party's move order.
+   *
+   * @generated from field: repeated uint32 pp = 3;
+   */
+  pp: number[];
+
+  /**
+   * Unspecified: none (used up, knocked off…).
+   *
+   * @generated from field: pokeuniverse.item.v1.Item held_item = 4;
+   */
+  heldItem: Item;
+
+  /**
+   * Experience and EVs gained in this battle, within the caps (the level follows from them).
+   *
+   * @generated from field: uint32 exp = 5;
+   */
+  exp: number;
+
+  /**
+   * @generated from field: pokeuniverse.pokemon.v1.Stats evs = 6;
+   */
+  evs?: Stats | undefined;
+
+  /**
+   * Its moves at the end, in the same order as pp: level ups can bring new ones.
+   *
+   * @generated from field: repeated pokeuniverse.move.v1.Move moves = 7;
+   */
+  moves: Move$1[];
+
+  /**
+   * Each time it fainted, in order: true against a foe 30 or more levels above it.
+   *
+   * @generated from field: repeated bool faints = 8;
+   */
+  faints: boolean[];
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.MonOutcome.
+ * Use `create(MonOutcomeSchema)` to create a new message.
+ */
+export const MonOutcomeSchema: GenMessage<MonOutcome> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 10);
+
+/**
+ * @generated from message pokeuniverse.battle.v1.SideOutcome
+ */
+export type SideOutcome = Message<"pokeuniverse.battle.v1.SideOutcome"> & {
+  /**
+   * @generated from field: pokeuniverse.battle.v1.BattleResult result = 1;
+   */
+  result: BattleResult;
+
+  /**
+   * In party order, as the battle started.
+   *
+   * @generated from field: repeated pokeuniverse.battle.v1.MonOutcome pokemon = 2;
+   */
+  pokemon: MonOutcome[];
+
+  /**
+   * The other side's species that came out, for the Pokédex.
+   *
+   * @generated from field: repeated pokeuniverse.species.v1.Species seen = 3;
+   */
+  seen: Species[];
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.SideOutcome.
+ * Use `create(SideOutcomeSchema)` to create a new message.
+ */
+export const SideOutcomeSchema: GenMessage<SideOutcome> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 11);
+
+/**
+ * @generated from message pokeuniverse.battle.v1.BattleOutcome
+ */
+export type BattleOutcome = Message<"pokeuniverse.battle.v1.BattleOutcome"> & {
+  /**
+   * By side.
+   *
+   * @generated from field: repeated pokeuniverse.battle.v1.SideOutcome sides = 1;
+   */
+  sides: SideOutcome[];
+
+  /**
+   * An AMULET COIN or LUCK INCENSE came out on either side: the prize money doubles.
+   *
+   * @generated from field: bool double_prize = 2;
+   */
+  doublePrize: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.BattleOutcome.
+ * Use `create(BattleOutcomeSchema)` to create a new message.
+ */
+export const BattleOutcomeSchema: GenMessage<BattleOutcome> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 12);
+
+/**
+ * Reply to battles.start, battles.turn and battles.forfeit.
+ *
+ * @generated from message pokeuniverse.battle.v1.BattleUpdate
+ */
+export type BattleUpdate = Message<"pokeuniverse.battle.v1.BattleUpdate"> & {
+  /**
+   * @generated from field: string battle_id = 1;
+   */
+  battleId: string;
+
+  /**
+   * By side.
+   *
+   * @generated from field: repeated pokeuniverse.battle.v1.SideUpdate sides = 2;
+   */
+  sides: SideUpdate[];
+
+  /**
+   * Set once the battle is over.
+   *
+   * @generated from field: pokeuniverse.battle.v1.BattleOutcome outcome = 3;
+   */
+  outcome?: BattleOutcome | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.battle.v1.BattleUpdate.
+ * Use `create(BattleUpdateSchema)` to create a new message.
+ */
+export const BattleUpdateSchema: GenMessage<BattleUpdate> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_battle_v1_battle, 13);
+
+/**
+ * FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (phase-5 D6).
+ *
+ * @generated from enum pokeuniverse.battle.v1.AiFlag
+ */
+export enum AiFlag {
+  /**
+   * @generated from enum value: AI_FLAG_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: AI_FLAG_CHECK_BAD_MOVE = 1;
+   */
+  CHECK_BAD_MOVE = 1,
+
+  /**
+   * @generated from enum value: AI_FLAG_TRY_TO_FAINT = 2;
+   */
+  TRY_TO_FAINT = 2,
+
+  /**
+   * @generated from enum value: AI_FLAG_CHECK_VIABILITY = 3;
+   */
+  CHECK_VIABILITY = 3,
+
+  /**
+   * @generated from enum value: AI_FLAG_SETUP_FIRST_TURN = 4;
+   */
+  SETUP_FIRST_TURN = 4,
+
+  /**
+   * @generated from enum value: AI_FLAG_RISKY = 5;
+   */
+  RISKY = 5,
+
+  /**
+   * @generated from enum value: AI_FLAG_PREFER_STRONGEST_MOVE = 6;
+   */
+  PREFER_STRONGEST_MOVE = 6,
+
+  /**
+   * @generated from enum value: AI_FLAG_PREFER_BATON_PASS = 7;
+   */
+  PREFER_BATON_PASS = 7,
+
+  /**
+   * @generated from enum value: AI_FLAG_HP_AWARE = 8;
+   */
+  HP_AWARE = 8,
+}
+
+/**
+ * Describes the enum pokeuniverse.battle.v1.AiFlag.
+ */
+export const AiFlagSchema: GenEnum<AiFlag> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_battle_v1_battle, 0);
 

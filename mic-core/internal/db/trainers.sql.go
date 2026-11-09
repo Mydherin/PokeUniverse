@@ -13,7 +13,7 @@ import (
 const getTrainer = `-- name: GetTrainer :one
 SELECT name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
        text_speed, battle_scene, battle_style, sound, button_mode, frame,
-       registered_item, repel_steps, flute, coins, berry_powder,
+       registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
        pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 FROM trainers
 WHERE account_id = $1
@@ -41,6 +41,7 @@ type GetTrainerRow struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	FriendshipSteps int16
 	PokedexObtained bool
 	PokedexNational bool
 	PokedexSeen     []byte
@@ -73,12 +74,48 @@ func (q *Queries) GetTrainer(ctx context.Context, accountID int64) (GetTrainerRo
 		&i.Flute,
 		&i.Coins,
 		&i.BerryPowder,
+		&i.FriendshipSteps,
 		&i.PokedexObtained,
 		&i.PokedexNational,
 		&i.PokedexSeen,
 		&i.PokedexCaught,
 	)
 	return i, err
+}
+
+const getTrainerCurrentBox = `-- name: GetTrainerCurrentBox :one
+SELECT current_box
+FROM trainers
+WHERE account_id = $1
+`
+
+// The box the storage screen opens on.
+func (q *Queries) GetTrainerCurrentBox(ctx context.Context, accountID int64) (int16, error) {
+	row := q.db.QueryRow(ctx, getTrainerCurrentBox, accountID)
+	var current_box int16
+	err := row.Scan(&current_box)
+	return current_box, err
+}
+
+const lockTrainerSave = `-- name: LockTrainerSave :one
+SELECT account_id
+FROM trainers
+WHERE account_id = $1 AND created_at = $2
+FOR UPDATE
+`
+
+type LockTrainerSaveParams struct {
+	AccountID int64
+	CreatedAt time.Time
+}
+
+// Inside a transaction: the trainer's row locked, only while it's still the save `created_at`
+// (no rows: a New Game replaced it). Changes that touch no other trainer column check with it.
+func (q *Queries) LockTrainerSave(ctx context.Context, arg LockTrainerSaveParams) (int64, error) {
+	row := q.db.QueryRow(ctx, lockTrainerSave, arg.AccountID, arg.CreatedAt)
+	var account_id int64
+	err := row.Scan(&account_id)
+	return account_id, err
 }
 
 const putTrainer = `-- name: PutTrainer :one
@@ -103,6 +140,8 @@ SET name = EXCLUDED.name,
     frame = DEFAULT,
     registered_item = DEFAULT,
     repel_steps = DEFAULT,
+    friendship_steps = DEFAULT,
+    current_box = DEFAULT,
     flute = DEFAULT,
     coins = DEFAULT,
     berry_powder = DEFAULT,
@@ -113,7 +152,7 @@ SET name = EXCLUDED.name,
     created_at = now()
 RETURNING name, gender, play_time_seconds, map_id, x, y, facing, trainer_id, money, created_at,
           text_speed, battle_scene, battle_style, sound, button_mode, frame,
-          registered_item, repel_steps, flute, coins, berry_powder,
+          registered_item, repel_steps, flute, coins, berry_powder, friendship_steps,
           pokedex_obtained, pokedex_national, pokedex_seen, pokedex_caught
 `
 
@@ -151,6 +190,7 @@ type PutTrainerRow struct {
 	Flute           string
 	Coins           int32
 	BerryPowder     int32
+	FriendshipSteps int16
 	PokedexObtained bool
 	PokedexNational bool
 	PokedexSeen     []byte
@@ -195,12 +235,46 @@ func (q *Queries) PutTrainer(ctx context.Context, arg PutTrainerParams) (PutTrai
 		&i.Flute,
 		&i.Coins,
 		&i.BerryPowder,
+		&i.FriendshipSteps,
 		&i.PokedexObtained,
 		&i.PokedexNational,
 		&i.PokedexSeen,
 		&i.PokedexCaught,
 	)
 	return i, err
+}
+
+const updateTrainerCurrentBox = `-- name: UpdateTrainerCurrentBox :exec
+UPDATE trainers
+SET current_box = $2
+WHERE account_id = $1 AND created_at = $3
+`
+
+type UpdateTrainerCurrentBoxParams struct {
+	AccountID  int64
+	CurrentBox int16
+	CreatedAt  time.Time
+}
+
+func (q *Queries) UpdateTrainerCurrentBox(ctx context.Context, arg UpdateTrainerCurrentBoxParams) error {
+	_, err := q.db.Exec(ctx, updateTrainerCurrentBox, arg.AccountID, arg.CurrentBox, arg.CreatedAt)
+	return err
+}
+
+const updateTrainerFriendshipSteps = `-- name: UpdateTrainerFriendshipSteps :exec
+UPDATE trainers SET friendship_steps = $2 WHERE account_id = $1 AND created_at = $3
+`
+
+type UpdateTrainerFriendshipStepsParams struct {
+	AccountID       int64
+	FriendshipSteps int16
+	CreatedAt       time.Time
+}
+
+// The walking friendship counter, saved on leaving; only into the save it belongs to.
+func (q *Queries) UpdateTrainerFriendshipSteps(ctx context.Context, arg UpdateTrainerFriendshipStepsParams) error {
+	_, err := q.db.Exec(ctx, updateTrainerFriendshipSteps, arg.AccountID, arg.FriendshipSteps, arg.CreatedAt)
+	return err
 }
 
 const updateTrainerLive = `-- name: UpdateTrainerLive :execrows
@@ -236,6 +310,27 @@ func (q *Queries) UpdateTrainerLive(ctx context.Context, arg UpdateTrainerLivePa
 	return result.RowsAffected(), nil
 }
 
+const updateTrainerMoney = `-- name: UpdateTrainerMoney :execrows
+UPDATE trainers
+SET money = $2
+WHERE account_id = $1 AND created_at = $3
+`
+
+type UpdateTrainerMoneyParams struct {
+	AccountID int64
+	Money     int32
+	CreatedAt time.Time
+}
+
+// Money after a battle; only into the save it belongs to.
+func (q *Queries) UpdateTrainerMoney(ctx context.Context, arg UpdateTrainerMoneyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerMoney, arg.AccountID, arg.Money, arg.CreatedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateTrainerOptions = `-- name: UpdateTrainerOptions :execrows
 UPDATE trainers
 SET text_speed = $2, battle_scene = $3, battle_style = $4, sound = $5, button_mode = $6, frame = $7
@@ -262,6 +357,33 @@ func (q *Queries) UpdateTrainerOptions(ctx context.Context, arg UpdateTrainerOpt
 		arg.Sound,
 		arg.ButtonMode,
 		arg.Frame,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const updateTrainerPokedex = `-- name: UpdateTrainerPokedex :execrows
+UPDATE trainers
+SET pokedex_seen = $2, pokedex_caught = $3
+WHERE account_id = $1 AND created_at = $4
+`
+
+type UpdateTrainerPokedexParams struct {
+	AccountID     int64
+	PokedexSeen   []byte
+	PokedexCaught []byte
+	CreatedAt     time.Time
+}
+
+// Species seen and caught, after a battle or an evolution; only into the save they belong to.
+func (q *Queries) UpdateTrainerPokedex(ctx context.Context, arg UpdateTrainerPokedexParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTrainerPokedex,
+		arg.AccountID,
+		arg.PokedexSeen,
+		arg.PokedexCaught,
+		arg.CreatedAt,
 	)
 	if err != nil {
 		return 0, err

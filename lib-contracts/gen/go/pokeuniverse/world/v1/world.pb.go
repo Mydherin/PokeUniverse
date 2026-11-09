@@ -13,10 +13,12 @@ package worldv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v14 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
+	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
 	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokedex/v1"
-	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
+	v15 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -251,6 +253,69 @@ func (x *Turn) GetDirection() v1.Direction {
 	return v1.Direction(0)
 }
 
+// Standing on a warp and going its way (the stairs): the client plays the transition at once and
+// waits for Warped; a refused warp is answered with a Correction.
+type UseWarp struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Direction v1.Direction           `protobuf:"varint,1,opt,name=direction,proto3,enum=pokeuniverse.map.v1.Direction" json:"direction,omitempty"`
+	// The tile the player stands on; a warp from anywhere else is ignored.
+	X             uint32 `protobuf:"varint,2,opt,name=x,proto3" json:"x,omitempty"`
+	Y             uint32 `protobuf:"varint,3,opt,name=y,proto3" json:"y,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UseWarp) Reset() {
+	*x = UseWarp{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UseWarp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UseWarp) ProtoMessage() {}
+
+func (x *UseWarp) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UseWarp.ProtoReflect.Descriptor instead.
+func (*UseWarp) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UseWarp) GetDirection() v1.Direction {
+	if x != nil {
+		return x.Direction
+	}
+	return v1.Direction(0)
+}
+
+func (x *UseWarp) GetX() uint32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *UseWarp) GetY() uint32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
 // A button: check what the player faces. Always answered with a Script (empty when nothing
 // answers); the client waits for it before moving again.
 type Interact struct {
@@ -264,7 +329,7 @@ type Interact struct {
 
 func (x *Interact) Reset() {
 	*x = Interact{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[3]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -276,7 +341,7 @@ func (x *Interact) String() string {
 func (*Interact) ProtoMessage() {}
 
 func (x *Interact) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[3]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -289,7 +354,7 @@ func (x *Interact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Interact.ProtoReflect.Descriptor instead.
 func (*Interact) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{3}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Interact) GetWalkInto() bool {
@@ -309,7 +374,7 @@ type ScriptDone struct {
 
 func (x *ScriptDone) Reset() {
 	*x = ScriptDone{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -321,7 +386,7 @@ func (x *ScriptDone) String() string {
 func (*ScriptDone) ProtoMessage() {}
 
 func (x *ScriptDone) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,7 +399,7 @@ func (x *ScriptDone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScriptDone.ProtoReflect.Descriptor instead.
 func (*ScriptDone) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{4}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ScriptDone) GetScript() uint32 {
@@ -357,14 +422,18 @@ type WorldSnapshot struct {
 	// What the trainer carries.
 	Bag *v11.Bag `protobuf:"bytes,5,opt,name=bag,proto3" json:"bag,omitempty"`
 	// The trainer's Pokédex.
-	Pokedex       *v12.Pokedex `protobuf:"bytes,6,opt,name=pokedex,proto3" json:"pokedex,omitempty"`
+	Pokedex *v12.Pokedex `protobuf:"bytes,6,opt,name=pokedex,proto3" json:"pokedex,omitempty"`
+	// The trainer's Pokémon.
+	Party *v13.Party `protobuf:"bytes,7,opt,name=party,proto3" json:"party,omitempty"`
+	// The battle the trainer is in, if any: the client redraws it (phase-5, Resume).
+	Battle        *v14.BattleView `protobuf:"bytes,8,opt,name=battle,proto3" json:"battle,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WorldSnapshot) Reset() {
 	*x = WorldSnapshot{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -376,7 +445,7 @@ func (x *WorldSnapshot) String() string {
 func (*WorldSnapshot) ProtoMessage() {}
 
 func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -389,7 +458,7 @@ func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorldSnapshot.ProtoReflect.Descriptor instead.
 func (*WorldSnapshot) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{5}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *WorldSnapshot) GetMap() string {
@@ -434,19 +503,35 @@ func (x *WorldSnapshot) GetPokedex() *v12.Pokedex {
 	return nil
 }
 
+func (x *WorldSnapshot) GetParty() *v13.Party {
+	if x != nil {
+		return x.Party
+	}
+	return nil
+}
+
+func (x *WorldSnapshot) GetBattle() *v14.BattleView {
+	if x != nil {
+		return x.Battle
+	}
+	return nil
+}
+
 type Avatar struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	X             uint32                 `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
-	Y             uint32                 `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
-	Facing        v1.Direction           `protobuf:"varint,3,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
-	Gender        v13.Gender             `protobuf:"varint,4,opt,name=gender,proto3,enum=pokeuniverse.trainer.v1.Gender" json:"gender,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	X      uint32                 `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y      uint32                 `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
+	Facing v1.Direction           `protobuf:"varint,3,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
+	Gender v15.Gender             `protobuf:"varint,4,opt,name=gender,proto3,enum=pokeuniverse.trainer.v1.Gender" json:"gender,omitempty"`
+	// The Pokémon walking behind the trainer; unset when there is none.
+	Follower      *Follower `protobuf:"bytes,5,opt,name=follower,proto3" json:"follower,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Avatar) Reset() {
 	*x = Avatar{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +543,7 @@ func (x *Avatar) String() string {
 func (*Avatar) ProtoMessage() {}
 
 func (x *Avatar) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +556,7 @@ func (x *Avatar) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Avatar.ProtoReflect.Descriptor instead.
 func (*Avatar) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{6}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Avatar) GetX() uint32 {
@@ -495,29 +580,259 @@ func (x *Avatar) GetFacing() v1.Direction {
 	return v1.Direction(0)
 }
 
-func (x *Avatar) GetGender() v13.Gender {
+func (x *Avatar) GetGender() v15.Gender {
 	if x != nil {
 		return x.Gender
 	}
-	return v13.Gender(0)
+	return v15.Gender(0)
+}
+
+func (x *Avatar) GetFollower() *Follower {
+	if x != nil {
+		return x.Follower
+	}
+	return nil
+}
+
+// The Pokémon that follows the trainer, as in HeartGold and SoulSilver: the first party Pokémon that
+// isn't fainted (the first one if all are). It steps onto the tile the player left, at the player's speed.
+type Follower struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// National Pokédex number.
+	Species uint32       `protobuf:"varint,1,opt,name=species,proto3" json:"species,omitempty"`
+	Shiny   bool         `protobuf:"varint,2,opt,name=shiny,proto3" json:"shiny,omitempty"`
+	X       uint32       `protobuf:"varint,3,opt,name=x,proto3" json:"x,omitempty"`
+	Y       uint32       `protobuf:"varint,4,opt,name=y,proto3" json:"y,omitempty"`
+	Facing  v1.Direction `protobuf:"varint,5,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
+	// On the player's own tile (entering the world, after a warp): not drawn until the player's next step.
+	Hidden        bool `protobuf:"varint,6,opt,name=hidden,proto3" json:"hidden,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Follower) Reset() {
+	*x = Follower{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Follower) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Follower) ProtoMessage() {}
+
+func (x *Follower) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Follower.ProtoReflect.Descriptor instead.
+func (*Follower) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Follower) GetSpecies() uint32 {
+	if x != nil {
+		return x.Species
+	}
+	return 0
+}
+
+func (x *Follower) GetShiny() bool {
+	if x != nil {
+		return x.Shiny
+	}
+	return false
+}
+
+func (x *Follower) GetX() uint32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *Follower) GetY() uint32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+func (x *Follower) GetFacing() v1.Direction {
+	if x != nil {
+		return x.Facing
+	}
+	return v1.Direction(0)
+}
+
+func (x *Follower) GetHidden() bool {
+	if x != nil {
+		return x.Hidden
+	}
+	return false
+}
+
+// Server -> client: the follower changed (the party changed): another Pokémon, or none (unset).
+type FollowerChanged struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Follower      *Follower              `protobuf:"bytes,1,opt,name=follower,proto3" json:"follower,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FollowerChanged) Reset() {
+	*x = FollowerChanged{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FollowerChanged) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FollowerChanged) ProtoMessage() {}
+
+func (x *FollowerChanged) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FollowerChanged.ProtoReflect.Descriptor instead.
+func (*FollowerChanged) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *FollowerChanged) GetFollower() *Follower {
+	if x != nil {
+		return x.Follower
+	}
+	return nil
 }
 
 // The server refused a predicted step: where the player really is. The client goes back there;
 // steps it sent before receiving this are ignored.
+// Server -> client: the warp was saved: the player is on another map. Everything else the client
+// knows of the trainer stays as it is.
+type Warped struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A map of lib-maps.
+	Map    string       `protobuf:"bytes,1,opt,name=map,proto3" json:"map,omitempty"`
+	X      uint32       `protobuf:"varint,2,opt,name=x,proto3" json:"x,omitempty"`
+	Y      uint32       `protobuf:"varint,3,opt,name=y,proto3" json:"y,omitempty"`
+	Facing v1.Direction `protobuf:"varint,4,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
+	CanRun bool         `protobuf:"varint,5,opt,name=can_run,json=canRun,proto3" json:"can_run,omitempty"`
+	// On the player's tile, hidden; unset when there is none.
+	Follower      *Follower `protobuf:"bytes,6,opt,name=follower,proto3" json:"follower,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Warped) Reset() {
+	*x = Warped{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Warped) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Warped) ProtoMessage() {}
+
+func (x *Warped) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Warped.ProtoReflect.Descriptor instead.
+func (*Warped) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *Warped) GetMap() string {
+	if x != nil {
+		return x.Map
+	}
+	return ""
+}
+
+func (x *Warped) GetX() uint32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *Warped) GetY() uint32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+func (x *Warped) GetFacing() v1.Direction {
+	if x != nil {
+		return x.Facing
+	}
+	return v1.Direction(0)
+}
+
+func (x *Warped) GetCanRun() bool {
+	if x != nil {
+		return x.CanRun
+	}
+	return false
+}
+
+func (x *Warped) GetFollower() *Follower {
+	if x != nil {
+		return x.Follower
+	}
+	return nil
+}
+
 type Correction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The refused step.
-	Step          uint32       `protobuf:"varint,1,opt,name=step,proto3" json:"step,omitempty"`
-	X             uint32       `protobuf:"varint,2,opt,name=x,proto3" json:"x,omitempty"`
-	Y             uint32       `protobuf:"varint,3,opt,name=y,proto3" json:"y,omitempty"`
-	Facing        v1.Direction `protobuf:"varint,4,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
+	Step   uint32       `protobuf:"varint,1,opt,name=step,proto3" json:"step,omitempty"`
+	X      uint32       `protobuf:"varint,2,opt,name=x,proto3" json:"x,omitempty"`
+	Y      uint32       `protobuf:"varint,3,opt,name=y,proto3" json:"y,omitempty"`
+	Facing v1.Direction `protobuf:"varint,4,opt,name=facing,proto3,enum=pokeuniverse.map.v1.Direction" json:"facing,omitempty"`
+	// Where the follower really is; unset when there is none.
+	Follower      *Follower `protobuf:"bytes,5,opt,name=follower,proto3" json:"follower,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Correction) Reset() {
 	*x = Correction{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -529,7 +844,7 @@ func (x *Correction) String() string {
 func (*Correction) ProtoMessage() {}
 
 func (x *Correction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -542,7 +857,7 @@ func (x *Correction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Correction.ProtoReflect.Descriptor instead.
 func (*Correction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{7}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Correction) GetStep() uint32 {
@@ -573,19 +888,28 @@ func (x *Correction) GetFacing() v1.Direction {
 	return v1.Direction(0)
 }
 
+func (x *Correction) GetFollower() *Follower {
+	if x != nil {
+		return x.Follower
+	}
+	return nil
+}
+
 // What an interaction runs, step by step. When it has steps, the player can't move until the
 // client sends ScriptDone with its id.
 type Script struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Steps         []*ScriptStep          `protobuf:"bytes,2,rep,name=steps,proto3" json:"steps,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Steps []*ScriptStep          `protobuf:"bytes,2,rep,name=steps,proto3" json:"steps,omitempty"`
+	// The NPC (ClientNpc.id) that answers: it turns to face the player (faceplayer).
+	Npc           string `protobuf:"bytes,3,opt,name=npc,proto3" json:"npc,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Script) Reset() {
 	*x = Script{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -597,7 +921,7 @@ func (x *Script) String() string {
 func (*Script) ProtoMessage() {}
 
 func (x *Script) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -610,7 +934,7 @@ func (x *Script) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Script.ProtoReflect.Descriptor instead.
 func (*Script) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{8}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Script) GetId() uint32 {
@@ -627,6 +951,13 @@ func (x *Script) GetSteps() []*ScriptStep {
 	return nil
 }
 
+func (x *Script) GetNpc() string {
+	if x != nil {
+		return x.Npc
+	}
+	return ""
+}
+
 type ScriptStep struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Action:
@@ -635,6 +966,10 @@ type ScriptStep struct {
 	//	*ScriptStep_Sound
 	//	*ScriptStep_PcScreen
 	//	*ScriptStep_PlayersPc
+	//	*ScriptStep_YesNo
+	//	*ScriptStep_TrainerBattle
+	//	*ScriptStep_Music
+	//	*ScriptStep_FaceOriginal
 	Action        isScriptStep_Action `protobuf_oneof:"action"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -642,7 +977,7 @@ type ScriptStep struct {
 
 func (x *ScriptStep) Reset() {
 	*x = ScriptStep{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -654,7 +989,7 @@ func (x *ScriptStep) String() string {
 func (*ScriptStep) ProtoMessage() {}
 
 func (x *ScriptStep) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -667,7 +1002,7 @@ func (x *ScriptStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScriptStep.ProtoReflect.Descriptor instead.
 func (*ScriptStep) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{9}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ScriptStep) GetAction() isScriptStep_Action {
@@ -713,6 +1048,42 @@ func (x *ScriptStep) GetPlayersPc() *PlayersPc {
 	return nil
 }
 
+func (x *ScriptStep) GetYesNo() *YesNo {
+	if x != nil {
+		if x, ok := x.Action.(*ScriptStep_YesNo); ok {
+			return x.YesNo
+		}
+	}
+	return nil
+}
+
+func (x *ScriptStep) GetTrainerBattle() *TrainerBattle {
+	if x != nil {
+		if x, ok := x.Action.(*ScriptStep_TrainerBattle); ok {
+			return x.TrainerBattle
+		}
+	}
+	return nil
+}
+
+func (x *ScriptStep) GetMusic() string {
+	if x != nil {
+		if x, ok := x.Action.(*ScriptStep_Music); ok {
+			return x.Music
+		}
+	}
+	return ""
+}
+
+func (x *ScriptStep) GetFaceOriginal() bool {
+	if x != nil {
+		if x, ok := x.Action.(*ScriptStep_FaceOriginal); ok {
+			return x.FaceOriginal
+		}
+	}
+	return false
+}
+
 type isScriptStep_Action interface {
 	isScriptStep_Action()
 }
@@ -737,6 +1108,28 @@ type ScriptStep_PlayersPc struct {
 	PlayersPc *PlayersPc `protobuf:"bytes,4,opt,name=players_pc,json=playersPc,proto3,oneof"`
 }
 
+type ScriptStep_YesNo struct {
+	// A YES/NO menu over the last message (YesNoBox). YES goes on with the next step.
+	YesNo *YesNo `protobuf:"bytes,5,opt,name=yes_no,json=yesNo,proto3,oneof"`
+}
+
+type ScriptStep_TrainerBattle struct {
+	// A trainer battle: the client sends ScriptBattle and waits for BattleStarted. After a
+	// win the script goes on once BattleEnded is shown; a loss (whiteout) ends it there.
+	TrainerBattle *TrainerBattle `protobuf:"bytes,6,opt,name=trainer_battle,json=trainerBattle,proto3,oneof"`
+}
+
+type ScriptStep_Music struct {
+	// A song on the BGM player, by ID (a trainer's encounter music); the map's comes back once
+	// the script ends.
+	Music string `protobuf:"bytes,7,opt,name=music,proto3,oneof"`
+}
+
+type ScriptStep_FaceOriginal struct {
+	// The NPC that answers turns back to where it faced as the map loaded (true).
+	FaceOriginal bool `protobuf:"varint,8,opt,name=face_original,json=faceOriginal,proto3,oneof"`
+}
+
 func (*ScriptStep_Message) isScriptStep_Action() {}
 
 func (*ScriptStep_Sound) isScriptStep_Action() {}
@@ -744,6 +1137,149 @@ func (*ScriptStep_Sound) isScriptStep_Action() {}
 func (*ScriptStep_PcScreen) isScriptStep_Action() {}
 
 func (*ScriptStep_PlayersPc) isScriptStep_Action() {}
+
+func (*ScriptStep_YesNo) isScriptStep_Action() {}
+
+func (*ScriptStep_TrainerBattle) isScriptStep_Action() {}
+
+func (*ScriptStep_Music) isScriptStep_Action() {}
+
+func (*ScriptStep_FaceOriginal) isScriptStep_Action() {}
+
+type YesNo struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// What NO shows; the script ends after them.
+	No            []*ScriptStep `protobuf:"bytes,1,rep,name=no,proto3" json:"no,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *YesNo) Reset() {
+	*x = YesNo{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *YesNo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*YesNo) ProtoMessage() {}
+
+func (x *YesNo) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use YesNo.ProtoReflect.Descriptor instead.
+func (*YesNo) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *YesNo) GetNo() []*ScriptStep {
+	if x != nil {
+		return x.No
+	}
+	return nil
+}
+
+type TrainerBattle struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A trainer of mic-core's trainer table.
+	Trainer       string `protobuf:"bytes,1,opt,name=trainer,proto3" json:"trainer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TrainerBattle) Reset() {
+	*x = TrainerBattle{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TrainerBattle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TrainerBattle) ProtoMessage() {}
+
+func (x *TrainerBattle) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TrainerBattle.ProtoReflect.Descriptor instead.
+func (*TrainerBattle) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *TrainerBattle) GetTrainer() string {
+	if x != nil {
+		return x.Trainer
+	}
+	return ""
+}
+
+// The client reached the running script's TrainerBattle step: the battle starts.
+type ScriptBattle struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Script        uint32                 `protobuf:"varint,1,opt,name=script,proto3" json:"script,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScriptBattle) Reset() {
+	*x = ScriptBattle{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScriptBattle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScriptBattle) ProtoMessage() {}
+
+func (x *ScriptBattle) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScriptBattle.ProtoReflect.Descriptor instead.
+func (*ScriptBattle) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ScriptBattle) GetScript() uint32 {
+	if x != nil {
+		return x.Script
+	}
+	return 0
+}
 
 // AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
 type PcScreen struct {
@@ -756,7 +1292,7 @@ type PcScreen struct {
 
 func (x *PcScreen) Reset() {
 	*x = PcScreen{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -768,7 +1304,7 @@ func (x *PcScreen) String() string {
 func (*PcScreen) ProtoMessage() {}
 
 func (x *PcScreen) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -781,7 +1317,7 @@ func (x *PcScreen) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PcScreen.ProtoReflect.Descriptor instead.
 func (*PcScreen) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{10}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PcScreen) GetPc() Pc {
@@ -810,7 +1346,7 @@ type PlayersPc struct {
 
 func (x *PlayersPc) Reset() {
 	*x = PlayersPc{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -822,7 +1358,7 @@ func (x *PlayersPc) String() string {
 func (*PlayersPc) ProtoMessage() {}
 
 func (x *PlayersPc) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +1371,7 @@ func (x *PlayersPc) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayersPc.ProtoReflect.Descriptor instead.
 func (*PlayersPc) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{11}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PlayersPc) GetItems() []*v11.BagSlot {
@@ -857,7 +1393,7 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -869,7 +1405,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -882,7 +1418,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{12}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Message) GetText() string {
@@ -911,7 +1447,7 @@ type SessionTaken struct {
 
 func (x *SessionTaken) Reset() {
 	*x = SessionTaken{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -923,7 +1459,7 @@ func (x *SessionTaken) String() string {
 func (*SessionTaken) ProtoMessage() {}
 
 func (x *SessionTaken) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -936,7 +1472,7 @@ func (x *SessionTaken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionTaken.ProtoReflect.Descriptor instead.
 func (*SessionTaken) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{13}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SessionTaken) GetAccountId() uint64 {
@@ -957,7 +1493,7 @@ var File_pokeuniverse_world_v1_world_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\n" +
-	"!pokeuniverse/world/v1/world.proto\x12\x15pokeuniverse.world.v1\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/map/v1/map.proto\x1a%pokeuniverse/pokedex/v1/pokedex.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\")\n" +
+	"!pokeuniverse/world/v1/world.proto\x12\x15pokeuniverse.world.v1\x1a!pokeuniverse/battle/v1/view.proto\x1a\x1epokeuniverse/item/v1/bag.proto\x1a\x1dpokeuniverse/map/v1/map.proto\x1a!pokeuniverse/party/v1/party.proto\x1a%pokeuniverse/pokedex/v1/pokedex.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\")\n" +
 	"\n" +
 	"EnterWorld\x12\x1b\n" +
 	"\ttake_over\x18\x01 \x01(\bR\btakeOver\"\x86\x01\n" +
@@ -968,41 +1504,76 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\x01x\x18\x04 \x01(\rR\x01x\x12\f\n" +
 	"\x01y\x18\x05 \x01(\rR\x01y\"D\n" +
 	"\x04Turn\x12<\n" +
-	"\tdirection\x18\x01 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\tdirection\"'\n" +
+	"\tdirection\x18\x01 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\tdirection\"c\n" +
+	"\aUseWarp\x12<\n" +
+	"\tdirection\x18\x01 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\tdirection\x12\f\n" +
+	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
+	"\x01y\x18\x03 \x01(\rR\x01y\"'\n" +
 	"\bInteract\x12\x1b\n" +
 	"\twalk_into\x18\x01 \x01(\bR\bwalkInto\"$\n" +
 	"\n" +
 	"ScriptDone\x12\x16\n" +
-	"\x06script\x18\x01 \x01(\rR\x06script\"\x86\x02\n" +
+	"\x06script\x18\x01 \x01(\rR\x06script\"\xf6\x02\n" +
 	"\rWorldSnapshot\x12\x10\n" +
 	"\x03map\x18\x01 \x01(\tR\x03map\x125\n" +
 	"\x06player\x18\x02 \x01(\v2\x1d.pokeuniverse.world.v1.AvatarR\x06player\x12\x17\n" +
 	"\acan_run\x18\x03 \x01(\bR\x06canRun\x12*\n" +
 	"\x11play_time_seconds\x18\x04 \x01(\rR\x0fplayTimeSeconds\x12+\n" +
 	"\x03bag\x18\x05 \x01(\v2\x19.pokeuniverse.item.v1.BagR\x03bag\x12:\n" +
-	"\apokedex\x18\x06 \x01(\v2 .pokeuniverse.pokedex.v1.PokedexR\apokedex\"\x95\x01\n" +
+	"\apokedex\x18\x06 \x01(\v2 .pokeuniverse.pokedex.v1.PokedexR\apokedex\x122\n" +
+	"\x05party\x18\a \x01(\v2\x1c.pokeuniverse.party.v1.PartyR\x05party\x12:\n" +
+	"\x06battle\x18\b \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x06battle\"\xd2\x01\n" +
 	"\x06Avatar\x12\f\n" +
 	"\x01x\x18\x01 \x01(\rR\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\rR\x01y\x126\n" +
 	"\x06facing\x18\x03 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\x127\n" +
-	"\x06gender\x18\x04 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\"t\n" +
+	"\x06gender\x18\x04 \x01(\x0e2\x1f.pokeuniverse.trainer.v1.GenderR\x06gender\x12;\n" +
+	"\bfollower\x18\x05 \x01(\v2\x1f.pokeuniverse.world.v1.FollowerR\bfollower\"\xa6\x01\n" +
+	"\bFollower\x12\x18\n" +
+	"\aspecies\x18\x01 \x01(\rR\aspecies\x12\x14\n" +
+	"\x05shiny\x18\x02 \x01(\bR\x05shiny\x12\f\n" +
+	"\x01x\x18\x03 \x01(\rR\x01x\x12\f\n" +
+	"\x01y\x18\x04 \x01(\rR\x01y\x126\n" +
+	"\x06facing\x18\x05 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\x12\x16\n" +
+	"\x06hidden\x18\x06 \x01(\bR\x06hidden\"N\n" +
+	"\x0fFollowerChanged\x12;\n" +
+	"\bfollower\x18\x01 \x01(\v2\x1f.pokeuniverse.world.v1.FollowerR\bfollower\"\xc4\x01\n" +
+	"\x06Warped\x12\x10\n" +
+	"\x03map\x18\x01 \x01(\tR\x03map\x12\f\n" +
+	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
+	"\x01y\x18\x03 \x01(\rR\x01y\x126\n" +
+	"\x06facing\x18\x04 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\x12\x17\n" +
+	"\acan_run\x18\x05 \x01(\bR\x06canRun\x12;\n" +
+	"\bfollower\x18\x06 \x01(\v2\x1f.pokeuniverse.world.v1.FollowerR\bfollower\"\xb1\x01\n" +
 	"\n" +
 	"Correction\x12\x12\n" +
 	"\x04step\x18\x01 \x01(\rR\x04step\x12\f\n" +
 	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
 	"\x01y\x18\x03 \x01(\rR\x01y\x126\n" +
-	"\x06facing\x18\x04 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\"Q\n" +
+	"\x06facing\x18\x04 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\x06facing\x12;\n" +
+	"\bfollower\x18\x05 \x01(\v2\x1f.pokeuniverse.world.v1.FollowerR\bfollower\"c\n" +
 	"\x06Script\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x127\n" +
-	"\x05steps\x18\x02 \x03(\v2!.pokeuniverse.world.v1.ScriptStepR\x05steps\"\xed\x01\n" +
+	"\x05steps\x18\x02 \x03(\v2!.pokeuniverse.world.v1.ScriptStepR\x05steps\x12\x10\n" +
+	"\x03npc\x18\x03 \x01(\tR\x03npc\"\xb2\x03\n" +
 	"\n" +
 	"ScriptStep\x12:\n" +
 	"\amessage\x18\x01 \x01(\v2\x1e.pokeuniverse.world.v1.MessageH\x00R\amessage\x12\x16\n" +
 	"\x05sound\x18\x02 \x01(\tH\x00R\x05sound\x12>\n" +
 	"\tpc_screen\x18\x03 \x01(\v2\x1f.pokeuniverse.world.v1.PcScreenH\x00R\bpcScreen\x12A\n" +
 	"\n" +
-	"players_pc\x18\x04 \x01(\v2 .pokeuniverse.world.v1.PlayersPcH\x00R\tplayersPcB\b\n" +
-	"\x06action\"E\n" +
+	"players_pc\x18\x04 \x01(\v2 .pokeuniverse.world.v1.PlayersPcH\x00R\tplayersPc\x125\n" +
+	"\x06yes_no\x18\x05 \x01(\v2\x1c.pokeuniverse.world.v1.YesNoH\x00R\x05yesNo\x12M\n" +
+	"\x0etrainer_battle\x18\x06 \x01(\v2$.pokeuniverse.world.v1.TrainerBattleH\x00R\rtrainerBattle\x12\x16\n" +
+	"\x05music\x18\a \x01(\tH\x00R\x05music\x12%\n" +
+	"\rface_original\x18\b \x01(\bH\x00R\ffaceOriginalB\b\n" +
+	"\x06action\":\n" +
+	"\x05YesNo\x121\n" +
+	"\x02no\x18\x01 \x03(\v2!.pokeuniverse.world.v1.ScriptStepR\x02no\")\n" +
+	"\rTrainerBattle\x12\x18\n" +
+	"\atrainer\x18\x01 \x01(\tR\atrainer\"&\n" +
+	"\fScriptBattle\x12\x16\n" +
+	"\x06script\x18\x01 \x01(\rR\x06script\"E\n" +
 	"\bPcScreen\x12)\n" +
 	"\x02pc\x18\x01 \x01(\x0e2\x19.pokeuniverse.world.v1.PcR\x02pc\x12\x0e\n" +
 	"\x02on\x18\x02 \x01(\bR\x02on\"@\n" +
@@ -1033,49 +1604,70 @@ func file_pokeuniverse_world_v1_world_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_world_v1_world_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_world_v1_world_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_pokeuniverse_world_v1_world_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_pokeuniverse_world_v1_world_proto_goTypes = []any{
-	(Pc)(0),               // 0: pokeuniverse.world.v1.Pc
-	(*EnterWorld)(nil),    // 1: pokeuniverse.world.v1.EnterWorld
-	(*Move)(nil),          // 2: pokeuniverse.world.v1.Move
-	(*Turn)(nil),          // 3: pokeuniverse.world.v1.Turn
-	(*Interact)(nil),      // 4: pokeuniverse.world.v1.Interact
-	(*ScriptDone)(nil),    // 5: pokeuniverse.world.v1.ScriptDone
-	(*WorldSnapshot)(nil), // 6: pokeuniverse.world.v1.WorldSnapshot
-	(*Avatar)(nil),        // 7: pokeuniverse.world.v1.Avatar
-	(*Correction)(nil),    // 8: pokeuniverse.world.v1.Correction
-	(*Script)(nil),        // 9: pokeuniverse.world.v1.Script
-	(*ScriptStep)(nil),    // 10: pokeuniverse.world.v1.ScriptStep
-	(*PcScreen)(nil),      // 11: pokeuniverse.world.v1.PcScreen
-	(*PlayersPc)(nil),     // 12: pokeuniverse.world.v1.PlayersPc
-	(*Message)(nil),       // 13: pokeuniverse.world.v1.Message
-	(*SessionTaken)(nil),  // 14: pokeuniverse.world.v1.SessionTaken
-	(v1.Direction)(0),     // 15: pokeuniverse.map.v1.Direction
-	(*v11.Bag)(nil),       // 16: pokeuniverse.item.v1.Bag
-	(*v12.Pokedex)(nil),   // 17: pokeuniverse.pokedex.v1.Pokedex
-	(v13.Gender)(0),       // 18: pokeuniverse.trainer.v1.Gender
-	(*v11.BagSlot)(nil),   // 19: pokeuniverse.item.v1.BagSlot
+	(Pc)(0),                 // 0: pokeuniverse.world.v1.Pc
+	(*EnterWorld)(nil),      // 1: pokeuniverse.world.v1.EnterWorld
+	(*Move)(nil),            // 2: pokeuniverse.world.v1.Move
+	(*Turn)(nil),            // 3: pokeuniverse.world.v1.Turn
+	(*UseWarp)(nil),         // 4: pokeuniverse.world.v1.UseWarp
+	(*Interact)(nil),        // 5: pokeuniverse.world.v1.Interact
+	(*ScriptDone)(nil),      // 6: pokeuniverse.world.v1.ScriptDone
+	(*WorldSnapshot)(nil),   // 7: pokeuniverse.world.v1.WorldSnapshot
+	(*Avatar)(nil),          // 8: pokeuniverse.world.v1.Avatar
+	(*Follower)(nil),        // 9: pokeuniverse.world.v1.Follower
+	(*FollowerChanged)(nil), // 10: pokeuniverse.world.v1.FollowerChanged
+	(*Warped)(nil),          // 11: pokeuniverse.world.v1.Warped
+	(*Correction)(nil),      // 12: pokeuniverse.world.v1.Correction
+	(*Script)(nil),          // 13: pokeuniverse.world.v1.Script
+	(*ScriptStep)(nil),      // 14: pokeuniverse.world.v1.ScriptStep
+	(*YesNo)(nil),           // 15: pokeuniverse.world.v1.YesNo
+	(*TrainerBattle)(nil),   // 16: pokeuniverse.world.v1.TrainerBattle
+	(*ScriptBattle)(nil),    // 17: pokeuniverse.world.v1.ScriptBattle
+	(*PcScreen)(nil),        // 18: pokeuniverse.world.v1.PcScreen
+	(*PlayersPc)(nil),       // 19: pokeuniverse.world.v1.PlayersPc
+	(*Message)(nil),         // 20: pokeuniverse.world.v1.Message
+	(*SessionTaken)(nil),    // 21: pokeuniverse.world.v1.SessionTaken
+	(v1.Direction)(0),       // 22: pokeuniverse.map.v1.Direction
+	(*v11.Bag)(nil),         // 23: pokeuniverse.item.v1.Bag
+	(*v12.Pokedex)(nil),     // 24: pokeuniverse.pokedex.v1.Pokedex
+	(*v13.Party)(nil),       // 25: pokeuniverse.party.v1.Party
+	(*v14.BattleView)(nil),  // 26: pokeuniverse.battle.v1.BattleView
+	(v15.Gender)(0),         // 27: pokeuniverse.trainer.v1.Gender
+	(*v11.BagSlot)(nil),     // 28: pokeuniverse.item.v1.BagSlot
 }
 var file_pokeuniverse_world_v1_world_proto_depIdxs = []int32{
-	15, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
-	15, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
-	7,  // 2: pokeuniverse.world.v1.WorldSnapshot.player:type_name -> pokeuniverse.world.v1.Avatar
-	16, // 3: pokeuniverse.world.v1.WorldSnapshot.bag:type_name -> pokeuniverse.item.v1.Bag
-	17, // 4: pokeuniverse.world.v1.WorldSnapshot.pokedex:type_name -> pokeuniverse.pokedex.v1.Pokedex
-	15, // 5: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
-	18, // 6: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	15, // 7: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
-	10, // 8: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
-	13, // 9: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
-	11, // 10: pokeuniverse.world.v1.ScriptStep.pc_screen:type_name -> pokeuniverse.world.v1.PcScreen
-	12, // 11: pokeuniverse.world.v1.ScriptStep.players_pc:type_name -> pokeuniverse.world.v1.PlayersPc
-	0,  // 12: pokeuniverse.world.v1.PcScreen.pc:type_name -> pokeuniverse.world.v1.Pc
-	19, // 13: pokeuniverse.world.v1.PlayersPc.items:type_name -> pokeuniverse.item.v1.BagSlot
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	22, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
+	22, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
+	22, // 2: pokeuniverse.world.v1.UseWarp.direction:type_name -> pokeuniverse.map.v1.Direction
+	8,  // 3: pokeuniverse.world.v1.WorldSnapshot.player:type_name -> pokeuniverse.world.v1.Avatar
+	23, // 4: pokeuniverse.world.v1.WorldSnapshot.bag:type_name -> pokeuniverse.item.v1.Bag
+	24, // 5: pokeuniverse.world.v1.WorldSnapshot.pokedex:type_name -> pokeuniverse.pokedex.v1.Pokedex
+	25, // 6: pokeuniverse.world.v1.WorldSnapshot.party:type_name -> pokeuniverse.party.v1.Party
+	26, // 7: pokeuniverse.world.v1.WorldSnapshot.battle:type_name -> pokeuniverse.battle.v1.BattleView
+	22, // 8: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
+	27, // 9: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	9,  // 10: pokeuniverse.world.v1.Avatar.follower:type_name -> pokeuniverse.world.v1.Follower
+	22, // 11: pokeuniverse.world.v1.Follower.facing:type_name -> pokeuniverse.map.v1.Direction
+	9,  // 12: pokeuniverse.world.v1.FollowerChanged.follower:type_name -> pokeuniverse.world.v1.Follower
+	22, // 13: pokeuniverse.world.v1.Warped.facing:type_name -> pokeuniverse.map.v1.Direction
+	9,  // 14: pokeuniverse.world.v1.Warped.follower:type_name -> pokeuniverse.world.v1.Follower
+	22, // 15: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
+	9,  // 16: pokeuniverse.world.v1.Correction.follower:type_name -> pokeuniverse.world.v1.Follower
+	14, // 17: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
+	20, // 18: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
+	18, // 19: pokeuniverse.world.v1.ScriptStep.pc_screen:type_name -> pokeuniverse.world.v1.PcScreen
+	19, // 20: pokeuniverse.world.v1.ScriptStep.players_pc:type_name -> pokeuniverse.world.v1.PlayersPc
+	15, // 21: pokeuniverse.world.v1.ScriptStep.yes_no:type_name -> pokeuniverse.world.v1.YesNo
+	16, // 22: pokeuniverse.world.v1.ScriptStep.trainer_battle:type_name -> pokeuniverse.world.v1.TrainerBattle
+	14, // 23: pokeuniverse.world.v1.YesNo.no:type_name -> pokeuniverse.world.v1.ScriptStep
+	0,  // 24: pokeuniverse.world.v1.PcScreen.pc:type_name -> pokeuniverse.world.v1.Pc
+	28, // 25: pokeuniverse.world.v1.PlayersPc.items:type_name -> pokeuniverse.item.v1.BagSlot
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_world_v1_world_proto_init() }
@@ -1083,11 +1675,15 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 	if File_pokeuniverse_world_v1_world_proto != nil {
 		return
 	}
-	file_pokeuniverse_world_v1_world_proto_msgTypes[9].OneofWrappers = []any{
+	file_pokeuniverse_world_v1_world_proto_msgTypes[13].OneofWrappers = []any{
 		(*ScriptStep_Message)(nil),
 		(*ScriptStep_Sound)(nil),
 		(*ScriptStep_PcScreen)(nil),
 		(*ScriptStep_PlayersPc)(nil),
+		(*ScriptStep_YesNo)(nil),
+		(*ScriptStep_TrainerBattle)(nil),
+		(*ScriptStep_Music)(nil),
+		(*ScriptStep_FaceOriginal)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1095,7 +1691,7 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_world_v1_world_proto_rawDesc), len(file_pokeuniverse_world_v1_world_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   14,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

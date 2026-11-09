@@ -6,8 +6,11 @@ import (
 
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
+	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/pokemon"
 )
 
 // Tick is how often a zone saves what changed and sends it (tech-stack.md#efficient-event-model).
@@ -100,6 +103,7 @@ func (z *zone) tick() {
 		if p.dirty {
 			continue // Not saved (Redis unreachable): retried next tick, nothing shown before.
 		}
+		p.syncFollower()
 		for _, msg := range p.out {
 			p.sink.Send(msg)
 		}
@@ -143,7 +147,7 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 		}
 		return
 	}
-	if p.script != 0 {
+	if p.busy() {
 		z.correct(p, m.Step)
 		return
 	}
@@ -156,11 +160,25 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 	}
 	to := p.pos.Step(m.Direction)
 	p.elevation = ElevationAfter(z.m, p.elevation, p.pos, to)
+	p.followStep(p.pos)
 	p.pos, p.dirty, p.corrected = to, true, false
+	z.countFriendshipStep(p)
+}
+
+// countFriendshipStep is UpdateFriendshipStepCounter. A failed save undoes the change.
+func (z *zone) countFriendshipStep(p *Player) {
+	p.friendshipSteps = (p.friendshipSteps + 1) % pokemon.WalkingFriendshipSteps
+	if p.friendshipSteps != 0 {
+		return
+	}
+	party := p.party.Clone()
+	if p.party.WalkingFriendship(z.m.ID) && !z.saveTrainer(p, item.Changed{}, true) {
+		p.party = party
+	}
 }
 
 func (z *zone) turn(p *Player, d mapv1.Direction) {
-	if _, ok := z.players[p]; !ok || !ValidDirection(d) || p.script != 0 || p.facing == d {
+	if _, ok := z.players[p]; !ok || !ValidDirection(d) || p.busy() || p.facing == d {
 		return
 	}
 	p.facing, p.dirty = d, true
@@ -171,24 +189,31 @@ func (z *zone) interact(p *Player, walkInto bool) {
 		return
 	}
 	reply := &worldv1.Script{}
-	if p.script == 0 {
-		if steps := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
+	if !p.busy() {
+		if steps, npc := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
 			p.lastScript++
 			p.script = p.lastScript
-			reply.Id, reply.Steps = p.script, z.withPlayer(p, steps)
+			reply.Id, reply.Steps, reply.Npc = p.script, z.withPlayer(p, steps), npc
 		}
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Script{Script: reply}})
 }
 
 // withPlayer fills in what a script's steps show of the player: what their PC stores (which
-// also allows its item actions while the script runs). The scripts' tables stay untouched.
+// also allows its item actions while the script runs) and the messages for a girl. It notes the trainer battle the script
+// may start. The scripts' tables stay untouched.
 func (z *zone) withPlayer(p *Player, steps Script) Script {
 	out := make(Script, len(steps))
 	for i, step := range steps {
+		if b := step.GetTrainerBattle(); b != nil {
+			p.scriptTrainer = b.GetTrainer()
+		}
 		if step.GetPlayersPc() != nil {
 			p.pcScript = p.script
 			step = &worldv1.ScriptStep{Action: &worldv1.ScriptStep_PlayersPc{PlayersPc: &worldv1.PlayersPc{Items: p.items.PC.Proto()}}}
+		}
+		if msg := step.GetMessage(); msg != nil && p.gender == trainerv1.Gender_GENDER_GIRL && girlTexts[msg.Text] != "" {
+			step = &worldv1.ScriptStep{Action: &worldv1.ScriptStep_Message{Message: &worldv1.Message{Text: girlTexts[msg.Text], Sign: msg.Sign}}}
 		}
 		out[i] = step
 	}
@@ -199,6 +224,6 @@ func (z *zone) withPlayer(p *Player, steps Script) Script {
 func (z *zone) correct(p *Player, step uint32) {
 	p.corrected = true
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Correction{Correction: &worldv1.Correction{
-		Step: step, X: uint32(p.pos.X), Y: uint32(p.pos.Y), Facing: p.facing,
+		Step: step, X: uint32(p.pos.X), Y: uint32(p.pos.Y), Facing: p.facing, Follower: p.follower.proto(),
 	}}})
 }

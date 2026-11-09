@@ -1,4 +1,4 @@
-// FireRed's naming screen, for the player and the rival: three keyboard pages (upper,
+// FireRed's naming screen, for the player, the rival and a box: three keyboard pages (upper,
 // lower, symbols) swapped with a flip animation, the button column (page, BACK, OK), the
 // flashing cursor and the text entry with its bouncing underscores. D-pad, A, B, Select
 // and Start work as in the game. Behavior, timings and numbers follow FireRed; the code is
@@ -68,8 +68,12 @@ const enum ButtonId {
   Count,
 }
 
-/** PLAYER_NAME_LENGTH, for the player and the rival. */
-const MAX_CHARS = 7;
+/** Who is named: the player and the rival take PLAYER_NAME_LENGTH, a box BOX_NAME_LENGTH. */
+export type NamingKind = "player" | "rival" | "box";
+const MAX_CHARS: Record<NamingKind, number> = { player: 7, rival: 7, box: 8 };
+const TITLES: Record<NamingKind, string> = { player: "gText_YourName", rival: "gText_RivalsName", box: "gText_BoxName" };
+/** sPCIconOff_Gfx, sPCIconOn_Gfx: 16×24, in a 16×32 sprite with its bottom row empty. */
+const PC_ICON_TILES = 8;
 const ROWS = 4;
 
 const WINDOWS = {
@@ -128,7 +132,7 @@ const template = (sheet: string, palette: string, width: number, height: number,
 });
 
 /** Starts the naming screen; `done` gets the entered name, or null to keep the default. */
-export function startNamingScreen(flow: Flow, kind: "player" | "rival", gender: Gender, done: (name: Text | null) => void): void {
+export function startNamingScreen(flow: Flow, kind: NamingKind, gender: Gender, done: (name: Text | null) => void): void {
   new NamingScreen(flow, kind, gender, done).start();
 }
 
@@ -143,7 +147,8 @@ class NamingScreen {
   /** Which offset each swap moves: 0 = BG2's, 1 = BG1's. */
   private bgToReveal = 0;
   private bgToHide = 1;
-  private readonly inputCharBaseX = (240 - MAX_CHARS * 8) / 2 + 6;
+  private readonly maxChars: number;
+  private readonly inputCharBaseX: number;
   private windows!: Record<keyof typeof WINDOWS, Window>;
   private cursor!: Sprite;
   private swapFrame!: Sprite;
@@ -159,10 +164,13 @@ class NamingScreen {
 
   constructor(
     private readonly flow: Flow,
-    private readonly kind: "player" | "rival",
+    private readonly kind: NamingKind,
     private readonly gender: Gender,
     private readonly done: (name: Text | null) => void,
-  ) {}
+  ) {
+    this.maxChars = MAX_CHARS[kind];
+    this.inputCharBaseX = (240 - this.maxChars * 8) / 2 + 6;
+  }
 
   private get gba() {
     return this.flow.gba;
@@ -322,7 +330,7 @@ class NamingScreen {
     const arrow = sprites.create({ ...template("nsInputArrow", "nsPageSwapOthers", 8, 8), callback: inputArrowCallback }, this.inputCharBaseX - 5, 56, 0)!;
     arrow.priority = 3;
     arrow.invisible = true;
-    for (let i = 0; i < MAX_CHARS; i++) {
+    for (let i = 0; i < this.maxChars; i++) {
       const s = sprites.create({ ...template("nsUnderscore", "nsPageSwapOthers", 8, 8), callback: (u) => this.underscoreCallback(u) }, this.inputCharBaseX + i * 8 + 3, 60, 0)!;
       s.priority = 3;
       s.data[0] = i;
@@ -331,7 +339,7 @@ class NamingScreen {
     this.createIcon();
   }
 
-  /** The player walking south, or the rival's icon. */
+  /** The player walking south, the rival's icon, or the PC's blinking screen. */
   private createIcon(): void {
     const { assets, gba } = this.flow;
     const { sprites, palettes } = gba;
@@ -342,6 +350,14 @@ class NamingScreen {
       // ANIM_STD_GO_SOUTH: frames 3, 0, 4, 0 (8 tiles each).
       const walk: AnimCmd[] = [{ image: 24, duration: 8 }, { image: 0, duration: 8 }, { image: 32, duration: 8 }, { image: 0, duration: 8 }, { jump: 0 }];
       sprites.create(template("nsIcon", "nsIcon", 16, 32, 0, [walk]), 56, 37, 0)!.priority = 3;
+    } else if (this.kind === "box") {
+      // NamingScreen_CreatePCIcon: its three 16×8 rows from y−12, so a 16×32 sprite 4 lower.
+      const sheet = new Uint8Array(2 * PC_ICON_TILES * 64);
+      sheet.set(assets.get("nsPcIconOff").tiles.subarray(0, 6 * 64), 0);
+      sheet.set(assets.get("nsPcIconOn").tiles.subarray(0, 6 * 64), PC_ICON_TILES * 64);
+      sprites.loadSheet("nsIcon", sheet);
+      const anim: AnimCmd[] = [{ image: 0, duration: 2 }, { image: PC_ICON_TILES, duration: 2 }, { jump: 0 }];
+      sprites.create(template("nsIcon", "nsMenu", 16, 32, 0, [anim]), 56, 45, 0)!.priority = 3;
     } else {
       sprites.loadSheet("nsIcon", assets.get("nsRival").tiles);
       palettes.loadSpritePalette("nsIcon", assets.get("nsRival").palette);
@@ -535,7 +551,7 @@ class NamingScreen {
 
   /** SaveInputText: the name only counts if it has something besides spaces. */
   private exit(): void {
-    const name = this.buffer.slice(0, MAX_CHARS);
+    const name = this.buffer.slice(0, this.maxChars);
     const valid = name.some((c) => c !== 0 && c !== EOS);
     this.gba.input.repeatStartDelay = 40;
     this.gba.tasks.reset();
@@ -592,12 +608,12 @@ class NamingScreen {
 
   /** The first free position, or the last one when the name is full. */
   private textEntryPosition(): number {
-    for (let i = 0; i < MAX_CHARS; i++) if (this.buffer[i] === EOS) return i;
-    return MAX_CHARS - 1;
+    for (let i = 0; i < this.maxChars; i++) if (this.buffer[i] === EOS) return i;
+    return this.maxChars - 1;
   }
 
   private previousCaretPosition(): number {
-    for (let i = MAX_CHARS - 1; i > 0; i--) if (this.buffer[i] !== EOS) return i;
+    for (let i = this.maxChars - 1; i > 0; i--) if (this.buffer[i] !== EOS) return i;
     return 0;
   }
 
@@ -617,7 +633,7 @@ class NamingScreen {
     this.buffer[this.textEntryPosition()] = this.charAt(this.cursor.data[0], this.cursor.data[1]);
     this.drawTextEntry();
     this.flow.play("se_select");
-    return this.previousCaretPosition() === MAX_CHARS - 1;
+    return this.previousCaretPosition() === this.maxChars - 1;
   }
 
   private drawTextEntry(): void {
@@ -625,7 +641,7 @@ class NamingScreen {
     const font = this.flow.fonts[FontId.Normal];
     const x = this.inputCharBaseX - 0x40;
     win.fill(1);
-    for (let i = 0; i < MAX_CHARS; i++) win.print(font, i * 8 + x, 1, [1, 2, 3], [this.buffer[i], EOS]);
+    for (let i = 0; i < this.maxChars; i++) win.print(font, i * 8 + x, 1, [1, 2, 3], [this.buffer[i], EOS]);
     win.copyToVram();
     win.putTilemap();
   }
@@ -633,7 +649,7 @@ class NamingScreen {
   private drawTextEntryBox(): void {
     const win = this.windows.textEntryBox;
     win.fill(1);
-    win.print(this.flow.fonts[FontId.NormalCopy1], 1, 1, [1, 2, 3], this.text(this.kind === "player" ? "gText_YourName" : "gText_RivalsName"));
+    win.print(this.flow.fonts[FontId.NormalCopy1], 1, 1, [1, 2, 3], this.text(TITLES[this.kind]));
     win.copyToVram();
     win.putTilemap();
   }

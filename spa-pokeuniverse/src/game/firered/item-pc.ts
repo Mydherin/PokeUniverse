@@ -7,13 +7,16 @@
 import { ItemOutcome, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Pocket, type Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Button } from "../gba/input";
+import { PALETTES_ALL } from "../gba/palette";
 import type { Task } from "../gba/tasks";
 import { decimalText, expandPlaceholders, FontId, NumberMode, PLACEHOLDER_STR_VAR_1, PLACEHOLDER_STR_VAR_2, Window, type Text, type WindowTemplate } from "../gba/text";
-import type { Background } from "../gba/video";
+import { RGB_BLACK, type Background } from "../gba/video";
 import { itemInfo, type StoredItems } from "../world/items";
+import { tmMove } from "../world/moves";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { ItemMenuIcons } from "./item-menu-icons";
+import { startPartyMenu, type PartyHost } from "./party-menu";
 import { afterMove, fitListPosition, LIST_CANCEL, LIST_NOTHING_CHOSEN, ListMenu, type ListMenuItem, type ListPosition } from "./list-menu";
 import { userFrame, type TextId } from "./manifest";
 import {
@@ -38,11 +41,16 @@ export interface ItemPcHost {
   give(item: Item): Promise<ItemResult>;
   /** Shown at once; mic-core corrects a refused one. */
   move(from: number, to: number): void;
+  /** The party menu GIVE opens. */
+  readonly party: PartyHost;
 }
 
-/** Shows the screen, then `done` once it turned off. */
-export function startItemPc(flow: Flow, host: ItemPcHost, done: () => void): void {
-  new ItemPc(flow, host, done);
+/**
+ * Shows the screen, then `done` once it turned off. `back`: back from the party menu (GIVE) at
+ * that list position, faded in instead of turned on (sListMenuState.initialized).
+ */
+export function startItemPc(flow: Flow, host: ItemPcHost, done: () => void, back?: ListPosition): void {
+  new ItemPc(flow, host, done, back);
 }
 
 /** sWindowTemplates: the list, the description, the title, the quantity, the actions, the message. */
@@ -120,7 +128,7 @@ class ItemPc {
   /** sListMenuState: reset each time the screen opens from the PC. */
   private position: ListPosition = { scroll: 0, row: 0 };
   private scrollArrows: ScrollArrowPair | null = null;
-  private effect: Task;
+  private effect: Task | null = null;
   /** The task function running now, one call a frame. */
   private step: () => void = () => this.handleInput();
   private selected: Selected | null = null;
@@ -137,8 +145,10 @@ class ItemPc {
     private readonly flow: Flow,
     private readonly host: ItemPcHost,
     private readonly done: () => void,
+    back: ListPosition | undefined,
   ) {
     const { gba, assets } = flow;
+    if (back) this.position = { ...back };
     gba.setVBlank(null);
     gba.reset();
     const { video, palettes } = gba;
@@ -179,9 +189,14 @@ class ItemPc {
     gba.tasks.create(() => this.step(), 0);
     this.openList();
     this.createArrows();
-    // BeginPCScreenEffect_TurnOn, with SE_PC_LOGIN.
-    this.effect = beginPcScreenTurnOn(gba);
-    flow.play("se_pc_login");
+    if (back) {
+      palettes.blendPalettes(PALETTES_ALL, 16, RGB_BLACK);
+      palettes.beginFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
+    } else {
+      // BeginPCScreenEffect_TurnOn, with SE_PC_LOGIN.
+      this.effect = beginPcScreenTurnOn(gba);
+      flow.play("se_pc_login");
+    }
 
     gba.setVBlank(gba.standardVBlank);
     gba.setMain(() => flow.runFrame());
@@ -201,7 +216,7 @@ class ItemPc {
   /** Task_ItemPcMain: once the screen is on. */
   private handleInput(): void {
     const { gba } = this.flow;
-    if (gba.palettes.fadeActive || this.effect.active) return;
+    if (gba.palettes.fadeActive || this.effect?.active) return;
     const menu = this.menu!;
     const count = this.slots.length;
     if (gba.input.isPressed(Button.Select) && menu.scroll + menu.row !== count) {
@@ -261,7 +276,7 @@ class ItemPc {
     const slot = this.slots[id];
     this.icons.showIcon(slot?.item ?? null);
     let text: Text = flow.assets.text("gText_ReturnToPC");
-    if (slot) text = itemInfo(slot.item)?.pocket === Pocket.TM_CASE ? (flow.assets.tmMove(slot.item)?.name ?? [0xff]) : flow.assets.itemDescription(slot.item);
+    if (slot) text = itemInfo(slot.item)?.pocket === Pocket.TM_CASE ? flow.assets.moveName(tmMove(slot.item)) : flow.assets.itemDescription(slot.item);
     this.printDescription(text, Color.Description, 0);
   }
 
@@ -448,10 +463,15 @@ class ItemPc {
     this.backToList();
   }
 
-  /** Task_ItemPcGive: a party Pokémon to hold it; with none, "There is no POKéMON." until A. */
+  /**
+   * Task_ItemPcGive: the screen fades out to the party menu, which chooses who holds it, and comes
+   * back; with no Pokémon, "There is no POKéMON." until A.
+   */
   private giveAction(): void {
-    this.ask(this.host.give(this.selected!.item), (r) => {
-      if (r.outcome !== ItemOutcome.NO_POKEMON) return this.cancelAction(); // The party menu comes with the party.
+    const item = this.selected!.item;
+    this.ask(this.host.give(item), (r) => {
+      if (r.outcome === ItemOutcome.PARTY_MENU) return this.leaveToGive(item);
+      if (r.outcome !== ItemOutcome.NO_POKEMON) return this.cancelAction();
       this.hideActions();
       this.showMessage(this.flow.assets.text("gText_ThereIsNoPokemon"));
       this.step = () => {
@@ -548,6 +568,21 @@ class ItemPc {
     this.step = () => this.handleInput();
   }
 
+  /** Task_ItemPcTurnOff1 (initialized): a fade out, then the party menu, then back here. */
+  private leaveToGive(item: Item): void {
+    const { flow, host, done } = this;
+    const { gba } = flow;
+    const back = this.menu?.position ?? this.position;
+    gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+    this.step = () => {
+      if (gba.palettes.fadeActive) return;
+      this.destroyArrows();
+      this.icons.destroyIcon();
+      gba.tasks.reset();
+      startPartyMenu(flow, host.party, { kind: "give", item, pc: true }, () => startItemPc(flow, host, done, back));
+    };
+  }
+
   // Turning off
 
   /** Task_ItemPcTurnOff1 and 2: the screen turns off (SE_PC_OFF), then back to the field. */
@@ -556,7 +591,7 @@ class ItemPc {
     this.effect = beginPcScreenTurnOff(gba);
     this.flow.play("se_pc_off");
     this.step = () => {
-      if (gba.palettes.fadeActive || this.effect.active) return;
+      if (gba.palettes.fadeActive || this.effect?.active) return;
       this.destroyArrows();
       this.icons.destroyIcon();
       gba.tasks.reset();

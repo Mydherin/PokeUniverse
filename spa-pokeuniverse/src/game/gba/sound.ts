@@ -13,6 +13,7 @@ const RATE = 48000;
 interface Player {
   source: AudioBufferSourceNode;
   gain: GainNode;
+  panner: StereoPannerNode;
 }
 
 export class Sound {
@@ -62,18 +63,59 @@ export class Sound {
     if (player) player.source.onended = () => this.bgm === player && (this.bgm = null);
   }
 
-  /** Plays on a separate player (one sound at a time per player), over the BGM. */
-  play(id: string, player = "se"): void {
+  /**
+   * Plays on a separate player (one sound at a time per player), over the BGM; `pan` from -1 (left)
+   * to 1 (right), heard in stereo only.
+   */
+  play(id: string, player = "se", pan = 0): void {
     this.others.get(player)?.source.stop();
     const p = this.start(id);
     if (!p) return;
+    p.panner.pan.value = pan;
     this.others.set(player, p);
     p.source.onended = () => this.others.get(player) === p && this.others.delete(player);
   }
 
+  /** PlayFanfare: a song over the BGM, which stays silent until it ends. */
+  playFanfare(id: string): void {
+    this.others.get("fanfare")?.source.stop();
+    const p = this.start(id);
+    if (!p) return;
+    if (this.bgm) this.bgm.gain.gain.value = 0;
+    this.others.set("fanfare", p);
+    p.source.onended = () => {
+      if (this.others.get("fanfare") !== p) return;
+      this.others.delete("fanfare");
+      if (this.bgm) this.bgm.gain.gain.value = this.fadeSpeed ? this.fadeLevel / 16 : 1;
+    };
+  }
+
+  /** IsFanfareTaskInactive's opposite: a fanfare is still playing. */
+  get fanfarePlaying(): boolean {
+    return this.isPlaying("fanfare");
+  }
+
+  /** A suspended or interrupted context (no unlock, iOS lock screen) plays nothing: a sound waited on
+   *  would never end, so it counts as finished and the game goes on. */
+  private get audible(): boolean {
+    return this.ctx.state === "running";
+  }
+
+  /** Moves what a player plays to another pan (SE12PanpotControl). */
+  setPan(player: string, pan: number): void {
+    const p = this.others.get(player);
+    if (p) p.panner.pan.value = pan;
+  }
+
+  /** Stops what a player plays (StopCryAndClearCrySongs is stop("cry")). */
+  stop(player: string): void {
+    this.others.get(player)?.source.stop();
+    this.others.delete(player);
+  }
+
   /** True while a sound plays on that player (IsCryFinished is !isPlaying("cry")). */
   isPlaying(player: string): boolean {
-    return this.others.has(player);
+    return this.audible && this.others.has(player);
   }
 
   stopBgm(): void {
@@ -120,8 +162,9 @@ export class Sound {
       source.loopEnd = loop[1] / RATE;
     }
     const gain = this.ctx.createGain();
-    source.connect(gain).connect(this.output);
+    const panner = this.ctx.createStereoPanner();
+    source.connect(gain).connect(panner).connect(this.output);
     source.start();
-    return { source, gain };
+    return { source, gain, panner };
   }
 }

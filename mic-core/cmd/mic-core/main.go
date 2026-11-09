@@ -20,6 +20,7 @@ import (
 	"pokeuniverse/mic-core/internal/account"
 	"pokeuniverse/mic-core/internal/admin"
 	"pokeuniverse/mic-core/internal/auth"
+	"pokeuniverse/mic-core/internal/battle"
 	"pokeuniverse/mic-core/internal/battles"
 	"pokeuniverse/mic-core/internal/config"
 	"pokeuniverse/mic-core/internal/health"
@@ -83,7 +84,8 @@ func run(log *slog.Logger) error {
 		return fmt.Errorf("nats: %w", err)
 	}
 	defer nc.Drain()
-	go (&battles.Client{NATS: nc}).WaitReachable(ctx, log)
+	battlesClient := &battles.Client{NATS: nc}
+	go battlesClient.WaitReachable(ctx, log)
 
 	accounts := account.NewService(pool, cfg.AdminEmails)
 	if n, err := accounts.GrantConfiguredAdmins(ctx); err != nil {
@@ -115,7 +117,7 @@ func run(log *slog.Logger) error {
 	positions := live.NewStore(rdb, pool, log)
 	go positions.CopyLoop(ctx, positionCopyInterval)
 	bus := sessionbus.New(nc, log)
-	game, err := world.New(worldMaps, positions, bus, pool, log)
+	game, err := world.New(worldMaps, positions, bus, pool, battlesClient, battle.NewStore(rdb), log)
 	if err != nil {
 		return err
 	}
@@ -153,7 +155,8 @@ func run(log *slog.Logger) error {
 	log.Info("shutting down")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	// Players leave first (saving where they are), then the zones stop, then HTTP.
+	// Players leave first (saving where they are, keeping their battles), then the zones stop, then HTTP.
+	game.Drain()
 	ws.Shutdown(shutdownCtx)
 	game.Close()
 	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {

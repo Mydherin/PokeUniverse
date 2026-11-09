@@ -5,11 +5,14 @@
 // A opens the item's menu (USE, GIVE, TOSS, REGISTER…; OPEN on the TM CASE and BERRY POUCH fades
 // into them and back), SELECT moves the item within its pocket.
 // Opened from the PC (DEPOSIT ITEM, ITEMMENULOCATION_ITEMPC) it shows only the ITEMS pocket under
-// a "DEPOSIT ITEM" box: A deposits the item (how many, when more than one).
+// a "DEPOSIT ITEM" box: A deposits the item (how many, when more than one). Opened from the party
+// menu's GIVE (ITEMMENULOCATION_PARTY) A chooses the item to give, from the TM CASE and BERRY
+// POUCH too; GIVE in the bag itself opens the party menu to choose who holds it.
 // mic-core decides what every action does; this shows it as FireRed does. The screen opens
 // with a black curtain rising and closes with it falling.
 
-import { ItemOutcome, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
+import { create } from "@bufbuild/protobuf";
+import { ItemOutcome, ItemResultSchema, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { FieldUse, Item, Pocket as ItemPocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { Button } from "../gba/input";
@@ -22,6 +25,7 @@ import { itemInfo, type BagState } from "../world/items";
 import { initBg } from "./common";
 import type { Flow } from "./flow";
 import { itemMessage, ItemMessagePlayer } from "./item-messages";
+import { startPartyMenu, type PartyHost } from "./party-menu";
 import { afterMove, fitListPosition, LIST_CANCEL, LIST_NOTHING_CHOSEN, ListMenu, type ListMenuItem, type ListPosition } from "./list-menu";
 import { ItemMenuIcons } from "./item-menu-icons";
 import type { TextId } from "./manifest";
@@ -62,6 +66,8 @@ export interface BagHost {
   move(pocket: ItemPocket, from: number, to: number): void;
   /** Stores items in the PC (the bag opened from it). */
   deposit(item: Item, quantity: number): Promise<ItemResult>;
+  /** The party menu GIVE opens. */
+  readonly party: PartyHost;
 }
 
 /** Where the bag was opened from (gBagMenuState.location). */
@@ -70,10 +76,16 @@ export const enum BagLocation {
   Field,
   /** The PC's DEPOSIT ITEM. */
   ItemPc,
+  /** The party menu's GIVE: an item to give is chosen. */
+  Party,
+  /** BAG in battle: an item is chosen to use (phase-5 M12). */
+  Battle,
+  /** The box screen's GIVE (ITEMMENULOCATION_PCBOX): like the party menu's, MAIL refused. */
+  PcBox,
 }
 
-/** How the bag closed: back to the START menu (null), or to the field where an item works. */
-export type BagExit = { field: ItemResult } | null;
+/** How the bag closed: back (null), to the field where an item works, or with the item to give (from the party menu). */
+export type BagExit = { field: ItemResult } | { chosen: Item } | null;
 
 /** gBagMenuState: the open pocket and each pocket's list position, kept while the game runs. */
 const state = {
@@ -82,20 +94,31 @@ const state = {
 };
 
 /** Shows the bag, then `done` once it faded out. */
-export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field): void {
-  new Bag(flow, gender, host, done, location);
+export function startBag(flow: Flow, gender: Gender, host: BagHost, done: (exit: BagExit) => void, location = BagLocation.Field, noEffect: readonly Item[] = []): void {
+  new Bag(flow, gender, host, done, location, noEffect);
 }
 
 /**
  * FieldUseFunc_TmCase and FieldUseFunc_BerryPouch: the screen an item opens (OPEN), from the
  * bag or with SELECT on the field (`fromField`), then `done` once it faded out. False when the
- * item opens no screen yet (TOWN MAP, FAME CHECKER, TEACHY TV and mail come later).
+ * item opens no screen yet (TOWN MAP, FAME CHECKER, TEACHY TV and mail come later). `pick`: opened
+ * from the party menu's GIVE, A chooses the item to give (`done` with it).
  */
-export function openItemScreen(flow: Flow, gender: Gender, host: BagHost, item: Item, fromField: boolean, done: () => void): boolean {
-  if (item === Item.TM_CASE) startTmCase(flow, gender, host, fromField, done);
-  else if (item === Item.BERRY_POUCH) startBerryPouch(flow, gender, host, fromField, done);
+export function openItemScreen(flow: Flow, gender: Gender, host: BagHost, item: Item, fromField: boolean, done: (picked?: Item) => void, pick = false, battle = false): boolean {
+  if (item === Item.TM_CASE) startTmCase(flow, gender, host, fromField, done, pick);
+  else if (item === Item.BERRY_POUCH) startBerryPouch(flow, gender, host, fromField, done, pick, battle);
   else return false;
   return true;
+}
+
+/** CB2_ChooseMonToGiveItem: the party menu to give the item, then `back` (the screen it was chosen in). */
+export function giveToParty(flow: Flow, host: PartyHost, item: Item, pc: boolean, back: () => void): void {
+  startPartyMenu(flow, host, { kind: "give", item, pc }, back);
+}
+
+/** CB2_ShowPartyMenuForItemUse: the party menu to use the item on a Pokémon, then `back` (the screen it was chosen in). */
+export function useOnParty(flow: Flow, host: PartyHost, item: Item, back: () => void): void {
+  startPartyMenu(flow, host, { kind: "use", item }, back);
 }
 
 const WINDOWS = {
@@ -227,6 +250,8 @@ class Bag {
     private readonly host: BagHost,
     private readonly done: (exit: BagExit) => void,
     private readonly location: BagLocation,
+    /** In battle: the items that would do nothing now. */
+    private readonly noEffect: readonly Item[],
   ) {
     const { gba, assets } = flow;
     this.icons = new ItemMenuIcons(flow);
@@ -330,13 +355,14 @@ class Bag {
     this.selected = { item: slot.item, index: chosen, quantity: slot.quantity };
     this.setMessageBoxPalette(1);
     if (this.location === BagLocation.ItemPc) this.depositAction();
+    else if (this.location === BagLocation.Party || this.location === BagLocation.PcBox) this.chooseToGive();
     else this.openContextMenu();
   }
 
   /** ProcessPocketSwitchInput: -1 or 1 (with its sound) when LEFT or RIGHT can switch from `pocket`; never from the PC. */
   private pocketSwitchInput(pocket: Pocket): number {
     const { input } = this.flow.gba;
-    if (this.location !== BagLocation.Field) return 0;
+    if (this.location === BagLocation.ItemPc) return 0;
     if (input.isPressed(Button.Left) && pocket > Pocket.Items) {
       this.flow.play("se_bag_pocket");
       return -1;
@@ -497,7 +523,9 @@ class Bag {
     const { flow } = this;
     const { item } = this.selected!;
     const field = itemInfo(item)?.fieldUse;
-    switch (state.pocket) {
+    const pocket = this.location === BagLocation.Battle ? null : state.pocket;
+    if (pocket === null) this.actions = item === Item.BERRY_POUCH ? [Action.Open, Action.Cancel] : itemInfo(item)?.battleUse ? [Action.Use, Action.Cancel] : [Action.Cancel];
+    switch (pocket) {
       case Pocket.Items:
         this.actions = field === FieldUse.MAIL ? [Action.Check, Action.Give, Action.Toss, Action.Cancel] : [Action.Use, Action.Give, Action.Toss, Action.Cancel];
         break;
@@ -563,15 +591,51 @@ class Bag {
 
   /** Task_ItemMenuAction_Use: mic-core decides (no Pokémon, not now, the item's effect). */
   private useAction(): void {
+    if (this.location === BagLocation.Battle) {
+      this.hideContextMenu();
+      return this.chooseToUseInBattle();
+    }
     if (!itemInfo(this.selected!.item)?.fieldUse) return; // No USE: nothing happens, the menu stays.
     this.hideContextMenu();
     this.ask(this.host.use(this.selected!.item), (r) => this.onResult(r));
   }
 
-  /** Task_ItemMenuAction_Give. */
+  /** Task_ItemMenuAction_Give: mic-core checks it can be held, then the party menu chooses who (CB2_ChooseMonToGiveItem). */
   private giveAction(): void {
     this.hideContextMenu();
-    this.ask(this.host.give(this.selected!.item), (r) => this.onResult(r));
+    const item = this.selected!.item;
+    this.ask(this.host.give(item), (r) => {
+      if (r.outcome !== ItemOutcome.PARTY_MENU) return this.onResult(r);
+      const { flow, gender, host, done } = this;
+      this.close(false, null, () => giveToParty(flow, host.party, item, false, () => startBag(flow, gender, host, done)));
+    });
+  }
+
+  /**
+   * Task_ItemContext_FieldGive: the item chosen to give, back to the party menu; the TM CASE and
+   * BERRY POUCH open to choose in them; key items and other important ones can't be held.
+   */
+  private chooseToGive(): void {
+    const { flow, gender, host, done, location } = this;
+    const { item } = this.selected!;
+    // Task_ItemContext_PcBoxGive: no MAIL from the box screen.
+    if (location === BagLocation.PcBox && itemInfo(item)?.fieldUse === FieldUse.MAIL) return this.sayThenBack("gText_CantWriteMailHere");
+    if (item === Item.TM_CASE || item === Item.BERRY_POUCH) {
+      const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, location));
+      return this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true));
+    }
+    if (state.pocket !== Pocket.KeyItems && !itemInfo(item)?.important) return this.close(true, { chosen: item });
+    this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.CANT_BE_HELD, item }));
+  }
+
+  /** Task_ItemMenuAction_BattleUse: the item goes back to the battle, unless it would do nothing (BattleUseFunc_StatBooster); the BERRY POUCH opens to choose a berry. */
+  private chooseToUseInBattle(): void {
+    const { flow, gender, host, done } = this;
+    const { item } = this.selected!;
+    if (this.noEffect.includes(item)) return this.onResult(create(ItemResultSchema, { outcome: ItemOutcome.NO_EFFECT, item }));
+    if (item !== Item.BERRY_POUCH) return this.close(true, { chosen: item });
+    const back = (picked?: Item) => (picked ? done({ chosen: picked }) : startBag(flow, gender, host, done, BagLocation.Battle, this.noEffect));
+    this.close(false, null, () => openItemScreen(flow, gender, host, item, false, back, true, true));
   }
 
   /** Task_ItemMenuAction_ToggleSelect: the list shows the SELECT mark at once. */
@@ -595,6 +659,10 @@ class Bag {
    */
   private onResult(r: ItemResult): void {
     if (r.outcome === ItemOutcome.NO_RESPONSE || r.outcome === ItemOutcome.ON_FIELD) return this.close(false, { field: r });
+    if (r.outcome === ItemOutcome.PARTY_MENU) {
+      const { flow, gender, host, done } = this;
+      return this.close(false, null, () => useOnParty(flow, host.party, r.item, () => startBag(flow, gender, host, done)));
+    }
     if (r.outcome === ItemOutcome.OPEN) {
       const { flow, gender, host, done } = this;
       return this.close(false, null, () => {
@@ -611,6 +679,17 @@ class Bag {
     );
     this.step = () => {
       if (player.update()) this.returnFromContext();
+    };
+  }
+
+  /** Task_WaitAButtonAndCloseContextMenu: a message until A, then back to the list. */
+  private sayThenBack(id: TextId): void {
+    const { flow } = this;
+    this.showMessage(flow.assets.text(id), FontId.Normal);
+    this.step = () => {
+      if (flow.text.isActive(this.message!) || !flow.gba.input.isPressed(Button.A)) return;
+      flow.play("se_select");
+      this.returnFromContext();
     };
   }
 
@@ -876,7 +955,7 @@ class Bag {
 
   /** Not in the PC's bag, which doesn't switch pockets. */
   private createSwitchArrows(): void {
-    if (this.location !== BagLocation.Field) return;
+    if (this.location === BagLocation.ItemPc) return;
     const t = { first: ScrollArrow.Left, firstX: 8, firstY: 72, second: ScrollArrow.Right, secondX: 72, secondY: 72, fullyUp: Pocket.Items, fullyDown: Pocket.PokeBalls, tag: "bagSwitchArrows" };
     this.switchArrows = new ScrollArrowPair(this.flow, t, () => state.pocket);
   }

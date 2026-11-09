@@ -109,7 +109,7 @@ tiles:
 - **Behaviors** are the values of `TileBehavior` in `lib-contracts` `map.proto` (lowercase, no prefix): the contract is the single list.
 - **Converted names say what a tile does:** `<behavior>_<index>`, or `ground_<index>` / `solid_<index>` for plain walkable / blocked tiles. Defaults (`walkable`, `elevation`) are what most Kanto cells use.
 - **Labeling:** look at `catalog-preview`, then `rename` tiles to meaningful names (`solid_008` → `wall`); every map follows.
-- **Art styles share tile names:** a public pack gets its own art with the same names, so text maps don't change when the art does ([Phase 6](phases/phase-6-pallet-town-art.md)).
+- **Art styles share tile names:** a public pack gets its own art with the same names, so text maps don't change when the art does ([Phase 11](phases/phase-11-pallet-town-art.md)).
 
 ## Tools
 
@@ -134,7 +134,7 @@ Generated, gitignored, never edited by hand.
 | Output | Where | Contents |
 |---|---|---|
 | Tileset art | `spa-pokeuniverse/public/firered/tilesets/<id>.png` and `<id>.above.png` | 16×16 frames, 16 per row, frame = tile index; `.above` is drawn over the player. A tileset with a base also holds the base's frames, drawn with its palettes |
-| Client maps | `spa-pokeuniverse/public/maps/<id>.binpb` (served at `/maps/`) | `ClientMap`: size, tileset, tile per cell, border, connections, music, weather; walkable, elevation and behavior per cell, to predict movement |
+| Client maps | `spa-pokeuniverse/public/maps/<id>.binpb` (served at `/maps/`) | `ClientMap`: size, tileset, tile per cell, border, connections, music, weather; walkable, elevation and behavior per cell, to predict movement; NPCs (ID, cell, sprite, facing: drawn, and blocking steps); warp cells, to predict the transition; region, to name the place |
 | Server maps | `mic-core/maps/<id>.binpb` | `ServerMap`: walkable, elevation, behavior and encounter type per cell; connections, warps, objects, map rules |
 
 - Both are Protocol Buffers messages of `pokeuniverse.map.v1` ([lib-contracts](tech-stack.md#lib-contracts)).

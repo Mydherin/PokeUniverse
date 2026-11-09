@@ -4,8 +4,12 @@ syntax = "proto3";
 // One envelope per direction; every message carries a sequence number.
 package pokeuniverse.realtime.v1;
 
+import "pokeuniverse/battle/v1/view.proto";
 import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/item/v1/pc.proto";
+import "pokeuniverse/party/v1/box.proto";
+import "pokeuniverse/party/v1/party.proto";
+import "pokeuniverse/pokedex/v1/pokedex.proto";
 import "pokeuniverse/world/v1/world.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1;realtimev1";
@@ -29,6 +33,26 @@ message ClientMessage {
     pokeuniverse.item.v1.WithdrawItem withdraw_item = 14;
     pokeuniverse.item.v1.DepositItem deposit_item = 15;
     pokeuniverse.item.v1.MovePcItem move_pc_item = 16;
+    pokeuniverse.party.v1.SwapPartySlots swap_party_slots = 17;
+    pokeuniverse.party.v1.GivePartyItem give_party_item = 18;
+    pokeuniverse.party.v1.TakePartyItem take_party_item = 19;
+    pokeuniverse.party.v1.SwapPokemonMoves swap_pokemon_moves = 20;
+    pokeuniverse.battle.v1.BattleChoice battle_choice = 21;
+    pokeuniverse.world.v1.ScriptBattle script_battle = 22;
+    pokeuniverse.party.v1.EvolvePokemon evolve_pokemon = 23;
+    pokeuniverse.party.v1.LearnMove learn_move = 24;
+    pokeuniverse.world.v1.UseWarp use_warp = 25;
+    pokeuniverse.party.v1.UsePartyItem use_party_item = 26;
+    pokeuniverse.party.v1.UseFieldMove use_field_move = 27;
+    pokeuniverse.party.v1.OpenBox open_box = 28;
+    pokeuniverse.party.v1.MovePokemon move_pokemon = 29;
+    pokeuniverse.party.v1.ReleasePokemon release_pokemon = 30;
+    pokeuniverse.party.v1.RenameBox rename_box = 31;
+    pokeuniverse.party.v1.SetBoxWallpaper set_box_wallpaper = 32;
+    pokeuniverse.party.v1.SetMarkings set_markings = 33;
+    pokeuniverse.party.v1.MoveHeldItem move_held_item = 34;
+    pokeuniverse.party.v1.StoreHeldItem store_held_item = 35;
+    pokeuniverse.party.v1.GiveHeldItem give_held_item = 36;
   }
 }
 
@@ -45,6 +69,17 @@ message ServerMessage {
     pokeuniverse.item.v1.BagChanged bag_changed = 8;
     pokeuniverse.item.v1.ItemResult item_result = 9;
     pokeuniverse.item.v1.PcChanged pc_changed = 10;
+    pokeuniverse.party.v1.PartyChanged party_changed = 11;
+    pokeuniverse.battle.v1.BattleStarted battle_started = 12;
+    pokeuniverse.battle.v1.BattleTurn battle_turn = 13;
+    pokeuniverse.battle.v1.BattleEnded battle_ended = 14;
+    pokeuniverse.party.v1.PokemonEvolved pokemon_evolved = 15;
+    pokeuniverse.pokedex.v1.PokedexChanged pokedex_changed = 16;
+    pokeuniverse.world.v1.Warped warped = 17;
+    pokeuniverse.party.v1.LearnMoveResult learn_move_result = 18;
+    pokeuniverse.party.v1.FieldMoveResult field_move_result = 19;
+    pokeuniverse.party.v1.BoxView box_view = 20;
+    pokeuniverse.world.v1.FollowerChanged follower_changed = 21;
   }
 }
 

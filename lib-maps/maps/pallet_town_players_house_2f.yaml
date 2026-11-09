@@ -87,3 +87,6 @@ objects:
   - { type: sign, id: nes, at: [6, 5], script: nes }
   - { type: sign, id: pc, at: [1, 1], script: pc }
   - { type: sign, id: sign, at: [11, 1], script: sign }
+  # Test content (phase-5): removed in Phase 10.
+  - { type: npc, id: test_trainer, at: [9, 4], sprite: cooltrainer_m, movement: face_down, script: test_trainer }
+  - { type: npc, id: test_double_trainer, at: [9, 6], sprite: cooltrainer_m, movement: face_left, script: test_double_trainer }

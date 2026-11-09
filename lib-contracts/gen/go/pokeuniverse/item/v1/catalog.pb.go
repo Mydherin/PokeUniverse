@@ -4,9 +4,9 @@
 // 	protoc        (unknown)
 // source: pokeuniverse/item/v1/catalog.proto
 
-// The item catalog: every FireRed item, by FireRed's item ID, with the rules mic-core plays it by
-// and the client builds its menus from. Converted once from pokefirered's src/data/items.json;
-// this file is the source now. Names, descriptions and icons belong to each art style
+// The item catalog: every FireRed item, by FireRed's item ID, and Gen 4's after them, with the rules
+// mic-core plays them by and the client builds its menus from. Converted once from pokefirered's
+// src/data/items.json (Gen 4's by infra/battle/items.mjs); this file is the source now. Names, descriptions and icons belong to each art style
 // (tech-stack.md#decoupled-presentation): the FireRed one reads them by ID at build time.
 
 package itemv1
@@ -15,6 +15,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
+	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
+	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -220,7 +222,67 @@ func (FieldUse) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{1}
 }
 
-// Every item, numbered as in FireRed (IDs FireRed leaves unused are skipped).
+// How BAG uses an item in battle (phase-5 M12). Unspecified: it can't be ("This isn't the time...").
+type BattleUse int32
+
+const (
+	BattleUse_BATTLE_USE_UNSPECIFIED BattleUse = 0
+	// On a party Pokémon the player chooses.
+	BattleUse_BATTLE_USE_PARTY BattleUse = 1
+	// On one move of a party Pokémon the player chooses.
+	BattleUse_BATTLE_USE_MOVE BattleUse = 2
+	// On the Pokémon in battle or its side, with no choice (X items, Dire Hit, Guard Spec., POKé FLUTE).
+	BattleUse_BATTLE_USE_SELF BattleUse = 3
+	// Thrown: a trainer blocks it, and it's spent all the same.
+	BattleUse_BATTLE_USE_BALL BattleUse = 4
+)
+
+// Enum value maps for BattleUse.
+var (
+	BattleUse_name = map[int32]string{
+		0: "BATTLE_USE_UNSPECIFIED",
+		1: "BATTLE_USE_PARTY",
+		2: "BATTLE_USE_MOVE",
+		3: "BATTLE_USE_SELF",
+		4: "BATTLE_USE_BALL",
+	}
+	BattleUse_value = map[string]int32{
+		"BATTLE_USE_UNSPECIFIED": 0,
+		"BATTLE_USE_PARTY":       1,
+		"BATTLE_USE_MOVE":        2,
+		"BATTLE_USE_SELF":        3,
+		"BATTLE_USE_BALL":        4,
+	}
+)
+
+func (x BattleUse) Enum() *BattleUse {
+	p := new(BattleUse)
+	*p = x
+	return p
+}
+
+func (x BattleUse) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BattleUse) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_item_v1_catalog_proto_enumTypes[2].Descriptor()
+}
+
+func (BattleUse) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_item_v1_catalog_proto_enumTypes[2]
+}
+
+func (x BattleUse) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BattleUse.Descriptor instead.
+func (BattleUse) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{2}
+}
+
+// Every item, numbered as in FireRed (IDs FireRed leaves unused are skipped), then Gen 4's from 375.
 type Item int32
 
 const (
@@ -532,6 +594,104 @@ const (
 	Item_ITEM_POWDER_JAR     Item = 372
 	Item_ITEM_RUBY           Item = 373
 	Item_ITEM_SAPPHIRE       Item = 374
+	Item_ITEM_HEAL_BALL      Item = 375
+	Item_ITEM_DUSK_BALL      Item = 376
+	Item_ITEM_QUICK_BALL     Item = 377
+	Item_ITEM_OLD_GATEAU     Item = 378
+	Item_ITEM_RARE_BONE      Item = 379
+	Item_ITEM_ARMOR_FOSSIL   Item = 380
+	Item_ITEM_SKULL_FOSSIL   Item = 381
+	Item_ITEM_SHINY_STONE    Item = 382
+	Item_ITEM_DUSK_STONE     Item = 383
+	Item_ITEM_DAWN_STONE     Item = 384
+	Item_ITEM_PROTECTOR      Item = 385
+	Item_ITEM_ELECTIRIZER    Item = 386
+	Item_ITEM_MAGMARIZER     Item = 387
+	Item_ITEM_DUBIOUS_DISC   Item = 388
+	Item_ITEM_REAPER_CLOTH   Item = 389
+	Item_ITEM_OVAL_STONE     Item = 390
+	Item_ITEM_FLAME_PLATE    Item = 391
+	Item_ITEM_SPLASH_PLATE   Item = 392
+	Item_ITEM_ZAP_PLATE      Item = 393
+	Item_ITEM_MEADOW_PLATE   Item = 394
+	Item_ITEM_ICICLE_PLATE   Item = 395
+	Item_ITEM_FIST_PLATE     Item = 396
+	Item_ITEM_TOXIC_PLATE    Item = 397
+	Item_ITEM_EARTH_PLATE    Item = 398
+	Item_ITEM_SKY_PLATE      Item = 399
+	Item_ITEM_MIND_PLATE     Item = 400
+	Item_ITEM_INSECT_PLATE   Item = 401
+	Item_ITEM_STONE_PLATE    Item = 402
+	Item_ITEM_SPOOKY_PLATE   Item = 403
+	Item_ITEM_DRACO_PLATE    Item = 404
+	Item_ITEM_DREAD_PLATE    Item = 405
+	Item_ITEM_IRON_PLATE     Item = 406
+	Item_ITEM_QUICK_POWDER   Item = 407
+	Item_ITEM_ADAMANT_ORB    Item = 408
+	Item_ITEM_LUSTROUS_ORB   Item = 409
+	Item_ITEM_GRISEOUS_ORB   Item = 410
+	Item_ITEM_ODD_INCENSE    Item = 411
+	Item_ITEM_ROCK_INCENSE   Item = 412
+	Item_ITEM_FULL_INCENSE   Item = 413
+	Item_ITEM_WAVE_INCENSE   Item = 414
+	Item_ITEM_ROSE_INCENSE   Item = 415
+	Item_ITEM_POWER_WEIGHT   Item = 416
+	Item_ITEM_POWER_BRACER   Item = 417
+	Item_ITEM_POWER_BELT     Item = 418
+	Item_ITEM_POWER_LENS     Item = 419
+	Item_ITEM_POWER_BAND     Item = 420
+	Item_ITEM_POWER_ANKLET   Item = 421
+	Item_ITEM_CHOICE_SPECS   Item = 422
+	Item_ITEM_CHOICE_SCARF   Item = 423
+	Item_ITEM_FLAME_ORB      Item = 424
+	Item_ITEM_TOXIC_ORB      Item = 425
+	Item_ITEM_DAMP_ROCK      Item = 426
+	Item_ITEM_HEAT_ROCK      Item = 427
+	Item_ITEM_SMOOTH_ROCK    Item = 428
+	Item_ITEM_ICY_ROCK       Item = 429
+	Item_ITEM_WIDE_LENS      Item = 430
+	Item_ITEM_MUSCLE_BAND    Item = 431
+	Item_ITEM_WISE_GLASSES   Item = 432
+	Item_ITEM_EXPERT_BELT    Item = 433
+	Item_ITEM_LIGHT_CLAY     Item = 434
+	Item_ITEM_LIFE_ORB       Item = 435
+	Item_ITEM_POWER_HERB     Item = 436
+	Item_ITEM_FOCUS_SASH     Item = 437
+	Item_ITEM_ZOOM_LENS      Item = 438
+	Item_ITEM_METRONOME      Item = 439
+	Item_ITEM_IRON_BALL      Item = 440
+	Item_ITEM_LAGGING_TAIL   Item = 441
+	Item_ITEM_DESTINY_KNOT   Item = 442
+	Item_ITEM_BLACK_SLUDGE   Item = 443
+	Item_ITEM_GRIP_CLAW      Item = 444
+	Item_ITEM_STICKY_BARB    Item = 445
+	Item_ITEM_SHED_SHELL     Item = 446
+	Item_ITEM_BIG_ROOT       Item = 447
+	Item_ITEM_RAZOR_CLAW     Item = 448
+	Item_ITEM_RAZOR_FANG     Item = 449
+	Item_ITEM_CHILAN_BERRY   Item = 450
+	Item_ITEM_OCCA_BERRY     Item = 451
+	Item_ITEM_PASSHO_BERRY   Item = 452
+	Item_ITEM_WACAN_BERRY    Item = 453
+	Item_ITEM_RINDO_BERRY    Item = 454
+	Item_ITEM_YACHE_BERRY    Item = 455
+	Item_ITEM_CHOPLE_BERRY   Item = 456
+	Item_ITEM_KEBIA_BERRY    Item = 457
+	Item_ITEM_SHUCA_BERRY    Item = 458
+	Item_ITEM_COBA_BERRY     Item = 459
+	Item_ITEM_PAYAPA_BERRY   Item = 460
+	Item_ITEM_TANGA_BERRY    Item = 461
+	Item_ITEM_CHARTI_BERRY   Item = 462
+	Item_ITEM_KASIB_BERRY    Item = 463
+	Item_ITEM_HABAN_BERRY    Item = 464
+	Item_ITEM_COLBUR_BERRY   Item = 465
+	Item_ITEM_BABIRI_BERRY   Item = 466
+	Item_ITEM_MICLE_BERRY    Item = 467
+	Item_ITEM_CUSTAP_BERRY   Item = 468
+	Item_ITEM_JABOCA_BERRY   Item = 469
+	Item_ITEM_ROWAP_BERRY    Item = 470
+	Item_ITEM_LUCK_INCENSE   Item = 471
+	Item_ITEM_PURE_INCENSE   Item = 472
 )
 
 // Enum value maps for Item.
@@ -845,6 +1005,104 @@ var (
 		372: "ITEM_POWDER_JAR",
 		373: "ITEM_RUBY",
 		374: "ITEM_SAPPHIRE",
+		375: "ITEM_HEAL_BALL",
+		376: "ITEM_DUSK_BALL",
+		377: "ITEM_QUICK_BALL",
+		378: "ITEM_OLD_GATEAU",
+		379: "ITEM_RARE_BONE",
+		380: "ITEM_ARMOR_FOSSIL",
+		381: "ITEM_SKULL_FOSSIL",
+		382: "ITEM_SHINY_STONE",
+		383: "ITEM_DUSK_STONE",
+		384: "ITEM_DAWN_STONE",
+		385: "ITEM_PROTECTOR",
+		386: "ITEM_ELECTIRIZER",
+		387: "ITEM_MAGMARIZER",
+		388: "ITEM_DUBIOUS_DISC",
+		389: "ITEM_REAPER_CLOTH",
+		390: "ITEM_OVAL_STONE",
+		391: "ITEM_FLAME_PLATE",
+		392: "ITEM_SPLASH_PLATE",
+		393: "ITEM_ZAP_PLATE",
+		394: "ITEM_MEADOW_PLATE",
+		395: "ITEM_ICICLE_PLATE",
+		396: "ITEM_FIST_PLATE",
+		397: "ITEM_TOXIC_PLATE",
+		398: "ITEM_EARTH_PLATE",
+		399: "ITEM_SKY_PLATE",
+		400: "ITEM_MIND_PLATE",
+		401: "ITEM_INSECT_PLATE",
+		402: "ITEM_STONE_PLATE",
+		403: "ITEM_SPOOKY_PLATE",
+		404: "ITEM_DRACO_PLATE",
+		405: "ITEM_DREAD_PLATE",
+		406: "ITEM_IRON_PLATE",
+		407: "ITEM_QUICK_POWDER",
+		408: "ITEM_ADAMANT_ORB",
+		409: "ITEM_LUSTROUS_ORB",
+		410: "ITEM_GRISEOUS_ORB",
+		411: "ITEM_ODD_INCENSE",
+		412: "ITEM_ROCK_INCENSE",
+		413: "ITEM_FULL_INCENSE",
+		414: "ITEM_WAVE_INCENSE",
+		415: "ITEM_ROSE_INCENSE",
+		416: "ITEM_POWER_WEIGHT",
+		417: "ITEM_POWER_BRACER",
+		418: "ITEM_POWER_BELT",
+		419: "ITEM_POWER_LENS",
+		420: "ITEM_POWER_BAND",
+		421: "ITEM_POWER_ANKLET",
+		422: "ITEM_CHOICE_SPECS",
+		423: "ITEM_CHOICE_SCARF",
+		424: "ITEM_FLAME_ORB",
+		425: "ITEM_TOXIC_ORB",
+		426: "ITEM_DAMP_ROCK",
+		427: "ITEM_HEAT_ROCK",
+		428: "ITEM_SMOOTH_ROCK",
+		429: "ITEM_ICY_ROCK",
+		430: "ITEM_WIDE_LENS",
+		431: "ITEM_MUSCLE_BAND",
+		432: "ITEM_WISE_GLASSES",
+		433: "ITEM_EXPERT_BELT",
+		434: "ITEM_LIGHT_CLAY",
+		435: "ITEM_LIFE_ORB",
+		436: "ITEM_POWER_HERB",
+		437: "ITEM_FOCUS_SASH",
+		438: "ITEM_ZOOM_LENS",
+		439: "ITEM_METRONOME",
+		440: "ITEM_IRON_BALL",
+		441: "ITEM_LAGGING_TAIL",
+		442: "ITEM_DESTINY_KNOT",
+		443: "ITEM_BLACK_SLUDGE",
+		444: "ITEM_GRIP_CLAW",
+		445: "ITEM_STICKY_BARB",
+		446: "ITEM_SHED_SHELL",
+		447: "ITEM_BIG_ROOT",
+		448: "ITEM_RAZOR_CLAW",
+		449: "ITEM_RAZOR_FANG",
+		450: "ITEM_CHILAN_BERRY",
+		451: "ITEM_OCCA_BERRY",
+		452: "ITEM_PASSHO_BERRY",
+		453: "ITEM_WACAN_BERRY",
+		454: "ITEM_RINDO_BERRY",
+		455: "ITEM_YACHE_BERRY",
+		456: "ITEM_CHOPLE_BERRY",
+		457: "ITEM_KEBIA_BERRY",
+		458: "ITEM_SHUCA_BERRY",
+		459: "ITEM_COBA_BERRY",
+		460: "ITEM_PAYAPA_BERRY",
+		461: "ITEM_TANGA_BERRY",
+		462: "ITEM_CHARTI_BERRY",
+		463: "ITEM_KASIB_BERRY",
+		464: "ITEM_HABAN_BERRY",
+		465: "ITEM_COLBUR_BERRY",
+		466: "ITEM_BABIRI_BERRY",
+		467: "ITEM_MICLE_BERRY",
+		468: "ITEM_CUSTAP_BERRY",
+		469: "ITEM_JABOCA_BERRY",
+		470: "ITEM_ROWAP_BERRY",
+		471: "ITEM_LUCK_INCENSE",
+		472: "ITEM_PURE_INCENSE",
 	}
 	Item_value = map[string]int32{
 		"ITEM_UNSPECIFIED":    0,
@@ -1155,6 +1413,104 @@ var (
 		"ITEM_POWDER_JAR":     372,
 		"ITEM_RUBY":           373,
 		"ITEM_SAPPHIRE":       374,
+		"ITEM_HEAL_BALL":      375,
+		"ITEM_DUSK_BALL":      376,
+		"ITEM_QUICK_BALL":     377,
+		"ITEM_OLD_GATEAU":     378,
+		"ITEM_RARE_BONE":      379,
+		"ITEM_ARMOR_FOSSIL":   380,
+		"ITEM_SKULL_FOSSIL":   381,
+		"ITEM_SHINY_STONE":    382,
+		"ITEM_DUSK_STONE":     383,
+		"ITEM_DAWN_STONE":     384,
+		"ITEM_PROTECTOR":      385,
+		"ITEM_ELECTIRIZER":    386,
+		"ITEM_MAGMARIZER":     387,
+		"ITEM_DUBIOUS_DISC":   388,
+		"ITEM_REAPER_CLOTH":   389,
+		"ITEM_OVAL_STONE":     390,
+		"ITEM_FLAME_PLATE":    391,
+		"ITEM_SPLASH_PLATE":   392,
+		"ITEM_ZAP_PLATE":      393,
+		"ITEM_MEADOW_PLATE":   394,
+		"ITEM_ICICLE_PLATE":   395,
+		"ITEM_FIST_PLATE":     396,
+		"ITEM_TOXIC_PLATE":    397,
+		"ITEM_EARTH_PLATE":    398,
+		"ITEM_SKY_PLATE":      399,
+		"ITEM_MIND_PLATE":     400,
+		"ITEM_INSECT_PLATE":   401,
+		"ITEM_STONE_PLATE":    402,
+		"ITEM_SPOOKY_PLATE":   403,
+		"ITEM_DRACO_PLATE":    404,
+		"ITEM_DREAD_PLATE":    405,
+		"ITEM_IRON_PLATE":     406,
+		"ITEM_QUICK_POWDER":   407,
+		"ITEM_ADAMANT_ORB":    408,
+		"ITEM_LUSTROUS_ORB":   409,
+		"ITEM_GRISEOUS_ORB":   410,
+		"ITEM_ODD_INCENSE":    411,
+		"ITEM_ROCK_INCENSE":   412,
+		"ITEM_FULL_INCENSE":   413,
+		"ITEM_WAVE_INCENSE":   414,
+		"ITEM_ROSE_INCENSE":   415,
+		"ITEM_POWER_WEIGHT":   416,
+		"ITEM_POWER_BRACER":   417,
+		"ITEM_POWER_BELT":     418,
+		"ITEM_POWER_LENS":     419,
+		"ITEM_POWER_BAND":     420,
+		"ITEM_POWER_ANKLET":   421,
+		"ITEM_CHOICE_SPECS":   422,
+		"ITEM_CHOICE_SCARF":   423,
+		"ITEM_FLAME_ORB":      424,
+		"ITEM_TOXIC_ORB":      425,
+		"ITEM_DAMP_ROCK":      426,
+		"ITEM_HEAT_ROCK":      427,
+		"ITEM_SMOOTH_ROCK":    428,
+		"ITEM_ICY_ROCK":       429,
+		"ITEM_WIDE_LENS":      430,
+		"ITEM_MUSCLE_BAND":    431,
+		"ITEM_WISE_GLASSES":   432,
+		"ITEM_EXPERT_BELT":    433,
+		"ITEM_LIGHT_CLAY":     434,
+		"ITEM_LIFE_ORB":       435,
+		"ITEM_POWER_HERB":     436,
+		"ITEM_FOCUS_SASH":     437,
+		"ITEM_ZOOM_LENS":      438,
+		"ITEM_METRONOME":      439,
+		"ITEM_IRON_BALL":      440,
+		"ITEM_LAGGING_TAIL":   441,
+		"ITEM_DESTINY_KNOT":   442,
+		"ITEM_BLACK_SLUDGE":   443,
+		"ITEM_GRIP_CLAW":      444,
+		"ITEM_STICKY_BARB":    445,
+		"ITEM_SHED_SHELL":     446,
+		"ITEM_BIG_ROOT":       447,
+		"ITEM_RAZOR_CLAW":     448,
+		"ITEM_RAZOR_FANG":     449,
+		"ITEM_CHILAN_BERRY":   450,
+		"ITEM_OCCA_BERRY":     451,
+		"ITEM_PASSHO_BERRY":   452,
+		"ITEM_WACAN_BERRY":    453,
+		"ITEM_RINDO_BERRY":    454,
+		"ITEM_YACHE_BERRY":    455,
+		"ITEM_CHOPLE_BERRY":   456,
+		"ITEM_KEBIA_BERRY":    457,
+		"ITEM_SHUCA_BERRY":    458,
+		"ITEM_COBA_BERRY":     459,
+		"ITEM_PAYAPA_BERRY":   460,
+		"ITEM_TANGA_BERRY":    461,
+		"ITEM_CHARTI_BERRY":   462,
+		"ITEM_KASIB_BERRY":    463,
+		"ITEM_HABAN_BERRY":    464,
+		"ITEM_COLBUR_BERRY":   465,
+		"ITEM_BABIRI_BERRY":   466,
+		"ITEM_MICLE_BERRY":    467,
+		"ITEM_CUSTAP_BERRY":   468,
+		"ITEM_JABOCA_BERRY":   469,
+		"ITEM_ROWAP_BERRY":    470,
+		"ITEM_LUCK_INCENSE":   471,
+		"ITEM_PURE_INCENSE":   472,
 	}
 )
 
@@ -1169,11 +1525,11 @@ func (x Item) String() string {
 }
 
 func (Item) Descriptor() protoreflect.EnumDescriptor {
-	return file_pokeuniverse_item_v1_catalog_proto_enumTypes[2].Descriptor()
+	return file_pokeuniverse_item_v1_catalog_proto_enumTypes[3].Descriptor()
 }
 
 func (Item) Type() protoreflect.EnumType {
-	return &file_pokeuniverse_item_v1_catalog_proto_enumTypes[2]
+	return &file_pokeuniverse_item_v1_catalog_proto_enumTypes[3]
 }
 
 func (x Item) Number() protoreflect.EnumNumber {
@@ -1182,7 +1538,172 @@ func (x Item) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Item.Descriptor instead.
 func (Item) EnumDescriptor() ([]byte, []int) {
-	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{2}
+	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{3}
+}
+
+// What using an item does to its target: the one table mic-battles plays and the client checks.
+type ItemEffect struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// HP restored: a fixed amount, or a percentage of the max (100: all of it).
+	Hp          uint32      `protobuf:"varint,1,opt,name=hp,proto3" json:"hp,omitempty"`
+	HpPercent   uint32      `protobuf:"varint,2,opt,name=hp_percent,json=hpPercent,proto3" json:"hp_percent,omitempty"`
+	Cures       []v1.Status `protobuf:"varint,3,rep,packed,name=cures,proto3,enum=pokeuniverse.pokemon.v1.Status" json:"cures,omitempty"`
+	Confusion   bool        `protobuf:"varint,4,opt,name=confusion,proto3" json:"confusion,omitempty"`
+	Infatuation bool        `protobuf:"varint,5,opt,name=infatuation,proto3" json:"infatuation,omitempty"`
+	// Only on a fainted Pokémon, which it brings back with `hp_percent`.
+	Revive bool `protobuf:"varint,6,opt,name=revive,proto3" json:"revive,omitempty"`
+	// PP restored: a fixed amount or all of it, on the move chosen or on all of them.
+	Pp       uint32 `protobuf:"varint,7,opt,name=pp,proto3" json:"pp,omitempty"`
+	PpMax    bool   `protobuf:"varint,8,opt,name=pp_max,json=ppMax,proto3" json:"pp_max,omitempty"`
+	AllMoves bool   `protobuf:"varint,9,opt,name=all_moves,json=allMoves,proto3" json:"all_moves,omitempty"`
+	// Vitamins: 10 EVs in this stat, up to 100 from items.
+	EvStat v1.Stat `protobuf:"varint,10,opt,name=ev_stat,json=evStat,proto3,enum=pokeuniverse.pokemon.v1.Stat" json:"ev_stat,omitempty"`
+	// PP UP: the chosen move's PP up by a fifth of its base, three times at most; PP MAX: all three.
+	PpUp    bool `protobuf:"varint,11,opt,name=pp_up,json=ppUp,proto3" json:"pp_up,omitempty"`
+	PpMaxUp bool `protobuf:"varint,12,opt,name=pp_max_up,json=ppMaxUp,proto3" json:"pp_max_up,omitempty"`
+	// SACRED ASH: on every Pokémon of the party it can work on.
+	AllParty bool `protobuf:"varint,13,opt,name=all_party,json=allParty,proto3" json:"all_party,omitempty"`
+	// Friendship change when it works: below 100, below 200, from 200 (ITEM5_FRIENDSHIP_*).
+	Friendship []int32 `protobuf:"zigzag32,14,rep,packed,name=friendship,proto3" json:"friendship,omitempty"`
+	// Not spent (the BLUE FLUTE outside battle, an HM).
+	Reusable      bool `protobuf:"varint,15,opt,name=reusable,proto3" json:"reusable,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ItemEffect) Reset() {
+	*x = ItemEffect{}
+	mi := &file_pokeuniverse_item_v1_catalog_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ItemEffect) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ItemEffect) ProtoMessage() {}
+
+func (x *ItemEffect) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_item_v1_catalog_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ItemEffect.ProtoReflect.Descriptor instead.
+func (*ItemEffect) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ItemEffect) GetHp() uint32 {
+	if x != nil {
+		return x.Hp
+	}
+	return 0
+}
+
+func (x *ItemEffect) GetHpPercent() uint32 {
+	if x != nil {
+		return x.HpPercent
+	}
+	return 0
+}
+
+func (x *ItemEffect) GetCures() []v1.Status {
+	if x != nil {
+		return x.Cures
+	}
+	return nil
+}
+
+func (x *ItemEffect) GetConfusion() bool {
+	if x != nil {
+		return x.Confusion
+	}
+	return false
+}
+
+func (x *ItemEffect) GetInfatuation() bool {
+	if x != nil {
+		return x.Infatuation
+	}
+	return false
+}
+
+func (x *ItemEffect) GetRevive() bool {
+	if x != nil {
+		return x.Revive
+	}
+	return false
+}
+
+func (x *ItemEffect) GetPp() uint32 {
+	if x != nil {
+		return x.Pp
+	}
+	return 0
+}
+
+func (x *ItemEffect) GetPpMax() bool {
+	if x != nil {
+		return x.PpMax
+	}
+	return false
+}
+
+func (x *ItemEffect) GetAllMoves() bool {
+	if x != nil {
+		return x.AllMoves
+	}
+	return false
+}
+
+func (x *ItemEffect) GetEvStat() v1.Stat {
+	if x != nil {
+		return x.EvStat
+	}
+	return v1.Stat(0)
+}
+
+func (x *ItemEffect) GetPpUp() bool {
+	if x != nil {
+		return x.PpUp
+	}
+	return false
+}
+
+func (x *ItemEffect) GetPpMaxUp() bool {
+	if x != nil {
+		return x.PpMaxUp
+	}
+	return false
+}
+
+func (x *ItemEffect) GetAllParty() bool {
+	if x != nil {
+		return x.AllParty
+	}
+	return false
+}
+
+func (x *ItemEffect) GetFriendship() []int32 {
+	if x != nil {
+		return x.Friendship
+	}
+	return nil
+}
+
+func (x *ItemEffect) GetReusable() bool {
+	if x != nil {
+		return x.Reusable
+	}
+	return false
 }
 
 // An item's rules, set on each Item value.
@@ -1199,14 +1720,18 @@ type ItemInfo struct {
 	// Used on a party Pokémon: with none, "There is no POKéMON."
 	Party bool `protobuf:"varint,6,opt,name=party,proto3" json:"party,omitempty"`
 	// FIELD_USE_REPEL: steps it lasts.
-	Param         uint32 `protobuf:"varint,7,opt,name=param,proto3" json:"param,omitempty"`
+	Param uint32 `protobuf:"varint,7,opt,name=param,proto3" json:"param,omitempty"`
+	// TMs and HMs: the move they teach (FireRed's sTMHMMoves).
+	Move          v11.Move    `protobuf:"varint,8,opt,name=move,proto3,enum=pokeuniverse.move.v1.Move" json:"move,omitempty"`
+	BattleUse     BattleUse   `protobuf:"varint,9,opt,name=battle_use,json=battleUse,proto3,enum=pokeuniverse.item.v1.BattleUse" json:"battle_use,omitempty"`
+	Effect        *ItemEffect `protobuf:"bytes,10,opt,name=effect,proto3" json:"effect,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ItemInfo) Reset() {
 	*x = ItemInfo{}
-	mi := &file_pokeuniverse_item_v1_catalog_proto_msgTypes[0]
+	mi := &file_pokeuniverse_item_v1_catalog_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1218,7 +1743,7 @@ func (x *ItemInfo) String() string {
 func (*ItemInfo) ProtoMessage() {}
 
 func (x *ItemInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_item_v1_catalog_proto_msgTypes[0]
+	mi := &file_pokeuniverse_item_v1_catalog_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1231,7 +1756,7 @@ func (x *ItemInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ItemInfo.ProtoReflect.Descriptor instead.
 func (*ItemInfo) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{0}
+	return file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ItemInfo) GetPocket() Pocket {
@@ -1283,6 +1808,27 @@ func (x *ItemInfo) GetParam() uint32 {
 	return 0
 }
 
+func (x *ItemInfo) GetMove() v11.Move {
+	if x != nil {
+		return x.Move
+	}
+	return v11.Move(0)
+}
+
+func (x *ItemInfo) GetBattleUse() BattleUse {
+	if x != nil {
+		return x.BattleUse
+	}
+	return BattleUse_BATTLE_USE_UNSPECIFIED
+}
+
+func (x *ItemInfo) GetEffect() *ItemEffect {
+	if x != nil {
+		return x.Effect
+	}
+	return nil
+}
+
 var file_pokeuniverse_item_v1_catalog_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.EnumValueOptions)(nil),
@@ -1304,7 +1850,28 @@ var File_pokeuniverse_item_v1_catalog_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"\"pokeuniverse/item/v1/catalog.proto\x12\x14pokeuniverse.item.v1\x1a google/protobuf/descriptor.proto\"\xff\x01\n" +
+	"\"pokeuniverse/item/v1/catalog.proto\x12\x14pokeuniverse.item.v1\x1a google/protobuf/descriptor.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\"\xd0\x03\n" +
+	"\n" +
+	"ItemEffect\x12\x0e\n" +
+	"\x02hp\x18\x01 \x01(\rR\x02hp\x12\x1d\n" +
+	"\n" +
+	"hp_percent\x18\x02 \x01(\rR\thpPercent\x125\n" +
+	"\x05cures\x18\x03 \x03(\x0e2\x1f.pokeuniverse.pokemon.v1.StatusR\x05cures\x12\x1c\n" +
+	"\tconfusion\x18\x04 \x01(\bR\tconfusion\x12 \n" +
+	"\vinfatuation\x18\x05 \x01(\bR\vinfatuation\x12\x16\n" +
+	"\x06revive\x18\x06 \x01(\bR\x06revive\x12\x0e\n" +
+	"\x02pp\x18\a \x01(\rR\x02pp\x12\x15\n" +
+	"\x06pp_max\x18\b \x01(\bR\x05ppMax\x12\x1b\n" +
+	"\tall_moves\x18\t \x01(\bR\ballMoves\x126\n" +
+	"\aev_stat\x18\n" +
+	" \x01(\x0e2\x1d.pokeuniverse.pokemon.v1.StatR\x06evStat\x12\x13\n" +
+	"\x05pp_up\x18\v \x01(\bR\x04ppUp\x12\x1a\n" +
+	"\tpp_max_up\x18\f \x01(\bR\appMaxUp\x12\x1b\n" +
+	"\tall_party\x18\r \x01(\bR\ballParty\x12\x1e\n" +
+	"\n" +
+	"friendship\x18\x0e \x03(\x11R\n" +
+	"friendship\x12\x1a\n" +
+	"\breusable\x18\x0f \x01(\bR\breusable\"\xa9\x03\n" +
 	"\bItemInfo\x124\n" +
 	"\x06pocket\x18\x01 \x01(\x0e2\x1c.pokeuniverse.item.v1.PocketR\x06pocket\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\rR\x05price\x12\x1c\n" +
@@ -1312,7 +1879,12 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\vregistrable\x18\x04 \x01(\bR\vregistrable\x12;\n" +
 	"\tfield_use\x18\x05 \x01(\x0e2\x1e.pokeuniverse.item.v1.FieldUseR\bfieldUse\x12\x14\n" +
 	"\x05party\x18\x06 \x01(\bR\x05party\x12\x14\n" +
-	"\x05param\x18\a \x01(\rR\x05param*\x8b\x01\n" +
+	"\x05param\x18\a \x01(\rR\x05param\x12.\n" +
+	"\x04move\x18\b \x01(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x04move\x12>\n" +
+	"\n" +
+	"battle_use\x18\t \x01(\x0e2\x1f.pokeuniverse.item.v1.BattleUseR\tbattleUse\x128\n" +
+	"\x06effect\x18\n" +
+	" \x01(\v2 .pokeuniverse.item.v1.ItemEffectR\x06effect*\x8b\x01\n" +
 	"\x06Pocket\x12\x16\n" +
 	"\x12POCKET_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fPOCKET_ITEMS\x10\x01\x12\x14\n" +
@@ -1347,56 +1919,66 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x11FIELD_USE_TM_CASE\x10\x16\x12\x19\n" +
 	"\x15FIELD_USE_BERRY_POUCH\x10\x17\x12\x17\n" +
 	"\x13FIELD_USE_TEACHY_TV\x10\x18\x12\x13\n" +
-	"\x0fFIELD_USE_TM_HM\x10\x19*\xbaQ\n" +
+	"\x0fFIELD_USE_TM_HM\x10\x19*|\n" +
+	"\tBattleUse\x12\x1a\n" +
+	"\x16BATTLE_USE_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10BATTLE_USE_PARTY\x10\x01\x12\x13\n" +
+	"\x0fBATTLE_USE_MOVE\x10\x02\x12\x13\n" +
+	"\x0fBATTLE_USE_SELF\x10\x03\x12\x13\n" +
+	"\x0fBATTLE_USE_BALL\x10\x04*\x90u\n" +
 	"\x04Item\x12\x14\n" +
-	"\x10ITEM_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x10ITEM_MASTER_BALL\x10\x01\x1a\x06\x82\xb5\x18\x02\b\x03\x12\x1e\n" +
-	"\x0fITEM_ULTRA_BALL\x10\x02\x1a\t\x82\xb5\x18\x05\b\x03\x10\xb0\t\x12\x1e\n" +
-	"\x0fITEM_GREAT_BALL\x10\x03\x1a\t\x82\xb5\x18\x05\b\x03\x10\xd8\x04\x12\x1d\n" +
-	"\x0eITEM_POKE_BALL\x10\x04\x1a\t\x82\xb5\x18\x05\b\x03\x10\xc8\x01\x12\x1c\n" +
-	"\x10ITEM_SAFARI_BALL\x10\x05\x1a\x06\x82\xb5\x18\x02\b\x03\x12\x1c\n" +
-	"\rITEM_NET_BALL\x10\x06\x1a\t\x82\xb5\x18\x05\b\x03\x10\xe8\a\x12\x1d\n" +
-	"\x0eITEM_DIVE_BALL\x10\a\x1a\t\x82\xb5\x18\x05\b\x03\x10\xe8\a\x12\x1d\n" +
-	"\x0eITEM_NEST_BALL\x10\b\x1a\t\x82\xb5\x18\x05\b\x03\x10\xe8\a\x12\x1f\n" +
-	"\x10ITEM_REPEAT_BALL\x10\t\x1a\t\x82\xb5\x18\x05\b\x03\x10\xe8\a\x12\x1e\n" +
+	"\x10ITEM_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x10ITEM_MASTER_BALL\x10\x01\x1a\b\x82\xb5\x18\x04\b\x03H\x04\x12 \n" +
+	"\x0fITEM_ULTRA_BALL\x10\x02\x1a\v\x82\xb5\x18\a\b\x03\x10\xb0\tH\x04\x12 \n" +
+	"\x0fITEM_GREAT_BALL\x10\x03\x1a\v\x82\xb5\x18\a\b\x03\x10\xd8\x04H\x04\x12\x1f\n" +
+	"\x0eITEM_POKE_BALL\x10\x04\x1a\v\x82\xb5\x18\a\b\x03\x10\xc8\x01H\x04\x12\x1e\n" +
+	"\x10ITEM_SAFARI_BALL\x10\x05\x1a\b\x82\xb5\x18\x04\b\x03H\x04\x12\x1e\n" +
+	"\rITEM_NET_BALL\x10\x06\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12\x1f\n" +
+	"\x0eITEM_DIVE_BALL\x10\a\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12\x1f\n" +
+	"\x0eITEM_NEST_BALL\x10\b\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12!\n" +
+	"\x10ITEM_REPEAT_BALL\x10\t\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12 \n" +
 	"\x0fITEM_TIMER_BALL\x10\n" +
-	"\x1a\t\x82\xb5\x18\x05\b\x03\x10\xe8\a\x12\x1f\n" +
-	"\x10ITEM_LUXURY_BALL\x10\v\x1a\t\x82\xb5\x18\x05\b\x03\x10\xe8\a\x12 \n" +
-	"\x11ITEM_PREMIER_BALL\x10\f\x1a\t\x82\xb5\x18\x05\b\x03\x10\xc8\x01\x12\x1e\n" +
-	"\vITEM_POTION\x10\r\x1a\r\x82\xb5\x18\t\b\x01\x10\xac\x02(\x020\x01\x12\x1f\n" +
-	"\rITEM_ANTIDOTE\x10\x0e\x1a\f\x82\xb5\x18\b\b\x01\x10d(\x020\x01\x12!\n" +
-	"\x0eITEM_BURN_HEAL\x10\x0f\x1a\r\x82\xb5\x18\t\b\x01\x10\xfa\x01(\x020\x01\x12 \n" +
-	"\rITEM_ICE_HEAL\x10\x10\x1a\r\x82\xb5\x18\t\b\x01\x10\xfa\x01(\x020\x01\x12!\n" +
-	"\x0eITEM_AWAKENING\x10\x11\x1a\r\x82\xb5\x18\t\b\x01\x10\xfa\x01(\x020\x01\x12%\n" +
-	"\x12ITEM_PARALYZE_HEAL\x10\x12\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8\x01(\x020\x01\x12$\n" +
-	"\x11ITEM_FULL_RESTORE\x10\x13\x1a\r\x82\xb5\x18\t\b\x01\x10\xb8\x17(\x020\x01\x12\"\n" +
-	"\x0fITEM_MAX_POTION\x10\x14\x1a\r\x82\xb5\x18\t\b\x01\x10\xc4\x13(\x020\x01\x12$\n" +
-	"\x11ITEM_HYPER_POTION\x10\x15\x1a\r\x82\xb5\x18\t\b\x01\x10\xb0\t(\x020\x01\x12$\n" +
-	"\x11ITEM_SUPER_POTION\x10\x16\x1a\r\x82\xb5\x18\t\b\x01\x10\xbc\x05(\x020\x01\x12!\n" +
-	"\x0eITEM_FULL_HEAL\x10\x17\x1a\r\x82\xb5\x18\t\b\x01\x10\xd8\x04(\x020\x01\x12\x1e\n" +
-	"\vITEM_REVIVE\x10\x18\x1a\r\x82\xb5\x18\t\b\x01\x10\xdc\v(\x020\x01\x12\"\n" +
-	"\x0fITEM_MAX_REVIVE\x10\x19\x1a\r\x82\xb5\x18\t\b\x01\x10\xa0\x1f(\x020\x01\x12#\n" +
-	"\x10ITEM_FRESH_WATER\x10\x1a\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8\x01(\x020\x01\x12 \n" +
-	"\rITEM_SODA_POP\x10\x1b\x1a\r\x82\xb5\x18\t\b\x01\x10\xac\x02(\x020\x01\x12 \n" +
-	"\rITEM_LEMONADE\x10\x1c\x1a\r\x82\xb5\x18\t\b\x01\x10\xde\x02(\x020\x01\x12#\n" +
-	"\x10ITEM_MOOMOO_MILK\x10\x1d\x1a\r\x82\xb5\x18\t\b\x01\x10\xf4\x03(\x020\x01\x12%\n" +
-	"\x12ITEM_ENERGY_POWDER\x10\x1e\x1a\r\x82\xb5\x18\t\b\x01\x10\xf4\x03(\x020\x01\x12#\n" +
-	"\x10ITEM_ENERGY_ROOT\x10\x1f\x1a\r\x82\xb5\x18\t\b\x01\x10\xa0\x06(\x020\x01\x12#\n" +
-	"\x10ITEM_HEAL_POWDER\x10 \x1a\r\x82\xb5\x18\t\b\x01\x10\xc2\x03(\x020\x01\x12$\n" +
-	"\x11ITEM_REVIVAL_HERB\x10!\x1a\r\x82\xb5\x18\t\b\x01\x10\xf0\x15(\x020\x01\x12\x1d\n" +
+	"\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12!\n" +
+	"\x10ITEM_LUXURY_BALL\x10\v\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12\"\n" +
+	"\x11ITEM_PREMIER_BALL\x10\f\x1a\v\x82\xb5\x18\a\b\x03\x10\xc8\x01H\x04\x12$\n" +
+	"\vITEM_POTION\x10\r\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xac\x02(\x020\x01H\x01R\x02\b\x14\x12'\n" +
+	"\rITEM_ANTIDOTE\x10\x0e\x1a\x14\x82\xb5\x18\x10\b\x01\x10d(\x020\x01H\x01R\x04\x1a\x02\x02\x06\x12(\n" +
+	"\x0eITEM_BURN_HEAL\x10\x0f\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xfa\x01(\x020\x01H\x01R\x03\x1a\x01\x03\x12'\n" +
+	"\rITEM_ICE_HEAL\x10\x10\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xfa\x01(\x020\x01H\x01R\x03\x1a\x01\x04\x12(\n" +
+	"\x0eITEM_AWAKENING\x10\x11\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xfa\x01(\x020\x01H\x01R\x03\x1a\x01\x01\x12,\n" +
+	"\x12ITEM_PARALYZE_HEAL\x10\x12\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xc8\x01(\x020\x01H\x01R\x03\x1a\x01\x05\x124\n" +
+	"\x11ITEM_FULL_RESTORE\x10\x13\x1a\x1d\x82\xb5\x18\x19\b\x01\x10\xb8\x17(\x020\x01H\x01R\f\x10d\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12(\n" +
+	"\x0fITEM_MAX_POTION\x10\x14\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xc4\x13(\x020\x01H\x01R\x02\x10d\x12+\n" +
+	"\x11ITEM_HYPER_POTION\x10\x15\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xb0\t(\x020\x01H\x01R\x03\b\xc8\x01\x12*\n" +
+	"\x11ITEM_SUPER_POTION\x10\x16\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xbc\x05(\x020\x01H\x01R\x02\b2\x12/\n" +
+	"\x0eITEM_FULL_HEAL\x10\x17\x1a\x1b\x82\xb5\x18\x17\b\x01\x10\xd8\x04(\x020\x01H\x01R\n" +
+	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12&\n" +
+	"\vITEM_REVIVE\x10\x18\x1a\x15\x82\xb5\x18\x11\b\x01\x10\xdc\v(\x020\x01H\x01R\x04\x1020\x01\x12*\n" +
+	"\x0fITEM_MAX_REVIVE\x10\x19\x1a\x15\x82\xb5\x18\x11\b\x01\x10\xa0\x1f(\x020\x01H\x01R\x04\x10d0\x01\x12)\n" +
+	"\x10ITEM_FRESH_WATER\x10\x1a\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xc8\x01(\x020\x01H\x01R\x02\b2\x12&\n" +
+	"\rITEM_SODA_POP\x10\x1b\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xac\x02(\x020\x01H\x01R\x02\b<\x12&\n" +
+	"\rITEM_LEMONADE\x10\x1c\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xde\x02(\x020\x01H\x01R\x02\bP\x12)\n" +
+	"\x10ITEM_MOOMOO_MILK\x10\x1d\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xf4\x03(\x020\x01H\x01R\x02\bd\x120\n" +
+	"\x12ITEM_ENERGY_POWDER\x10\x1e\x1a\x18\x82\xb5\x18\x14\b\x01\x10\xf4\x03(\x020\x01H\x01R\a\b2r\x03\t\t\x13\x12/\n" +
+	"\x10ITEM_ENERGY_ROOT\x10\x1f\x1a\x19\x82\xb5\x18\x15\b\x01\x10\xa0\x06(\x020\x01H\x01R\b\b\xc8\x01r\x03\x13\x13\x1d\x126\n" +
+	"\x10ITEM_HEAL_POWDER\x10 \x1a \x82\xb5\x18\x1c\b\x01\x10\xc2\x03(\x020\x01H\x01R\x0f\x1a\x06\x01\x02\x06\x03\x04\x05 \x01r\x03\t\t\x13\x121\n" +
+	"\x11ITEM_REVIVAL_HERB\x10!\x1a\x1a\x82\xb5\x18\x16\b\x01\x10\xf0\x15(\x020\x01H\x01R\t\x10d0\x01r\x03\x1d\x1d'\x12#\n" +
 	"\n" +
-	"ITEM_ETHER\x10\"\x1a\r\x82\xb5\x18\t\b\x01\x10\xb0\t(\x030\x01\x12!\n" +
-	"\x0eITEM_MAX_ETHER\x10#\x1a\r\x82\xb5\x18\t\b\x01\x10\xd0\x0f(\x030\x01\x12\x1e\n" +
-	"\vITEM_ELIXIR\x10$\x1a\r\x82\xb5\x18\t\b\x01\x10\xb8\x17(\x030\x01\x12\"\n" +
-	"\x0fITEM_MAX_ELIXIR\x10%\x1a\r\x82\xb5\x18\t\b\x01\x10\x94#(\x030\x01\x12#\n" +
-	"\x10ITEM_LAVA_COOKIE\x10&\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8\x01(\x020\x01\x12!\n" +
-	"\x0fITEM_BLUE_FLUTE\x10'\x1a\f\x82\xb5\x18\b\b\x01\x10d(\x020\x01\x12$\n" +
-	"\x11ITEM_YELLOW_FLUTE\x10(\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8\x01(\x010\x01\x12!\n" +
-	"\x0eITEM_RED_FLUTE\x10)\x1a\r\x82\xb5\x18\t\b\x01\x10\xac\x02(\x010\x01\x12#\n" +
+	"ITEM_ETHER\x10\"\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xb0\t(\x030\x01H\x02R\x028\n" +
+	"\x12'\n" +
+	"\x0eITEM_MAX_ETHER\x10#\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xd0\x0f(\x030\x01H\x02R\x02@\x01\x12&\n" +
+	"\vITEM_ELIXIR\x10$\x1a\x15\x82\xb5\x18\x11\b\x01\x10\xb8\x17(\x030\x01H\x01R\x048\n" +
+	"H\x01\x12*\n" +
+	"\x0fITEM_MAX_ELIXIR\x10%\x1a\x15\x82\xb5\x18\x11\b\x01\x10\x94#(\x030\x01H\x01R\x04@\x01H\x01\x121\n" +
+	"\x10ITEM_LAVA_COOKIE\x10&\x1a\x1b\x82\xb5\x18\x17\b\x01\x10\xc8\x01(\x020\x01H\x01R\n" +
+	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12*\n" +
+	"\x0fITEM_BLUE_FLUTE\x10'\x1a\x15\x82\xb5\x18\x11\b\x01\x10d(\x020\x01H\x01R\x05\x1a\x01\x01x\x01\x12*\n" +
+	"\x11ITEM_YELLOW_FLUTE\x10(\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xc8\x01(\x010\x01H\x01R\x02 \x01\x12'\n" +
+	"\x0eITEM_RED_FLUTE\x10)\x1a\x13\x82\xb5\x18\x0f\b\x01\x10\xac\x02(\x010\x01H\x01R\x02(\x01\x12#\n" +
 	"\x10ITEM_BLACK_FLUTE\x10*\x1a\r\x82\xb5\x18\t\b\x01\x10\x90\x03(\x110\x01\x12#\n" +
-	"\x10ITEM_WHITE_FLUTE\x10+\x1a\r\x82\xb5\x18\t\b\x01\x10\xf4\x03(\x110\x01\x12\"\n" +
-	"\x10ITEM_BERRY_JUICE\x10,\x1a\f\x82\xb5\x18\b\b\x01\x10d(\x020\x01\x12\"\n" +
-	"\x0fITEM_SACRED_ASH\x10-\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8\x01(\a0\x01\x12\x1f\n" +
+	"\x10ITEM_WHITE_FLUTE\x10+\x1a\r\x82\xb5\x18\t\b\x01\x10\xf4\x03(\x110\x01\x12(\n" +
+	"\x10ITEM_BERRY_JUICE\x10,\x1a\x12\x82\xb5\x18\x0e\b\x01\x10d(\x020\x01H\x01R\x02\b\x14\x12*\n" +
+	"\x0fITEM_SACRED_ASH\x10-\x1a\x15\x82\xb5\x18\x11\b\x01\x10\xc8\x01(\a0\x01R\x06\x10d0\x01h\x01\x12\x1f\n" +
 	"\x0fITEM_SHOAL_SALT\x10.\x1a\n" +
 	"\x82\xb5\x18\x06\b\x01\x10\x14(\x01\x12 \n" +
 	"\x10ITEM_SHOAL_SHELL\x10/\x1a\n" +
@@ -1404,25 +1986,33 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x0eITEM_RED_SHARD\x100\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
 	"\x0fITEM_BLUE_SHARD\x101\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\"\n" +
 	"\x11ITEM_YELLOW_SHARD\x102\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12!\n" +
-	"\x10ITEM_GREEN_SHARD\x103\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\x1d\n" +
+	"\x10ITEM_GREEN_SHARD\x103\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12&\n" +
 	"\n" +
-	"ITEM_HP_UP\x10?\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1f\n" +
-	"\fITEM_PROTEIN\x10@\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1c\n" +
-	"\tITEM_IRON\x10A\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1e\n" +
-	"\vITEM_CARBOS\x10B\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1f\n" +
-	"\fITEM_CALCIUM\x10C\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\"\n" +
-	"\x0fITEM_RARE_CANDY\x10D\x1a\r\x82\xb5\x18\t\b\x01\x10\xc0%(\x050\x01\x12\x1d\n" +
+	"ITEM_HP_UP\x10?\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x01r\x03\n" +
+	"\x06\x04\x12(\n" +
+	"\fITEM_PROTEIN\x10@\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x02r\x03\n" +
+	"\x06\x04\x12%\n" +
+	"\tITEM_IRON\x10A\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x03r\x03\n" +
+	"\x06\x04\x12'\n" +
+	"\vITEM_CARBOS\x10B\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x04r\x03\n" +
+	"\x06\x04\x12(\n" +
+	"\fITEM_CALCIUM\x10C\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x05r\x03\n" +
+	"\x06\x04\x12\"\n" +
+	"\x0fITEM_RARE_CANDY\x10D\x1a\r\x82\xb5\x18\t\b\x01\x10\xc0%(\x050\x01\x12&\n" +
 	"\n" +
-	"ITEM_PP_UP\x10E\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x040\x01\x12\x1c\n" +
-	"\tITEM_ZINC\x10F\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x020\x01\x12\x1e\n" +
-	"\vITEM_PP_MAX\x10G\x1a\r\x82\xb5\x18\t\b\x01\x10\xc8L(\x040\x01\x12 \n" +
-	"\x0fITEM_GUARD_SPEC\x10I\x1a\v\x82\xb5\x18\a\b\x01\x10\xbc\x05(\x01\x12\x1e\n" +
-	"\rITEM_DIRE_HIT\x10J\x1a\v\x82\xb5\x18\a\b\x01\x10\x8a\x05(\x01\x12\x1e\n" +
-	"\rITEM_X_ATTACK\x10K\x1a\v\x82\xb5\x18\a\b\x01\x10\xf4\x03(\x01\x12\x1e\n" +
-	"\rITEM_X_DEFEND\x10L\x1a\v\x82\xb5\x18\a\b\x01\x10\xa6\x04(\x01\x12\x1d\n" +
-	"\fITEM_X_SPEED\x10M\x1a\v\x82\xb5\x18\a\b\x01\x10\xde\x02(\x01\x12 \n" +
-	"\x0fITEM_X_ACCURACY\x10N\x1a\v\x82\xb5\x18\a\b\x01\x10\xb6\a(\x01\x12\x1f\n" +
-	"\x0eITEM_X_SPECIAL\x10O\x1a\v\x82\xb5\x18\a\b\x01\x10\xde\x02(\x01\x12\x1f\n" +
+	"ITEM_PP_UP\x10E\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x040\x01R\aX\x01r\x03\n" +
+	"\x06\x04\x12%\n" +
+	"\tITEM_ZINC\x10F\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x020\x01R\aP\x06r\x03\n" +
+	"\x06\x04\x12'\n" +
+	"\vITEM_PP_MAX\x10G\x1a\x16\x82\xb5\x18\x12\b\x01\x10\xc8L(\x040\x01R\a`\x01r\x03\n" +
+	"\x06\x04\x12)\n" +
+	"\x0fITEM_GUARD_SPEC\x10I\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xbc\x05(\x01H\x03R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\rITEM_DIRE_HIT\x10J\x1a\x14\x82\xb5\x18\x10\b\x01\x10\x8a\x05(\x01H\x03R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\rITEM_X_ATTACK\x10K\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xf4\x03(\x01H\x03R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\rITEM_X_DEFEND\x10L\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xa6\x04(\x01H\x03R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\fITEM_X_SPEED\x10M\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xde\x02(\x01H\x03R\x05r\x03\x02\x02\x00\x12)\n" +
+	"\x0fITEM_X_ACCURACY\x10N\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xb6\a(\x01H\x03R\x05r\x03\x02\x02\x00\x12(\n" +
+	"\x0eITEM_X_SPECIAL\x10O\x1a\x14\x82\xb5\x18\x10\b\x01\x10\xde\x02(\x01H\x03R\x05r\x03\x02\x02\x00\x12\x1f\n" +
 	"\x0eITEM_POKE_DOLL\x10P\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12!\n" +
 	"\x10ITEM_FLUFFY_TAIL\x10Q\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12$\n" +
 	"\x10ITEM_SUPER_REPEL\x10S\x1a\x0e\x82\xb5\x18\n" +
@@ -1473,18 +2063,20 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\rITEM_FAB_MAIL\x10\x83\x01\x1a\n" +
 	"\x82\xb5\x18\x06\b\x01\x102(\t\x12 \n" +
 	"\x0fITEM_RETRO_MAIL\x10\x84\x01\x1a\n" +
-	"\x82\xb5\x18\x06\b\x01\x102(\t\x12#\n" +
-	"\x10ITEM_CHERI_BERRY\x10\x85\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12$\n" +
-	"\x11ITEM_CHESTO_BERRY\x10\x86\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12#\n" +
-	"\x10ITEM_PECHA_BERRY\x10\x87\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12#\n" +
-	"\x10ITEM_RAWST_BERRY\x10\x88\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12$\n" +
-	"\x11ITEM_ASPEAR_BERRY\x10\x89\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12#\n" +
-	"\x10ITEM_LEPPA_BERRY\x10\x8a\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x030\x01\x12\"\n" +
-	"\x0fITEM_ORAN_BERRY\x10\x8b\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12\"\n" +
-	"\x11ITEM_PERSIM_BERRY\x10\x8c\x01\x1a\n" +
-	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
-	"\x0eITEM_LUM_BERRY\x10\x8d\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12$\n" +
-	"\x11ITEM_SITRUS_BERRY\x10\x8e\x01\x1a\f\x82\xb5\x18\b\b\x05\x10\x14(\x020\x01\x12 \n" +
+	"\x82\xb5\x18\x06\b\x01\x102(\t\x12*\n" +
+	"\x10ITEM_CHERI_BERRY\x10\x85\x01\x1a\x13\x82\xb5\x18\x0f\b\x05\x10\x14(\x020\x01H\x01R\x03\x1a\x01\x05\x12+\n" +
+	"\x11ITEM_CHESTO_BERRY\x10\x86\x01\x1a\x13\x82\xb5\x18\x0f\b\x05\x10\x14(\x020\x01H\x01R\x03\x1a\x01\x01\x12+\n" +
+	"\x10ITEM_PECHA_BERRY\x10\x87\x01\x1a\x14\x82\xb5\x18\x10\b\x05\x10\x14(\x020\x01H\x01R\x04\x1a\x02\x02\x06\x12*\n" +
+	"\x10ITEM_RAWST_BERRY\x10\x88\x01\x1a\x13\x82\xb5\x18\x0f\b\x05\x10\x14(\x020\x01H\x01R\x03\x1a\x01\x03\x12+\n" +
+	"\x11ITEM_ASPEAR_BERRY\x10\x89\x01\x1a\x13\x82\xb5\x18\x0f\b\x05\x10\x14(\x020\x01H\x01R\x03\x1a\x01\x04\x12)\n" +
+	"\x10ITEM_LEPPA_BERRY\x10\x8a\x01\x1a\x12\x82\xb5\x18\x0e\b\x05\x10\x14(\x030\x01H\x02R\x028\n" +
+	"\x12(\n" +
+	"\x0fITEM_ORAN_BERRY\x10\x8b\x01\x1a\x12\x82\xb5\x18\x0e\b\x05\x10\x14(\x020\x01H\x01R\x02\b\n" +
+	"\x12(\n" +
+	"\x11ITEM_PERSIM_BERRY\x10\x8c\x01\x1a\x10\x82\xb5\x18\f\b\x05\x10\x14(\x01H\x01R\x02 \x01\x12/\n" +
+	"\x0eITEM_LUM_BERRY\x10\x8d\x01\x1a\x1a\x82\xb5\x18\x16\b\x05\x10\x14(\x020\x01H\x01R\n" +
+	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12*\n" +
+	"\x11ITEM_SITRUS_BERRY\x10\x8e\x01\x1a\x12\x82\xb5\x18\x0e\b\x05\x10\x14(\x020\x01H\x01R\x02\x10\x19\x12 \n" +
 	"\x0fITEM_FIGY_BERRY\x10\x8f\x01\x1a\n" +
 	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12 \n" +
 	"\x0fITEM_WIKI_BERRY\x10\x90\x01\x1a\n" +
@@ -1691,69 +2283,68 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x10ITEM_CLAW_FOSSIL\x10\x9f\x02\x1a\n" +
 	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12!\n" +
 	"\x10ITEM_DEVON_SCOPE\x10\xa0\x02\x1a\n" +
-	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12\x1d\n" +
-	"\tITEM_TM01\x10\xa1\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM02\x10\xa2\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM03\x10\xa3\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM04\x10\xa4\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM05\x10\xa5\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xe8\a(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM06\x10\xa6\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM07\x10\xa7\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM08\x10\xa8\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM09\x10\xa9\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM10\x10\xaa\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM11\x10\xab\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xd0\x0f(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM12\x10\xac\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM13\x10\xad\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM14\x10\xae\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xfc*(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM15\x10\xaf\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xcc:(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM16\x10\xb0\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM17\x10\xb1\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM18\x10\xb2\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xd0\x0f(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM19\x10\xb3\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM20\x10\xb4\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM21\x10\xb5\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xe8\a(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM22\x10\xb6\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM23\x10\xb7\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM24\x10\xb8\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM25\x10\xb9\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xfc*(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM26\x10\xba\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM27\x10\xbb\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xe8\a(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM28\x10\xbc\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xd0\x0f(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM29\x10\xbd\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xd0\x0f(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM30\x10\xbe\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM31\x10\xbf\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM32\x10\xc0\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xd0\x0f(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM33\x10\xc1\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM34\x10\xc2\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM35\x10\xc3\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM36\x10\xc4\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xe8\a(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM37\x10\xc5\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xd0\x0f(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM38\x10\xc6\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xfc*(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM39\x10\xc7\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM40\x10\xc8\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM41\x10\xc9\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM42\x10\xca\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM43\x10\xcb\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM44\x10\xcc\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM45\x10\xcd\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM46\x10\xce\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM47\x10\xcf\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM48\x10\xd0\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM49\x10\xd1\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1d\n" +
-	"\tITEM_TM50\x10\xd2\x02\x1a\r\x82\xb5\x18\t\b\x04\x10\xb8\x17(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM01\x10\xd3\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM02\x10\xd4\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM03\x10\xd5\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM04\x10\xd6\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM05\x10\xd7\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM06\x10\xd8\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM07\x10\xd9\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12\x1c\n" +
-	"\tITEM_HM08\x10\xda\x02\x1a\f\x82\xb5\x18\b\b\x04\x18\x01(\x190\x01\x12!\n" +
+	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12'\n" +
+	"\tITEM_TM01\x10\xa1\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x88\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM02\x10\xa2\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xd1\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM03\x10\xa3\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xe0\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM04\x10\xa4\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xdb\x02R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM05\x10\xa5\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xe8\a(\x190\x01@.R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM06\x10\xa6\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@\\R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM07\x10\xa7\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x82\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM08\x10\xa8\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xd3\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM09\x10\xa9\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xcb\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM10\x10\xaa\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xed\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM11\x10\xab\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xd0\x0f(\x190\x01@\xf1\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM12\x10\xac\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x8d\x02R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM13\x10\xad\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@:R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM14\x10\xae\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xfc*(\x190\x01@;R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM15\x10\xaf\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xcc:(\x190\x01@?R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM16\x10\xb0\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@qR\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM17\x10\xb1\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xb6\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM18\x10\xb2\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xd0\x0f(\x190\x01@\xf0\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM19\x10\xb3\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xca\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM20\x10\xb4\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xdb\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM21\x10\xb5\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xe8\a(\x190\x01@\xda\x01R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM22\x10\xb6\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@LR\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM23\x10\xb7\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xe7\x01R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM24\x10\xb8\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@UR\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM25\x10\xb9\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xfc*(\x190\x01@WR\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM26\x10\xba\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@YR\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM27\x10\xbb\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xe8\a(\x190\x01@\xd8\x01R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM28\x10\xbc\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xd0\x0f(\x190\x01@[R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM29\x10\xbd\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xd0\x0f(\x190\x01@^R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM30\x10\xbe\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xf7\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM31\x10\xbf\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x98\x02R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM32\x10\xc0\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xd0\x0f(\x190\x01@hR\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM33\x10\xc1\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@sR\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM34\x10\xc2\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xdf\x02R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM35\x10\xc3\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xb8\x17(\x190\x01@5R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM36\x10\xc4\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xe8\a(\x190\x01@\xbc\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM37\x10\xc5\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xd0\x0f(\x190\x01@\xc9\x01R\x05r\x03\x02\x02\x00\x12&\n" +
+	"\tITEM_TM38\x10\xc6\x02\x1a\x16\x82\xb5\x18\x12\b\x04\x10\xfc*(\x190\x01@~R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM39\x10\xc7\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xbd\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM40\x10\xc8\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xcc\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM41\x10\xc9\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x83\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM42\x10\xca\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x87\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM43\x10\xcb\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xa2\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM44\x10\xcc\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x9c\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM45\x10\xcd\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xd5\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM46\x10\xce\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xa8\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM47\x10\xcf\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xd3\x01R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM48\x10\xd0\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\x9d\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM49\x10\xd1\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xa1\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_TM50\x10\xd2\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x10\xb8\x17(\x190\x01@\xbb\x02R\x05r\x03\x02\x02\x00\x12'\n" +
+	"\tITEM_HM01\x10\xd3\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x18\x01(\x190\x01@\x0fR\ar\x03\x02\x02\x00x\x01\x12'\n" +
+	"\tITEM_HM02\x10\xd4\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x18\x01(\x190\x01@\x13R\ar\x03\x02\x02\x00x\x01\x12'\n" +
+	"\tITEM_HM03\x10\xd5\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x18\x01(\x190\x01@9R\ar\x03\x02\x02\x00x\x01\x12'\n" +
+	"\tITEM_HM04\x10\xd6\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x18\x01(\x190\x01@FR\ar\x03\x02\x02\x00x\x01\x12(\n" +
+	"\tITEM_HM05\x10\xd7\x02\x1a\x18\x82\xb5\x18\x14\b\x04\x18\x01(\x190\x01@\x94\x01R\ar\x03\x02\x02\x00x\x01\x12(\n" +
+	"\tITEM_HM06\x10\xd8\x02\x1a\x18\x82\xb5\x18\x14\b\x04\x18\x01(\x190\x01@\xf9\x01R\ar\x03\x02\x02\x00x\x01\x12'\n" +
+	"\tITEM_HM07\x10\xd9\x02\x1a\x17\x82\xb5\x18\x13\b\x04\x18\x01(\x190\x01@\x7fR\ar\x03\x02\x02\x00x\x01\x12(\n" +
+	"\tITEM_HM08\x10\xda\x02\x1a\x18\x82\xb5\x18\x14\b\x04\x18\x01(\x190\x01@\xa3\x02R\ar\x03\x02\x02\x00x\x01\x12!\n" +
 	"\x10ITEM_OAKS_PARCEL\x10\xdd\x02\x1a\n" +
-	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12 \n" +
-	"\x0fITEM_POKE_FLUTE\x10\xde\x02\x1a\n" +
-	"\x82\xb5\x18\x06\b\x02\x18\x01(\x0f\x12 \n" +
+	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12\"\n" +
+	"\x0fITEM_POKE_FLUTE\x10\xde\x02\x1a\f\x82\xb5\x18\b\b\x02\x18\x01(\x0fH\x03\x12 \n" +
 	"\x0fITEM_SECRET_KEY\x10\xdf\x02\x1a\n" +
 	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12\"\n" +
 	"\x11ITEM_BIKE_VOUCHER\x10\xe0\x02\x1a\n" +
@@ -1787,7 +2378,141 @@ const file_pokeuniverse_item_v1_catalog_proto_rawDesc = "" +
 	"\x12ITEM_AURORA_TICKET\x10\xf3\x02\x1a\f\x82\xb5\x18\b\b\x02\x18\x01 \x01(\x01\x12\"\n" +
 	"\x0fITEM_POWDER_JAR\x10\xf4\x02\x1a\f\x82\xb5\x18\b\b\x02\x18\x01 \x01(\x0e\x12\x1c\n" +
 	"\tITEM_RUBY\x10\xf5\x02\x1a\f\x82\xb5\x18\b\b\x02\x18\x01 \x01(\x01\x12 \n" +
-	"\rITEM_SAPPHIRE\x10\xf6\x02\x1a\f\x82\xb5\x18\b\b\x02\x18\x01 \x01(\x01:W\n" +
+	"\rITEM_SAPPHIRE\x10\xf6\x02\x1a\f\x82\xb5\x18\b\b\x02\x18\x01 \x01(\x01\x12 \n" +
+	"\x0eITEM_HEAL_BALL\x10\xf7\x02\x1a\v\x82\xb5\x18\a\b\x03\x10\xac\x02H\x04\x12 \n" +
+	"\x0eITEM_DUSK_BALL\x10\xf8\x02\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x12!\n" +
+	"\x0fITEM_QUICK_BALL\x10\xf9\x02\x1a\v\x82\xb5\x18\a\b\x03\x10\xe8\aH\x04\x121\n" +
+	"\x0fITEM_OLD_GATEAU\x10\xfa\x02\x1a\x1b\x82\xb5\x18\x17\b\x01\x10\xc8\x01(\x020\x01H\x01R\n" +
+	"\x1a\x06\x01\x02\x06\x03\x04\x05 \x01\x12\x1f\n" +
+	"\x0eITEM_RARE_BONE\x10\xfb\x02\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\x01(\x01\x12\"\n" +
+	"\x11ITEM_ARMOR_FOSSIL\x10\xfc\x02\x1a\n" +
+	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12\"\n" +
+	"\x11ITEM_SKULL_FOSSIL\x10\xfd\x02\x1a\n" +
+	"\x82\xb5\x18\x06\b\x02\x18\x01(\x01\x12$\n" +
+	"\x10ITEM_SHINY_STONE\x10\xfe\x02\x1a\r\x82\xb5\x18\t\b\x01\x10\xb4\x10(\x060\x01\x12#\n" +
+	"\x0fITEM_DUSK_STONE\x10\xff\x02\x1a\r\x82\xb5\x18\t\b\x01\x10\xb4\x10(\x060\x01\x12#\n" +
+	"\x0fITEM_DAWN_STONE\x10\x80\x03\x1a\r\x82\xb5\x18\t\b\x01\x10\xb4\x10(\x060\x01\x12\x1f\n" +
+	"\x0eITEM_PROTECTOR\x10\x81\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\x01(\x01\x12!\n" +
+	"\x10ITEM_ELECTIRIZER\x10\x82\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\x01(\x01\x12 \n" +
+	"\x0fITEM_MAGMARIZER\x10\x83\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\x01(\x01\x12\"\n" +
+	"\x11ITEM_DUBIOUS_DISC\x10\x84\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\x01(\x01\x12\"\n" +
+	"\x11ITEM_REAPER_CLOTH\x10\x85\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\x01(\x01\x12!\n" +
+	"\x0fITEM_OVAL_STONE\x10\x86\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb4\x10(\x01\x12\"\n" +
+	"\x10ITEM_FLAME_PLATE\x10\x87\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12#\n" +
+	"\x11ITEM_SPLASH_PLATE\x10\x88\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12 \n" +
+	"\x0eITEM_ZAP_PLATE\x10\x89\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12#\n" +
+	"\x11ITEM_MEADOW_PLATE\x10\x8a\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12#\n" +
+	"\x11ITEM_ICICLE_PLATE\x10\x8b\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12!\n" +
+	"\x0fITEM_FIST_PLATE\x10\x8c\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12\"\n" +
+	"\x10ITEM_TOXIC_PLATE\x10\x8d\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12\"\n" +
+	"\x10ITEM_EARTH_PLATE\x10\x8e\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12 \n" +
+	"\x0eITEM_SKY_PLATE\x10\x8f\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12!\n" +
+	"\x0fITEM_MIND_PLATE\x10\x90\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12#\n" +
+	"\x11ITEM_INSECT_PLATE\x10\x91\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12\"\n" +
+	"\x10ITEM_STONE_PLATE\x10\x92\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12#\n" +
+	"\x11ITEM_SPOOKY_PLATE\x10\x93\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12\"\n" +
+	"\x10ITEM_DRACO_PLATE\x10\x94\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12\"\n" +
+	"\x10ITEM_DREAD_PLATE\x10\x95\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12!\n" +
+	"\x0fITEM_IRON_PLATE\x10\x96\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xe8\a(\x01\x12\"\n" +
+	"\x11ITEM_QUICK_POWDER\x10\x97\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10\n" +
+	"(\x01\x12\"\n" +
+	"\x10ITEM_ADAMANT_ORB\x10\x98\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x90N(\x01\x12#\n" +
+	"\x11ITEM_LUSTROUS_ORB\x10\x99\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x90N(\x01\x12#\n" +
+	"\x11ITEM_GRISEOUS_ORB\x10\x9a\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x90N(\x01\x12\"\n" +
+	"\x10ITEM_ODD_INCENSE\x10\x9b\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
+	"\x11ITEM_ROCK_INCENSE\x10\x9c\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
+	"\x11ITEM_FULL_INCENSE\x10\x9d\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
+	"\x11ITEM_WAVE_INCENSE\x10\x9e\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
+	"\x11ITEM_ROSE_INCENSE\x10\x9f\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
+	"\x11ITEM_POWER_WEIGHT\x10\xa0\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb8\x17(\x01\x12#\n" +
+	"\x11ITEM_POWER_BRACER\x10\xa1\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb8\x17(\x01\x12!\n" +
+	"\x0fITEM_POWER_BELT\x10\xa2\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb8\x17(\x01\x12!\n" +
+	"\x0fITEM_POWER_LENS\x10\xa3\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb8\x17(\x01\x12!\n" +
+	"\x0fITEM_POWER_BAND\x10\xa4\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb8\x17(\x01\x12#\n" +
+	"\x11ITEM_POWER_ANKLET\x10\xa5\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb8\x17(\x01\x12\"\n" +
+	"\x11ITEM_CHOICE_SPECS\x10\xa6\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10d(\x01\x12\"\n" +
+	"\x11ITEM_CHOICE_SCARF\x10\xa7\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10d(\x01\x12 \n" +
+	"\x0eITEM_FLAME_ORB\x10\xa8\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_TOXIC_ORB\x10\xa9\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_DAMP_ROCK\x10\xaa\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_HEAT_ROCK\x10\xab\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\"\n" +
+	"\x10ITEM_SMOOTH_ROCK\x10\xac\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\x1f\n" +
+	"\rITEM_ICY_ROCK\x10\xad\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_WIDE_LENS\x10\xae\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\"\n" +
+	"\x10ITEM_MUSCLE_BAND\x10\xaf\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12#\n" +
+	"\x11ITEM_WISE_GLASSES\x10\xb0\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\"\n" +
+	"\x10ITEM_EXPERT_BELT\x10\xb1\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12!\n" +
+	"\x0fITEM_LIGHT_CLAY\x10\xb2\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\x1f\n" +
+	"\rITEM_LIFE_ORB\x10\xb3\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0fITEM_POWER_HERB\x10\xb4\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10d(\x01\x12!\n" +
+	"\x0fITEM_FOCUS_SASH\x10\xb5\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_ZOOM_LENS\x10\xb6\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_METRONOME\x10\xb7\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_IRON_BALL\x10\xb8\x03\x1a\v\x82\xb5\x18\a\b\x03\x10\xc8\x01H\x04\x12#\n" +
+	"\x11ITEM_LAGGING_TAIL\x10\xb9\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12#\n" +
+	"\x11ITEM_DESTINY_KNOT\x10\xba\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12#\n" +
+	"\x11ITEM_BLACK_SLUDGE\x10\xbb\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0eITEM_GRIP_CLAW\x10\xbc\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12\"\n" +
+	"\x10ITEM_STICKY_BARB\x10\xbd\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12 \n" +
+	"\x0fITEM_SHED_SHELL\x10\xbe\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x01\x10d(\x01\x12\x1f\n" +
+	"\rITEM_BIG_ROOT\x10\xbf\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xc8\x01(\x01\x12!\n" +
+	"\x0fITEM_RAZOR_CLAW\x10\xc0\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb4\x10(\x01\x12!\n" +
+	"\x0fITEM_RAZOR_FANG\x10\xc1\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\xb4\x10(\x01\x12\"\n" +
+	"\x11ITEM_CHILAN_BERRY\x10\xc2\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12 \n" +
+	"\x0fITEM_OCCA_BERRY\x10\xc3\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_PASSHO_BERRY\x10\xc4\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_WACAN_BERRY\x10\xc5\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_RINDO_BERRY\x10\xc6\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_YACHE_BERRY\x10\xc7\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_CHOPLE_BERRY\x10\xc8\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_KEBIA_BERRY\x10\xc9\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_SHUCA_BERRY\x10\xca\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12 \n" +
+	"\x0fITEM_COBA_BERRY\x10\xcb\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_PAYAPA_BERRY\x10\xcc\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_TANGA_BERRY\x10\xcd\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_CHARTI_BERRY\x10\xce\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_KASIB_BERRY\x10\xcf\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_HABAN_BERRY\x10\xd0\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_COLBUR_BERRY\x10\xd1\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_BABIRI_BERRY\x10\xd2\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_MICLE_BERRY\x10\xd3\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_CUSTAP_BERRY\x10\xd4\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12\"\n" +
+	"\x11ITEM_JABOCA_BERRY\x10\xd5\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12!\n" +
+	"\x10ITEM_ROWAP_BERRY\x10\xd6\x03\x1a\n" +
+	"\x82\xb5\x18\x06\b\x05\x10\x14(\x01\x12#\n" +
+	"\x11ITEM_LUCK_INCENSE\x10\xd7\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01\x12#\n" +
+	"\x11ITEM_PURE_INCENSE\x10\xd8\x03\x1a\v\x82\xb5\x18\a\b\x01\x10\x80K(\x01:W\n" +
 	"\x04info\x12!.google.protobuf.EnumValueOptions\x18І\x03 \x01(\v2\x1e.pokeuniverse.item.v1.ItemInfoR\x04infoB?Z=pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1;itemv1b\x06proto3"
 
 var (
@@ -1802,25 +2527,35 @@ func file_pokeuniverse_item_v1_catalog_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_item_v1_catalog_proto_rawDescData
 }
 
-var file_pokeuniverse_item_v1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_pokeuniverse_item_v1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_pokeuniverse_item_v1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_pokeuniverse_item_v1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_pokeuniverse_item_v1_catalog_proto_goTypes = []any{
 	(Pocket)(0),                           // 0: pokeuniverse.item.v1.Pocket
 	(FieldUse)(0),                         // 1: pokeuniverse.item.v1.FieldUse
-	(Item)(0),                             // 2: pokeuniverse.item.v1.Item
-	(*ItemInfo)(nil),                      // 3: pokeuniverse.item.v1.ItemInfo
-	(*descriptorpb.EnumValueOptions)(nil), // 4: google.protobuf.EnumValueOptions
+	(BattleUse)(0),                        // 2: pokeuniverse.item.v1.BattleUse
+	(Item)(0),                             // 3: pokeuniverse.item.v1.Item
+	(*ItemEffect)(nil),                    // 4: pokeuniverse.item.v1.ItemEffect
+	(*ItemInfo)(nil),                      // 5: pokeuniverse.item.v1.ItemInfo
+	(v1.Status)(0),                        // 6: pokeuniverse.pokemon.v1.Status
+	(v1.Stat)(0),                          // 7: pokeuniverse.pokemon.v1.Stat
+	(v11.Move)(0),                         // 8: pokeuniverse.move.v1.Move
+	(*descriptorpb.EnumValueOptions)(nil), // 9: google.protobuf.EnumValueOptions
 }
 var file_pokeuniverse_item_v1_catalog_proto_depIdxs = []int32{
-	0, // 0: pokeuniverse.item.v1.ItemInfo.pocket:type_name -> pokeuniverse.item.v1.Pocket
-	1, // 1: pokeuniverse.item.v1.ItemInfo.field_use:type_name -> pokeuniverse.item.v1.FieldUse
-	4, // 2: pokeuniverse.item.v1.info:extendee -> google.protobuf.EnumValueOptions
-	3, // 3: pokeuniverse.item.v1.info:type_name -> pokeuniverse.item.v1.ItemInfo
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	3, // [3:4] is the sub-list for extension type_name
-	2, // [2:3] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	6, // 0: pokeuniverse.item.v1.ItemEffect.cures:type_name -> pokeuniverse.pokemon.v1.Status
+	7, // 1: pokeuniverse.item.v1.ItemEffect.ev_stat:type_name -> pokeuniverse.pokemon.v1.Stat
+	0, // 2: pokeuniverse.item.v1.ItemInfo.pocket:type_name -> pokeuniverse.item.v1.Pocket
+	1, // 3: pokeuniverse.item.v1.ItemInfo.field_use:type_name -> pokeuniverse.item.v1.FieldUse
+	8, // 4: pokeuniverse.item.v1.ItemInfo.move:type_name -> pokeuniverse.move.v1.Move
+	2, // 5: pokeuniverse.item.v1.ItemInfo.battle_use:type_name -> pokeuniverse.item.v1.BattleUse
+	4, // 6: pokeuniverse.item.v1.ItemInfo.effect:type_name -> pokeuniverse.item.v1.ItemEffect
+	9, // 7: pokeuniverse.item.v1.info:extendee -> google.protobuf.EnumValueOptions
+	5, // 8: pokeuniverse.item.v1.info:type_name -> pokeuniverse.item.v1.ItemInfo
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	8, // [8:9] is the sub-list for extension type_name
+	7, // [7:8] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_item_v1_catalog_proto_init() }
@@ -1833,8 +2568,8 @@ func file_pokeuniverse_item_v1_catalog_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_item_v1_catalog_proto_rawDesc), len(file_pokeuniverse_item_v1_catalog_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   1,
+			NumEnums:      4,
+			NumMessages:   2,
 			NumExtensions: 1,
 			NumServices:   0,
 		},

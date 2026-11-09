@@ -5,8 +5,10 @@ syntax = "proto3";
 // one and corrects the client when it disagrees (tech-stack.md#movement).
 package pokeuniverse.world.v1;
 
+import "pokeuniverse/battle/v1/view.proto";
 import "pokeuniverse/item/v1/bag.proto";
 import "pokeuniverse/map/v1/map.proto";
+import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/pokedex/v1/pokedex.proto";
 import "pokeuniverse/trainer/v1/trainer.proto";
 
@@ -39,6 +41,15 @@ message Turn {
   pokeuniverse.map.v1.Direction direction = 1;
 }
 
+// Standing on a warp and going its way (the stairs): the client plays the transition at once and
+// waits for Warped; a refused warp is answered with a Correction.
+message UseWarp {
+  pokeuniverse.map.v1.Direction direction = 1;
+  // The tile the player stands on; a warp from anywhere else is ignored.
+  uint32 x = 2;
+  uint32 y = 3;
+}
+
 // A button: check what the player faces. Always answered with a Script (empty when nothing
 // answers); the client waits for it before moving again.
 message Interact {
@@ -65,6 +76,10 @@ message WorldSnapshot {
   pokeuniverse.item.v1.Bag bag = 5;
   // The trainer's Pokédex.
   pokeuniverse.pokedex.v1.Pokedex pokedex = 6;
+  // The trainer's Pokémon.
+  pokeuniverse.party.v1.Party party = 7;
+  // The battle the trainer is in, if any: the client redraws it (phase-5, Resume).
+  pokeuniverse.battle.v1.BattleView battle = 8;
 }
 
 message Avatar {
@@ -72,16 +87,51 @@ message Avatar {
   uint32 y = 2;
   pokeuniverse.map.v1.Direction facing = 3;
   pokeuniverse.trainer.v1.Gender gender = 4;
+  // The Pokémon walking behind the trainer; unset when there is none.
+  Follower follower = 5;
+}
+
+// The Pokémon that follows the trainer, as in HeartGold and SoulSilver: the first party Pokémon that
+// isn't fainted (the first one if all are). It steps onto the tile the player left, at the player's speed.
+message Follower {
+  // National Pokédex number.
+  uint32 species = 1;
+  bool shiny = 2;
+  uint32 x = 3;
+  uint32 y = 4;
+  pokeuniverse.map.v1.Direction facing = 5;
+  // On the player's own tile (entering the world, after a warp): not drawn until the player's next step.
+  bool hidden = 6;
+}
+
+// Server -> client: the follower changed (the party changed): another Pokémon, or none (unset).
+message FollowerChanged {
+  Follower follower = 1;
 }
 
 // The server refused a predicted step: where the player really is. The client goes back there;
 // steps it sent before receiving this are ignored.
+// Server -> client: the warp was saved: the player is on another map. Everything else the client
+// knows of the trainer stays as it is.
+message Warped {
+  // A map of lib-maps.
+  string map = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  pokeuniverse.map.v1.Direction facing = 4;
+  bool can_run = 5;
+  // On the player's tile, hidden; unset when there is none.
+  Follower follower = 6;
+}
+
 message Correction {
   // The refused step.
   uint32 step = 1;
   uint32 x = 2;
   uint32 y = 3;
   pokeuniverse.map.v1.Direction facing = 4;
+  // Where the follower really is; unset when there is none.
+  Follower follower = 5;
 }
 
 // What an interaction runs, step by step. When it has steps, the player can't move until the
@@ -89,6 +139,8 @@ message Correction {
 message Script {
   uint32 id = 1;
   repeated ScriptStep steps = 2;
+  // The NPC (ClientNpc.id) that answers: it turns to face the player (faceplayer).
+  string npc = 3;
 }
 
 message ScriptStep {
@@ -101,7 +153,32 @@ message ScriptStep {
     PcScreen pc_screen = 3;
     // The player's PC menu; the script goes on once the player turns it off.
     PlayersPc players_pc = 4;
+    // A YES/NO menu over the last message (YesNoBox). YES goes on with the next step.
+    YesNo yes_no = 5;
+    // A trainer battle: the client sends ScriptBattle and waits for BattleStarted. After a
+    // win the script goes on once BattleEnded is shown; a loss (whiteout) ends it there.
+    TrainerBattle trainer_battle = 6;
+    // A song on the BGM player, by ID (a trainer's encounter music); the map's comes back once
+    // the script ends.
+    string music = 7;
+    // The NPC that answers turns back to where it faced as the map loaded (true).
+    bool face_original = 8;
   }
+}
+
+message YesNo {
+  // What NO shows; the script ends after them.
+  repeated ScriptStep no = 1;
+}
+
+message TrainerBattle {
+  // A trainer of mic-core's trainer table.
+  string trainer = 1;
+}
+
+// The client reached the running script's TrainerBattle step: the battle starts.
+message ScriptBattle {
+  uint32 script = 1;
 }
 
 // AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.

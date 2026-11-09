@@ -232,6 +232,12 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		}
 		c.player.Move(p.Move, at)
 		return true
+	case *realtimev1.ClientMessage_UseWarp:
+		if p.UseWarp == nil || !world.ValidDirection(p.UseWarp.Direction) {
+			break
+		}
+		c.player.UseWarp(p.UseWarp, at)
+		return true
 	case *realtimev1.ClientMessage_Turn:
 		if p.Turn == nil || !world.ValidDirection(p.Turn.Direction) {
 			break
@@ -267,6 +273,63 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		return true
 	case *realtimev1.ClientMessage_MovePcItem:
 		c.player.MovePcItem(p.MovePcItem)
+		return true
+	case *realtimev1.ClientMessage_SwapPartySlots:
+		c.player.SwapPartySlots(p.SwapPartySlots)
+		return true
+	case *realtimev1.ClientMessage_GivePartyItem:
+		c.player.GivePartyItem(p.GivePartyItem)
+		return true
+	case *realtimev1.ClientMessage_TakePartyItem:
+		c.player.TakePartyItem(p.TakePartyItem)
+		return true
+	case *realtimev1.ClientMessage_UsePartyItem:
+		c.player.UsePartyItem(p.UsePartyItem)
+		return true
+	case *realtimev1.ClientMessage_UseFieldMove:
+		c.player.UseFieldMove(p.UseFieldMove)
+		return true
+	case *realtimev1.ClientMessage_OpenBox:
+		c.player.OpenBox(msg.GetSeq(), p.OpenBox)
+		return true
+	case *realtimev1.ClientMessage_MovePokemon:
+		c.player.MovePokemon(msg.GetSeq(), p.MovePokemon)
+		return true
+	case *realtimev1.ClientMessage_ReleasePokemon:
+		c.player.ReleasePokemon(msg.GetSeq(), p.ReleasePokemon)
+		return true
+	case *realtimev1.ClientMessage_SetMarkings:
+		c.player.SetMarkings(msg.GetSeq(), p.SetMarkings)
+		return true
+	case *realtimev1.ClientMessage_MoveHeldItem:
+		c.player.MoveHeldItem(msg.GetSeq(), p.MoveHeldItem)
+		return true
+	case *realtimev1.ClientMessage_StoreHeldItem:
+		c.player.StoreHeldItem(msg.GetSeq(), p.StoreHeldItem)
+		return true
+	case *realtimev1.ClientMessage_GiveHeldItem:
+		c.player.GiveHeldItem(msg.GetSeq(), p.GiveHeldItem)
+		return true
+	case *realtimev1.ClientMessage_RenameBox:
+		c.player.RenameBox(msg.GetSeq(), p.RenameBox)
+		return true
+	case *realtimev1.ClientMessage_SetBoxWallpaper:
+		c.player.SetBoxWallpaper(msg.GetSeq(), p.SetBoxWallpaper)
+		return true
+	case *realtimev1.ClientMessage_SwapPokemonMoves:
+		c.player.SwapPokemonMoves(p.SwapPokemonMoves)
+		return true
+	case *realtimev1.ClientMessage_EvolvePokemon:
+		c.player.EvolvePokemon(p.EvolvePokemon)
+		return true
+	case *realtimev1.ClientMessage_LearnMove:
+		c.player.LearnMove(p.LearnMove)
+		return true
+	case *realtimev1.ClientMessage_ScriptBattle:
+		c.player.ScriptBattle(p.ScriptBattle)
+		return true
+	case *realtimev1.ClientMessage_BattleChoice:
+		c.player.BattleChoice(p.BattleChoice)
 		return true
 	}
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)

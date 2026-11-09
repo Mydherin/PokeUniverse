@@ -1,0 +1,9 @@
+# M2 Pokémon and the Party in `mic-core` ✅
+
+Part of [Phase 5](../phase-5-battle-system.md). Finished 2026-11-01. What later milestones can use, without re-reading:
+
+- **`mic-core/internal/pokemon`:** Gen 4 stats (SHEDINJA 1 HP), natures, IVs/EVs, personality → gender, nature (`% 25`), shiny (with OT ID), ability slot (lowest bit); six growth rates (level ↔ exp, 0 exp at Lv 1); default moves (last four level-up moves); max PP with PP UPs; `Party` (with `Swap`, `SwapMoves`) and its store.
+- **Table `trainer_pokemon`** (migration `00012`): slot 0-5, species, nickname (empty = species name), level, exp, personality, IVs/EVs (6-arrays), ability slot, held item, moves + PP + PP UPs (parallel arrays), HP, status, friendship, ball, OT name/ID/gender, met level/map (empty = fateful encounter). Every change rewrites the party after `LockTrainerSave`, with the bag in one transaction (`world/save.go`). New Game empties it.
+- **Test team (D13, `internal/pokemon/testteam.go`):** given by `Join` when the trainer has none; Lv 50, sets with natures and EVs, IVs/personalities from the trainer ID, POKé BALL, fateful encounter: CHARIZARD, PIKACHU @ LIGHT BALL, GARCHOMP, LUCARIO (Bullet Punch: Extreme Speed is Lv 51), GARDEVOIR, SNORLAX @ LEFTOVERS. Checked against Showdown's learnsets.
+- **Contracts (`party.v1`, D16):** `Pokemon` (what the summary shows: stats, exp bounds, ability, nature, gender, shiny, OT; never IVs/EVs/friendship), `Party` in `WorldSnapshot`, intents `SwapPartySlots`, `GivePartyItem` (bag or PC), `TakePartyItem` (M3 added `SwapPokemonMoves`), answer `PartyChanged` (+ `BagChanged`/`PcChanged`, then `ItemResult`). Held-item rules: `internal/item` (`Hold`, `TakeHeld`). Party intents: `internal/world/party.go` (`partyChange`).
+- **Client:** `world/party.ts` (`PartyState`: swaps shown at once, corrected by mic-core); START menu POKéMON shows when the party isn't empty.

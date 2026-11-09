@@ -47,6 +47,9 @@ type Map struct {
 	elevation     []byte
 	behaviors     []mapv1.TileBehavior
 	objects       []*mapv1.MapObject
+	warps         []*mapv1.Warp
+	// The NPCs, by the cell they stand on.
+	npcs map[Point]*mapv1.MapObject
 }
 
 func (m *Map) In(p Point) bool { return p.X >= 0 && p.Y >= 0 && p.X < m.Width && p.Y < m.Height }
@@ -69,6 +72,29 @@ func (m *Map) Behavior(p Point) mapv1.TileBehavior {
 	return m.behaviors[p.Y*m.Width+p.X]
 }
 
+// WarpAt is the warp on a cell, or nil (a map has a handful: a scan is enough).
+func (m *Map) WarpAt(p Point) *mapv1.Warp {
+	for _, w := range m.warps {
+		if int(w.X) == p.X && int(w.Y) == p.Y {
+			return w
+		}
+	}
+	return nil
+}
+
+// warpNamed is the warp with an ID, or nil.
+func (m *Map) warpNamed(id string) *mapv1.Warp {
+	for _, w := range m.warps {
+		if w.Id == id {
+			return w
+		}
+	}
+	return nil
+}
+
+// NpcAt is the NPC standing on a cell, or nil.
+func (m *Map) NpcAt(p Point) *mapv1.MapObject { return m.npcs[p] }
+
 // SignAt is the sign object on a cell, or nil.
 func (m *Map) SignAt(p Point) *mapv1.Sign {
 	for _, o := range m.objects {
@@ -80,7 +106,7 @@ func (m *Map) SignAt(p Point) *mapv1.Sign {
 }
 
 // HiddenItemNear reports whether a hidden item lies within the ITEMFINDER's range of p
-// (7 tiles across, 5 up or down). Found items are tracked with the story flags (Phase 5).
+// (7 tiles across, 5 up or down). Found items are tracked with the story flags (Phase 10).
 func (m *Map) HiddenItemNear(p Point) bool {
 	for _, o := range m.objects {
 		if o.GetHiddenItem() != nil && abs(int(o.X)-p.X) <= 7 && abs(int(o.Y)-p.Y) <= 5 {
@@ -119,6 +145,12 @@ func LoadMaps(fsys fs.FS) (Maps, error) {
 			len(sm.Walkable) != n || len(sm.Elevation) != n || len(sm.Behaviors) != n {
 			return nil, fmt.Errorf("maps: %s is malformed: run make maps", f)
 		}
+		npcs := map[Point]*mapv1.MapObject{}
+		for _, o := range sm.Objects {
+			if o.GetNpc() != nil {
+				npcs[Point{int(o.X), int(o.Y)}] = o
+			}
+		}
 		maps[sm.Id] = &Map{
 			ID:            sm.Id,
 			Width:         int(sm.Width),
@@ -131,6 +163,8 @@ func LoadMaps(fsys fs.FS) (Maps, error) {
 			elevation:     sm.Elevation,
 			behaviors:     sm.Behaviors,
 			objects:       sm.Objects,
+			warps:         sm.Warps,
+			npcs:          npcs,
 		}
 	}
 	return maps, nil

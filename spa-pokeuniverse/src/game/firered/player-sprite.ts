@@ -34,26 +34,40 @@ function playerSheet(assets: Assets, gender: Gender): CharacterSheet {
   const girl = gender === Gender.GIRL;
   const walk = assets.get(girl ? "owGreen" : "owRed").image!;
   const run = assets.get(girl ? "owGreenRun" : "owRedRun").image!;
-  const palette = assets.get("owPlayerPal").palette;
+  return characterSheet(`firered-player-${girl ? "girl" : "boy"}`, assets.get("owPlayerPal").palette, [
+    [walk, 0, WALK_FRAMES],
+    [run, RUN_FIRST, RUN_FRAMES],
+  ]);
+}
+
+/**
+ * A 16×32 character's sheet: from each image, `count` frames starting at frame `from`, side by
+ * side in order, colored with a 16-color palette (index 0 transparent).
+ */
+export function characterSheet(key: string, palette: Uint16Array, parts: [image: IndexedImage, from: number, count: number][]): CharacterSheet {
+  return sheetOf(key, palette, parts, FRAME_W, FRAME_H);
+}
+
+/** The same with frames of any size, e.g. a following Pokémon's 32×32 or 64×64. */
+export function sheetOf(key: string, palette: Uint16Array, parts: [image: IndexedImage, from: number, count: number][], w: number, h: number): CharacterSheet {
   const canvas = document.createElement("canvas");
-  canvas.width = (WALK_FRAMES + RUN_FRAMES) * FRAME_W;
-  canvas.height = FRAME_H;
+  canvas.width = parts.reduce((n, [, , count]) => n + count, 0) * w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   const out = ctx.createImageData(canvas.width, canvas.height);
   const pixels = new Uint32Array(out.data.buffer);
-  const copy = (image: IndexedImage, from: number, to: number, count: number) => {
+  let to = 0;
+  for (const [image, from, count] of parts) {
     for (let f = 0; f < count; f++)
-      for (let y = 0; y < FRAME_H; y++)
-        for (let x = 0; x < FRAME_W; x++) {
-          const i = image.pixels[y * image.width + (from + f) * FRAME_W + x] & 15;
-          // Index 0 is transparent.
-          if (i) pixels[y * canvas.width + (to + f) * FRAME_W + x] = rgba(palette[i]);
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+          const i = image.pixels[y * image.width + (from + f) * w + x] & 15;
+          if (i) pixels[y * canvas.width + (to + f) * w + x] = rgba(palette[i]);
         }
-  };
-  copy(walk, 0, 0, WALK_FRAMES);
-  copy(run, RUN_FIRST, WALK_FRAMES, RUN_FRAMES);
+    to += count;
+  }
   ctx.putImageData(out, 0, 0);
-  return { key: `firered-player-${girl ? "girl" : "boy"}`, image: canvas, frameWidth: FRAME_W, frameHeight: FRAME_H };
+  return { key, image: canvas, frameWidth: w, frameHeight: h };
 }
 
 /** BGR555 to the canvas' little-endian RGBA. */
@@ -75,6 +89,7 @@ function frameOf(facing: Direction, a: Action | null): number {
   const foot = (half: number) => (half === 0 ? footA : footB);
   switch (a.kind) {
     case "walk":
+    case "walkInPlace":
       return a.t < 8 ? foot(a.foot) : stand;
     case "run":
       return a.t < 5 ? stand : foot(a.foot);
@@ -89,6 +104,11 @@ function frameOf(facing: Direction, a: Action | null): number {
 
 /** The player drawn on the world, following the avatar. */
 export class PlayerSprite {
+  /** Pixels off its cell (x2, y2), e.g. on the stairs. */
+  offsetX = 0;
+  offsetY = 0;
+  /** Drawn over the tiles whatever the elevation, e.g. leaving by the stairs. */
+  forceOver = false;
   private readonly view: CharacterView;
 
   constructor(world: WorldView, assets: Assets, gender: Gender) {
@@ -97,9 +117,9 @@ export class PlayerSprite {
 
   /** Feet on the avatar's cell: the 16×32 frame starts 16 pixels above it. */
   update(avatar: Avatar): void {
-    this.view.setPosition(avatar.pixelX, avatar.pixelY - 16);
+    this.view.setPosition(avatar.pixelX + this.offsetX, avatar.pixelY - 16 + this.offsetY);
     this.view.setFrame(frameOf(avatar.facing, avatar.action), avatar.facing === Direction.EAST);
-    this.view.setOverTiles(avatar.overTiles);
+    this.view.setOverTiles(this.forceOver || avatar.overTiles);
   }
 
   destroy(): void {

@@ -1,8 +1,10 @@
 // Package pokedex keeps the trainer's Pokédex: whether they have it, the National Pokédex, and
-// the species seen and caught (pokedex/v1). Catches and sightings come with battles (Phase 9).
+// the species seen (battles) and caught (evolutions; catches come with wild battles, Phase 7).
 package pokedex
 
 import (
+	"bytes"
+
 	pokedexv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokedex/v1"
 	speciesv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 	"pokeuniverse/mic-core/internal/db"
@@ -63,6 +65,34 @@ func Load(row db.GetTrainerRow) Pokedex {
 		seen[i] |= caught[i]
 	}
 	return Pokedex{Obtained: row.PokedexObtained, National: row.PokedexNational, Seen: seen, Caught: caught}
+}
+
+// with is a copy of the set with these species in it, so a change can be undone.
+func (s Set) with(species ...speciesv1.Species) Set {
+	out := s.clean()
+	for _, n := range species {
+		if i := int(n) - 1; n >= 1 && int(n) <= NationalCount {
+			out[i/8] |= 1 << (i % 8)
+		}
+	}
+	return out
+}
+
+// See is the Pokédex with these species seen.
+func (p Pokedex) See(species ...speciesv1.Species) Pokedex {
+	p.Seen = p.Seen.with(species...)
+	return p
+}
+
+// Catch is the Pokédex with these species caught, so seen too.
+func (p Pokedex) Catch(species ...speciesv1.Species) Pokedex {
+	p.Caught = p.Caught.with(species...)
+	return p.See(species...)
+}
+
+// Same is whether both have the same species seen and caught.
+func (p Pokedex) Same(o Pokedex) bool {
+	return bytes.Equal(p.Seen, o.Seen) && bytes.Equal(p.Caught, o.Caught)
 }
 
 // CaughtCount is what the Trainer Card and the main menu show (GetCaughtMonsCount): caught

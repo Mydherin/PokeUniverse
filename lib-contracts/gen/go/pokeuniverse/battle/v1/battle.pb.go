@@ -12,6 +12,12 @@ package battlev1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/ability/v1"
+	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
+	v15 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/move/v1"
+	v14 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
+	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1"
+	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -23,6 +29,74 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+// FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (phase-5 D6).
+type AiFlag int32
+
+const (
+	AiFlag_AI_FLAG_UNSPECIFIED           AiFlag = 0
+	AiFlag_AI_FLAG_CHECK_BAD_MOVE        AiFlag = 1
+	AiFlag_AI_FLAG_TRY_TO_FAINT          AiFlag = 2
+	AiFlag_AI_FLAG_CHECK_VIABILITY       AiFlag = 3
+	AiFlag_AI_FLAG_SETUP_FIRST_TURN      AiFlag = 4
+	AiFlag_AI_FLAG_RISKY                 AiFlag = 5
+	AiFlag_AI_FLAG_PREFER_STRONGEST_MOVE AiFlag = 6
+	AiFlag_AI_FLAG_PREFER_BATON_PASS     AiFlag = 7
+	AiFlag_AI_FLAG_HP_AWARE              AiFlag = 8
+)
+
+// Enum value maps for AiFlag.
+var (
+	AiFlag_name = map[int32]string{
+		0: "AI_FLAG_UNSPECIFIED",
+		1: "AI_FLAG_CHECK_BAD_MOVE",
+		2: "AI_FLAG_TRY_TO_FAINT",
+		3: "AI_FLAG_CHECK_VIABILITY",
+		4: "AI_FLAG_SETUP_FIRST_TURN",
+		5: "AI_FLAG_RISKY",
+		6: "AI_FLAG_PREFER_STRONGEST_MOVE",
+		7: "AI_FLAG_PREFER_BATON_PASS",
+		8: "AI_FLAG_HP_AWARE",
+	}
+	AiFlag_value = map[string]int32{
+		"AI_FLAG_UNSPECIFIED":           0,
+		"AI_FLAG_CHECK_BAD_MOVE":        1,
+		"AI_FLAG_TRY_TO_FAINT":          2,
+		"AI_FLAG_CHECK_VIABILITY":       3,
+		"AI_FLAG_SETUP_FIRST_TURN":      4,
+		"AI_FLAG_RISKY":                 5,
+		"AI_FLAG_PREFER_STRONGEST_MOVE": 6,
+		"AI_FLAG_PREFER_BATON_PASS":     7,
+		"AI_FLAG_HP_AWARE":              8,
+	}
+)
+
+func (x AiFlag) Enum() *AiFlag {
+	p := new(AiFlag)
+	*p = x
+	return p
+}
+
+func (x AiFlag) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AiFlag) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_battle_v1_battle_proto_enumTypes[0].Descriptor()
+}
+
+func (AiFlag) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_battle_v1_battle_proto_enumTypes[0]
+}
+
+func (x AiFlag) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AiFlag.Descriptor instead.
+func (AiFlag) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{0}
+}
 
 // Request on `battles.ping`: round-trip check from mic-core.
 type Ping struct {
@@ -134,17 +208,1014 @@ func (x *Pong) GetFormat() string {
 	return ""
 }
 
+// One Pokémon as it enters the battle: everything the rules need.
+type BattleMon struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Species v1.Species             `protobuf:"varint,1,opt,name=species,proto3,enum=pokeuniverse.species.v1.Species" json:"species,omitempty"`
+	// Empty: the species' name.
+	Nickname string      `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Level    uint32      `protobuf:"varint,3,opt,name=level,proto3" json:"level,omitempty"`
+	Nature   v11.Nature  `protobuf:"varint,4,opt,name=nature,proto3,enum=pokeuniverse.pokemon.v1.Nature" json:"nature,omitempty"`
+	Ability  v12.Ability `protobuf:"varint,5,opt,name=ability,proto3,enum=pokeuniverse.ability.v1.Ability" json:"ability,omitempty"`
+	// Unspecified: none.
+	HeldItem v13.Item   `protobuf:"varint,6,opt,name=held_item,json=heldItem,proto3,enum=pokeuniverse.item.v1.Item" json:"held_item,omitempty"`
+	Ivs      *v11.Stats `protobuf:"bytes,7,opt,name=ivs,proto3" json:"ivs,omitempty"`
+	Evs      *v11.Stats `protobuf:"bytes,8,opt,name=evs,proto3" json:"evs,omitempty"`
+	// One to four, with their PP now and their max PP (PP UPs).
+	Moves []*v14.Move `protobuf:"bytes,9,rep,name=moves,proto3" json:"moves,omitempty"`
+	// HP now: it carries over between battles (D14).
+	Hp          uint32     `protobuf:"varint,10,opt,name=hp,proto3" json:"hp,omitempty"`
+	Status      v11.Status `protobuf:"varint,11,opt,name=status,proto3,enum=pokeuniverse.pokemon.v1.Status" json:"status,omitempty"`
+	Gender      v11.Gender `protobuf:"varint,12,opt,name=gender,proto3,enum=pokeuniverse.pokemon.v1.Gender" json:"gender,omitempty"`
+	Shiny       bool       `protobuf:"varint,13,opt,name=shiny,proto3" json:"shiny,omitempty"`
+	Personality uint32     `protobuf:"varint,14,opt,name=personality,proto3" json:"personality,omitempty"`
+	// Return and Frustration.
+	Friendship uint32 `protobuf:"varint,15,opt,name=friendship,proto3" json:"friendship,omitempty"`
+	// Its trainer isn't its original trainer: 1.5× experience.
+	Traded bool `protobuf:"varint,16,opt,name=traded,proto3" json:"traded,omitempty"`
+	// Its total experience now: it levels up during the battle (mic-battles).
+	Exp           uint32 `protobuf:"varint,17,opt,name=exp,proto3" json:"exp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BattleMon) Reset() {
+	*x = BattleMon{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleMon) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleMon) ProtoMessage() {}
+
+func (x *BattleMon) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleMon.ProtoReflect.Descriptor instead.
+func (*BattleMon) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *BattleMon) GetSpecies() v1.Species {
+	if x != nil {
+		return x.Species
+	}
+	return v1.Species(0)
+}
+
+func (x *BattleMon) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *BattleMon) GetLevel() uint32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *BattleMon) GetNature() v11.Nature {
+	if x != nil {
+		return x.Nature
+	}
+	return v11.Nature(0)
+}
+
+func (x *BattleMon) GetAbility() v12.Ability {
+	if x != nil {
+		return x.Ability
+	}
+	return v12.Ability(0)
+}
+
+func (x *BattleMon) GetHeldItem() v13.Item {
+	if x != nil {
+		return x.HeldItem
+	}
+	return v13.Item(0)
+}
+
+func (x *BattleMon) GetIvs() *v11.Stats {
+	if x != nil {
+		return x.Ivs
+	}
+	return nil
+}
+
+func (x *BattleMon) GetEvs() *v11.Stats {
+	if x != nil {
+		return x.Evs
+	}
+	return nil
+}
+
+func (x *BattleMon) GetMoves() []*v14.Move {
+	if x != nil {
+		return x.Moves
+	}
+	return nil
+}
+
+func (x *BattleMon) GetHp() uint32 {
+	if x != nil {
+		return x.Hp
+	}
+	return 0
+}
+
+func (x *BattleMon) GetStatus() v11.Status {
+	if x != nil {
+		return x.Status
+	}
+	return v11.Status(0)
+}
+
+func (x *BattleMon) GetGender() v11.Gender {
+	if x != nil {
+		return x.Gender
+	}
+	return v11.Gender(0)
+}
+
+func (x *BattleMon) GetShiny() bool {
+	if x != nil {
+		return x.Shiny
+	}
+	return false
+}
+
+func (x *BattleMon) GetPersonality() uint32 {
+	if x != nil {
+		return x.Personality
+	}
+	return 0
+}
+
+func (x *BattleMon) GetFriendship() uint32 {
+	if x != nil {
+		return x.Friendship
+	}
+	return 0
+}
+
+func (x *BattleMon) GetTraded() bool {
+	if x != nil {
+		return x.Traded
+	}
+	return false
+}
+
+func (x *BattleMon) GetExp() uint32 {
+	if x != nil {
+		return x.Exp
+	}
+	return 0
+}
+
+// One side's trainer and team.
+type BattleTeam struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// In party order: Battler.party_slot is the index.
+	Pokemon []*BattleMon `protobuf:"bytes,1,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
+	// Empty: a player chooses for this side (or, in a wild battle, side 1 picks a random move).
+	// Otherwise mic-battles' AI does, with these flags.
+	AiFlags []AiFlag `protobuf:"varint,2,rep,packed,name=ai_flags,json=aiFlags,proto3,enum=pokeuniverse.battle.v1.AiFlag" json:"ai_flags,omitempty"`
+	// An AI trainer's items (up to 4, FireRed's rules: phase-5 M5). Each is used once.
+	Items []v13.Item `protobuf:"varint,3,rep,packed,name=items,proto3,enum=pokeuniverse.item.v1.Item" json:"items,omitempty"`
+	// This player's battle style is SHIFT: offered a change when a foe faints (phase-5 D26).
+	ShiftStyle    bool `protobuf:"varint,4,opt,name=shift_style,json=shiftStyle,proto3" json:"shift_style,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BattleTeam) Reset() {
+	*x = BattleTeam{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleTeam) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleTeam) ProtoMessage() {}
+
+func (x *BattleTeam) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleTeam.ProtoReflect.Descriptor instead.
+func (*BattleTeam) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *BattleTeam) GetPokemon() []*BattleMon {
+	if x != nil {
+		return x.Pokemon
+	}
+	return nil
+}
+
+func (x *BattleTeam) GetAiFlags() []AiFlag {
+	if x != nil {
+		return x.AiFlags
+	}
+	return nil
+}
+
+func (x *BattleTeam) GetItems() []v13.Item {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *BattleTeam) GetShiftStyle() bool {
+	if x != nil {
+		return x.ShiftStyle
+	}
+	return false
+}
+
+// Request on `battles.start`: create and begin a battle. Replied with BattleUpdate (views set).
+type StartBattle struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Chosen by mic-core (a UUID); the Redis key battle:<id>.
+	BattleId string     `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
+	Kind     BattleKind `protobuf:"varint,2,opt,name=kind,proto3,enum=pokeuniverse.battle.v1.BattleKind" json:"kind,omitempty"`
+	// Side 0 is the player who started it; side 1 the opponent.
+	Sides []*BattleTeam `protobuf:"bytes,3,rep,name=sides,proto3" json:"sides,omitempty"`
+	// Showdown's PRNG seed: the whole battle follows from it and the choices.
+	Seed uint64 `protobuf:"varint,4,opt,name=seed,proto3" json:"seed,omitempty"`
+	// Two Pokémon a side (phase-5 D27).
+	Doubles       bool `protobuf:"varint,5,opt,name=doubles,proto3" json:"doubles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartBattle) Reset() {
+	*x = StartBattle{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartBattle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartBattle) ProtoMessage() {}
+
+func (x *StartBattle) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartBattle.ProtoReflect.Descriptor instead.
+func (*StartBattle) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *StartBattle) GetBattleId() string {
+	if x != nil {
+		return x.BattleId
+	}
+	return ""
+}
+
+func (x *StartBattle) GetKind() BattleKind {
+	if x != nil {
+		return x.Kind
+	}
+	return BattleKind_BATTLE_KIND_UNSPECIFIED
+}
+
+func (x *StartBattle) GetSides() []*BattleTeam {
+	if x != nil {
+		return x.Sides
+	}
+	return nil
+}
+
+func (x *StartBattle) GetSeed() uint64 {
+	if x != nil {
+		return x.Seed
+	}
+	return 0
+}
+
+func (x *StartBattle) GetDoubles() bool {
+	if x != nil {
+		return x.Doubles
+	}
+	return false
+}
+
+// One side's choice.
+type SideChoice struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Side   uint32                 `protobuf:"varint,1,opt,name=side,proto3" json:"side,omitempty"`
+	Action *BattleAction          `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	// Doubles: the second position's choice, when two must choose.
+	Partner       *BattleAction `protobuf:"bytes,3,opt,name=partner,proto3" json:"partner,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SideChoice) Reset() {
+	*x = SideChoice{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SideChoice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SideChoice) ProtoMessage() {}
+
+func (x *SideChoice) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SideChoice.ProtoReflect.Descriptor instead.
+func (*SideChoice) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SideChoice) GetSide() uint32 {
+	if x != nil {
+		return x.Side
+	}
+	return 0
+}
+
+func (x *SideChoice) GetAction() *BattleAction {
+	if x != nil {
+		return x.Action
+	}
+	return nil
+}
+
+func (x *SideChoice) GetPartner() *BattleAction {
+	if x != nil {
+		return x.Partner
+	}
+	return nil
+}
+
+// Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step
+// already played answers its saved BattleUpdate again (safe retries, phase-5 D2).
+type TurnRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BattleId      string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
+	Step          uint32                 `protobuf:"varint,2,opt,name=step,proto3" json:"step,omitempty"`
+	Choices       []*SideChoice          `protobuf:"bytes,3,rep,name=choices,proto3" json:"choices,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TurnRequest) Reset() {
+	*x = TurnRequest{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TurnRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TurnRequest) ProtoMessage() {}
+
+func (x *TurnRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TurnRequest.ProtoReflect.Descriptor instead.
+func (*TurnRequest) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *TurnRequest) GetBattleId() string {
+	if x != nil {
+		return x.BattleId
+	}
+	return ""
+}
+
+func (x *TurnRequest) GetStep() uint32 {
+	if x != nil {
+		return x.Step
+	}
+	return 0
+}
+
+func (x *TurnRequest) GetChoices() []*SideChoice {
+	if x != nil {
+		return x.Choices
+	}
+	return nil
+}
+
+// Request on `battles.forfeit`: a side gives up (or left for good). Replied with BattleUpdate.
+type Forfeit struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BattleId      string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
+	Side          uint32                 `protobuf:"varint,2,opt,name=side,proto3" json:"side,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Forfeit) Reset() {
+	*x = Forfeit{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Forfeit) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Forfeit) ProtoMessage() {}
+
+func (x *Forfeit) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Forfeit.ProtoReflect.Descriptor instead.
+func (*Forfeit) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Forfeit) GetBattleId() string {
+	if x != nil {
+		return x.BattleId
+	}
+	return ""
+}
+
+func (x *Forfeit) GetSide() uint32 {
+	if x != nil {
+		return x.Side
+	}
+	return 0
+}
+
+// Request on `battles.view`: one side's BattleView, to redraw the battle after a reconnect.
+type ViewRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BattleId      string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
+	Side          uint32                 `protobuf:"varint,2,opt,name=side,proto3" json:"side,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ViewRequest) Reset() {
+	*x = ViewRequest{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ViewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ViewRequest) ProtoMessage() {}
+
+func (x *ViewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ViewRequest.ProtoReflect.Descriptor instead.
+func (*ViewRequest) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ViewRequest) GetBattleId() string {
+	if x != nil {
+		return x.BattleId
+	}
+	return ""
+}
+
+func (x *ViewRequest) GetSide() uint32 {
+	if x != nil {
+		return x.Side
+	}
+	return 0
+}
+
+// What one side sees after a start or a step.
+type SideUpdate struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Events  []*BattleEvent         `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
+	Request *BattleRequest         `protobuf:"bytes,2,opt,name=request,proto3" json:"request,omitempty"`
+	// Only after battles.start.
+	View          *BattleView `protobuf:"bytes,3,opt,name=view,proto3" json:"view,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SideUpdate) Reset() {
+	*x = SideUpdate{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SideUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SideUpdate) ProtoMessage() {}
+
+func (x *SideUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SideUpdate.ProtoReflect.Descriptor instead.
+func (*SideUpdate) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SideUpdate) GetEvents() []*BattleEvent {
+	if x != nil {
+		return x.Events
+	}
+	return nil
+}
+
+func (x *SideUpdate) GetRequest() *BattleRequest {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+func (x *SideUpdate) GetView() *BattleView {
+	if x != nil {
+		return x.View
+	}
+	return nil
+}
+
+// One Pokémon at the end of a battle: what mic-core saves (D14).
+type MonOutcome struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Hp     uint32                 `protobuf:"varint,1,opt,name=hp,proto3" json:"hp,omitempty"`
+	Status v11.Status             `protobuf:"varint,2,opt,name=status,proto3,enum=pokeuniverse.pokemon.v1.Status" json:"status,omitempty"`
+	// In the party's move order.
+	Pp []uint32 `protobuf:"varint,3,rep,packed,name=pp,proto3" json:"pp,omitempty"`
+	// Unspecified: none (used up, knocked off…).
+	HeldItem v13.Item `protobuf:"varint,4,opt,name=held_item,json=heldItem,proto3,enum=pokeuniverse.item.v1.Item" json:"held_item,omitempty"`
+	// Experience and EVs gained in this battle, within the caps (the level follows from them).
+	Exp uint32     `protobuf:"varint,5,opt,name=exp,proto3" json:"exp,omitempty"`
+	Evs *v11.Stats `protobuf:"bytes,6,opt,name=evs,proto3" json:"evs,omitempty"`
+	// Its moves at the end, in the same order as pp: level ups can bring new ones.
+	Moves []v15.Move `protobuf:"varint,7,rep,packed,name=moves,proto3,enum=pokeuniverse.move.v1.Move" json:"moves,omitempty"`
+	// Each time it fainted, in order: true against a foe 30 or more levels above it.
+	Faints        []bool `protobuf:"varint,8,rep,packed,name=faints,proto3" json:"faints,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MonOutcome) Reset() {
+	*x = MonOutcome{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MonOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MonOutcome) ProtoMessage() {}
+
+func (x *MonOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MonOutcome.ProtoReflect.Descriptor instead.
+func (*MonOutcome) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MonOutcome) GetHp() uint32 {
+	if x != nil {
+		return x.Hp
+	}
+	return 0
+}
+
+func (x *MonOutcome) GetStatus() v11.Status {
+	if x != nil {
+		return x.Status
+	}
+	return v11.Status(0)
+}
+
+func (x *MonOutcome) GetPp() []uint32 {
+	if x != nil {
+		return x.Pp
+	}
+	return nil
+}
+
+func (x *MonOutcome) GetHeldItem() v13.Item {
+	if x != nil {
+		return x.HeldItem
+	}
+	return v13.Item(0)
+}
+
+func (x *MonOutcome) GetExp() uint32 {
+	if x != nil {
+		return x.Exp
+	}
+	return 0
+}
+
+func (x *MonOutcome) GetEvs() *v11.Stats {
+	if x != nil {
+		return x.Evs
+	}
+	return nil
+}
+
+func (x *MonOutcome) GetMoves() []v15.Move {
+	if x != nil {
+		return x.Moves
+	}
+	return nil
+}
+
+func (x *MonOutcome) GetFaints() []bool {
+	if x != nil {
+		return x.Faints
+	}
+	return nil
+}
+
+type SideOutcome struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Result BattleResult           `protobuf:"varint,1,opt,name=result,proto3,enum=pokeuniverse.battle.v1.BattleResult" json:"result,omitempty"`
+	// In party order, as the battle started.
+	Pokemon []*MonOutcome `protobuf:"bytes,2,rep,name=pokemon,proto3" json:"pokemon,omitempty"`
+	// The other side's species that came out, for the Pokédex.
+	Seen          []v1.Species `protobuf:"varint,3,rep,packed,name=seen,proto3,enum=pokeuniverse.species.v1.Species" json:"seen,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SideOutcome) Reset() {
+	*x = SideOutcome{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SideOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SideOutcome) ProtoMessage() {}
+
+func (x *SideOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SideOutcome.ProtoReflect.Descriptor instead.
+func (*SideOutcome) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SideOutcome) GetResult() BattleResult {
+	if x != nil {
+		return x.Result
+	}
+	return BattleResult_BATTLE_RESULT_UNSPECIFIED
+}
+
+func (x *SideOutcome) GetPokemon() []*MonOutcome {
+	if x != nil {
+		return x.Pokemon
+	}
+	return nil
+}
+
+func (x *SideOutcome) GetSeen() []v1.Species {
+	if x != nil {
+		return x.Seen
+	}
+	return nil
+}
+
+type BattleOutcome struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// By side.
+	Sides []*SideOutcome `protobuf:"bytes,1,rep,name=sides,proto3" json:"sides,omitempty"`
+	// An AMULET COIN or LUCK INCENSE came out on either side: the prize money doubles.
+	DoublePrize   bool `protobuf:"varint,2,opt,name=double_prize,json=doublePrize,proto3" json:"double_prize,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BattleOutcome) Reset() {
+	*x = BattleOutcome{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleOutcome) ProtoMessage() {}
+
+func (x *BattleOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleOutcome.ProtoReflect.Descriptor instead.
+func (*BattleOutcome) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *BattleOutcome) GetSides() []*SideOutcome {
+	if x != nil {
+		return x.Sides
+	}
+	return nil
+}
+
+func (x *BattleOutcome) GetDoublePrize() bool {
+	if x != nil {
+		return x.DoublePrize
+	}
+	return false
+}
+
+// Reply to battles.start, battles.turn and battles.forfeit.
+type BattleUpdate struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	BattleId string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
+	// By side.
+	Sides []*SideUpdate `protobuf:"bytes,2,rep,name=sides,proto3" json:"sides,omitempty"`
+	// Set once the battle is over.
+	Outcome       *BattleOutcome `protobuf:"bytes,3,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BattleUpdate) Reset() {
+	*x = BattleUpdate{}
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BattleUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BattleUpdate) ProtoMessage() {}
+
+func (x *BattleUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_battle_v1_battle_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BattleUpdate.ProtoReflect.Descriptor instead.
+func (*BattleUpdate) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *BattleUpdate) GetBattleId() string {
+	if x != nil {
+		return x.BattleId
+	}
+	return ""
+}
+
+func (x *BattleUpdate) GetSides() []*SideUpdate {
+	if x != nil {
+		return x.Sides
+	}
+	return nil
+}
+
+func (x *BattleUpdate) GetOutcome() *BattleOutcome {
+	if x != nil {
+		return x.Outcome
+	}
+	return nil
+}
+
 var File_pokeuniverse_battle_v1_battle_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_battle_v1_battle_proto_rawDesc = "" +
 	"\n" +
-	"#pokeuniverse/battle/v1/battle.proto\x12\x16pokeuniverse.battle.v1\"#\n" +
+	"#pokeuniverse/battle/v1/battle.proto\x12\x16pokeuniverse.battle.v1\x1a%pokeuniverse/ability/v1/catalog.proto\x1a\"pokeuniverse/battle/v1/event.proto\x1a!pokeuniverse/battle/v1/view.proto\x1a\"pokeuniverse/item/v1/catalog.proto\x1a\"pokeuniverse/move/v1/catalog.proto\x1a!pokeuniverse/party/v1/party.proto\x1a$pokeuniverse/pokemon/v1/nature.proto\x1a%pokeuniverse/pokemon/v1/pokemon.proto\x1a#pokeuniverse/pokemon/v1/stats.proto\x1a%pokeuniverse/species/v1/catalog.proto\"#\n" +
 	"\x04Ping\x12\x1b\n" +
 	"\tcore_time\x18\x01 \x01(\x04R\bcoreTime\"^\n" +
 	"\x04Pong\x12\x1b\n" +
 	"\tcore_time\x18\x01 \x01(\x04R\bcoreTime\x12!\n" +
 	"\fbattles_time\x18\x02 \x01(\x04R\vbattlesTime\x12\x16\n" +
-	"\x06format\x18\x03 \x01(\tR\x06formatBCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1b\x06proto3"
+	"\x06format\x18\x03 \x01(\tR\x06format\"\xc2\x05\n" +
+	"\tBattleMon\x12:\n" +
+	"\aspecies\x18\x01 \x01(\x0e2 .pokeuniverse.species.v1.SpeciesR\aspecies\x12\x1a\n" +
+	"\bnickname\x18\x02 \x01(\tR\bnickname\x12\x14\n" +
+	"\x05level\x18\x03 \x01(\rR\x05level\x127\n" +
+	"\x06nature\x18\x04 \x01(\x0e2\x1f.pokeuniverse.pokemon.v1.NatureR\x06nature\x12:\n" +
+	"\aability\x18\x05 \x01(\x0e2 .pokeuniverse.ability.v1.AbilityR\aability\x127\n" +
+	"\theld_item\x18\x06 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\bheldItem\x120\n" +
+	"\x03ivs\x18\a \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03ivs\x120\n" +
+	"\x03evs\x18\b \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03evs\x121\n" +
+	"\x05moves\x18\t \x03(\v2\x1b.pokeuniverse.party.v1.MoveR\x05moves\x12\x0e\n" +
+	"\x02hp\x18\n" +
+	" \x01(\rR\x02hp\x127\n" +
+	"\x06status\x18\v \x01(\x0e2\x1f.pokeuniverse.pokemon.v1.StatusR\x06status\x127\n" +
+	"\x06gender\x18\f \x01(\x0e2\x1f.pokeuniverse.pokemon.v1.GenderR\x06gender\x12\x14\n" +
+	"\x05shiny\x18\r \x01(\bR\x05shiny\x12 \n" +
+	"\vpersonality\x18\x0e \x01(\rR\vpersonality\x12\x1e\n" +
+	"\n" +
+	"friendship\x18\x0f \x01(\rR\n" +
+	"friendship\x12\x16\n" +
+	"\x06traded\x18\x10 \x01(\bR\x06traded\x12\x10\n" +
+	"\x03exp\x18\x11 \x01(\rR\x03exp\"\xd7\x01\n" +
+	"\n" +
+	"BattleTeam\x12;\n" +
+	"\apokemon\x18\x01 \x03(\v2!.pokeuniverse.battle.v1.BattleMonR\apokemon\x129\n" +
+	"\bai_flags\x18\x02 \x03(\x0e2\x1e.pokeuniverse.battle.v1.AiFlagR\aaiFlags\x120\n" +
+	"\x05items\x18\x03 \x03(\x0e2\x1a.pokeuniverse.item.v1.ItemR\x05items\x12\x1f\n" +
+	"\vshift_style\x18\x04 \x01(\bR\n" +
+	"shiftStyle\"\xca\x01\n" +
+	"\vStartBattle\x12\x1b\n" +
+	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x126\n" +
+	"\x04kind\x18\x02 \x01(\x0e2\".pokeuniverse.battle.v1.BattleKindR\x04kind\x128\n" +
+	"\x05sides\x18\x03 \x03(\v2\".pokeuniverse.battle.v1.BattleTeamR\x05sides\x12\x12\n" +
+	"\x04seed\x18\x04 \x01(\x04R\x04seed\x12\x18\n" +
+	"\adoubles\x18\x05 \x01(\bR\adoubles\"\x9e\x01\n" +
+	"\n" +
+	"SideChoice\x12\x12\n" +
+	"\x04side\x18\x01 \x01(\rR\x04side\x12<\n" +
+	"\x06action\x18\x02 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\x06action\x12>\n" +
+	"\apartner\x18\x03 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\apartner\"|\n" +
+	"\vTurnRequest\x12\x1b\n" +
+	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12\x12\n" +
+	"\x04step\x18\x02 \x01(\rR\x04step\x12<\n" +
+	"\achoices\x18\x03 \x03(\v2\".pokeuniverse.battle.v1.SideChoiceR\achoices\":\n" +
+	"\aForfeit\x12\x1b\n" +
+	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12\x12\n" +
+	"\x04side\x18\x02 \x01(\rR\x04side\">\n" +
+	"\vViewRequest\x12\x1b\n" +
+	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12\x12\n" +
+	"\x04side\x18\x02 \x01(\rR\x04side\"\xc2\x01\n" +
+	"\n" +
+	"SideUpdate\x12;\n" +
+	"\x06events\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\x12?\n" +
+	"\arequest\x18\x02 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\x126\n" +
+	"\x04view\x18\x03 \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x04view\"\xac\x02\n" +
+	"\n" +
+	"MonOutcome\x12\x0e\n" +
+	"\x02hp\x18\x01 \x01(\rR\x02hp\x127\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1f.pokeuniverse.pokemon.v1.StatusR\x06status\x12\x0e\n" +
+	"\x02pp\x18\x03 \x03(\rR\x02pp\x127\n" +
+	"\theld_item\x18\x04 \x01(\x0e2\x1a.pokeuniverse.item.v1.ItemR\bheldItem\x12\x10\n" +
+	"\x03exp\x18\x05 \x01(\rR\x03exp\x120\n" +
+	"\x03evs\x18\x06 \x01(\v2\x1e.pokeuniverse.pokemon.v1.StatsR\x03evs\x120\n" +
+	"\x05moves\x18\a \x03(\x0e2\x1a.pokeuniverse.move.v1.MoveR\x05moves\x12\x16\n" +
+	"\x06faints\x18\b \x03(\bR\x06faints\"\xbf\x01\n" +
+	"\vSideOutcome\x12<\n" +
+	"\x06result\x18\x01 \x01(\x0e2$.pokeuniverse.battle.v1.BattleResultR\x06result\x12<\n" +
+	"\apokemon\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.MonOutcomeR\apokemon\x124\n" +
+	"\x04seen\x18\x03 \x03(\x0e2 .pokeuniverse.species.v1.SpeciesR\x04seen\"m\n" +
+	"\rBattleOutcome\x129\n" +
+	"\x05sides\x18\x01 \x03(\v2#.pokeuniverse.battle.v1.SideOutcomeR\x05sides\x12!\n" +
+	"\fdouble_prize\x18\x02 \x01(\bR\vdoublePrize\"\xa6\x01\n" +
+	"\fBattleUpdate\x12\x1b\n" +
+	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x128\n" +
+	"\x05sides\x18\x02 \x03(\v2\".pokeuniverse.battle.v1.SideUpdateR\x05sides\x12?\n" +
+	"\aoutcome\x18\x03 \x01(\v2%.pokeuniverse.battle.v1.BattleOutcomeR\aoutcome*\xfd\x01\n" +
+	"\x06AiFlag\x12\x17\n" +
+	"\x13AI_FLAG_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16AI_FLAG_CHECK_BAD_MOVE\x10\x01\x12\x18\n" +
+	"\x14AI_FLAG_TRY_TO_FAINT\x10\x02\x12\x1b\n" +
+	"\x17AI_FLAG_CHECK_VIABILITY\x10\x03\x12\x1c\n" +
+	"\x18AI_FLAG_SETUP_FIRST_TURN\x10\x04\x12\x11\n" +
+	"\rAI_FLAG_RISKY\x10\x05\x12!\n" +
+	"\x1dAI_FLAG_PREFER_STRONGEST_MOVE\x10\x06\x12\x1d\n" +
+	"\x19AI_FLAG_PREFER_BATON_PASS\x10\a\x12\x14\n" +
+	"\x10AI_FLAG_HP_AWARE\x10\bBCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1b\x06proto3"
 
 var (
 	file_pokeuniverse_battle_v1_battle_proto_rawDescOnce sync.Once
@@ -158,17 +1229,76 @@ func file_pokeuniverse_battle_v1_battle_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_battle_v1_battle_proto_rawDescData
 }
 
-var file_pokeuniverse_battle_v1_battle_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_pokeuniverse_battle_v1_battle_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_pokeuniverse_battle_v1_battle_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_pokeuniverse_battle_v1_battle_proto_goTypes = []any{
-	(*Ping)(nil), // 0: pokeuniverse.battle.v1.Ping
-	(*Pong)(nil), // 1: pokeuniverse.battle.v1.Pong
+	(AiFlag)(0),           // 0: pokeuniverse.battle.v1.AiFlag
+	(*Ping)(nil),          // 1: pokeuniverse.battle.v1.Ping
+	(*Pong)(nil),          // 2: pokeuniverse.battle.v1.Pong
+	(*BattleMon)(nil),     // 3: pokeuniverse.battle.v1.BattleMon
+	(*BattleTeam)(nil),    // 4: pokeuniverse.battle.v1.BattleTeam
+	(*StartBattle)(nil),   // 5: pokeuniverse.battle.v1.StartBattle
+	(*SideChoice)(nil),    // 6: pokeuniverse.battle.v1.SideChoice
+	(*TurnRequest)(nil),   // 7: pokeuniverse.battle.v1.TurnRequest
+	(*Forfeit)(nil),       // 8: pokeuniverse.battle.v1.Forfeit
+	(*ViewRequest)(nil),   // 9: pokeuniverse.battle.v1.ViewRequest
+	(*SideUpdate)(nil),    // 10: pokeuniverse.battle.v1.SideUpdate
+	(*MonOutcome)(nil),    // 11: pokeuniverse.battle.v1.MonOutcome
+	(*SideOutcome)(nil),   // 12: pokeuniverse.battle.v1.SideOutcome
+	(*BattleOutcome)(nil), // 13: pokeuniverse.battle.v1.BattleOutcome
+	(*BattleUpdate)(nil),  // 14: pokeuniverse.battle.v1.BattleUpdate
+	(v1.Species)(0),       // 15: pokeuniverse.species.v1.Species
+	(v11.Nature)(0),       // 16: pokeuniverse.pokemon.v1.Nature
+	(v12.Ability)(0),      // 17: pokeuniverse.ability.v1.Ability
+	(v13.Item)(0),         // 18: pokeuniverse.item.v1.Item
+	(*v11.Stats)(nil),     // 19: pokeuniverse.pokemon.v1.Stats
+	(*v14.Move)(nil),      // 20: pokeuniverse.party.v1.Move
+	(v11.Status)(0),       // 21: pokeuniverse.pokemon.v1.Status
+	(v11.Gender)(0),       // 22: pokeuniverse.pokemon.v1.Gender
+	(BattleKind)(0),       // 23: pokeuniverse.battle.v1.BattleKind
+	(*BattleAction)(nil),  // 24: pokeuniverse.battle.v1.BattleAction
+	(*BattleEvent)(nil),   // 25: pokeuniverse.battle.v1.BattleEvent
+	(*BattleRequest)(nil), // 26: pokeuniverse.battle.v1.BattleRequest
+	(*BattleView)(nil),    // 27: pokeuniverse.battle.v1.BattleView
+	(v15.Move)(0),         // 28: pokeuniverse.move.v1.Move
+	(BattleResult)(0),     // 29: pokeuniverse.battle.v1.BattleResult
 }
 var file_pokeuniverse_battle_v1_battle_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	15, // 0: pokeuniverse.battle.v1.BattleMon.species:type_name -> pokeuniverse.species.v1.Species
+	16, // 1: pokeuniverse.battle.v1.BattleMon.nature:type_name -> pokeuniverse.pokemon.v1.Nature
+	17, // 2: pokeuniverse.battle.v1.BattleMon.ability:type_name -> pokeuniverse.ability.v1.Ability
+	18, // 3: pokeuniverse.battle.v1.BattleMon.held_item:type_name -> pokeuniverse.item.v1.Item
+	19, // 4: pokeuniverse.battle.v1.BattleMon.ivs:type_name -> pokeuniverse.pokemon.v1.Stats
+	19, // 5: pokeuniverse.battle.v1.BattleMon.evs:type_name -> pokeuniverse.pokemon.v1.Stats
+	20, // 6: pokeuniverse.battle.v1.BattleMon.moves:type_name -> pokeuniverse.party.v1.Move
+	21, // 7: pokeuniverse.battle.v1.BattleMon.status:type_name -> pokeuniverse.pokemon.v1.Status
+	22, // 8: pokeuniverse.battle.v1.BattleMon.gender:type_name -> pokeuniverse.pokemon.v1.Gender
+	3,  // 9: pokeuniverse.battle.v1.BattleTeam.pokemon:type_name -> pokeuniverse.battle.v1.BattleMon
+	0,  // 10: pokeuniverse.battle.v1.BattleTeam.ai_flags:type_name -> pokeuniverse.battle.v1.AiFlag
+	18, // 11: pokeuniverse.battle.v1.BattleTeam.items:type_name -> pokeuniverse.item.v1.Item
+	23, // 12: pokeuniverse.battle.v1.StartBattle.kind:type_name -> pokeuniverse.battle.v1.BattleKind
+	4,  // 13: pokeuniverse.battle.v1.StartBattle.sides:type_name -> pokeuniverse.battle.v1.BattleTeam
+	24, // 14: pokeuniverse.battle.v1.SideChoice.action:type_name -> pokeuniverse.battle.v1.BattleAction
+	24, // 15: pokeuniverse.battle.v1.SideChoice.partner:type_name -> pokeuniverse.battle.v1.BattleAction
+	6,  // 16: pokeuniverse.battle.v1.TurnRequest.choices:type_name -> pokeuniverse.battle.v1.SideChoice
+	25, // 17: pokeuniverse.battle.v1.SideUpdate.events:type_name -> pokeuniverse.battle.v1.BattleEvent
+	26, // 18: pokeuniverse.battle.v1.SideUpdate.request:type_name -> pokeuniverse.battle.v1.BattleRequest
+	27, // 19: pokeuniverse.battle.v1.SideUpdate.view:type_name -> pokeuniverse.battle.v1.BattleView
+	21, // 20: pokeuniverse.battle.v1.MonOutcome.status:type_name -> pokeuniverse.pokemon.v1.Status
+	18, // 21: pokeuniverse.battle.v1.MonOutcome.held_item:type_name -> pokeuniverse.item.v1.Item
+	19, // 22: pokeuniverse.battle.v1.MonOutcome.evs:type_name -> pokeuniverse.pokemon.v1.Stats
+	28, // 23: pokeuniverse.battle.v1.MonOutcome.moves:type_name -> pokeuniverse.move.v1.Move
+	29, // 24: pokeuniverse.battle.v1.SideOutcome.result:type_name -> pokeuniverse.battle.v1.BattleResult
+	11, // 25: pokeuniverse.battle.v1.SideOutcome.pokemon:type_name -> pokeuniverse.battle.v1.MonOutcome
+	15, // 26: pokeuniverse.battle.v1.SideOutcome.seen:type_name -> pokeuniverse.species.v1.Species
+	12, // 27: pokeuniverse.battle.v1.BattleOutcome.sides:type_name -> pokeuniverse.battle.v1.SideOutcome
+	10, // 28: pokeuniverse.battle.v1.BattleUpdate.sides:type_name -> pokeuniverse.battle.v1.SideUpdate
+	13, // 29: pokeuniverse.battle.v1.BattleUpdate.outcome:type_name -> pokeuniverse.battle.v1.BattleOutcome
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_battle_v1_battle_proto_init() }
@@ -176,18 +1306,21 @@ func file_pokeuniverse_battle_v1_battle_proto_init() {
 	if File_pokeuniverse_battle_v1_battle_proto != nil {
 		return
 	}
+	file_pokeuniverse_battle_v1_event_proto_init()
+	file_pokeuniverse_battle_v1_view_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_battle_v1_battle_proto_rawDesc), len(file_pokeuniverse_battle_v1_battle_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      1,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_pokeuniverse_battle_v1_battle_proto_goTypes,
 		DependencyIndexes: file_pokeuniverse_battle_v1_battle_proto_depIdxs,
+		EnumInfos:         file_pokeuniverse_battle_v1_battle_proto_enumTypes,
 		MessageInfos:      file_pokeuniverse_battle_v1_battle_proto_msgTypes,
 	}.Build()
 	File_pokeuniverse_battle_v1_battle_proto = out.File

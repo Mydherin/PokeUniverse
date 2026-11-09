@@ -14,7 +14,7 @@ export interface IndexedImage {
 
 const toColor = (r: number, g: number, b: number): Color => (r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10);
 
-async function fetchBytes(url: string): Promise<Uint8Array> {
+export async function fetchBytes(url: string): Promise<Uint8Array> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`asset ${url}: ${res.status}`);
   return new Uint8Array(await res.arrayBuffer());

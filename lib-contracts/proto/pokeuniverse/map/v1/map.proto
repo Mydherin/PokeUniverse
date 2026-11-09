@@ -27,6 +27,29 @@ message ClientMap {
   bytes walkable = 12;
   bytes elevation = 13;
   repeated TileBehavior behaviors = 14;
+  // The people standing on the map: drawn, and blocking steps.
+  repeated ClientNpc npcs = 15;
+  // The cells with a warp: standing on one and going its way asks mic-core to warp (UseWarp).
+  repeated WarpCell warps = 16;
+  // The map's region (lib-maps `region`): names its place, e.g. in the save window.
+  string region = 17;
+}
+
+message WarpCell {
+  uint32 x = 1;
+  uint32 y = 2;
+}
+
+// An NPC as the client draws it (its script stays on the server).
+message ClientNpc {
+  // The object's ID in the map.
+  string id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  // Object event art, by ID (each art style maps it to its images).
+  string sprite = 4;
+  // Where it faces as the map loads.
+  Direction facing = 5;
 }
 
 // What mic-core plays: collision, behaviors, warps and objects.

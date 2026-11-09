@@ -22,6 +22,7 @@ import (
 	"pokeuniverse/mic-core/internal/item"
 	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/pokedex"
+	"pokeuniverse/mic-core/internal/pokemon"
 	"pokeuniverse/mic-core/internal/world"
 )
 
@@ -87,7 +88,7 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid trainer", http.StatusUnprocessableEntity)
 		return
 	}
-	// The trainer and its starting bag, saved together.
+	// The trainer, its starting items and an empty party, saved together.
 	var row db.PutTrainerRow
 	err = pgx.BeginFunc(r.Context(), h.Pool, func(tx pgx.Tx) error {
 		q := db.New(tx)
@@ -107,7 +108,10 @@ func (h *Handler) put(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		return item.Reset(r.Context(), q, p.AccountID)
+		if err := item.Reset(r.Context(), q, p.AccountID); err != nil {
+			return err
+		}
+		return pokemon.Reset(r.Context(), q, p.AccountID)
 	})
 	if err != nil {
 		h.Log.Error("put trainer", "err", err)
@@ -138,7 +142,7 @@ func summary(row db.GetTrainerRow) *trainerv1.TrainerSummary {
 		Name:            row.Name,
 		Gender:          g,
 		PlayTimeSeconds: uint32(min(row.PlayTimeSeconds, int64(^uint32(0)))),
-		// Badges arrive with the gyms (Phase 10).
+		// Badges arrive with the gyms (Phase 12).
 		Badges:        0,
 		PokedexCaught: pokedex.Load(row).CaughtCount(),
 		Location:      &trainerv1.Location{Map: row.MapID, X: uint32(row.X), Y: uint32(row.Y)},

@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	"pokeuniverse/mic-core/internal/db"
 )
@@ -43,31 +40,28 @@ func Load(ctx context.Context, q *db.Queries, accountID int64, row db.GetTrainer
 	return &State{Bag: bag, PC: pc, RepelSteps: int(row.RepelSteps), Flute: Flute(row.Flute), Coins: int(row.Coins), BerryPowder: int(row.BerryPowder)}, nil
 }
 
-// Save writes what an action changed in one transaction (one action, one transaction), only
-// into the save it belongs to (`save`: the trainer's created_at).
-func Save(ctx context.Context, pool *pgxpool.Pool, accountID int64, save time.Time, s *State, changed Changed) error {
-	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
-		q := db.New(tx)
-		n, err := q.UpdateTrainerItemState(ctx, db.UpdateTrainerItemStateParams{
-			AccountID: accountID, RegisteredItem: int16(s.Bag.Registered), RepelSteps: int16(s.RepelSteps),
-			Flute: string(s.Flute), Coins: int32(s.Coins), BerryPowder: int32(s.BerryPowder), CreatedAt: save,
-		})
-		if err != nil {
-			return fmt.Errorf("save item state: %w", err)
-		}
-		if n == 0 {
-			return ErrStaleSave
-		}
-		for _, p := range changed.Pockets {
-			if err := writePocket(ctx, q, accountID, p, s.Bag.pockets[p]); err != nil {
-				return err
-			}
-		}
-		if changed.PC {
-			return writePC(ctx, q, accountID, s.PC.slots)
-		}
-		return nil
+// Write saves what an action changed inside the caller's transaction (one action, one
+// transaction), only into the save it belongs to (`save`: the trainer's created_at).
+func Write(ctx context.Context, q *db.Queries, accountID int64, save time.Time, s *State, changed Changed) error {
+	n, err := q.UpdateTrainerItemState(ctx, db.UpdateTrainerItemStateParams{
+		AccountID: accountID, RegisteredItem: int16(s.Bag.Registered), RepelSteps: int16(s.RepelSteps),
+		Flute: string(s.Flute), Coins: int32(s.Coins), BerryPowder: int32(s.BerryPowder), CreatedAt: save,
 	})
+	if err != nil {
+		return fmt.Errorf("save item state: %w", err)
+	}
+	if n == 0 {
+		return ErrStaleSave
+	}
+	for _, p := range changed.Pockets {
+		if err := writePocket(ctx, q, accountID, p, s.Bag.pockets[p]); err != nil {
+			return err
+		}
+	}
+	if changed.PC {
+		return writePC(ctx, q, accountID, s.PC.slots)
+	}
+	return nil
 }
 
 // Reset gives a New Game's trainer FireRed's starting items, inside New Game's transaction: an

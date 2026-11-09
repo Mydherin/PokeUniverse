@@ -3,16 +3,16 @@
 // checks it and corrects the client when it disagrees; the player then goes back where the server says.
 
 import { Direction, TileBehavior, type ClientMap } from "@pokeuniverse/contracts/map/v1/map";
-import { behaviorAt, elevationAt, TILE } from "./map";
+import { behaviorAt, elevationAt, TILE, warpAt } from "./map";
 import { checkStep, Collision, DELTAS, elevationAfter } from "./rules";
 
 /** Frames per action at 59.73 fps: a step walking (1 px a frame) or running (2), turning in place, bumping. */
-const WALK_FRAMES = 16;
-const RUN_FRAMES = 8;
+export const WALK_FRAMES = 16;
+export const RUN_FRAMES = 8;
 const TURN_FRAMES = 8;
 const BUMP_FRAMES = 32;
 
-export type ActionKind = "walk" | "run" | "turn" | "bump";
+export type ActionKind = "walk" | "run" | "turn" | "bump" | "walkInPlace";
 
 /** What the player is doing; `foot` is which half of the step animation it starts with. */
 export interface Action {
@@ -40,6 +40,8 @@ export interface AvatarInput {
 export interface AvatarLink {
   move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
   turn(direction: Direction): void;
+  /** Going the way of the stair warp the player stands on. */
+  warp(direction: Direction, x: number, y: number): void;
   interact(walkInto: boolean): void;
   /** START, standing still between steps: the START menu opens. */
   openMenu(): void;
@@ -149,6 +151,12 @@ export class Avatar {
     this.running = Running.Still;
   }
 
+  /** A step's animation on the spot: normal speed, or fast (a turn's), as the stairs do. */
+  walkInPlace(fast: boolean): void {
+    if (fast) this.start("turn", TURN_FRAMES);
+    else this.start("walkInPlace", WALK_FRAMES);
+  }
+
   /** CheckMovementInputNotOnBike and what follows it. */
   private decide({ direction: d, run }: AvatarInput): void {
     if (d === Direction.UNSPECIFIED) {
@@ -164,7 +172,10 @@ export class Avatar {
     this.running = Running.Moving;
     switch (checkStep(this.map, this.x, this.y, this.elevation, d)) {
       case Collision.StairWarp:
-        this.face(d);
+        if (d === this.facing && warpAt(this.map, this.x, this.y)) {
+          this.running = Running.Still;
+          this.link.warp(d, this.x, this.y);
+        } else this.face(d);
         return;
       case Collision.Blocked:
         this.face(d);

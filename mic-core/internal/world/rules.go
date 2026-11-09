@@ -16,18 +16,18 @@ const (
 	CollisionNone Collision = iota
 	// A wall, the map's edge, a one-way tile or another elevation: the player bumps.
 	CollisionBlocked
-	// Standing on a stair warp and facing its way: the player only turns (the warp itself comes
-	// with map changes).
+	// Standing on a stair warp and going its way: no step, the player turns and warps (UseWarp).
 	CollisionStairWarp
 )
 
 // CheckStep tells what stops a step from `from` in direction d, at the player's elevation.
+// NPCs block the cell they stand on.
 func CheckStep(m *Map, from Point, elevation byte, d mapv1.Direction) Collision {
 	if isStairWarp(m.Behavior(from), d) {
 		return CollisionStairWarp
 	}
 	to := from.Step(d)
-	if !m.Walkable(to) || leaveBlocked(m.Behavior(from), d) || enterBlocked(m.Behavior(to), d) ||
+	if !m.Walkable(to) || m.NpcAt(to) != nil || leaveBlocked(m.Behavior(from), d) || enterBlocked(m.Behavior(to), d) ||
 		elevationMismatch(elevation, m.Elevation(to)) {
 		return CollisionBlocked
 	}

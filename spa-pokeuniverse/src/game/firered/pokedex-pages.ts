@@ -13,6 +13,7 @@ import { KANTO_COUNT, speciesInfo, type PokedexState } from "../world/pokedex";
 import { fillBgRect } from "./common";
 import type { Flow } from "./flow";
 import type { PokemonArt } from "./manifest";
+import { blitMenuInfoIcon, MENU_INFO_CAUGHT, typeIcon } from "./menu-info";
 import HABITATS from "./pokedex-habitats.json";
 
 /** The habitats (DEX_CATEGORY_*), each a list of pages of national numbers (ours: FireRed's 386 and Gen 4's). */
@@ -109,10 +110,6 @@ const AREA_KANTO: WindowTemplate = { left: 17, top: 4, width: 12, height: 9, pal
 /** The Kanto map's vertical offset in tiles: 0 once a Sevii island past Three Island is unlocked (none yet). */
 const KANTO_MAP_VOFF = 4;
 
-/** sMenuInfoIcons: the caught Poké Ball, then each type's icon by Type (FireRed's TYPE_ number + 1), in menu_info's tiles. */
-const MENU_INFO_CAUGHT = { tile: 0x00, width: 12, height: 12 };
-const TYPE_ICON_TILES = [0, 0x20, 0x64, 0x60, 0x80, 0x48, 0x44, 0x6c, 0x68, 0x88, 0xa4, 0x24, 0x28, 0x2c, 0x40, 0x84, 0x4c, 0xa0, 0x8c];
-
 /** The red outline (sCursorStruct_CategoryPage): 64×40 around a name card, OBJ palette 4. */
 const OUTLINE_WIDTH = 64;
 const OUTLINE_HEIGHT = 40;
@@ -195,17 +192,14 @@ export class DexPages {
     this.print(win, font, num3(species, false), x + 9, y, 0);
   }
 
-  /** BlitMenuInfoIcon: the caught ball, or a type's icon. */
-  blitMenuInfo(win: Window, icon: { tile: number; width: number; height: number }, x: number, y: number): void {
-    win.blitRect(this.flow.assets.get("menuInfo").image!, (icon.tile % 16) * 8, (icon.tile >> 4) * 8, x, y, icon.width, icon.height);
-  }
-
+  /** BlitMenuInfoIcon: the caught ball. */
   blitCaught(win: Window, x: number, y: number): void {
-    this.blitMenuInfo(win, MENU_INFO_CAUGHT, x, y);
+    blitMenuInfoIcon(this.flow, win, MENU_INFO_CAUGHT, x, y);
   }
 
+  /** BlitMenuInfoIcon: a type's icon. */
   blitType(win: Window, type: number, x: number, y: number): void {
-    this.blitMenuInfo(win, { tile: TYPE_ICON_TILES[type] ?? TYPE_ICON_TILES[1], width: 32, height: 12 }, x, y);
+    blitMenuInfoIcon(this.flow, win, typeIcon(type), x, y);
   }
 
   // Habitats

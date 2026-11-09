@@ -7,11 +7,19 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { BattleChoice, BattleEnded, BattleStarted, BattleTurn } from "../../battle/v1/view_pb";
+import { file_pokeuniverse_battle_v1_view } from "../../battle/v1/view_pb";
 import type { BagChanged, GiveItem, ItemResult, MoveItem, RegisterItem, TossItem, UseItem } from "../../item/v1/bag_pb";
 import { file_pokeuniverse_item_v1_bag } from "../../item/v1/bag_pb";
 import type { DepositItem, MovePcItem, PcChanged, WithdrawItem } from "../../item/v1/pc_pb";
 import { file_pokeuniverse_item_v1_pc } from "../../item/v1/pc_pb";
-import type { Correction, EnterWorld, Interact, Move, Script, ScriptDone, Turn, WorldSnapshot } from "../../world/v1/world_pb";
+import type { BoxView, GiveHeldItem, MoveHeldItem, MovePokemon, OpenBox, ReleasePokemon, RenameBox, SetBoxWallpaper, SetMarkings, StoreHeldItem } from "../../party/v1/box_pb";
+import { file_pokeuniverse_party_v1_box } from "../../party/v1/box_pb";
+import type { EvolvePokemon, FieldMoveResult, GivePartyItem, LearnMove, LearnMoveResult, PartyChanged, PokemonEvolved, SwapPartySlots, SwapPokemonMoves, TakePartyItem, UseFieldMove, UsePartyItem } from "../../party/v1/party_pb";
+import { file_pokeuniverse_party_v1_party } from "../../party/v1/party_pb";
+import type { PokedexChanged } from "../../pokedex/v1/pokedex_pb";
+import { file_pokeuniverse_pokedex_v1_pokedex } from "../../pokedex/v1/pokedex_pb";
+import type { Correction, EnterWorld, FollowerChanged, Interact, Move, Script, ScriptBattle, ScriptDone, Turn, UseWarp, Warped, WorldSnapshot } from "../../world/v1/world_pb";
 import { file_pokeuniverse_world_v1_world } from "../../world/v1/world_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -19,7 +27,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/realtime/v1/realtime.proto.
  */
 export const file_pokeuniverse_realtime_v1_realtime: GenFile = /*@__PURE__*/
-  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSLbBgoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIABIxCgh1c2VfaXRlbRgJIAEoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLlVzZUl0ZW1IABIzCglnaXZlX2l0ZW0YCiABKAsyHi5wb2tldW5pdmVyc2UuaXRlbS52MS5HaXZlSXRlbUgAEjMKCXRvc3NfaXRlbRgLIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLlRvc3NJdGVtSAASOwoNcmVnaXN0ZXJfaXRlbRgMIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLlJlZ2lzdGVySXRlbUgAEjMKCW1vdmVfaXRlbRgNIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLk1vdmVJdGVtSAASOwoNd2l0aGRyYXdfaXRlbRgOIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLldpdGhkcmF3SXRlbUgAEjkKDGRlcG9zaXRfaXRlbRgPIAEoCzIhLnBva2V1bml2ZXJzZS5pdGVtLnYxLkRlcG9zaXRJdGVtSAASOAoMbW92ZV9wY19pdGVtGBAgASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuTW92ZVBjSXRlbUgAQgkKB3BheWxvYWQijAQKDVNlcnZlck1lc3NhZ2USCwoDc2VxGAEgASgNEjQKB3dlbGNvbWUYAiABKAsyIS5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuV2VsY29tZUgAEi4KBHBvbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUG9uZ0gAEjAKBWVycm9yGAQgASgLMh8ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9ySAASOAoIc25hcHNob3QYBSABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuV29ybGRTbmFwc2hvdEgAEjcKCmNvcnJlY3Rpb24YBiABKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuQ29ycmVjdGlvbkgAEi8KBnNjcmlwdBgHIAEoCzIdLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRIABI3CgtiYWdfY2hhbmdlZBgIIAEoCzIgLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ0NoYW5nZWRIABI3CgtpdGVtX3Jlc3VsdBgJIAEoCzIgLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW1SZXN1bHRIABI1CgpwY19jaGFuZ2VkGAogASgLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuUGNDaGFuZ2VkSABCCQoHcGF5bG9hZCI2CgxBdXRoZW50aWNhdGUSFAoMYWNjZXNzX3Rva2VuGAEgASgJEhAKCGluc3RhbmNlGAIgASgJIjYKB1dlbGNvbWUSEgoKYWNjb3VudF9pZBgBIAEoBEoECAIQA1IRcGxheWluZ19lbHNld2hlcmUiGwoEUGluZxITCgtjbGllbnRfdGltZRgBIAEoBCIwCgRQb25nEhMKC2NsaWVudF90aW1lGAEgASgEEhMKC3NlcnZlcl90aW1lGAIgASgEIjoKBUVycm9yEjEKBGNvZGUYASABKA4yIy5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuRXJyb3JDb2RlKtQBCglFcnJvckNvZGUSGgoWRVJST1JfQ09ERV9VTlNQRUNJRklFRBAAEh4KGkVSUk9SX0NPREVfVU5BVVRIRU5USUNBVEVEEAESHAoYRVJST1JfQ09ERV9UT0tFTl9FWFBJUkVEEAISGgoWRVJST1JfQ09ERV9CQURfTUVTU0FHRRADEhkKFUVSUk9SX0NPREVfTk9fVFJBSU5FUhAEEhcKE0VSUk9SX0NPREVfUkVQTEFDRUQQBRIdChlFUlJPUl9DT0RFX1NFU1NJT05fQUNUSVZFEAZCR1pFcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9yZWFsdGltZS92MTtyZWFsdGltZXYxYgZwcm90bzM", [file_pokeuniverse_item_v1_bag, file_pokeuniverse_item_v1_pc, file_pokeuniverse_world_v1_world]);
+  fileDesc("Cidwb2tldW5pdmVyc2UvcmVhbHRpbWUvdjEvcmVhbHRpbWUucHJvdG8SGHBva2V1bml2ZXJzZS5yZWFsdGltZS52MSK4EAoNQ2xpZW50TWVzc2FnZRILCgNzZXEYASABKA0SPgoMYXV0aGVudGljYXRlGAIgASgLMiYucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkF1dGhlbnRpY2F0ZUgAEi4KBHBpbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUGluZ0gAEjgKC2VudGVyX3dvcmxkGAQgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLkVudGVyV29ybGRIABIrCgRtb3ZlGAUgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1vdmVIABIrCgR0dXJuGAYgASgLMhsucG9rZXVuaXZlcnNlLndvcmxkLnYxLlR1cm5IABIzCghpbnRlcmFjdBgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5JbnRlcmFjdEgAEjgKC3NjcmlwdF9kb25lGAggASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdERvbmVIABIxCgh1c2VfaXRlbRgJIAEoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLlVzZUl0ZW1IABIzCglnaXZlX2l0ZW0YCiABKAsyHi5wb2tldW5pdmVyc2UuaXRlbS52MS5HaXZlSXRlbUgAEjMKCXRvc3NfaXRlbRgLIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLlRvc3NJdGVtSAASOwoNcmVnaXN0ZXJfaXRlbRgMIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLlJlZ2lzdGVySXRlbUgAEjMKCW1vdmVfaXRlbRgNIAEoCzIeLnBva2V1bml2ZXJzZS5pdGVtLnYxLk1vdmVJdGVtSAASOwoNd2l0aGRyYXdfaXRlbRgOIAEoCzIiLnBva2V1bml2ZXJzZS5pdGVtLnYxLldpdGhkcmF3SXRlbUgAEjkKDGRlcG9zaXRfaXRlbRgPIAEoCzIhLnBva2V1bml2ZXJzZS5pdGVtLnYxLkRlcG9zaXRJdGVtSAASOAoMbW92ZV9wY19pdGVtGBAgASgLMiAucG9rZXVuaXZlcnNlLml0ZW0udjEuTW92ZVBjSXRlbUgAEkEKEHN3YXBfcGFydHlfc2xvdHMYESABKAsyJS5wb2tldW5pdmVyc2UucGFydHkudjEuU3dhcFBhcnR5U2xvdHNIABI/Cg9naXZlX3BhcnR5X2l0ZW0YEiABKAsyJC5wb2tldW5pdmVyc2UucGFydHkudjEuR2l2ZVBhcnR5SXRlbUgAEj8KD3Rha2VfcGFydHlfaXRlbRgTIAEoCzIkLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5UYWtlUGFydHlJdGVtSAASRQoSc3dhcF9wb2tlbW9uX21vdmVzGBQgASgLMicucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlN3YXBQb2tlbW9uTW92ZXNIABI9Cg1iYXR0bGVfY2hvaWNlGBUgASgLMiQucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVDaG9pY2VIABI8Cg1zY3JpcHRfYmF0dGxlGBYgASgLMiMucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdEJhdHRsZUgAEj4KDmV2b2x2ZV9wb2tlbW9uGBcgASgLMiQucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkV2b2x2ZVBva2Vtb25IABI2CgpsZWFybl9tb3ZlGBggASgLMiAucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkxlYXJuTW92ZUgAEjIKCHVzZV93YXJwGBkgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLlVzZVdhcnBIABI9Cg51c2VfcGFydHlfaXRlbRgaIAEoCzIjLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Vc2VQYXJ0eUl0ZW1IABI9Cg51c2VfZmllbGRfbW92ZRgbIAEoCzIjLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Vc2VGaWVsZE1vdmVIABIyCghvcGVuX2JveBgcIAEoCzIeLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5PcGVuQm94SAASOgoMbW92ZV9wb2tlbW9uGB0gASgLMiIucG9rZXVuaXZlcnNlLnBhcnR5LnYxLk1vdmVQb2tlbW9uSAASQAoPcmVsZWFzZV9wb2tlbW9uGB4gASgLMiUucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlJlbGVhc2VQb2tlbW9uSAASNgoKcmVuYW1lX2JveBgfIAEoCzIgLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5SZW5hbWVCb3hIABJDChFzZXRfYm94X3dhbGxwYXBlchggIAEoCzImLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5TZXRCb3hXYWxscGFwZXJIABI6CgxzZXRfbWFya2luZ3MYISABKAsyIi5wb2tldW5pdmVyc2UucGFydHkudjEuU2V0TWFya2luZ3NIABI9Cg5tb3ZlX2hlbGRfaXRlbRgiIAEoCzIjLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Nb3ZlSGVsZEl0ZW1IABI/Cg9zdG9yZV9oZWxkX2l0ZW0YIyABKAsyJC5wb2tldW5pdmVyc2UucGFydHkudjEuU3RvcmVIZWxkSXRlbUgAEj0KDmdpdmVfaGVsZF9pdGVtGCQgASgLMiMucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkdpdmVIZWxkSXRlbUgAQgkKB3BheWxvYWQivAkKDVNlcnZlck1lc3NhZ2USCwoDc2VxGAEgASgNEjQKB3dlbGNvbWUYAiABKAsyIS5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuV2VsY29tZUgAEi4KBHBvbmcYAyABKAsyHi5wb2tldW5pdmVyc2UucmVhbHRpbWUudjEuUG9uZ0gAEjAKBWVycm9yGAQgASgLMh8ucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9ySAASOAoIc25hcHNob3QYBSABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuV29ybGRTbmFwc2hvdEgAEjcKCmNvcnJlY3Rpb24YBiABKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuQ29ycmVjdGlvbkgAEi8KBnNjcmlwdBgHIAEoCzIdLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRIABI3CgtiYWdfY2hhbmdlZBgIIAEoCzIgLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ0NoYW5nZWRIABI3CgtpdGVtX3Jlc3VsdBgJIAEoCzIgLnBva2V1bml2ZXJzZS5pdGVtLnYxLkl0ZW1SZXN1bHRIABI1CgpwY19jaGFuZ2VkGAogASgLMh8ucG9rZXVuaXZlcnNlLml0ZW0udjEuUGNDaGFuZ2VkSAASPAoNcGFydHlfY2hhbmdlZBgLIAEoCzIjLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eUNoYW5nZWRIABI/Cg5iYXR0bGVfc3RhcnRlZBgMIAEoCzIlLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlU3RhcnRlZEgAEjkKC2JhdHRsZV90dXJuGA0gASgLMiIucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVUdXJuSAASOwoMYmF0dGxlX2VuZGVkGA4gASgLMiMucG9rZXVuaXZlcnNlLmJhdHRsZS52MS5CYXR0bGVFbmRlZEgAEkAKD3Bva2Vtb25fZXZvbHZlZBgPIAEoCzIlLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5Qb2tlbW9uRXZvbHZlZEgAEkIKD3Bva2VkZXhfY2hhbmdlZBgQIAEoCzInLnBva2V1bml2ZXJzZS5wb2tlZGV4LnYxLlBva2VkZXhDaGFuZ2VkSAASLwoGd2FycGVkGBEgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLldhcnBlZEgAEkMKEWxlYXJuX21vdmVfcmVzdWx0GBIgASgLMiYucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkxlYXJuTW92ZVJlc3VsdEgAEkMKEWZpZWxkX21vdmVfcmVzdWx0GBMgASgLMiYucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkZpZWxkTW92ZVJlc3VsdEgAEjIKCGJveF92aWV3GBQgASgLMh4ucG9rZXVuaXZlcnNlLnBhcnR5LnYxLkJveFZpZXdIABJCChBmb2xsb3dlcl9jaGFuZ2VkGBUgASgLMiYucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyQ2hhbmdlZEgAQgkKB3BheWxvYWQiNgoMQXV0aGVudGljYXRlEhQKDGFjY2Vzc190b2tlbhgBIAEoCRIQCghpbnN0YW5jZRgCIAEoCSI2CgdXZWxjb21lEhIKCmFjY291bnRfaWQYASABKARKBAgCEANSEXBsYXlpbmdfZWxzZXdoZXJlIhsKBFBpbmcSEwoLY2xpZW50X3RpbWUYASABKAQiMAoEUG9uZxITCgtjbGllbnRfdGltZRgBIAEoBBITCgtzZXJ2ZXJfdGltZRgCIAEoBCI6CgVFcnJvchIxCgRjb2RlGAEgASgOMiMucG9rZXVuaXZlcnNlLnJlYWx0aW1lLnYxLkVycm9yQ29kZSrUAQoJRXJyb3JDb2RlEhoKFkVSUk9SX0NPREVfVU5TUEVDSUZJRUQQABIeChpFUlJPUl9DT0RFX1VOQVVUSEVOVElDQVRFRBABEhwKGEVSUk9SX0NPREVfVE9LRU5fRVhQSVJFRBACEhoKFkVSUk9SX0NPREVfQkFEX01FU1NBR0UQAxIZChVFUlJPUl9DT0RFX05PX1RSQUlORVIQBBIXChNFUlJPUl9DT0RFX1JFUExBQ0VEEAUSHQoZRVJST1JfQ09ERV9TRVNTSU9OX0FDVElWRRAGQkdaRXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcmVhbHRpbWUvdjE7cmVhbHRpbWV2MWIGcHJvdG8z", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_item_v1_pc, file_pokeuniverse_party_v1_box, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_world_v1_world]);
 
 /**
  * Client -> server: intents only.
@@ -125,6 +133,126 @@ export type ClientMessage = Message<"pokeuniverse.realtime.v1.ClientMessage"> & 
      */
     value: MovePcItem;
     case: "movePcItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.SwapPartySlots swap_party_slots = 17;
+     */
+    value: SwapPartySlots;
+    case: "swapPartySlots";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.GivePartyItem give_party_item = 18;
+     */
+    value: GivePartyItem;
+    case: "givePartyItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.TakePartyItem take_party_item = 19;
+     */
+    value: TakePartyItem;
+    case: "takePartyItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.SwapPokemonMoves swap_pokemon_moves = 20;
+     */
+    value: SwapPokemonMoves;
+    case: "swapPokemonMoves";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.battle.v1.BattleChoice battle_choice = 21;
+     */
+    value: BattleChoice;
+    case: "battleChoice";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.ScriptBattle script_battle = 22;
+     */
+    value: ScriptBattle;
+    case: "scriptBattle";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.EvolvePokemon evolve_pokemon = 23;
+     */
+    value: EvolvePokemon;
+    case: "evolvePokemon";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.LearnMove learn_move = 24;
+     */
+    value: LearnMove;
+    case: "learnMove";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.UseWarp use_warp = 25;
+     */
+    value: UseWarp;
+    case: "useWarp";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.UsePartyItem use_party_item = 26;
+     */
+    value: UsePartyItem;
+    case: "usePartyItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.UseFieldMove use_field_move = 27;
+     */
+    value: UseFieldMove;
+    case: "useFieldMove";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.OpenBox open_box = 28;
+     */
+    value: OpenBox;
+    case: "openBox";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.MovePokemon move_pokemon = 29;
+     */
+    value: MovePokemon;
+    case: "movePokemon";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.ReleasePokemon release_pokemon = 30;
+     */
+    value: ReleasePokemon;
+    case: "releasePokemon";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.RenameBox rename_box = 31;
+     */
+    value: RenameBox;
+    case: "renameBox";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.SetBoxWallpaper set_box_wallpaper = 32;
+     */
+    value: SetBoxWallpaper;
+    case: "setBoxWallpaper";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.SetMarkings set_markings = 33;
+     */
+    value: SetMarkings;
+    case: "setMarkings";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.MoveHeldItem move_held_item = 34;
+     */
+    value: MoveHeldItem;
+    case: "moveHeldItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.StoreHeldItem store_held_item = 35;
+     */
+    value: StoreHeldItem;
+    case: "storeHeldItem";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.GiveHeldItem give_held_item = 36;
+     */
+    value: GiveHeldItem;
+    case: "giveHeldItem";
   } | { case: undefined; value?: undefined };
 };
 
@@ -203,6 +331,72 @@ export type ServerMessage = Message<"pokeuniverse.realtime.v1.ServerMessage"> & 
      */
     value: PcChanged;
     case: "pcChanged";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.PartyChanged party_changed = 11;
+     */
+    value: PartyChanged;
+    case: "partyChanged";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.battle.v1.BattleStarted battle_started = 12;
+     */
+    value: BattleStarted;
+    case: "battleStarted";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.battle.v1.BattleTurn battle_turn = 13;
+     */
+    value: BattleTurn;
+    case: "battleTurn";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.battle.v1.BattleEnded battle_ended = 14;
+     */
+    value: BattleEnded;
+    case: "battleEnded";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.PokemonEvolved pokemon_evolved = 15;
+     */
+    value: PokemonEvolved;
+    case: "pokemonEvolved";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.pokedex.v1.PokedexChanged pokedex_changed = 16;
+     */
+    value: PokedexChanged;
+    case: "pokedexChanged";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.Warped warped = 17;
+     */
+    value: Warped;
+    case: "warped";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.LearnMoveResult learn_move_result = 18;
+     */
+    value: LearnMoveResult;
+    case: "learnMoveResult";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.FieldMoveResult field_move_result = 19;
+     */
+    value: FieldMoveResult;
+    case: "fieldMoveResult";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.party.v1.BoxView box_view = 20;
+     */
+    value: BoxView;
+    case: "boxView";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.FollowerChanged follower_changed = 21;
+     */
+    value: FollowerChanged;
+    case: "followerChanged";
   } | { case: undefined; value?: undefined };
 };
 

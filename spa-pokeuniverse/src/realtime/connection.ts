@@ -7,12 +7,17 @@
 // for good too (`onEnded("disconnected")`).
 
 import { create, fromBinary, toBinary, type MessageInitShape } from "@bufbuild/protobuf";
+import type { BattleAction, BattleEnded, BattleStarted, BattleTurn } from "@pokeuniverse/contracts/battle/v1/view";
 import type { BagChanged, ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import type { Item, Pocket } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import type { Direction } from "@pokeuniverse/contracts/map/v1/map";
+import type { BoxView } from "@pokeuniverse/contracts/party/v1/box";
+import type { BoxAction } from "./box-action";
+import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
+import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
-import type { Correction, Script, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 
 export type ConnectionStatus =
@@ -31,13 +36,29 @@ export interface WorldEvents {
   /** Where the player is: on entering, and again after every reconnect. */
   snapshot(s: WorldSnapshot): void;
   correction(c: Correction): void;
+  /** The warp asked for is done and saved: the player is on another map. */
+  warped(w: Warped): void;
   script(s: Script): void;
   /** Bag pockets that changed (before the ItemResult that changed them), or a correction. */
   bagChanged(b: BagChanged): void;
   /** What the PC stores (before the ItemResult that changed it), or a correction. */
   pcChanged(p: PcChanged): void;
-  /** What using, giving, tossing, withdrawing or depositing an item did. */
+  /** The whole party (before the ItemResult that changed it), or a correction. */
+  partyChanged(p: PartyChanged): void;
+  pokemonEvolved(p: PokemonEvolved): void;
+  learnMoveResult(r: LearnMoveResult): void;
+  fieldMoveResult(r: FieldMoveResult): void;
+  boxView(v: BoxView): void;
+  followerChanged(f: FollowerChanged): void;
+  pokedexChanged(p: PokedexChanged): void;
+  /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
+  /** A battle started (or was redrawn after a resume): draw its view, then play its events. */
+  battleStarted(b: BattleStarted): void;
+  /** What a choice did, and the next request (the same one again when the choice was refused). */
+  battleTurn(b: BattleTurn): void;
+  /** The battle is over (the party follows as PartyChanged); no result: it couldn't start. */
+  battleEnded(b: BattleEnded): void;
   /** The account has no trainer (New Game creates it). */
   noTrainer(): void;
 }
@@ -51,8 +72,14 @@ export interface WorldLink {
   readonly inWorld: boolean;
   move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
   turn(direction: Direction): void;
+  /** Through the warp the player stands on: answered with Warped, or a Correction when refused. */
+  useWarp(direction: Direction, x: number, y: number): void;
   interact(walkInto: boolean): void;
   scriptDone(script: number): void;
+  /** The running script reached its TrainerBattle step: answered with BattleStarted (or BattleEnded). */
+  scriptBattle(script: number): void;
+  /** The choice for the battle's request with this step: answered with a BattleTurn. */
+  battleChoice(battleId: string, step: number, action: BattleAction, partner?: BattleAction): void;
   /** USE from the bag, or the registered item with SELECT (`field`); answered with an ItemResult. */
   useItem(item: Item, field: boolean): void;
   /** GIVE from the bag, or from the PC (`pc`). */
@@ -64,6 +91,25 @@ export interface WorldLink {
   withdrawItem(item: Item, quantity: number): void;
   depositItem(item: Item, quantity: number): void;
   movePcItem(from: number, to: number): void;
+  /** SWITCH in the party menu (slots from 0); shown at once, corrected with PartyChanged if refused. */
+  swapPartySlots(from: number, to: number): void;
+  /** A party Pokémon holds the item, from the bag or the PC (`pc`); answered with an ItemResult. */
+  givePartyItem(item: Item, slot: number, pc: boolean): void;
+  /** A bag item used on a party Pokémon (`moveSlot`: the move, for items that ask); answered with an ItemResult. */
+  usePartyItem(item: Item, slot: number, moveSlot: number): void;
+  useFieldMove(slot: number, move: number, target?: number): void;
+  /** Shows a box, which becomes the current one (0: the current box); answered with a BoxView
+   *  whose `request` is the seq returned here (0: not sent). */
+  openBox(box: number): number;
+  /** MovePokemon, ReleasePokemon, RenameBox or SetBoxWallpaper; shown at once, answered with a
+   *  BoxView (plus PartyChanged when it touched the party or was refused) tagged like openBox's. */
+  boxAction(action: BoxAction): number;
+  /** A party Pokémon's held item into the bag; answered with an ItemResult. */
+  takePartyItem(slot: number): void;
+  /** SWITCH on the summary's move page (slots and moves from 0); shown at once, corrected like swapPartySlots. */
+  swapPokemonMoves(slot: number, from: number, to: number): void;
+  evolvePokemon(slot: number): void;
+  learnMove(slot: number, move: number, forgetSlot: number): void;
 }
 
 const PING_EVERY_MS = 5_000;
@@ -155,12 +201,24 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "turn", value: { direction } });
   }
 
+  useWarp(direction: Direction, x: number, y: number): void {
+    if (this.inWorld) this.send({ case: "useWarp", value: { direction, x, y } });
+  }
+
   interact(walkInto: boolean): void {
     if (this.inWorld) this.send({ case: "interact", value: { walkInto } });
   }
 
   scriptDone(script: number): void {
     if (this.inWorld) this.send({ case: "scriptDone", value: { script } });
+  }
+
+  scriptBattle(script: number): void {
+    if (this.inWorld) this.send({ case: "scriptBattle", value: { script } });
+  }
+
+  battleChoice(battleId: string, step: number, action: BattleAction, partner?: BattleAction): void {
+    if (this.inWorld) this.send({ case: "battleChoice", value: { battleId, step, action, partner } });
   }
 
   useItem(item: Item, field: boolean): void {
@@ -195,6 +253,46 @@ export class Connection implements WorldLink {
     if (this.inWorld) this.send({ case: "movePcItem", value: { from, to } });
   }
 
+  swapPartySlots(from: number, to: number): void {
+    if (this.inWorld) this.send({ case: "swapPartySlots", value: { from, to } });
+  }
+
+  usePartyItem(item: Item, slot: number, moveSlot: number): void {
+    if (this.inWorld) this.send({ case: "usePartyItem", value: { item, slot, moveSlot } });
+  }
+
+  givePartyItem(item: Item, slot: number, pc: boolean): void {
+    if (this.inWorld) this.send({ case: "givePartyItem", value: { item, slot, pc } });
+  }
+
+  takePartyItem(slot: number): void {
+    if (this.inWorld) this.send({ case: "takePartyItem", value: { slot } });
+  }
+
+  swapPokemonMoves(slot: number, from: number, to: number): void {
+    if (this.inWorld) this.send({ case: "swapPokemonMoves", value: { slot, from, to } });
+  }
+
+  evolvePokemon(slot: number): void {
+    if (this.inWorld) this.send({ case: "evolvePokemon", value: { slot } });
+  }
+
+  useFieldMove(slot: number, move: number, target?: number): void {
+    if (this.inWorld) this.send({ case: "useFieldMove", value: { slot, move, target } });
+  }
+
+  openBox(box: number): number {
+    return this.inWorld ? this.send({ case: "openBox", value: { box } }) : 0;
+  }
+
+  boxAction(action: BoxAction): number {
+    return this.inWorld ? this.send(action) : 0;
+  }
+
+  learnMove(slot: number, move: number, forgetSlot: number): void {
+    if (this.inWorld) this.send({ case: "learnMove", value: { slot, move, forgetSlot } });
+  }
+
   private receive(data: Uint8Array): void {
     const msg = fromBinary(ServerMessageSchema, data);
     switch (msg.payload.case) {
@@ -223,6 +321,9 @@ export class Connection implements WorldLink {
       case "correction":
         this.world?.correction(msg.payload.value);
         break;
+      case "warped":
+        this.world?.warped(msg.payload.value);
+        break;
       case "script":
         this.world?.script(msg.payload.value);
         break;
@@ -232,8 +333,38 @@ export class Connection implements WorldLink {
       case "pcChanged":
         this.world?.pcChanged(msg.payload.value);
         break;
+      case "pokemonEvolved":
+        this.world?.pokemonEvolved(msg.payload.value);
+        break;
+      case "learnMoveResult":
+        this.world?.learnMoveResult(msg.payload.value);
+        break;
+      case "fieldMoveResult":
+        this.world?.fieldMoveResult(msg.payload.value);
+        break;
+      case "boxView":
+        this.world?.boxView(msg.payload.value);
+        break;
+      case "followerChanged":
+        this.world?.followerChanged(msg.payload.value);
+        break;
+      case "pokedexChanged":
+        this.world?.pokedexChanged(msg.payload.value);
+        break;
+      case "partyChanged":
+        this.world?.partyChanged(msg.payload.value);
+        break;
       case "itemResult":
         this.world?.itemResult(msg.payload.value);
+        break;
+      case "battleStarted":
+        this.world?.battleStarted(msg.payload.value);
+        break;
+      case "battleTurn":
+        this.world?.battleTurn(msg.payload.value);
+        break;
+      case "battleEnded":
+        this.world?.battleEnded(msg.payload.value);
         break;
       case "error":
         if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();
@@ -251,9 +382,11 @@ export class Connection implements WorldLink {
     this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } });
   }
 
-  private send(payload: Payload): void {
-    if (this.ws?.readyState !== WebSocket.OPEN) return;
+  /** The message's seq (unique for the page, so answers can name it); 0: not sent. */
+  private send(payload: Payload): number {
+    if (this.ws?.readyState !== WebSocket.OPEN) return 0;
     this.ws.send(toBinary(ClientMessageSchema, create(ClientMessageSchema, { seq: ++this.seq, payload })));
+    return this.seq;
   }
 
   private async reconnect(code: number): Promise<void> {

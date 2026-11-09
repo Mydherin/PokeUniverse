@@ -118,6 +118,8 @@ export interface ObjEntry {
   priority: number;
   /** 0 normal, 1 semi-transparent, 2 OBJ window. */
   mode: number;
+  /** Stands in for a copy on a BG (battle animations' monbg): semi-transparent sprites blend with it. */
+  onBg?: boolean;
   hFlip: boolean;
   vFlip: boolean;
   /** Affine matrix (8.8), or null. */
@@ -161,6 +163,8 @@ export class Video {
   evy = 0;
   /** Per-scanline BLDY, as the game's scanline effect writes it; null when off. */
   evyLines: Int16Array | null = null;
+  /** Per-scanline BLDALPHA (eva | evb << 8), as the game's scanline effect writes it; null when off. */
+  alphaLines: Uint16Array | null = null;
 
   private readonly rgba = new Uint32Array(WIDTH * HEIGHT);
   private readonly lut = new Uint32Array(32768);
@@ -168,6 +172,8 @@ export class Video {
   private readonly objColor = new Int32Array(WIDTH);
   private readonly objPrio = new Uint8Array(WIDTH);
   private readonly objBlend = new Uint8Array(WIDTH);
+  private readonly objUnder = new Int32Array(WIDTH);
+  private readonly objOnBg = new Uint8Array(WIDTH);
   private readonly objWindow = new Uint8Array(WIDTH);
 
   constructor() {
@@ -198,6 +204,7 @@ export class Video {
     this.target1 = this.target2 = 0;
     this.eva = this.evb = this.evy = 0;
     this.evyLines = null;
+    this.alphaLines = null;
   }
 
   /** Renders a frame into RGBA pixels. */
@@ -212,8 +219,9 @@ export class Video {
     const backdrop = palette[0];
     const anyWindow = this.win0On || this.win1On || this.objWinOn;
     const evy = Math.min(16, this.evyLines ? this.evyLines[line] : this.evy);
-    const eva = Math.min(16, this.eva);
-    const evb = Math.min(16, this.evb);
+    const alpha = this.alphaLines ? this.alphaLines[line] : this.eva | (this.evb << 8);
+    const eva = Math.min(16, alpha & 0x1f);
+    const evb = Math.min(16, alpha >> 8);
     const in0V = this.win0On && inRange(line, this.win0.top, this.win0.bottom, 160);
     const in1V = this.win1On && inRange(line, this.win1.top, this.win1.bottom, 160);
     const base = line * WIDTH;
@@ -296,7 +304,9 @@ export class Video {
       const effects = !anyWindow || mask & WIN_EFFECTS;
       if (effects) {
         const semi = topLayer === Layer.OBJ && this.objBlend[x];
-        if (semi && this.target2 & underLayer) {
+        if (semi && this.objUnder[x] >= 0) {
+          color = blend(top, this.objUnder[x], eva, evb);
+        } else if (semi && this.target2 & underLayer) {
           color = blend(top, under, eva, evb);
         } else if (this.target1 & topLayer || semi) {
           if (this.effect === Effect.Blend) {
@@ -347,6 +357,8 @@ export class Video {
   /** Draws the sprites crossing a scanline into the line's OBJ buffers. */
   private renderObjs(line: number): void {
     this.objColor.fill(-1);
+    this.objUnder.fill(-1);
+    this.objOnBg.fill(0);
     this.objPrio.fill(4);
     this.objBlend.fill(0);
     this.objWindow.fill(0);
@@ -382,6 +394,9 @@ export class Video {
           this.objWindow[sx] = 1;
           continue;
         }
+        if (o.mode !== 1) this.objUnder[sx] = -1;
+        else if (this.objOnBg[sx]) this.objUnder[sx] = this.objColor[sx];
+        this.objOnBg[sx] = o.onBg ? 1 : 0;
         this.objColor[sx] = this.palette[256 + (o.palette << 4) + index];
         this.objPrio[sx] = o.priority;
         this.objBlend[sx] = o.mode === 1 ? 1 : 0;

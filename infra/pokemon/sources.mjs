@@ -5,8 +5,13 @@
 //
 // readSpecies(firered, expansion) -> Map<national number, Species>, where Species is
 // { nat, constant (NATIONAL_DEX_ suffix), name, category, description, types: [t1, t2], height, weight, scale: [pokemonScale,
-//   pokemonOffset, trainerScale, trainerOffset], front, palette, footprint, icon, iconPalette,
-//   cry: { firered: number } | { wav: path }, source: "firered" | "expansion" }.
+//   pokemonOffset, trainerScale, trainerOffset], front, palette, back, shinyPalette, footprint, icon, iconPalette,
+//   coords: { front: y offset, back: y offset, elevation } (where the battle draws its pictures),
+//   itemScene: FireRed's only (sMonPosAttributes): [machine x, machine y, y offset, item x, item y],
+//   noFlip (the summary shows its picture unmirrored), battle: { catchRate, expYield, evYield: [hp, atk, def, spe, spa, spd], growthRate (GROWTH_ name), genderRatio (0-255), friendship },
+//   cry: { firered: number } | { wav: path }, source: "firered" | "expansion",
+//   overworld: the expansion's following-Pokémon sheet for every species (FireRed has none):
+//   { pic, palette, shinyPalette (paths), size: frame side in px (32 or 64) } }.
 // Text is plain (FireRed's escapes such as \n kept); paths are relative to their reference.
 
 import { readFileSync, readdirSync } from "node:fs";
@@ -25,6 +30,34 @@ function nationalNumbers(root) {
   const numbers = new Map();
   for (const m of body.matchAll(/^\s*(NATIONAL_DEX_\w+)\s*,/gm)) if (!numbers.has(m[1])) numbers.set(m[1], numbers.size);
   return numbers;
+}
+
+const EV_FIELDS = ["HP", "Attack", "Defense", "Speed", "SpAttack", "SpDefense"];
+
+/** A numeric field as a Gen 4 game would set it: plain, a conditional on the config, or a macro below. */
+function numberField(block, name, fallback) {
+  const raw = new RegExp(`\\.${name}\\s*=\\s*([^,\\n]+)`).exec(block)?.[1].trim();
+  if (raw === undefined) {
+    if (fallback === undefined) throw new Error(`no .${name}`);
+    return fallback;
+  }
+  const female = /^PERCENT_FEMALE\(([\d.]+)\)$/.exec(raw);
+  if (female) return Math.min(254, Math.floor((Number(female[1]) * 255) / 100));
+  const named = { MON_MALE: 0, MON_FEMALE: 0xfe, MON_GENDERLESS: 0xff, STANDARD_FRIENDSHIP: 70 }[raw];
+  if (named !== undefined) return named;
+  return Number(evalExpression(raw));
+}
+
+/** What the battle needs of a species block (species_info.h in both references). */
+function battleFacts(block) {
+  return {
+    catchRate: numberField(block, "catchRate"),
+    expYield: numberField(block, "expYield"),
+    evYield: EV_FIELDS.map((f) => numberField(block, `evYield_${f}`, 0)),
+    growthRate: /\.growthRate\s*=\s*(GROWTH_\w+)/.exec(block)[1],
+    genderRatio: numberField(block, "genderRatio"),
+    friendship: numberField(block, "friendship"),
+  };
 }
 
 // FireRed
@@ -47,7 +80,14 @@ function readFireRed(src) {
     if (!files.has(m[1])) files.set(m[1], `graphics/${m[2]}.${m[3] === "gbapal" ? "pal" : "png"}`);
   const table = (file, re) => new Map([...read(file).matchAll(re)].map((m) => [`SPECIES_${m[1]}`, m[2]]));
   const fronts = table("src/data/pokemon_graphics/front_pic_table.h", /SPECIES_SPRITE\((\w+),\s*(\w+)\)/g);
+  const backs = table("src/data/pokemon_graphics/back_pic_table.h", /SPECIES_SPRITE\((\w+),\s*(\w+)\)/g);
   const palettes = table("src/data/pokemon_graphics/palette_table.h", /SPECIES_PAL\((\w+),\s*(\w+)\)/g);
+  const shinyPalettes = table("src/data/pokemon_graphics/shiny_palette_table.h", /SPECIES_SHINY_PAL\((\w+),\s*(\w+)\)/g);
+  const yOffsets = (file) => new Map(speciesBlocks(read(file)).map(([k, b]) => [k, Number(/\.y_offset\s*=\s*(\d+)/.exec(b)[1])]));
+  const frontY = yOffsets("src/data/pokemon_graphics/front_pic_coordinates.h");
+  const backY = yOffsets("src/data/pokemon_graphics/back_pic_coordinates.h");
+  const itemScene = new Map([...read("src/menu2.c").matchAll(/\[(SPECIES_\w+)\s*-\s*1\]\s*=\s*\{\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\s*\}/g)].map((m) => [m[1], m.slice(2).map(Number)]));
+  const elevation = new Map([...read("src/data/pokemon_graphics/enemy_mon_elevation.h").matchAll(/\[(SPECIES_\w+)\]\s*=\s*(\d+)/g)].map((m) => [m[1], Number(m[2])]));
   const footprints = table("src/data/pokemon_graphics/footprint_table.h", /\[SPECIES_(\w+)\]\s*=\s*(\w+)/g);
   const icon = read("src/pokemon_icon.c");
   const icons = table("src/pokemon_icon.c", /\[SPECIES_(\w+)\]\s*=\s*(gMonIcon_\w+)/g);
@@ -84,6 +124,12 @@ function readFireRed(src) {
       scale: ["pokemonScale", "pokemonOffset", "trainerScale", "trainerOffset"].map((f) => Number(field(entry, f))),
       front: formDir(path(fronts, "front pic")),
       palette: formDir(path(palettes, "palette")),
+      back: formDir(path(backs, "back pic")),
+      shinyPalette: formDir(path(shinyPalettes, "shiny palette")),
+      coords: { front: frontY.get(key), back: backY.get(key), elevation: elevation.get(key) ?? 0 },
+      itemScene: itemScene.get(key),
+      noFlip: /\.noFlip\s*=\s*TRUE/.test(si),
+      battle: battleFacts(si),
       footprint: path(footprints, "footprint"),
       icon: path(icons, "icon"),
       iconPalette: `graphics/pokemon/icon_palettes/icon_palette_${iconPals.get(key)}.pal`,
@@ -107,12 +153,17 @@ function configValue(name) {
 }
 
 function evalCondition(expr) {
+  return Boolean(evalExpression(expr));
+}
+
+/** A C constant expression with the config's values (configValue): numbers, comparisons, ?: and logic. */
+export function evalExpression(expr) {
   const js = expr
     .replace(/defined\s*\(?\s*\w+\s*\)?/g, "0")
     .replace(/\b[A-Za-z_]\w*\b/g, (id) => String(configValue(id)))
     .replace(/\/\/.*$/, "");
-  if (!/^[\d\s()!&|<>=+\-*/?:]*$/.test(js)) throw new Error(`expansion: can't evaluate #if ${expr}`);
-  return Boolean(Function(`return (${js});`)());
+  if (!/^[\d\s().!&|<>=+\-*/?:]*$/.test(js)) throw new Error(`expansion: can't evaluate ${expr}`);
+  return Function(`return (${js});`)();
 }
 
 /** Splits a macro call's arguments at top-level commas. */
@@ -148,7 +199,7 @@ function splitArgs(s) {
  * function-like, with ##), #if/#ifdef/#elif/#else/#endif by configValue. Global macros the
  * files rely on are passed in `macros`.
  */
-function preprocess(text, macros) {
+export function preprocess(text, macros = new Map()) {
   const lines = text.replace(/\\\r?\n/g, " ").split("\n");
   const kept = [];
   const stack = [];
@@ -246,7 +297,7 @@ function expand(text, macros, depth) {
 }
 
 /** The `[SPECIES_X] = { ... }` blocks, braces balanced, in file order. */
-function speciesBlocks(text, start = /\[(SPECIES_\w+)\]\s*=\s*\{/g) {
+export function speciesBlocks(text, start = /\[(SPECIES_\w+)\]\s*=\s*\{/g) {
   const blocks = [];
   let m;
   while ((m = start.exec(text))) {
@@ -277,13 +328,17 @@ function readExpansion(root) {
   const globals = () =>
     new Map([
       ["FOOTPRINT", { params: ["sprite"], body: ".footprint = gMonFootprint_ ## sprite," }],
-      ["OVERWORLD", { params: ["..."], body: "" }],
+      ["OVERWORLD", { params: ["pic", "size", "..."], body: ".overworldPic = pic, .overworldSize = size," }],
       ["OVERWORLD_PAL", { params: ["..."], body: "" }],
       ["OVERWORLD_SET_ANIM", { params: ["..."], body: "" }],
       ["SHADOW", { params: ["..."], body: "" }],
       ["NO_SHADOW", { params: [], body: "" }],
     ]);
   const out = new Map();
+  const overworld = new Map();
+  // gObjectEventPic_X -> its folder and frame side (-mwidth in 8 px tiles).
+  const pics = new Map([...read("src/data/graphics/pokemon.h").matchAll(/(gObjectEventPic_\w+)\[\]\s*=\s*INCGFX_COMP\("(graphics\/[\w/]+)\/overworld\.png",\s*"[^"]*",\s*"-mwidth (\d+)/g)].map((m) => [m[1], { folder: m[2], size: Number(m[3]) * 8 }]));
+  const sheet = (folder, size) => ({ pic: `${folder}/overworld.png`, palette: `${folder}/overworld_normal.pal`, shinyPalette: `${folder}/overworld_shiny.pal`, size });
   const files4 = readdirSync(join(root, dir)).filter((f) => /^gen_[1-4]_families\.h$/.test(f)).sort();
   for (const file of files4) {
     const text = preprocess(read(join(dir, file)), globals());
@@ -292,7 +347,15 @@ function readExpansion(root) {
       const block = raw.replace(/\(\s*([^?()]+?)\s*\?\s*([\w-]+)\s*:\s*([\w-]+)\s*\)/g, (_, c, a, b) => (evalCondition(c) ? a : b));
       const natName = /\.natDexNum\s*=\s*(NATIONAL_DEX_\w+)/.exec(block)?.[1];
       const n = nat.get(natName);
-      if (!n || n <= FIRERED_DEX_COUNT || n > NATIONAL_DEX_COUNT || out.has(n)) continue;
+      if (!n || n > NATIONAL_DEX_COUNT || out.has(n)) continue;
+      // The first block of a species is its base form: its sheet (sPicTable_X holds gObjectEventPic_X).
+      if (!overworld.has(n)) {
+        const table = /\.overworldPic\s*=\s*sPicTable_(\w+)/.exec(block)?.[1];
+        const pic = pics.get(`gObjectEventPic_${table}`);
+        if (!pic) throw new Error(`expansion ${key}: no overworld sheet (${table})`);
+        overworld.set(n, sheet(pic.folder, pic.size));
+      }
+      if (n <= FIRERED_DEX_COUNT) continue;
       const num = (f) => {
         const v = new RegExp(`\\.${f}\\s*=\\s*(-?\\d+)`).exec(block)?.[1];
         if (v === undefined) throw new Error(`expansion ${key}: no .${f}`);
@@ -328,6 +391,11 @@ function readExpansion(root) {
         scale: ["pokemonScale", "pokemonOffset", "trainerScale", "trainerOffset"].map(num),
         front: file("frontPic", "front pic"),
         palette: file("palette", "palette"),
+        back: file("backPic", "back pic"),
+        shinyPalette: file("shinyPalette", "shiny palette"),
+        coords: { front: num("frontPicYOffset"), back: num("backPicYOffset"), elevation: numberField(block, "enemyMonElevation", 0) },
+        noFlip: /\.noFlip\s*=\s*TRUE/.test(block),
+        battle: battleFacts(block),
         footprint: file("footprint", "footprint"),
         icon: file("iconSprite", "icon"),
         iconPalette: `graphics/pokemon/icon_palettes/pal${iconPal}.pal`,
@@ -336,11 +404,24 @@ function readExpansion(root) {
       });
     }
   }
-  return out;
+  // Species whose block the expansion's config leaves out (Azurill behind P_GEN_3_CROSS_EVOS): by folder name.
+  const byFolder = new Map([...pics.values()].map((p) => [p.folder, p]));
+  const sheetFor = (n, constant) => {
+    const pic = byFolder.get(`graphics/pokemon/${constant.toLowerCase()}`);
+    if (!overworld.has(n) && pic) overworld.set(n, sheet(pic.folder, pic.size));
+    return overworld.get(n);
+  };
+  return { species: out, sheetFor };
 }
 
 export function readSpecies(firered, expansion) {
-  const all = new Map([...readFireRed(firered), ...readExpansion(expansion)]);
-  for (let n = 1; n <= NATIONAL_DEX_COUNT; n++) if (!all.has(n)) throw new Error(`species ${n}: not found`);
+  const { species, sheetFor } = readExpansion(expansion);
+  const all = new Map([...readFireRed(firered), ...species]);
+  for (let n = 1; n <= NATIONAL_DEX_COUNT; n++) {
+    if (!all.has(n)) throw new Error(`species ${n}: not found`);
+    const overworld = sheetFor(n, all.get(n).constant);
+    if (!overworld) throw new Error(`species ${n}: no overworld sheet`);
+    all.get(n).overworld = overworld;
+  }
   return new Map([...all].sort((a, b) => a[0] - b[0]));
 }

@@ -6,6 +6,8 @@ package db
 
 import (
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Account struct {
@@ -21,6 +23,14 @@ type Account struct {
 type AccountRole struct {
 	AccountID int64
 	RoleID    int16
+}
+
+type BattleOutcome struct {
+	BattleID  pgtype.UUID
+	AccountID int64
+	Result    int16
+	Money     int32
+	CreatedAt time.Time
 }
 
 type RefreshToken struct {
@@ -65,6 +75,15 @@ type Trainer struct {
 	PokedexNational bool
 	PokedexSeen     []byte
 	PokedexCaught   []byte
+	FriendshipSteps int16
+	CurrentBox      int16
+}
+
+type TrainerBox struct {
+	AccountID int64
+	Box       int16
+	Name      string
+	Wallpaper int16
 }
 
 type TrainerItem struct {
@@ -80,4 +99,32 @@ type TrainerPcItem struct {
 	Slot      int16
 	Item      int16
 	Quantity  int16
+}
+
+type TrainerPokemon struct {
+	AccountID   int64
+	Slot        int16
+	Species     int16
+	Nickname    string
+	Level       int16
+	Exp         int32
+	Personality int64
+	Ivs         []int16
+	Evs         []int16
+	AbilitySlot int16
+	HeldItem    int16
+	Moves       []int16
+	Pp          []int16
+	PpUps       []int16
+	Hp          int16
+	Status      int16
+	Friendship  int16
+	Ball        int16
+	OtName      string
+	OtID        int64
+	OtGender    string
+	MetLevel    int16
+	MetMap      string
+	Box         int16
+	Markings    int16
 }

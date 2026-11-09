@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package pokeuniverse.party.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1;partyv1";
+
+import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/party/v1/party.proto";
+
+// Client -> server: show a box, which becomes the current one. Answered by BoxView.
+message OpenBox {
+  // 1 to 14; 0: the current box (the screen just opened).
+  uint32 box = 1;
+}
+
+// A box without its Pokémon.
+message BoxInfo {
+  string name = 1;
+  // FireRed's wallpaper order, 0 to 15.
+  uint32 wallpaper = 2;
+  // 0 to 30.
+  uint32 count = 3;
+}
+
+message BoxPokemon {
+  // 0 to 29; a box can have gaps.
+  uint32 slot = 1;
+  Pokemon pokemon = 2;
+}
+
+// One box's Pokémon, plus what the screen shows of every box.
+message BoxView {
+  // 1 to 14; 0: refused (the player isn't at a PC, or it couldn't be read), nothing else is set.
+  uint32 box = 1;
+  // All 14, in order: boxes[0] is box 1.
+  repeated BoxInfo boxes = 2;
+  repeated BoxPokemon pokemon = 3;
+  // The seq of the ClientMessage this answers (OpenBox or a box action), so a client pairs answers
+  // with its requests across reconnects.
+  uint32 request = 4;
+}
+
+// Where a Pokémon is in BILL'S PC's screen.
+message BoxPlace {
+  // 0: the party; 1 to 14: a box.
+  uint32 box = 1;
+  // The party: 0 to 5, no gaps (one past the last places it at the end: WITHDRAW). A box: 0 to 29, or 30 as
+  // MovePokemon's `to`: the box's first free slot (DEPOSIT).
+  uint32 slot = 2;
+}
+
+// Client -> server: WITHDRAW, DEPOSIT (STORE), or placing the Pokémon MOVE holds. An occupied
+// `to` swaps the two (SHIFT). Refused, changing nothing, when the party would be over six or
+// left with no Pokémon able to battle, or when a Pokémon holding MAIL would go into a box. A
+// Pokémon placed in a box gets its HP, status and PP back. The client shows it at once; answered
+// with the BoxView of the box shown (`to`'s, else `from`'s, else the current one; DEPOSIT keeps
+// the current one), plus
+// PartyChanged when the party changed or the move was refused.
+message MovePokemon {
+  BoxPlace from = 1;
+  BoxPlace to = 2;
+}
+
+// Client -> server: RELEASE, after YES. Refused like MovePokemon when it would leave no Pokémon
+// able to battle or it holds MAIL; its held item goes with it. Answered like MovePokemon.
+message ReleasePokemon {
+  BoxPlace place = 1;
+}
+
+// Client -> server: MARK, the marks chosen (0 to 15, one bit each as Pokemon.markings).
+// Answered like ReleasePokemon.
+message SetMarkings {
+  BoxPlace place = 1;
+  uint32 markings = 2;
+}
+
+// Client -> server: ITEM mode's GIVE or SWITCH. The hand's item stays on `from` until put down:
+// `from`'s held item goes to `to`, swapping with the one `to` holds (SWITCH: the hand then holds
+// that one, still at `from`). Refused when `from` holds nothing or either holds MAIL. Answered
+// like MovePokemon.
+message MoveHeldItem {
+  BoxPlace from = 1;
+  BoxPlace to = 2;
+}
+
+// Client -> server: ITEM mode's BAG, or YES to CLOSE BOX while holding an item: the item held at
+// `place` into the bag. Refused (nothing changes) when the bag is full or it's MAIL. Answered
+// like MovePokemon, with BagChanged first.
+message StoreHeldItem {
+  BoxPlace place = 1;
+}
+
+// Client -> server: ITEM mode's GIVE from the bag, for a Pokémon holding nothing. Refused like
+// the party menu's GIVE. Answered like StoreHeldItem.
+message GiveHeldItem {
+  BoxPlace place = 1;
+  pokeuniverse.item.v1.Item item = 2;
+}
+
+// Client -> server: the box options' NAME. 1 to 8 characters. Answered with the box's BoxView.
+message RenameBox {
+  uint32 box = 1;
+  string name = 2;
+}
+
+// Client -> server: the box options' WALLPAPER, 0 to 15. Answered with the box's BoxView.
+message SetBoxWallpaper {
+  uint32 box = 1;
+  uint32 wallpaper = 2;
+}

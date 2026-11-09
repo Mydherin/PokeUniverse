@@ -1,0 +1,5 @@
+{
+  "name": "pokeuniverse",
+  "owner": { "name": "PokeUniverse" },
+  "plugins": [{ "name": "context-wrap-up", "source": "./context-wrap-up" }]
+}

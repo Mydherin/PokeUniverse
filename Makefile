@@ -14,14 +14,15 @@ GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.c
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
 FIRERED_OUT := spa-pokeuniverse/public/firered
-FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex
+FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex party_menu summary_screen battle_interface battle_anims evolution_scene pokemon_special_anim pokemon_storage
 # Single files from shared folders, kept at their paths.
-FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
-	fonts/down_arrow_3.png fonts/keypad_icons.png interface/std_menu.pal interface/ball/poke.png \
-	battle_anims/sprites/particles.png battle_anims/sprites/circle_impact.png \
+FIRERED_GFX_FILES := weather/fog_horizontal.png fonts/latin_normal.png fonts/latin_male.png fonts/latin_small.png fonts/down_arrows.png \
+	fonts/down_arrow_3.png fonts/keypad_icons.png interface/std_menu.pal interface/status_icons.png \
+	$(addprefix interface/ball/,$(addsuffix .png,poke great ultra master safari net dive nest repeat timer luxury premier)) \
 	pokemon/nidoran_f/front.png pokemon/nidoran_f/normal.pal \
 	object_events/pics/people/red_normal.png object_events/pics/people/green_normal.png object_events/palettes/player.pal \
 	object_events/pics/people/red_surf_run.png object_events/pics/people/green_surf_run.png \
+	object_events/pics/people/cooltrainer_m.png object_events/pics/people/mom.png object_events/palettes/npc_blue.pal \
 	help_system/msg_window.png trainer_card/tiles.png trainer_card/front.bin trainer_card/back.bin trainer_card/bg.bin \
 	trainer_card/blue.pal trainer_card/female_bg.pal trainers/front_pics/red_front_pic.png trainers/front_pics/leaf_front_pic.png \
 	trainers/palettes/red.pal trainers/palettes/leaf.pal \
@@ -29,7 +30,14 @@ FIRERED_GFX_FILES := fonts/latin_normal.png fonts/latin_male.png fonts/latin_sma
 	interface/bag_male.png interface/bag_female.png interface/bag.pal interface/red_arrow_other.png interface/red_arrow.pal \
 	interface/select_button.png interface/bag_swap.png interface/selector_outline.png \
 	interface/menu_info.png interface/pokemon_types.pal interface/dex_caught_pokeball.pal \
-	misc/option_menu.pal
+	misc/option_menu.pal misc/markings2.png misc/mon_markings.png \
+	$(addprefix battle_terrain/building/,terrain.png terrain.bin terrain.pal) interface/text_pp.pal \
+	trainers/front_pics/cool_trainer_m_front_pic.png trainers/palettes/cool_trainer_m.pal \
+	trainers/back_pics/red_back_pic.png trainers/back_pics/leaf_back_pic.png trainers/palettes/red_back_pic.pal trainers/palettes/leaf_back_pic.pal
+# The expansion's Gen 4 art FireRed has no slot for (phase-5 D10), under graphics/expansion/.
+EXPANSION_GFX_FILES := interface/category_icons.png
+# Whole folders from the expansion (its battle animation art for Gen 4 moves: battle/anims/art.json).
+EXPANSION_GFX := battle_anims
 # The fonts' glyph widths are data in the game's source, not in the images.
 FIRERED_FONTS := Normal:normal Male:male Small:small NormalCopy1:normal_copy_1
 NEED_FIRERED = @test -f $(FIRERED)/Makefile || { echo "$(FIRERED) is empty: run git submodule update --init"; exit 1; }
@@ -44,6 +52,7 @@ env: ## Create .env from .env.example with generated secrets (keeps an existing 
 	@test -f .env && echo ".env already exists" || ( \
 		sed -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=$$(openssl rand -hex 24)|" \
+		    -e "s|^REDIS_MIC_BATTLES_PASSWORD=.*|REDIS_MIC_BATTLES_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^NATS_MIC_CORE_PASSWORD=.*|NATS_MIC_CORE_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^NATS_MIC_BATTLES_PASSWORD=.*|NATS_MIC_BATTLES_PASSWORD=$$(openssl rand -hex 24)|" \
 		    -e "s|^JWT_PRIVATE_KEY=.*|JWT_PRIVATE_KEY=$$(openssl rand -base64 32)|" \
@@ -68,17 +77,22 @@ assets: graphics text pokemon audio maps ## FireRed's graphics, text, sounds and
 
 graphics: ## Copy FireRed's graphics as they are (drawn with their palettes and tilemaps at runtime), with the item icon table
 	$(NEED_FIRERED)
+	$(NEED_EXPANSION)
 	@mkdir -p $(FIRERED_OUT)/graphics
 	@for d in $(FIRERED_GFX); do rm -rf $(FIRERED_OUT)/graphics/$$d && cp -R $(FIRERED)/graphics/$$d $(FIRERED_OUT)/graphics/; done
 	@for f in $(FIRERED_GFX_FILES); do mkdir -p $(FIRERED_OUT)/graphics/$$(dirname $$f) && cp $(FIRERED)/graphics/$$f $(FIRERED_OUT)/graphics/$$f; done
+	@mkdir -p $(FIRERED_OUT)/graphics/expansion
+	@for d in $(EXPANSION_GFX); do rm -rf $(FIRERED_OUT)/graphics/expansion/$$d && cp -R $(EXPANSION)/graphics/$$d $(FIRERED_OUT)/graphics/expansion/; done
+	@for f in $(EXPANSION_GFX_FILES); do mkdir -p $(FIRERED_OUT)/graphics/expansion/$$(dirname $$f) && cp $(EXPANSION)/graphics/$$f $(FIRERED_OUT)/graphics/expansion/$$f; done
 	@for font in $(FIRERED_FONTS); do \
 		sed -n "/sFont$${font%%:*}LatinGlyphWidths\[\] =/,/};/{/=/d;p;}" $(FIRERED)/src/text.c | tr -cd '0-9,' | sed 's/^/[/; s/,*$$/]/' \
 			> $(FIRERED_OUT)/graphics/fonts/latin_$${font##*:}_widths.json; done
-	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/graphics/item-icons.mjs /repo/$(FIRERED) /repo/$(FIRERED_OUT)/graphics/items/icons.json
+	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/graphics/item-icons.mjs /repo/$(FIRERED) /repo/$(FIRERED_OUT)/graphics/items/icons.json /repo/$(EXPANSION) /repo/lib-contracts/proto/pokeuniverse/item/v1/catalog.proto /repo/$(FIRERED_OUT)/graphics
 
-text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lists the strings)
+text: ## Encode FireRed's text with its charmap (src/game/firered/texts.json lists the strings; moves, abilities and natures by catalog, Gen 4's from the expansion)
 	$(NEED_FIRERED)
-	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/text/extract.mjs /repo/$(FIRERED) /repo/spa-pokeuniverse/src/game/firered/texts.json /repo/$(FIRERED_OUT)/text
+	$(NEED_EXPANSION)
+	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/text/extract.mjs /repo/$(FIRERED) /repo/spa-pokeuniverse/src/game/firered/texts.json /repo/$(FIRERED_OUT)/text /repo/$(EXPANSION) /repo/lib-contracts/proto/pokeuniverse
 
 pokemon: ## Every species' pictures, footprints, icons, Pokédex text and cry list, FireRed's for 1-386 and the expansion's for 387-493
 	$(NEED_FIRERED)

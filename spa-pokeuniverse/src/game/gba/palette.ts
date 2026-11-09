@@ -101,6 +101,13 @@ export class Palettes {
     return true;
   }
 
+  /** Stops a running fade where it is, so another can start from `fadeY`. */
+  stopFade(): void {
+    this.active = this.finishing = this.objToggle = this.transferPending = false;
+    this.finishingCounter = this.delayCounter = 0;
+    this.selected = 0;
+  }
+
   /** One fade step: BG palettes on one call, OBJ palettes on the next. */
   updateFade(): FadeStatus {
     if (this.transferPending) return FadeStatus.Loading;

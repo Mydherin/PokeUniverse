@@ -4,6 +4,17 @@ syntax = "proto3";
 // Subjects: battles.<action> (tech-stack.md#mic-battles-node--showdown).
 package pokeuniverse.battle.v1;
 
+import "pokeuniverse/ability/v1/catalog.proto";
+import "pokeuniverse/battle/v1/event.proto";
+import "pokeuniverse/battle/v1/view.proto";
+import "pokeuniverse/item/v1/catalog.proto";
+import "pokeuniverse/move/v1/catalog.proto";
+import "pokeuniverse/party/v1/party.proto";
+import "pokeuniverse/pokemon/v1/nature.proto";
+import "pokeuniverse/pokemon/v1/pokemon.proto";
+import "pokeuniverse/pokemon/v1/stats.proto";
+import "pokeuniverse/species/v1/catalog.proto";
+
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1;battlev1";
 
 // Request on `battles.ping`: round-trip check from mic-core.
@@ -20,4 +31,148 @@ message Pong {
   uint64 battles_time = 2;
   // Showdown format the battles run with (e.g. "gen4customgame").
   string format = 3;
+}
+
+// FireRed's AI flags (data/battle_ai_scripts.s), adapted to Gen 4 (phase-5 D6).
+enum AiFlag {
+  AI_FLAG_UNSPECIFIED = 0;
+  AI_FLAG_CHECK_BAD_MOVE = 1;
+  AI_FLAG_TRY_TO_FAINT = 2;
+  AI_FLAG_CHECK_VIABILITY = 3;
+  AI_FLAG_SETUP_FIRST_TURN = 4;
+  AI_FLAG_RISKY = 5;
+  AI_FLAG_PREFER_STRONGEST_MOVE = 6;
+  AI_FLAG_PREFER_BATON_PASS = 7;
+  AI_FLAG_HP_AWARE = 8;
+}
+
+// One Pokémon as it enters the battle: everything the rules need.
+message BattleMon {
+  pokeuniverse.species.v1.Species species = 1;
+  // Empty: the species' name.
+  string nickname = 2;
+  uint32 level = 3;
+  pokeuniverse.pokemon.v1.Nature nature = 4;
+  pokeuniverse.ability.v1.Ability ability = 5;
+  // Unspecified: none.
+  pokeuniverse.item.v1.Item held_item = 6;
+  pokeuniverse.pokemon.v1.Stats ivs = 7;
+  pokeuniverse.pokemon.v1.Stats evs = 8;
+  // One to four, with their PP now and their max PP (PP UPs).
+  repeated pokeuniverse.party.v1.Move moves = 9;
+  // HP now: it carries over between battles (D14).
+  uint32 hp = 10;
+  pokeuniverse.pokemon.v1.Status status = 11;
+  pokeuniverse.pokemon.v1.Gender gender = 12;
+  bool shiny = 13;
+  uint32 personality = 14;
+  // Return and Frustration.
+  uint32 friendship = 15;
+  // Its trainer isn't its original trainer: 1.5× experience.
+  bool traded = 16;
+  // Its total experience now: it levels up during the battle (mic-battles).
+  uint32 exp = 17;
+}
+
+// One side's trainer and team.
+message BattleTeam {
+  // In party order: Battler.party_slot is the index.
+  repeated BattleMon pokemon = 1;
+  // Empty: a player chooses for this side (or, in a wild battle, side 1 picks a random move).
+  // Otherwise mic-battles' AI does, with these flags.
+  repeated AiFlag ai_flags = 2;
+  // An AI trainer's items (up to 4, FireRed's rules: phase-5 M5). Each is used once.
+  repeated pokeuniverse.item.v1.Item items = 3;
+  // This player's battle style is SHIFT: offered a change when a foe faints (phase-5 D26).
+  bool shift_style = 4;
+}
+
+// Request on `battles.start`: create and begin a battle. Replied with BattleUpdate (views set).
+message StartBattle {
+  // Chosen by mic-core (a UUID); the Redis key battle:<id>.
+  string battle_id = 1;
+  BattleKind kind = 2;
+  // Side 0 is the player who started it; side 1 the opponent.
+  repeated BattleTeam sides = 3;
+  // Showdown's PRNG seed: the whole battle follows from it and the choices.
+  uint64 seed = 4;
+  // Two Pokémon a side (phase-5 D27).
+  bool doubles = 5;
+}
+
+// One side's choice.
+message SideChoice {
+  uint32 side = 1;
+  BattleAction action = 2;
+  // Doubles: the second position's choice, when two must choose.
+  BattleAction partner = 3;
+}
+
+// Request on `battles.turn`: play the choices for this step. The AI chooses for its sides. A step
+// already played answers its saved BattleUpdate again (safe retries, phase-5 D2).
+message TurnRequest {
+  string battle_id = 1;
+  uint32 step = 2;
+  repeated SideChoice choices = 3;
+}
+
+// Request on `battles.forfeit`: a side gives up (or left for good). Replied with BattleUpdate.
+message Forfeit {
+  string battle_id = 1;
+  uint32 side = 2;
+}
+
+// Request on `battles.view`: one side's BattleView, to redraw the battle after a reconnect.
+message ViewRequest {
+  string battle_id = 1;
+  uint32 side = 2;
+}
+
+// What one side sees after a start or a step.
+message SideUpdate {
+  repeated BattleEvent events = 1;
+  BattleRequest request = 2;
+  // Only after battles.start.
+  BattleView view = 3;
+}
+
+// One Pokémon at the end of a battle: what mic-core saves (D14).
+message MonOutcome {
+  uint32 hp = 1;
+  pokeuniverse.pokemon.v1.Status status = 2;
+  // In the party's move order.
+  repeated uint32 pp = 3;
+  // Unspecified: none (used up, knocked off…).
+  pokeuniverse.item.v1.Item held_item = 4;
+  // Experience and EVs gained in this battle, within the caps (the level follows from them).
+  uint32 exp = 5;
+  pokeuniverse.pokemon.v1.Stats evs = 6;
+  // Its moves at the end, in the same order as pp: level ups can bring new ones.
+  repeated pokeuniverse.move.v1.Move moves = 7;
+  // Each time it fainted, in order: true against a foe 30 or more levels above it.
+  repeated bool faints = 8;
+}
+
+message SideOutcome {
+  BattleResult result = 1;
+  // In party order, as the battle started.
+  repeated MonOutcome pokemon = 2;
+  // The other side's species that came out, for the Pokédex.
+  repeated pokeuniverse.species.v1.Species seen = 3;
+}
+
+message BattleOutcome {
+  // By side.
+  repeated SideOutcome sides = 1;
+  // An AMULET COIN or LUCK INCENSE came out on either side: the prize money doubles.
+  bool double_prize = 2;
+}
+
+// Reply to battles.start, battles.turn and battles.forfeit.
+message BattleUpdate {
+  string battle_id = 1;
+  // By side.
+  repeated SideUpdate sides = 2;
+  // Set once the battle is over.
+  BattleOutcome outcome = 3;
 }

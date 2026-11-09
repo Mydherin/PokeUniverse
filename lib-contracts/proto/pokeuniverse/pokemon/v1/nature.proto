@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+// The 25 natures, numbered as FireRed's NATURE_ constants plus one: a Pokémon's nature is its
+// personality % 25, plus one. Converted once by infra/battle/catalog.mjs; this file is the source now.
+package pokeuniverse.pokemon.v1;
+
+import "google/protobuf/descriptor.proto";
+import "pokeuniverse/pokemon/v1/stats.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1;pokemonv1";
+
+// What a nature changes: the raised stat ×1.1, the lowered one ×0.9. Unset for neutral natures.
+message NatureInfo {
+  Stat raised = 1;
+  Stat lowered = 2;
+}
+
+extend google.protobuf.EnumValueOptions {
+  NatureInfo info = 50003;
+}
+
+enum Nature {
+  NATURE_UNSPECIFIED = 0;
+  NATURE_HARDY = 1;
+  NATURE_LONELY = 2 [(info) = {raised: STAT_ATTACK, lowered: STAT_DEFENSE}];
+  NATURE_BRAVE = 3 [(info) = {raised: STAT_ATTACK, lowered: STAT_SPEED}];
+  NATURE_ADAMANT = 4 [(info) = {raised: STAT_ATTACK, lowered: STAT_SP_ATTACK}];
+  NATURE_NAUGHTY = 5 [(info) = {raised: STAT_ATTACK, lowered: STAT_SP_DEFENSE}];
+  NATURE_BOLD = 6 [(info) = {raised: STAT_DEFENSE, lowered: STAT_ATTACK}];
+  NATURE_DOCILE = 7;
+  NATURE_RELAXED = 8 [(info) = {raised: STAT_DEFENSE, lowered: STAT_SPEED}];
+  NATURE_IMPISH = 9 [(info) = {raised: STAT_DEFENSE, lowered: STAT_SP_ATTACK}];
+  NATURE_LAX = 10 [(info) = {raised: STAT_DEFENSE, lowered: STAT_SP_DEFENSE}];
+  NATURE_TIMID = 11 [(info) = {raised: STAT_SPEED, lowered: STAT_ATTACK}];
+  NATURE_HASTY = 12 [(info) = {raised: STAT_SPEED, lowered: STAT_DEFENSE}];
+  NATURE_SERIOUS = 13;
+  NATURE_JOLLY = 14 [(info) = {raised: STAT_SPEED, lowered: STAT_SP_ATTACK}];
+  NATURE_NAIVE = 15 [(info) = {raised: STAT_SPEED, lowered: STAT_SP_DEFENSE}];
+  NATURE_MODEST = 16 [(info) = {raised: STAT_SP_ATTACK, lowered: STAT_ATTACK}];
+  NATURE_MILD = 17 [(info) = {raised: STAT_SP_ATTACK, lowered: STAT_DEFENSE}];
+  NATURE_QUIET = 18 [(info) = {raised: STAT_SP_ATTACK, lowered: STAT_SPEED}];
+  NATURE_BASHFUL = 19;
+  NATURE_RASH = 20 [(info) = {raised: STAT_SP_ATTACK, lowered: STAT_SP_DEFENSE}];
+  NATURE_CALM = 21 [(info) = {raised: STAT_SP_DEFENSE, lowered: STAT_ATTACK}];
+  NATURE_GENTLE = 22 [(info) = {raised: STAT_SP_DEFENSE, lowered: STAT_DEFENSE}];
+  NATURE_SASSY = 23 [(info) = {raised: STAT_SP_DEFENSE, lowered: STAT_SPEED}];
+  NATURE_CAREFUL = 24 [(info) = {raised: STAT_SP_DEFENSE, lowered: STAT_SP_ATTACK}];
+  NATURE_QUIRKY = 25;
+}

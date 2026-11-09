@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+// A Pokémon's six stats, in FireRed's order (STAT_HP to STAT_SPDEF).
+package pokeuniverse.pokemon.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/pokemon/v1;pokemonv1";
+
+enum Stat {
+  STAT_UNSPECIFIED = 0;
+  STAT_HP = 1;
+  STAT_ATTACK = 2;
+  STAT_DEFENSE = 3;
+  STAT_SPEED = 4;
+  STAT_SP_ATTACK = 5;
+  STAT_SP_DEFENSE = 6;
+}
+
+// One value per stat: base stats, IVs, EVs, EV yields or a Pokémon's stats.
+message Stats {
+  uint32 hp = 1;
+  uint32 attack = 2;
+  uint32 defense = 3;
+  uint32 speed = 4;
+  uint32 sp_attack = 5;
+  uint32 sp_defense = 6;
+}

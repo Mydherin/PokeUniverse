@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/pokedex/v1/pokedex.proto.
  */
 export const file_pokeuniverse_pokedex_v1_pokedex: GenFile = /*@__PURE__*/
-  fileDesc("CiVwb2tldW5pdmVyc2UvcG9rZWRleC92MS9wb2tlZGV4LnByb3RvEhdwb2tldW5pdmVyc2UucG9rZWRleC52MSJLCgdQb2tlZGV4EhAKCG9idGFpbmVkGAEgASgIEhAKCG5hdGlvbmFsGAIgASgIEgwKBHNlZW4YAyABKAwSDgoGY2F1Z2h0GAQgASgMQkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcG9rZWRleC92MTtwb2tlZGV4djFiBnByb3RvMw");
+  fileDesc("CiVwb2tldW5pdmVyc2UvcG9rZWRleC92MS9wb2tlZGV4LnByb3RvEhdwb2tldW5pdmVyc2UucG9rZWRleC52MSJLCgdQb2tlZGV4EhAKCG9idGFpbmVkGAEgASgIEhAKCG5hdGlvbmFsGAIgASgIEgwKBHNlZW4YAyABKAwSDgoGY2F1Z2h0GAQgASgMIkMKDlBva2VkZXhDaGFuZ2VkEjEKB3Bva2VkZXgYASABKAsyIC5wb2tldW5pdmVyc2UucG9rZWRleC52MS5Qb2tlZGV4QkVaQ3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2UvcG9rZWRleC92MTtwb2tlZGV4djFiBnByb3RvMw");
 
 /**
  * In the world snapshot. Species are pokeuniverse.species.v1.Species numbers (the National
@@ -56,4 +56,23 @@ export type Pokedex = Message<"pokeuniverse.pokedex.v1.Pokedex"> & {
  */
 export const PokedexSchema: GenMessage<Pokedex> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_pokedex_v1_pokedex, 0);
+
+/**
+ * Server -> client: the Pokédex after a change (a battle, an evolution), saved.
+ *
+ * @generated from message pokeuniverse.pokedex.v1.PokedexChanged
+ */
+export type PokedexChanged = Message<"pokeuniverse.pokedex.v1.PokedexChanged"> & {
+  /**
+   * @generated from field: pokeuniverse.pokedex.v1.Pokedex pokedex = 1;
+   */
+  pokedex?: Pokedex | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.pokedex.v1.PokedexChanged.
+ * Use `create(PokedexChangedSchema)` to create a new message.
+ */
+export const PokedexChangedSchema: GenMessage<PokedexChanged> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_pokedex_v1_pokedex, 1);
 

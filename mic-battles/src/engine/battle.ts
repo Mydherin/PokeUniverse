@@ -1,0 +1,194 @@
+// Showdown battles from our StartBattle, and their state for Redis (phase-5 D1, D2).
+// Each Pokémon's Showdown name is its party slot ("0" to "5"): the log's idents then say exactly
+// which party member they mean, and nicknames stay ours.
+
+import { Battle, State, type PokemonSet } from "@pkmn/sim";
+import type { BattleMon, StartBattle } from "@pokeuniverse/contracts/battle/v1/battle";
+import { Status } from "@pokeuniverse/contracts/pokemon/v1/pokemon";
+import type { Stats } from "@pokeuniverse/contracts/pokemon/v1/stats";
+import { DOUBLES_FORMAT, FORMAT } from "../rules.ts";
+import { registerBagItems } from "./bag.ts";
+import { abilityId, genderId, itemId, moveId, natureName, speciesId, statusId } from "./lookup.ts";
+
+const MAX_MOVES = 4;
+
+export type Pokemon = Battle["sides"][number]["pokemon"][number];
+export type Side = Battle["sides"][number];
+
+/** Showdown's side ID for our side number (0 → p1). */
+export const sideId = (side: number) => `p${side + 1}` as "p1" | "p2";
+
+/** Creates the battle and plays its start (send-outs) into battle.log. */
+export function createBattle(start: StartBattle): Battle {
+  const battle = new Battle({ formatid: (start.doubles ? DOUBLES_FORMAT : FORMAT) as never, seed: `gen5,${start.seed.toString(16).padStart(16, "0")}` });
+  registerBagItems(battle);
+  // Hold the start until both teams carry their HP, PP and status.
+  start.sides.forEach((team, side) => {
+    battle.started = side > 0;
+    battle.setPlayer(sideId(side), { name: `side${side}`, team: leadsFirst(team.pokemon.map(toSet), team.pokemon, start.doubles ? 2 : 1) });
+  });
+  battle.started = false;
+  start.sides.forEach((team, side) => team.pokemon.forEach((mon, slot) => carryOver(battle, pokemonAt(battle, side, slot), mon)));
+  battle.start();
+  // Showdown's start counts every Pokémon as able to battle: recount without the fainted ones.
+  for (const side of battle.sides) side.pokemonLeft = side.pokemon.filter((p) => !p.fainted).length;
+  return battle;
+}
+
+export function restoreBattle(state: string): Battle {
+  const battle = State.deserializeBattle(state);
+  registerBagItems(battle);
+  return battle;
+}
+
+/** The state to save. The log is cleared first: it was already translated, and it would only grow.
+ *  Runtime listeners (registerBagItems) can't be serialized; restoreBattle adds them back. */
+export function serializeBattle(battle: Battle): string {
+  battle.log.length = 0;
+  battle.inputLog.length = 0;
+  battle.sentLogPos = 0;
+  battle.lastMoveLine = -1;
+  const events = battle.events;
+  battle.events = null;
+  try {
+    return JSON.stringify(State.serializeBattle(battle));
+  } finally {
+    battle.events = events;
+  }
+}
+
+/** A throwaway copy for the AI to read and try damage on: the real battle stays untouched. */
+export function cloneBattle(battle: Battle): Battle {
+  const b = battle as unknown as { events: Battle["events"]; log: string[]; inputLog: string[] };
+  const { events, log, inputLog } = b;
+  b.events = null;
+  b.log = [];
+  b.inputLog = [];
+  try {
+    return State.deserializeBattle(State.serializeBattle(battle));
+  } finally {
+    b.events = events;
+    b.log = log;
+    b.inputLog = inputLog;
+  }
+}
+
+/** The Pokémon in this party slot (as the battle started). */
+export function pokemonAt(battle: Battle, side: number, slot: number): Pokemon {
+  const pokemon = battle.sides[side].pokemon.find((p) => p.name === String(slot));
+  if (!pokemon) throw new Error(`no pokemon in side ${side} slot ${slot}`);
+  return pokemon;
+}
+
+export const partySlot = (pokemon: Pokemon) => Number(pokemon.name);
+
+/** Its stats now, as our Stats: what a level up window and the party view show. */
+export function statsOf(pokemon: Pokemon) {
+  const s = pokemon.baseStoredStats;
+  return { hp: pokemon.baseMaxhp, attack: s.atk, defense: s.def, speed: s.spe, spAttack: s.spa, spDefense: s.spd };
+}
+
+/**
+ * A level up (CalculateMonStats): the level and stats change, and HP rises by what max HP gained.
+ * A Transformed Pokémon keeps fighting with what it copied until it switches out, as in FireRed.
+ */
+export function setLevel(battle: Battle, pokemon: Pokemon, level: number, evs: PokemonSet["evs"]): void {
+  pokemon.set.level = level;
+  pokemon.set.evs = evs;
+  (pokemon as { level: number }).level = level;
+  const stats = battle.spreadModify(pokemon.baseSpecies.baseStats, pokemon.set);
+  if (pokemon.baseSpecies.maxHP) stats.hp = pokemon.baseSpecies.maxHP;
+  const gained = stats.hp - pokemon.baseMaxhp;
+  pokemon.baseMaxhp = stats.hp;
+  pokemon.maxhp = stats.hp;
+  if (pokemon.hp > 0) pokemon.hp = Math.max(1, Math.min(pokemon.hp + gained, stats.hp));
+  pokemon.baseStoredStats = stats;
+  if (!pokemon.transformed) pokemon.storedStats = { ...stats };
+}
+
+export const moveSlotFree = (pokemon: Pokemon) => pokemon.baseMoveSlots.length < MAX_MOVES;
+
+/**
+ * A move learned, in a free slot or over `forget` (0 to 3). PP UPs go with the old move
+ * (RemoveMonPPBonus), and a slot replaced by Mimic or Transform stays as it is until the switch.
+ */
+export function learnMove(pokemon: Pokemon, move: number, forget?: number): void {
+  const id = moveId(move);
+  const data = pokemon.battle.dex.moves.get(id);
+  const slot = { move: data.name, id: data.id, pp: data.pp, maxpp: data.pp, target: data.target, disabled: false, used: false };
+  const at = forget ?? pokemon.baseMoveSlots.length;
+  const old = pokemon.baseMoveSlots[at]?.id;
+  pokemon.baseMoveSlots[at] = slot;
+  pokemon.set.moves[at] = id;
+  if (pokemon.transformed) return;
+  const live = forget === undefined ? pokemon.moveSlots.length : pokemon.moveSlots.findIndex((m) => m.id === old);
+  if (live >= 0) pokemon.moveSlots[live] = { ...slot };
+  // updatechoicemoveonlvlup: a Choice item stays locked on what replaced its move.
+  const lock = pokemon.volatiles.choicelock as { move?: string } | undefined;
+  if (lock && lock.move === old) lock.move = data.id;
+}
+
+function toSet(mon: BattleMon, slot: number): PokemonSet {
+  return {
+    name: String(slot),
+    species: speciesId(mon.species),
+    item: itemId(mon.heldItem),
+    ability: abilityId(mon.ability),
+    moves: mon.moves.map((m) => moveId(m.move)),
+    nature: natureName(mon.nature),
+    gender: genderId(mon.gender),
+    evs: stats(mon.evs),
+    ivs: stats(mon.ivs),
+    level: mon.level,
+    shiny: mon.shiny,
+    happiness: mon.friendship,
+  };
+}
+
+function stats(s: Stats | undefined) {
+  return { hp: s?.hp ?? 0, atk: s?.attack ?? 0, def: s?.defense ?? 0, spa: s?.spAttack ?? 0, spd: s?.spDefense ?? 0, spe: s?.speed ?? 0 };
+}
+
+/** FireRed sends out the first Pokémon that can battle (two in doubles). */
+function leadsFirst(sets: PokemonSet[], team: BattleMon[], count: number): PokemonSet[] {
+  const leads = sets.filter((_, i) => team[i].hp > 0).slice(0, count);
+  return [...leads, ...sets.filter((set) => !leads.includes(set))];
+}
+
+/** HP, PP and status carry over between battles (D14). */
+function carryOver(battle: Battle, pokemon: Pokemon, mon: BattleMon): void {
+  pokemon.baseMoveSlots.forEach((slot, i) => {
+    const move = mon.moves[i];
+    if (!move) return;
+    slot.pp = Math.min(move.pp, move.maxPp);
+    slot.maxpp = move.maxPp;
+  });
+  if (mon.hp === 0) {
+    pokemon.hp = 0;
+    pokemon.fainted = true;
+    pokemon.status = "fnt" as never;
+    return;
+  }
+  pokemon.hp = Math.min(mon.hp, pokemon.maxhp);
+  const status = statusId(mon.status);
+  if (!status) return;
+  pokemon.status = status as never;
+  pokemon.statusState = battle.initEffectState({ id: status, target: pokemon });
+  // Gen 4 sleep: 1-4 turns, counted as Showdown's slp condition does.
+  if (mon.status === Status.SLEEP) pokemon.statusState.time = battle.random(2, 6);
+  if (mon.status === Status.TOXIC) pokemon.statusState.stage = 0;
+}
+
+/** An active Pokémon's options (moves, trapped) in a side's move request. */
+export function moveOptions(side: Side, position = 0) {
+  const req = side.activeRequest;
+  return req && "active" in req ? req.active[position] : undefined;
+}
+
+/** The positions that must be asked, in order: a fainted or locked Pokémon isn't (Outrage,
+ *  recharging…), and only as many switch as the bench can fill. */
+export function positionsToChoose(battle: Battle, side: Side): number[] {
+  if (side.requestState === "switch") return side.active.flatMap((p, i) => (p.switchFlag ? [i] : [])).slice(0, battle.canSwitch(side));
+  if (side.requestState !== "move") return [];
+  return side.active.flatMap((p, i) => (p.fainted || p.getLockedMove() ? [] : [i]));
+}

@@ -11,7 +11,8 @@
     "@bufbuild/protobuf": "2.16.0",
     "@nats-io/transport-node": "3.4.0",
     "@pkmn/sim": "0.10.11",
-    "@pokeuniverse/contracts": "workspace:*"
+    "@pokeuniverse/contracts": "workspace:*",
+    "redis": "6.3.0"
   },
   "devDependencies": {
     "@types/node": "26.6.5",

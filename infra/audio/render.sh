@@ -1,7 +1,8 @@
 #!/bin/sh
 # Renders FireRed's sounds exactly from the decompilation (docs/audio.md). Run by `make audio` in infra/audio's image.
 # Input: the sound list (sound ID -> song or cry). Output: <id>.webm (Opus), <id>.m4a (AAC) and manifest.json (loop points).
-# Then every species' cry (make pokemon's cries.json) to cries/<nnn>.webm|.m4a, loaded on demand.
+# Then every species' cry (make pokemon's cries.json) to cries/<nnn>.webm|.m4a, and its faint cry to
+# cries/<nnn>_faint.webm|.m4a (phase-5 D15), loaded on demand.
 set -eu
 
 SRC=/repo/references/pokefirered
@@ -77,4 +78,21 @@ for nnn in $(jq -r 'keys[]' "$CRIES"); do
   trim /tmp/work/raw.wav /tmp/work/master.wav
   ffmpeg -y -v error -i /tmp/work/master.wav -c:a libopus -b:a 128k "$OUT/cries/$nnn.webm"
   ffmpeg -y -v error -i /tmp/work/master.wav -c:a aac -b:a 128k "$OUT/cries/$nnn.m4a"
+done
+
+# Faint cries: CRY_MODE_FAINT (release 200, pitch 14440 instead of 15360) for FireRed's; the
+# expansion's samples lowered by the same pitch (920/256 semitones) and cut at FireRed's release.
+for nnn in $(jq -r 'keys[]' "$CRIES"); do
+  [ -f "$OUT/cries/${nnn}_faint.webm" ] && [ -f "$OUT/cries/${nnn}_faint.m4a" ] && continue
+  echo "audio: faint cry $nnn"
+  cry=$(jq -r --arg n "$nnn" '.[$n].cry // empty' "$CRIES")
+  if [ -n "$cry" ]; then
+    render --cry "$cry" --cry-release 200 --cry-pitch 14440 --output /tmp/work/raw.wav
+  else
+    ffmpeg -y -v error -i "/repo/$(jq -r --arg n "$nnn" '.[$n].wav' "$CRIES")" \
+      -af "aresample=$RATE,asetrate=$((RATE * 8125 / 10000)),aresample=$RATE" /tmp/work/raw.wav
+  fi
+  trim /tmp/work/raw.wav /tmp/work/master.wav
+  ffmpeg -y -v error -i /tmp/work/master.wav -c:a libopus -b:a 128k "$OUT/cries/${nnn}_faint.webm"
+  ffmpeg -y -v error -i /tmp/work/master.wav -c:a aac -b:a 128k "$OUT/cries/${nnn}_faint.m4a"
 done

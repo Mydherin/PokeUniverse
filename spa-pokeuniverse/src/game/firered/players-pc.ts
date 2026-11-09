@@ -1,6 +1,7 @@
-// The bedroom PC's menus on the field (player_pc.c): "What would you like to do?" with ITEM
-// STORAGE, MAILBOX and TURN OFF; ITEM STORAGE's WITHDRAW ITEM, DEPOSIT ITEM and CANCEL, each
-// described in the message box. The overworld opens the screens the menu asks for and brings
+// The bedroom PC's menus on the field (player_pc.c): "What would you like to do?" with BILL'S PC
+// (phase-6 D7: no Pokémon Center until Phase 12), ITEM STORAGE, MAILBOX and TURN OFF; ITEM
+// STORAGE's WITHDRAW ITEM, DEPOSIT ITEM and CANCEL, each described in the message box; BILL'S PC's
+// menu (pokemon_storage_system_menu.c), described the same way. The overworld opens the screens the menu asks for and brings
 // the menu back when they close. The PC's screen on the map flickers on and goes off with it.
 
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
@@ -50,6 +51,8 @@ export const enum PcChoice {
   None,
   Withdraw,
   Deposit,
+  /** A BILL'S PC entry: `billsEntry` says which. */
+  Boxes,
   TurnOff,
 }
 
@@ -60,32 +63,52 @@ export const enum StorageEntry {
   Cancel,
 }
 
-const TOP_MENU: WindowTemplate = { left: 1, top: 1, width: 13, height: 6, palette: 15, baseBlock: 0x008 };
+const TOP_MENU: WindowTemplate = { left: 1, top: 1, width: 13, height: 8, palette: 15, baseBlock: 0x008 };
 const STORAGE_MENU: WindowTemplate = { left: 1, top: 1, width: 14, height: 6, palette: 15, baseBlock: 0x008 };
-const TOP_ENTRIES: TextId[] = ["gText_ItemStorage", "gText_Mailbox", "gText_TurnOff"];
+const BILLS_MENU: WindowTemplate = { left: 1, top: 1, width: 17, height: 10, palette: 15, baseBlock: 0x008 };
+const TOP_ENTRIES: TextId[] = ["gText_BillSPc", "gText_ItemStorage", "gText_Mailbox", "gText_TurnOff"];
 const STORAGE_ENTRIES: TextId[] = ["gText_WithdrawItem2", "gText_DepositItem2", "gFameCheckerText_Cancel"];
 const STORAGE_DESCRIPTIONS: TextId[] = ["gText_TakeOutItemsFromThePC", "gText_StoreItemsInThePC", "gText_GoBackToThePreviousMenu"];
+const BILLS_ENTRIES: TextId[] = ["gText_WithdrawPokemon", "gText_DepositPokemon", "gText_MovePokemon", "gText_MoveItems", "gText_SeeYa"];
+const BILLS_DESCRIPTIONS: TextId[] = ["gText_WithdrawMonDescription", "gText_DepositMonDescription", "gText_MoveMonDescription", "gText_MoveItemsDescription", "gText_SeeYaDescription"];
+/** BILL'S PC's entries (OPTION_*); returning from the box screen puts the cursor back on one. */
+export const enum BillsEntry {
+  Withdraw,
+  Deposit,
+  MovePokemon,
+  MoveItems,
+  SeeYa,
+}
 const enum TopEntry {
+  BillsPc,
   ItemStorage,
   Mailbox,
   TurnOff,
 }
 /** Entries start after the "▶" (GetMenuCursorDimensionByFont), 2 pixels down, 16 apart. */
 const CURSOR_WIDTH = 8;
+const PARTY_SIZE = 6;
 const TOP_Y = 2;
 const LINE_HEIGHT = 16;
 
 const enum State {
   /** A message prints; `afterMessage` runs once it is done. */
   Message,
+  /** A script's msgbox: printed, it waits for A or B, then `afterMessage`. */
+  WaitButton,
   Top,
   Storage,
+  Bills,
+  /** A BILL'S PC refusal stays until a press (STATE_ERROR_MSG). */
+  BillsRefused,
 }
 
 export class PlayersPcMenu {
   private state = State.Message;
   private afterMessage: () => void = () => {};
   private menu: CursorMenu | null = null;
+  /** The BILL'S PC entry chosen last. */
+  billsEntry: BillsEntry = BillsEntry.Withdraw;
 
   /**
    * BedroomPC. `message` is the field's current message box (it is set up again on returning
@@ -95,6 +118,7 @@ export class PlayersPcMenu {
     private readonly flow: Flow,
     private readonly message: () => FieldMessage,
     private readonly storedCount: () => number,
+    private readonly partyCount: () => number,
   ) {
     this.returnToTop();
   }
@@ -105,6 +129,13 @@ export class PlayersPcMenu {
       case State.Message:
         if (!this.message().printing) this.afterMessage();
         return PcChoice.None;
+      case State.WaitButton:
+        if (!this.message().printing && this.flow.gba.input.isPressed(Button.A | Button.B)) this.afterMessage();
+        return PcChoice.None;
+      case State.Bills:
+        return this.billsInput();
+      case State.BillsRefused:
+        return this.billsRefusedInput();
       case State.Top:
         return this.topInput();
       case State.Storage:
@@ -115,6 +146,11 @@ export class PlayersPcMenu {
   /** CB2_ReturnFromWithdrawMenu / CB2_ReturnFromDepositMenu: ITEM STORAGE drawn again, under the black screen. */
   resumeStorage(cursor: StorageEntry): void {
     this.openStorage(cursor);
+  }
+
+  /** FieldTask_ReturnToPcMenu: BILL'S PC drawn again, under the black screen. */
+  resumeBills(): void {
+    this.openBills(this.billsEntry);
   }
 
   /** The menu's window gone, when the PC stops early (a reconnect). */
@@ -172,9 +208,69 @@ export class PlayersPcMenu {
     if (chosen === MENU_NOTHING_CHOSEN) return PcChoice.None;
     if (chosen === MENU_B_PRESSED) this.flow.play("se_select");
     this.closeMenu();
-    if (chosen === TopEntry.ItemStorage) this.openStorage(StorageEntry.Withdraw);
+    if (chosen === TopEntry.BillsPc) this.accessStorage();
+    else if (chosen === TopEntry.ItemStorage) this.openStorage(StorageEntry.Withdraw);
     else if (chosen === TopEntry.Mailbox) this.say("gText_TheresNoMailHere", () => this.returnToTop());
     else return PcChoice.TurnOff;
+    return PcChoice.None;
+  }
+
+  /** EventScript_AccessPokemonStorage: the two messages, then BILL'S PC. */
+  private accessStorage(): void {
+    this.flow.play("se_pc_login");
+    this.sayAndWait("Text_AccessedBillsPC", () => this.sayAndWait("Text_OpenedPkmnStorage", () => this.openBills(BillsEntry.Withdraw)));
+  }
+
+  private sayAndWait(text: TextId, next: () => void): void {
+    this.message().show(this.flow.assets.text(text), false);
+    this.state = State.WaitButton;
+    this.afterMessage = next;
+  }
+
+  /** CreatePCMainMenu, and the entry's description in the message box. */
+  private openBills(cursor: BillsEntry): void {
+    this.menu = this.drawMenu(BILLS_MENU, BILLS_ENTRIES, cursor);
+    this.describeBills();
+    this.state = State.Bills;
+  }
+
+  private describeBills(): void {
+    this.message().show(this.flow.assets.text(BILLS_DESCRIPTIONS[this.menu!.cursorPos]), false, FontId.Normal, true);
+  }
+
+  /** Task_PCMainMenu's STATE_HANDLE_INPUT: wraps around, the description follows the cursor. */
+  private billsInput(): PcChoice {
+    const before = this.menu!.cursorPos;
+    const chosen = this.menu!.processInput(true);
+    if (chosen === MENU_NOTHING_CHOSEN) {
+      if (this.menu!.cursorPos !== before) this.describeBills();
+      return PcChoice.None;
+    }
+    if (chosen === MENU_B_PRESSED) this.flow.play("se_select");
+    if (chosen === MENU_B_PRESSED || chosen === BillsEntry.SeeYa) {
+      this.closeMenu();
+      this.returnToTop();
+      return PcChoice.None;
+    }
+    if (chosen === BillsEntry.Withdraw && this.partyCount() === PARTY_SIZE) return this.refuseBills("gText_PartyFull");
+    if (chosen === BillsEntry.Deposit && this.partyCount() === 1) return this.refuseBills("gText_JustOnePkmn");
+    this.billsEntry = chosen as BillsEntry;
+    return PcChoice.Boxes;
+  }
+
+  private refuseBills(text: TextId): PcChoice {
+    this.message().show(this.flow.assets.text(text), false, FontId.Normal, true);
+    this.state = State.BillsRefused;
+    return PcChoice.None;
+  }
+
+  /** STATE_ERROR_MSG: a press gives the menu back, Up and Down move it too. */
+  private billsRefusedInput(): PcChoice {
+    const { input } = this.flow.gba;
+    if (input.isPressed(Button.Up) || input.isPressed(Button.Down)) this.menu!.moveCursor(input.isPressed(Button.Up) ? -1 : 1);
+    else if (!input.isPressed(Button.A | Button.B)) return PcChoice.None;
+    this.describeBills();
+    this.state = State.Bills;
     return PcChoice.None;
   }
 

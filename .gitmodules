@@ -13,3 +13,8 @@
 	url = https://github.com/rh-hideout/pokeemerald-expansion.git
 	shallow = true
 	branch = master
+[submodule "references/pokeheartgold"]
+	path = references/pokeheartgold
+	url = https://github.com/ctrl-cheeb-del/pokeheartgold.git
+	shallow = true
+	branch = master

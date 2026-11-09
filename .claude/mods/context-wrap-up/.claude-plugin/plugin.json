@@ -1,0 +1,6 @@
+{
+  "name": "context-wrap-up",
+  "version": "0.1.0",
+  "description": "Tells Claude to wrap up and save progress to the milestone file once the context passes 20%",
+  "types": "./types/index.d.ts"
+}

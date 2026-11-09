@@ -64,6 +64,26 @@ export function expandPlaceholders(text: Text, vars: Partial<Record<number, Text
   return out;
 }
 
+const DYNAMIC = 0xf7;
+
+/** DynamicPlaceholderTextUtil_ExpandPlaceholders: each {DYNAMIC n} becomes vars[n]. */
+export function expandDynamic(text: Text, vars: readonly Text[]): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const b = text[i];
+    if (b === DYNAMIC) {
+      for (const v of vars[text[++i]] ?? []) {
+        if (v === EOS) break;
+        out.push(v);
+      }
+    } else {
+      out.push(b);
+      if (b === EOS) break;
+    }
+  }
+  return out;
+}
+
 /** Joins texts (StringCopy, StringAppend): each one's EOS dropped, one at the end. */
 export function joinText(...texts: Text[]): number[] {
   const out: number[] = [];
@@ -327,6 +347,8 @@ export interface TextContext {
   input: Input;
   /** PlaySE(SE_SELECT) when a prompt is answered. */
   playSelect(): void;
+  /** {PLAY_SE}: the game's song number. */
+  playSong(song: number): void;
   /** gTextFlags.canABSpeedUpPrint. */
   canABSpeedUpPrint: boolean;
   /** Pixels a prompt scroll moves per frame (by text speed: 1, 2, 4). */
@@ -340,6 +362,8 @@ export interface PrinterTemplate {
   letterSpacing: number;
   lineSpacing: number;
   colors: readonly [number, number, number];
+  /** gTextFlags.useAlternateDownArrow: the prompt arrow battle's palette shows red. */
+  alternateDownArrow?: boolean;
 }
 
 const enum RenderState {
@@ -360,6 +384,8 @@ const enum Render {
 }
 
 const DOWN_ARROW_X = [0, 16, 32, 16];
+/** DARK_DOWN_ARROW_OFFSET: where the sheet's other arrow starts. */
+const ALTERNATE_DOWN_ARROW_X = 64;
 const CURSOR_DELAY = 8;
 
 /** One printer, as the games' TextPrinter: prints into a window, one character per step. */
@@ -547,6 +573,11 @@ export class TextPrinter {
       case 0x0a:
         this.state = RenderState.WaitSe;
         return Render.Update;
+      case 0x10: {
+        const low = this.next();
+        this.ctx?.playSong(low | (this.next() << 8));
+        return Render.Repeat;
+      }
       case 0x0d:
         this.currentX = this.template.x + this.next();
         return Render.Repeat;
@@ -599,7 +630,8 @@ export class TextPrinter {
       if (this.downArrowDelay) this.downArrowDelay--;
       else {
         this.window.fillRect(this.colors[0], this.currentX, this.currentY, 10, 12);
-        this.window.blitRect(ctx.downArrow, DOWN_ARROW_X[this.downArrowIndex], 0, this.currentX, this.currentY, 10, 12);
+        const sheetX = this.template.alternateDownArrow ? ALTERNATE_DOWN_ARROW_X : 0;
+        this.window.blitRect(ctx.downArrow, sheetX + DOWN_ARROW_X[this.downArrowIndex], 0, this.currentX, this.currentY, 10, 12);
         this.window.copyToVram();
         this.downArrowDelay = CURSOR_DELAY;
         this.downArrowIndex = (this.downArrowIndex + 1) & 3;
