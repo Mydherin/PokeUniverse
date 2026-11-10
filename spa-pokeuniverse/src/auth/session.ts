@@ -1,8 +1,8 @@
 // Client session: the access token lives in memory only; the refresh token is an
 // HttpOnly cookie the browser sends to /auth (tech-stack.md#authentication).
 
-import { fromJson } from "@bufbuild/protobuf";
-import { RefreshResponseSchema, type Account } from "@pokeuniverse/contracts/auth/v1/auth";
+import { create, fromJson } from "@bufbuild/protobuf";
+import { AccountSchema, RefreshResponseSchema, type Account } from "@pokeuniverse/contracts/auth/v1/auth";
 
 export type Session = {
   accessToken: string;
@@ -17,6 +17,10 @@ export class OfflineError extends Error {}
 
 const REFRESH_EARLY_MS = 60_000;
 const channel = "BroadcastChannel" in window ? new BroadcastChannel("pokeuniverse-auth") : null;
+
+// Dev builds only (phase-8 D16): /play?bot=<token> plays a bot account of infra/bots instead of the
+// Google one, so a second tab can be a second player. The token is kept for the tab and not renewed.
+const botToken = import.meta.env.DEV || import.meta.env.VITE_BOT_LOGIN === "1" ? takeBotToken() : null;
 
 let current: Session | null = null;
 let inflight: Promise<Session | null> | null = null;
@@ -38,6 +42,7 @@ export function onSessionChange(listener: Listener): () => void {
  * so two tabs never send the same (soon revoked) refresh token.
  */
 export function refresh(): Promise<Session | null> {
+  if (botToken) return Promise.resolve(current ?? botSession(botToken));
   inflight ??= (navigator.locks ? navigator.locks.request("pokeuniverse-refresh", requestRefresh) : requestRefresh()).finally(
     () => (inflight = null),
   );
@@ -45,6 +50,7 @@ export function refresh(): Promise<Session | null> {
 }
 
 export async function logout(): Promise<void> {
+  if (botToken) return set(null);
   try {
     await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
   } catch {
@@ -97,7 +103,33 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-// Signing out in one tab signs out every tab.
+// Signing out in one tab signs out every tab (but a bot's).
 channel?.addEventListener("message", (e) => {
-  if (e.data === "logout") set(null);
+  if (e.data === "logout" && !botToken) set(null);
 });
+
+function takeBotToken(): string | null {
+  const url = new URL(location.href);
+  const token = url.searchParams.get("bot");
+  try {
+    if (token) sessionStorage.setItem("pokeuniverse-bot", token);
+    else return sessionStorage.getItem("pokeuniverse-bot");
+  } catch {
+    // No storage: the token lasts until the page reloads.
+  }
+  url.searchParams.delete("bot");
+  history.replaceState(history.state, "", url);
+  return token;
+}
+
+/** The session a bot's access token stands for (its claims; the server checks the signature). */
+function botSession(token: string): Session {
+  const claims = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))) as { sub: string; exp: number; roles: string[] };
+  const session = {
+    accessToken: token,
+    expiresAt: claims.exp * 1000,
+    account: create(AccountSchema, { id: BigInt(claims.sub), displayName: `bot ${claims.sub}`, roles: claims.roles }),
+  };
+  set(session);
+  return session;
+}

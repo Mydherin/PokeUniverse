@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**Not started.** Next: [M1 Bot players](milestones/m01-bot-players.md). Shared decisions (D1-D16) and the FireRed/HeartGold references: [context.md](milestones/context.md). Open questions for the user (chat scope, moderation, names over sprites, chat key): [Q1-Q4](milestones/context.md#questions-for-the-user); M1-M4 don't depend on them, M5-M6 use the provisional answers until answered.
+**In progress:** M1 done 2026-11-10. Next: [M2 Zone presence on one replica](milestones/m02-zone-presence.md); play with `node infra/bots/bots.ts` ([M1](milestones/m01-bot-players.md#playing-it)). Shared decisions (D1-D16) and the FireRed/HeartGold references: [context.md](milestones/context.md). Open questions for the user (chat scope, moderation, names over sprites, chat key): [Q1-Q4](milestones/context.md#questions-for-the-user); M1-M4 don't depend on them, M5-M6 use the provisional answers until answered.
 
 Carried in: O7 (other players' following Pokémon, from [Phase 6 M9](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)), done in M2 (server) and M3 (client). From Phase 7: other players seeing a player in battle (D9).
 
@@ -14,7 +14,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 
 | # | Milestone | Status | Needs | In short |
 |---|---|---|---|---|
-| M1 | [Bot players](milestones/m01-bot-players.md) | ⬜ | | Dev-only bot accounts and tokens (`POST /api/dev/bots`); `infra/bots/` Node script: log in, enter the house, walk at FireRed's pace, ping stats |
+| M1 | [Bot players](milestones/m01-bot-players.md) | ✅ | | Dev-only bot accounts and tokens (`POST /api/dev/bots`); `infra/bots/` Node script: log in, enter the house, walk at FireRed's pace, ping stats |
 | M2 | [Zone presence on one replica](milestones/m02-zone-presence.md) | ⬜ | M1 | Contracts `OtherPlayer`, `ZoneEvents`; others in the snapshot and `Warped`; joined, left, moved, turned, follower, battle deltas per tick, encoded once per zone |
 | M3 | [Drawing other players](milestones/m03-drawing-others.md) | ⬜ | M2 | Client: other trainers and their followers drawn as FireRed's object events, step queue at FireRed's speed, grass, elevation, warps, reconnect rebuild |
 | M4 | [Zones across replicas](milestones/m04-zones-across-replicas.md) | ⬜ | M2 | NATS `world.zone.<map>` fan-out, Redis zone members for snapshots, presence beat and crash cleanup; two `mic-core` replicas in Compose |

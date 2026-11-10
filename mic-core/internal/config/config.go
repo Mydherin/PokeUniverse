@@ -34,6 +34,9 @@ type Config struct {
 
 	// AdminEmails get the admin role on sign-in and at startup (lowercase).
 	AdminEmails []string
+
+	// BotsSecret turns on the dev-only POST /api/dev/bots (phase-8 D16); empty = off. Never set in production.
+	BotsSecret string
 }
 
 // Load reads and validates the configuration.
@@ -59,6 +62,7 @@ func Load() (Config, error) {
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		JWTKeyID:           required("JWT_KEY_ID"),
 		AdminEmails:        emailList(os.Getenv("ADMIN_EMAILS")),
+		BotsSecret:         os.Getenv("BOTS_SECRET"),
 	}
 
 	if raw := required("PUBLIC_URL"); raw != "" {

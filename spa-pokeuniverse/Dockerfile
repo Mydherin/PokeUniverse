@@ -10,6 +10,9 @@ COPY spa-pokeuniverse/package.json spa-pokeuniverse/
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter spa-pokeuniverse...
 COPY lib-contracts/gen/ts lib-contracts/gen/ts
 COPY spa-pokeuniverse spa-pokeuniverse
+# Dev only (phase-8 D16): "1" when the stack runs with BOTS_SECRET, never in production.
+ARG VITE_BOT_LOGIN=""
+ENV VITE_BOT_LOGIN=$VITE_BOT_LOGIN
 RUN pnpm --filter spa-pokeuniverse build
 
 # Static files only, served by an unprivileged nginx.

@@ -34,3 +34,6 @@ FROM accounts a
 JOIN roles r ON r.name = sqlc.arg(role)::text
 WHERE lower(a.email) = ANY(sqlc.arg(emails)::text[])
 ON CONFLICT DO NOTHING;
+
+-- name: GetAccountIDByGoogleSub :one
+SELECT id FROM accounts WHERE google_sub = $1;

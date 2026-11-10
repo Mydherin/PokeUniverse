@@ -22,6 +22,7 @@ import (
 	"pokeuniverse/mic-core/internal/auth"
 	"pokeuniverse/mic-core/internal/battle"
 	"pokeuniverse/mic-core/internal/battles"
+	"pokeuniverse/mic-core/internal/bots"
 	"pokeuniverse/mic-core/internal/config"
 	"pokeuniverse/mic-core/internal/health"
 	"pokeuniverse/mic-core/internal/httpx"
@@ -139,6 +140,7 @@ func run(log *slog.Logger) error {
 	authHandler.Register(mux, limit)
 	(&admin.Handler{Tokens: tokens}).Register(mux, limit)
 	(&trainer.Handler{Tokens: tokens, Pool: pool, Live: positions, Log: log}).Register(mux, limit)
+	(&bots.Handler{Secret: cfg.BotsSecret, Tokens: tokens, Pool: pool, Live: positions, Maps: worldMaps, Log: log}).Register(mux, limit)
 	mux.Handle("GET /ws", ws)
 
 	srv := &http.Server{

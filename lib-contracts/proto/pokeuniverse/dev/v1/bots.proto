@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+// Dev-only payloads (phase-8 D16), sent as Protocol Buffers JSON. The endpoint exists only
+// while mic-core has BOTS_SECRET set, never in production.
+package pokeuniverse.dev.v1;
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/dev/v1;devv1";
+
+// Request of POST /api/dev/bots: bot accounts bot-1 … bot-<count>, created or reused.
+message SpawnBots {
+  // 1 to 100.
+  uint32 count = 1;
+  // Map the bots' new trainers start on, at walkable tiles spread over it.
+  string map = 2;
+  // Only issue new access tokens for the bots' existing trainers (a running bot script
+  // renews its tokens before they expire); nothing else changes.
+  bool refresh_only = 3;
+}
+
+// Response of POST /api/dev/bots.
+message SpawnedBots {
+  repeated SpawnedBot bots = 1;
+}
+
+message SpawnedBot {
+  // 1 … count: bot-<n>, trainer BOT<n>.
+  uint32 n = 1;
+  uint64 account_id = 2;
+  string access_token = 3;
+  // Unix seconds.
+  int64 expires_at = 4;
+}

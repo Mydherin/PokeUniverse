@@ -1,4 +1,4 @@
-# M1 Bot Players ⬜
+# M1 Bot Players ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [context.md](context.md) D16, D17.
 
@@ -6,40 +6,28 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [
 
 ## Resume Here
 
-**Not started.** First step: the dev endpoint in `mic-core` (Tasks → Server).
+**Done 2026-11-10.** Next: [M2 Zone presence](m02-zone-presence.md).
 
-## Tasks
+## What Was Built
 
-### Server (`mic-core`)
+- **Server:** `mic-core/internal/bots/bots.go`, `POST /api/dev/bots` (`dev/v1/bots.proto`: `SpawnBots{count 1-100, map, refresh_only}` → `SpawnedBots{bots[n, account_id, access_token, expires_at]}`). Registered only when `BOTS_SECRET` is set (`config.BotsSecret`; `compose.yaml`, `.env.example` empty); `X-Bots-Secret` compared in constant time (403); unknown map 422; rate-limited `dev-bots` 30/min per IP.
+  - Accounts via `UpsertGoogleAccount` with `google_sub = 'bot:<n>'`, email `bot-<n>@bots.invalid` (no schema change); roles `user` + `bot` (`migrations/00018_add_bot_role.sql`; `bot` opens no route).
+  - Each spawn re-creates the trainer as New Game does (`PutTrainer`, `item.Reset`, `pokemon.Reset`, `Live.Clear`; the test team comes on join): `BOT<n>`, odd boy / even girl, rival `RIVAL`, facing south, on free tiles spread over the map (walkable, no warp, NPC, encounter cell or New Game start tile). `refresh_only` only issues tokens (`queries/accounts.sql` `GetAccountIDByGoogleSub`).
+- **`make bots-clean`:** deletes `bot:%` accounts (everything cascades) and their `player:<id>:*` Redis keys.
+- **Script:** `infra/bots/bots.ts` → `hooks.mjs` → `run.ts`. Node ≥ 24, nothing to install: Node's own `WebSocket` (undici) sends the `Origin` header, so no `ws`; `hooks.mjs` (`module.registerHooks`) loads `.ts` with `stripTypeScriptTypes(mode: transform)` (the contracts' enums), adds `.ts` to extensionless imports and resolves packages as `lib-contracts/gen/ts` does. It imports the generated contracts and the client's `world/{map,rules}.ts` as they are.
+  - Flags: `--count` (5), `--map` (2F), `--url` (`http://localhost:$SPA_PORT`), `--secret` (env or `.env` `BOTS_SECRET`), `--chat` (prints that chat isn't there yet; the chat milestone adds it).
+  - Per bot: `Authenticate` (random instance), `EnterWorld{take_over}` on the first entry only, steps at 16/8 frames (walk/run 25% when `can_run`), 70% straight, 3% pause 0-3 s, 3% `Turn`; `Correction` resets the tile; `checkStep` collision; avoids `TALL_GRASS` and non-stair warps; takes the stairs (`UseWarp`) 15% of the times it faces them; `Script` → `ScriptDone`. Tokens renewed a minute before expiry (`refresh_only`, `Authenticate` on the open socket). Reconnect: 1, 2, 4, 8, 15 s ±25%, 8 failures stop the bot; 4001/4003/4004 stop it at once.
+  - Every 10 s: connected, steps/s, corrections, per-bot msg/s and B/s, ping p50/p99, reconnects, battles. Ctrl-C closes all sockets.
+- **Client:** `src/auth/session.ts`: `/play?bot=<token>` uses the token instead of Google (kept in `sessionStorage` for the tab, removed from the URL, not renewed, ignores other tabs' logout) when `import.meta.env.DEV` or the image was built with `VITE_BOT_LOGIN=1`, which `compose.yaml` passes only when `BOTS_SECRET` is set (`spa-pokeuniverse/Dockerfile` build arg). Production never sets it.
 
-- `internal/config`: `BOTS_SECRET` (empty = off); `.env.example` documents it empty, with a comment: dev only.
-- New `internal/bots` (or in `admin`, one responsibility): `POST /api/dev/bots` `{count, map}` registered only when the secret is set; `X-Bots-Secret` compared in constant time; rate-limited per IP like the other routes.
-  - Creates or reuses accounts `bot-<n>` (n = 1…count), no Google subject (check the `accounts` columns; a migration if the subject is `NOT NULL`: a nullable column or a `bot:<n>` subject), roles `user` and `bot` (new row in `roles` via goose migration).
-  - Each gets a trainer like `PUT /api/trainer` does (gender alternating, name `BOT<n>`, rival `RIVAL`), the test team, placed on `map` at a walkable tile (from `ServerMap`, spread so they don't stack), in one transaction per bot.
-  - Answer: `[{account_id, access_token}]` (`auth.Tokens.Issue`). Payload as a proto in `lib-contracts` (`auth/v1` or a new `dev/v1`), JSON like the other endpoints.
-- `make bots-clean`: deletes `bot-*` accounts and their rows (SQL via `docker compose exec postgres psql`), and their Redis keys.
+## Playing It
 
-### Bot script (`infra/bots/`)
-
-- `bots.ts` run with Node 26 (type stripping), importing the generated TS contracts (`lib-contracts/gen/ts`) and `ws` (add to a `package.json` in `infra/bots`, `make lock`).
-- `--count N --map <id> --url http://localhost:<spa port> --secret $BOTS_SECRET [--chat]`: calls the endpoint, then per bot opens `/ws`, sends `Authenticate` (token, random `instance`), `EnterWorld{take_over}`, reads `WorldSnapshot`.
-- Walks: every step a random direction (keep going straight with 70%), `Move{step, direction, run, x, y}` at FireRed's pace (16 frames walking ≈ 267 ms; run sometimes when `can_run`); a `Correction` resets its tile; pauses 0-3 s now and then; `Turn` sometimes. Collision: from the compiled `ClientMap` (`spa-pokeuniverse/public/maps/<id>.binpb`) with the same rules as `world/rules.ts` if it imports cleanly, else trust `Correction`s. Uses warps rarely (`UseWarp` on the stairs) so both maps fill.
-- Answers `Script` with `ScriptDone`, ignores battles (bots don't step on the test grass: skip `encounter` cells).
-- Every 10 s prints: bots connected, steps/s sent, corrections, server messages/s and bytes/s received per bot, `Ping`→`Pong` p50/p99. Ctrl-C closes all sockets cleanly.
-
-### Client
-
-- Dev builds only (`import.meta.env.DEV`): `/play?bot=<token>` skips Google and uses the token, so a second tab can be a second player (context.md, Playing a Milestone). Production builds ignore it.
-
-## Play It
-
-1. `make up` with `BOTS_SECRET` set; `node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f`: 5 bots connect and walk, stats print, no errors in `make logs`.
-2. The real player plays in the browser pane at the same time: walking, a menu, the test grass battle: nothing changes for them.
-3. Restart `mic-core`: bots reconnect (backoff like the SPA's, [Movement](../../../tech-stack.md#movement) reconnect limit) and keep walking.
-4. Without `BOTS_SECRET`, the endpoint is a 404. `make bots-clean` removes them.
-5. Regression check ([Phase 6](../../phase-6-pokemon-party/milestones/context.md#playing-a-milestone)).
+- `.env` has a dev `BOTS_SECRET` (local only, never committed); `docker compose up -d --build mic-core spa-pokeuniverse` after changing it.
+- A second player: run the script with one bot more than you need, get tokens with `curl -s -X POST localhost:8080/api/dev/bots -H "X-Bots-Secret: $S" -d '{"count":6,"refreshOnly":true}'`, open `/play?bot=<bot-6 token>`: it takes bot-6 over (the script's bot-6 stops with 4004).
+- **Results (5-6 bots, 2026-11-10):** ~15 steps/s total, 0 corrections, ~0.2 msg/s and 4 B/s per bot (pongs only, until M2), ping p50 2 ms p99 3 ms. Bots reach 1F by the stairs. `docker compose restart mic-core`: all reconnected in one backoff step and kept walking; the browser's wild battle resumed. No ERROR/WARN in `mic-core`/`mic-battles`. `BOTS_SECRET=` → 404. `bots-clean` left the DB equal to the backup but for migration 18 and the `bot` role.
+- **Regression (as BOT6 via `?bot=`, the pane has no Google sign-in):** walk, menu, POKéMON, sign, stairs, wild battle won, restart mid-battle, SAVE, reload. Not replayed: the room trainer, BAG/PC items, party SWITCH/GIVE/TAKE (no code they use changed).
 
 ## Gotchas
 
-- The bot role must not get any admin route; `user` is enough to play.
-- Bots must not count as the real player's take-over: each has its own account.
+- `pkill -INT` on a backgrounded `node … > log` kills the wrapping shell with exit 1; start it with `exec node …` to see the script's own exit.
+- The 2F trainers (9,4) and (9,6) are talk-only (no sight). The 2F sign at (11,1) is above the stairs' approach tile (11,2): pressing Up there reads it.

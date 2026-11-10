@@ -9,7 +9,7 @@ PNPM       := npm install -g pnpm@10 >/dev/null 2>&1 && pnpm
 RUN := docker run --rm -v "$(CURDIR)":/repo
 GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build
 
-.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text pokemon audio emulator maps tool-maps
+.PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text pokemon audio emulator maps tool-maps bots-clean
 
 # FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
 FIRERED     := references/pokefirered
@@ -74,6 +74,16 @@ ps: ## Show service status
 
 clean: ## Stop the stack and delete its data volumes
 	docker compose down -v
+
+# Dev bot accounts (phase-8 D16): their rows go with the account (ON DELETE CASCADE), their live state by key.
+BOTS_SQL = docker compose exec -T postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -tAc "$$0"'
+bots-clean: ## Delete the dev bot accounts (bot-*), their trainers and their Redis keys (stack running)
+	@ids=$$($(BOTS_SQL) "SELECT id FROM accounts WHERE google_sub LIKE 'bot:%'"); \
+	for id in $$ids; do \
+		docker compose exec -T redis sh -c "redis-cli --scan --pattern 'player:$$id:*' | xargs -r redis-cli del" >/dev/null; \
+	done; \
+	$(BOTS_SQL) "DELETE FROM accounts WHERE google_sub LIKE 'bot:%'" >/dev/null; \
+	echo "removed $$(echo $$ids | wc -w | tr -d ' ') bot accounts"
 
 assets: graphics text pokemon audio maps ## FireRed's graphics, text, sounds and maps for the game
 

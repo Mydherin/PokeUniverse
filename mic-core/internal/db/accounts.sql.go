@@ -76,6 +76,17 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (GetAccountRow, erro
 	return i, err
 }
 
+const getAccountIDByGoogleSub = `-- name: GetAccountIDByGoogleSub :one
+SELECT id FROM accounts WHERE google_sub = $1
+`
+
+func (q *Queries) GetAccountIDByGoogleSub(ctx context.Context, googleSub string) (int64, error) {
+	row := q.db.QueryRow(ctx, getAccountIDByGoogleSub, googleSub)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const listAccountRoles = `-- name: ListAccountRoles :many
 SELECT r.name
 FROM account_roles ar

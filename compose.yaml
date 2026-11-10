@@ -70,6 +70,7 @@ services:
       JWT_KEY_ID: ${JWT_KEY_ID}
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      BOTS_SECRET: ${BOTS_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -113,6 +114,9 @@ services:
     build:
       context: .
       dockerfile: spa-pokeuniverse/Dockerfile
+      args:
+        # Dev only (phase-8 D16): with BOTS_SECRET set, the build accepts /play?bot=<token>.
+        VITE_BOT_LOGIN: ${BOTS_SECRET:+1}
     restart: unless-stopped
     ports:
       - "${SPA_PORT:-8080}:8080"
