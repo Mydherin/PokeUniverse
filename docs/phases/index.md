@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 1/8 milestones, next [M2 Zone presence](phase-8-multiplayer-world/milestones/m02-zone-presence.md) (Phase 7 done 2026-11-10). **Updated:** 2026-11-10.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 1/9 milestones, next [M2 Zone presence](phase-8-multiplayer-world/milestones/m02-zone-presence.md) (Phase 7 done 2026-11-10). **Updated:** 2026-11-10.
 
 ## Milestones of Phases With Folders
 
@@ -11,7 +11,7 @@ Current state of **every phase** of the project and everything still open, in on
 | [5 Battle System](phase-5-battle-system/phase-5-battle-system.md#milestones) | 14 / 14 ✅ | |
 | [6 Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones) | 10 / 10 ✅ | |
 | [7 Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones) | 8 / 8 ✅ | |
-| [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 0 / 8 | [M1 Bot players](phase-8-multiplayer-world/milestones/m01-bot-players.md) |
+| [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 1 / 9 | [M2 Zone presence](phase-8-multiplayer-world/milestones/m02-zone-presence.md) |
 
 ## Phases
 
@@ -51,4 +51,4 @@ Everything a phase left open, reopened or handed to another phase. An item leave
 | O11 | Field moves' cut-in of the Pokémon (`CreateFieldEffectShowMon`), Sweet Scent's included | 7 | 12 | [Phase 7 M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) |
 | O12 | SUMMARY shows "Met in Somewhere" in the house (no map section name); look at the naming screen's Pokémon icon fix | 7 | 10 | [Phase 7 M8](phase-7-wild-battles-catching/milestones/m08-phase-check.md#follow-ups-later-phases) |
 | O13 | Story flags' personal layer (flag-filtered objects and collisions), map phase flags, private scene phases (zone key is map + phase from Phase 8) | 8 | 10 | [Phase 8 D19, D20](phase-8-multiplayer-world/milestones/context.md#decisions), [Phase 10](phase-10-pallet-town.md) |
-| O14 | Trainer card on A facing a player; friends list, private chat per friend, party group chat, add or invite from a zone chat line | 8 | 9 | [Phase 9](phase-9-social.md) |
+| O14 | Trainer card on A facing a player; friends list, private chat per friend, party group chat, add or invite from a zone chat line; chat channel chips and line-actions menu (D24) | 8 | 9 | [Phase 9](phase-9-social.md) |

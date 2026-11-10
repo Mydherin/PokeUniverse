@@ -1,6 +1,6 @@
 # M5 Chat: Server and Contracts ⬜
 
-Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4. Rules: [context.md](context.md) D13, D14, D17. Q1 answered (zone chat, D13); Q2 still provisional ([context.md](context.md#questions-for-the-user)): check the user's answer first.
+Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4. Rules: [context.md](context.md) D13, D14, D17. Q1 and Q2 answered (zone chat, D13; logs only, D14).
 
 **Done when:** a `SendChat` reaches every player in the sender's zone (map + phase, D19), on any replica, as a `ChatMessage` in the zone's events; bad text and floods are dropped; every message is logged.
 

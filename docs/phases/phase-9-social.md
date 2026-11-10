@@ -8,7 +8,7 @@
 - **Social menu:** a global friends list (across zones and replicas), adding friends, a player's busy state (in battle, Phase 8 D9).
 - **Private chat:** one channel per friend.
 - **Parties:** create a party, invite players; group chat per party.
-- **From zone chat** (Phase 8's general chat, D13): pick a line to add its player as a friend or invite them to a party.
+- **Chat channels and line actions** (on Phase 8's hooks, [D24](phase-8-multiplayer-world/milestones/context.md#decisions)): friend DMs and the party chat as chips in the chat sheet / PC panel beside "Zone"; long-pressing a line or tapping its name opens that player's actions (trainer card, add friend, invite to party). Same mobile compose as zone chat ([ui.md](../ui.md#mobile-keyboard)).
 - Trading Pokémon between players, saved in one transaction (both Pokémon move or neither does).
 - PvP battles between players.
 

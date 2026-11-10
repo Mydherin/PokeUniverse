@@ -36,11 +36,12 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 - Native **gestures**: tap, swipe, long-press where they make sense (e.g. swipe between tabs, long-press for details).
 - **On-screen game controls:** D-pad and action buttons, sized for thumbs, never covering important game areas.
   - In the game: a D-pad you can slide across (8 directions), **A**, **B** and **Start**; at least 44×44 px; shown on touch screens only (`pointer: coarse`).
+  - A **chat button** (speech bubble, unread badge) on the touch layer, clear of the game buttons ([Mobile Keyboard](#mobile-keyboard) for typing).
 - No accidental zoom or text selection inside the game.
 
 ### Desktop
 
-- Full **keyboard** support: game controls, menu navigation, shortcuts (e.g. `Enter` to chat, `Esc` to close).
+- Full **keyboard** support: game controls, menu navigation, shortcuts (`T` opens chat, `/` opens it with `/` typed, `Enter` sends, `Esc` closes; `Enter` stays START while chat is closed; game keys aren't read while a text field has focus).
 - **Game buttons:**
 
   | GBA button | Keys |
@@ -68,13 +69,17 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 
 ## Mobile Keyboard
 
-When the on-screen keyboard opens (chat, search). Names are entered on FireRed's own naming screen (letter grid), not with the device keyboard.
+When the on-screen keyboard opens (chat, search). Names are entered on FireRed's own naming screen (letter grid), not with the device keyboard, so nothing changes there. The game is played mostly on phones (Chrome on Android, Safari on iOS, browser and PWA): every screen that types follows this one pattern (user 2026-11-10; first used by chat, [Phase 8](phases/phase-8-multiplayer-world/milestones/context.md#decisions) D21-D24).
 
-- The **focused input and the content around it stay visible**, never hidden behind the keyboard.
-- Layout adapts to the visible area using the **VisualViewport API** and dynamic viewport units (`dvh`), not fixed `100vh`.
-- **Chat:** recent messages remain visible above the input while typing.
-- The game view resizes or shifts so the player still sees what is happening.
-- Closing the keyboard restores the layout without jumps.
+- **One code path for both browsers:** the viewport meta adds `interactive-widget=resizes-visual` (Chrome's default, iOS's only behavior), so the keyboard never resizes the layout viewport on either; the keyboard's size comes from the **VisualViewport API** (`resize` and `scroll`: `height`, `offsetTop`). *Why:* Android's `resizes-content` and iOS's overlay would otherwise need two layouts.
+- **The app shell is pinned to the visual viewport** while the keyboard is open (`position: fixed`, top = `offsetTop`, height = `height`, also exposed as `--vvh`), so iOS doesn't scroll the page to the focused field and nothing jumps; `dvh` everywhere else, never `100vh`.
+- **The screen is re-laid out in the space left**, not covered: the focused input sits right on top of the keyboard, the content it belongs to (e.g. recent chat lines) above it, the game scaled to fit what's left and still running.
+- **Inputs:** font size ≥ 16 px (iOS zooms smaller ones); `enterkeyhint` set to the action (`send`, `search`); a textarea that grows with the text up to 3 lines, then scrolls, so a long sentence stays fully visible. Native fields only (IME, autocorrect, paste, dictation), styled with the pixel font.
+- **Safe areas:** bottom inset applied only while the keyboard is down (it covers the home indicator when up).
+- **Touch game controls are hidden** while typing and the own player doesn't move; no held direction stays stuck when focus leaves.
+- **Closing:** the system back gesture closes the sheet that opened the keyboard (a history entry, `popstate`); dismissing only the keyboard keeps the sheet open, and the layout returns without jumps.
+- **Landscape phones:** the keyboard takes most of the height, so only the input and the last lines show over the dimmed game; normal again when the keyboard closes.
+- Check every typing screen on **iOS Safari and Android Chrome**, browser and installed PWA, portrait and landscape.
 
 ## Platforms
 

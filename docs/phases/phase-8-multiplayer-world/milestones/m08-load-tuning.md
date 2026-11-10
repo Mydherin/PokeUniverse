@@ -1,4 +1,4 @@
-# M7 Load and Tuning ⬜
+# M8 Load and Tuning ⬜
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4, M5 (M3 for the client part). Rules: [context.md](context.md) D1, D7, D17, D18.
 
