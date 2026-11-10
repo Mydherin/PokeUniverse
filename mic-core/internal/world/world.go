@@ -46,6 +46,13 @@ type Bus interface {
 	SessionTaken(accountID int64, conn string)
 }
 
+// ZoneBus reaches the same zone on the other replicas (phase-8 D2, package zonebus).
+type ZoneBus interface {
+	Replica() string
+	Publish(mapID string, phase uint32, msg *worldv1.ZoneBus)
+	Subscribe(mapID string, phase uint32, handle func(*worldv1.ZoneBus)) (unsubscribe func(), err error)
+}
+
 // keepAliveEvery renews this replica's sessions well within live.SessionTTL.
 const keepAliveEvery = live.SessionTTL / 3
 
@@ -56,6 +63,7 @@ type World struct {
 	maps    Maps
 	live    *live.Store
 	bus     Bus
+	zoneBus ZoneBus
 	pool    *pgxpool.Pool
 	battles *battles.Client
 	active  *battle.Store
@@ -70,11 +78,11 @@ type World struct {
 	draining bool // The server is stopping: players leaving keep their battles.
 }
 
-func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
+func New(maps Maps, store *live.Store, bus Bus, zoneBus ZoneBus, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
 	if maps[Start.Map] == nil {
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
-	w := &World{maps: maps, live: store, bus: bus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
+	w := &World{maps: maps, live: store, bus: bus, zoneBus: zoneBus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
 		zones: map[ZoneKey]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}}
 	go w.keepAlive()
 	return w, nil

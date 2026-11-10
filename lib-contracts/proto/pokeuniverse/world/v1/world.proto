@@ -288,3 +288,28 @@ message SessionTaken {
   uint64 account_id = 1;
   string conn = 2;
 }
+
+// mic-core -> the same zone on every other mic-core (NATS subject world.zone.<map>.<phase>, phase-8
+// D2): what one replica's zone tells the others. Never sent to the client.
+message ZoneBus {
+  // The publishing replica; its own messages are skipped.
+  string replica = 1;
+  oneof message {
+    // The events of the replica's own players during one tick, in order (only when non-empty).
+    ZoneEvents batch = 2;
+    // Every 5 s while the zone has players there: who they are.
+    ZonePresence presence = 3;
+  }
+}
+
+// The players a replica holds in the zone (the beat).
+message ZonePresence {
+  repeated uint64 ids = 1;
+}
+
+// A player in a zone as stored in Redis (hash zone:<map>:<phase>, phase-8 D3): what a player
+// entering reads to draw the others, and the replica that holds them.
+message ZoneMember {
+  string replica = 1;
+  OtherPlayer player = 2;
+}

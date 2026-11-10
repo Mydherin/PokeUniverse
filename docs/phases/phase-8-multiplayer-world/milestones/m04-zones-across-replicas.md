@@ -1,4 +1,4 @@
-# M4 Zones Across Replicas ⬜
+# M4 Zones Across Replicas ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D2, D3, D7, D19.
 
@@ -6,7 +6,15 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ## Resume Here
 
-**Not started.** First step: the Redis zone members (`internal/live`).
+**Done 2026-11-10** (code; Go build, vet, `buf lint`/`breaking`, `docker compose config` green; Play It not run in the building session, no manual test asked). Next: [M5 Chat: server and contracts](m05-chat-server.md).
+
+- **Files:** new `mic-core/internal/zonebus/zonebus.go` (NATS), `mic-core/internal/world/zone_bus.go` (remote state, publish, beat, silence, Redis snapshot, prune); changed `world.proto` (`ZoneBus`, `ZonePresence`, `ZoneMember`), `internal/live/live.go`, `world/zone.go`, `world/zone_presence.go`, `world/world.go` (`ZoneBus` interface, `New(..., zoneBus, ...)`), `cmd/mic-core/main.go` (logs `replica` in `world loaded`), `compose.yaml` (`deploy.replicas: ${MIC_CORE_REPLICAS:-1}`), `.env.example`, `docs/tech-stack.md`.
+- **Contracts:** one `ZoneBus{replica, oneof batch: ZoneEvents | presence: ZonePresence{ids}}` (no `tick` field: NATS keeps one publisher's order, nothing read it). Redis value `ZoneMember{replica, OtherPlayer}`, so a snapshot knows which replica holds each remote player.
+- **Redis:** `zone:<map>:<phase>` (`live.ZoneKey`) written by `saveScript` (KEYS session, pos, moved, zone; ARGV 9 = member) in the same session check; `pos` gets a `zone` field naming the hash the player is listed in, and the save `HDEL`s the old hash when it differs (take-over onto another map; undeclared key, fine on standalone Redis, not cluster). `LeaveZone` (session-checked) on `zone.remove` (warp, disconnect); `Release` also removes it. `ZoneMembers` (Lua) returns entries and `HDEL`s those whose session is gone or whose `pos.zone` names another hash; each zone runs it every beat as a prune too (crashed replica's players who never come back). New Game's `Clear` leaves the entry to that prune.
+- **Zone:** `add` subscribes first (`Subscribe` flushes, so the Redis read after it misses nothing); the zone-empty branch of `run` ticks once more (publishes the last `left`s) then unsubscribes. Tick: `showChanges` now runs before the save and marks the player dirty (follower/battle rewrite its Redis entry); save; `takeEvents` → (shown, local); `publish(local)` + beat every 5 s + silence check (15 s = `live.SessionTTL`); send. Remote events: `zoneEvent{remote: true}` (never held, never republished); a remote event counts only if `remote.players[id]` is its replica (`joined` sets it). A local `joined` deletes `remote.players[id]`; a local `left` of a player another replica already holds is `hidden` (published, not shown locally). Subscription `gen` drops messages queued for an old subscription.
+- **Bots:** `Welcome` carries no replica, so bots print nothing new; `make logs` prefixes `mic-core-1`/`mic-core-2` on `player connected`.
+- **Play It how-to:** `MIC_CORE_REPLICAS=2` in `.env` (or `docker compose up -d --scale mic-core=2`), then `make up`; `docker compose exec redis redis-cli -a $REDIS_PASSWORD HKEYS zone:pallet_town_players_house_2f:0`; kill one: `docker kill pokeuniverse-mic-core-2` (name per `make ps`).
+- **Build checks:** `make contracts`, `make breaking`; Go: `docker run --rm -v "$PWD":/repo -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build -w /repo/mic-core golang:1.27-alpine sh -c 'go build ./... && go vet ./...'`; `docker compose config --quiet`.
 
 ## Tasks
 
@@ -50,3 +58,6 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 - A replica must not deliver its own batches twice (local + NATS echo).
 - `zone:<map>:<phase>` writes must use the session check, or a taken-over old connection can rewrite the entry.
+- Remote events must never be held as "unsaved" (nil player) nor republished: `takeEvents` checks `remote` first.
+- The zone-empty path has to publish before unsubscribing, or the other replicas keep a ghost until the 5 s beat.
+- `gofmt -l` still flags `internal/pokemon/wild.go` (from before M2).

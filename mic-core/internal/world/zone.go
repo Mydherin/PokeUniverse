@@ -29,10 +29,13 @@ type zone struct {
 	ticker  *time.Ticker
 	// What the players did this tick that the others see (zone_presence.go).
 	events []zoneEvent
+	// The zone's Redis hash, and the same zone on the other replicas (zone_bus.go).
+	hash   string
+	remote remoteState
 }
 
 func newZone(w *World, m *Map, key ZoneKey) *zone {
-	z := &zone{m: m, key: key, w: w, inbox: make(chan func(), 256), done: make(chan struct{}), players: map[*Player]struct{}{}}
+	z := &zone{m: m, key: key, w: w, hash: live.ZoneKey(key.Map, key.Phase), inbox: make(chan func(), 256), done: make(chan struct{}), players: map[*Player]struct{}{}}
 	go z.run()
 	return z
 }
@@ -65,6 +68,7 @@ func (z *zone) run() {
 			z.tick()
 		case <-z.w.stop:
 			z.tick()
+			z.unsubscribe()
 			close(z.done)
 			return
 		}
@@ -76,6 +80,8 @@ func (z *zone) run() {
 		case len(z.players) == 0 && z.ticker != nil:
 			z.ticker.Stop()
 			z.ticker, tick = nil, nil
+			z.tick() // The other replicas hear who left.
+			z.unsubscribe()
 			z.events = nil // No one left to tell.
 		}
 	}
@@ -83,6 +89,7 @@ func (z *zone) run() {
 
 // add puts the player in the zone and tells the others, once it's saved.
 func (z *zone) add(p *Player) {
+	z.subscribe() // Before the snapshot reads Redis, so nothing published after it is missed.
 	z.players[p] = struct{}{}
 	z.joined(p)
 }
@@ -98,25 +105,26 @@ func (z *zone) remove(p *Player) {
 	if _, ok := z.players[p]; ok { // Not taken over during the save (save already told the others).
 		delete(z.players, p)
 		z.left(p)
+		z.leaveHash(p)
 	}
 }
 
-// tick saves every player who changed, then sends what they're waiting for: each player's own
-// answers, then the zone's events encoded once (phase-8 D7).
+// tick saves every player who changed, publishes their events to the other replicas, then sends
+// what the local players are waiting for: each player's own answers, then the zone's events
+// (local and received) encoded once (phase-8 D7).
 func (z *zone) tick() {
 	var changed []*Player
 	for p := range z.players {
+		if z.showChanges(p) {
+			p.dirty = true // Its zone entry in Redis changes too.
+		}
 		if p.dirty {
 			changed = append(changed, p)
 		}
 	}
 	z.save(changed)
-	for p := range z.players {
-		if !p.dirty {
-			z.showChanges(p)
-		}
-	}
-	events := z.takeEvents()
+	events, local := z.takeEvents()
+	z.publish(local, time.Now())
 	encoded := z.encodeEvents(events)
 	for p := range z.players {
 		if p.dirty {
@@ -143,6 +151,7 @@ func (z *zone) save(players []*Player) {
 	saves := make([]live.Save, len(players))
 	for i, p := range players {
 		saves[i] = p.save()
+		saves[i].Zone, saves[i].Member = z.hash, z.member(p)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

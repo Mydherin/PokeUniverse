@@ -17,14 +17,17 @@ import (
 // other players, so a step through another player stays valid.
 
 // zoneEvent is a buffered event and the player it is about: it waits while that player has
-// changes not saved yet (saved before shown).
+// changes not saved yet (saved before shown). A remote one came from another replica (nil p); a
+// hidden one is published to the other replicas only.
 type zoneEvent struct {
-	p  *Player
-	ev *worldv1.ZoneEvent
+	p      *Player
+	ev     *worldv1.ZoneEvent
+	remote bool
+	hidden bool
 }
 
 func (z *zone) emit(p *Player, ev *worldv1.ZoneEvent) {
-	z.events = append(z.events, zoneEvent{p, ev})
+	z.events = append(z.events, zoneEvent{p: p, ev: ev})
 }
 
 // asOther is the player as the others in its zone see it.
@@ -33,8 +36,9 @@ func (p *Player) asOther() *worldv1.OtherPlayer {
 		Facing: p.facing, Follower: p.follower.proto(), InBattle: p.shownBattle}
 }
 
-// others are the zone's players as `self` sees them: never itself, nor an older connection of
-// the same trainer that hasn't left yet (a reconnect).
+// others are the zone's players as `self` sees them, local ones from memory and the other
+// replicas' from Redis (zone_bus.go), each once: never itself, nor an older connection of the same
+// trainer that hasn't left yet (a reconnect).
 func (z *zone) others(self *Player) []*worldv1.OtherPlayer {
 	seen := map[int64]bool{self.accountID: true}
 	out := make([]*worldv1.OtherPlayer, 0, len(z.players))
@@ -44,24 +48,27 @@ func (z *zone) others(self *Player) []*worldv1.OtherPlayer {
 			out = append(out, o.asOther())
 		}
 	}
-	return out
+	return append(out, z.remoteOthers(seen)...)
 }
 
 // joined tells the zone the player came in.
 func (z *zone) joined(p *Player) {
 	p.shownBattle = p.battle != nil
+	delete(z.remote.players, uint64(p.accountID)) // Played here now: another replica's late events about it are stale.
 	z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Joined{Joined: &worldv1.PlayerJoined{Player: p.asOther()}}})
 }
 
 // left tells the zone the player went away, unless a newer connection of the same trainer is
-// still here (a reconnect: the old one leaves after the new one joined).
+// still here (a reconnect: the old one leaves after the new one joined). When another replica
+// took the player over and already said so, only the other replicas are told.
 func (z *zone) left(p *Player) {
 	for o := range z.players {
 		if o != p && o.accountID == p.accountID {
 			return
 		}
 	}
-	z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Left{Left: &worldv1.PlayerLeft{Id: uint64(p.accountID)}}})
+	_, elsewhere := z.remote.players[uint64(p.accountID)]
+	z.events = append(z.events, zoneEvent{p: p, ev: &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Left{Left: &worldv1.PlayerLeft{Id: uint64(p.accountID)}}}, hidden: elsewhere})
 }
 
 func (z *zone) moved(p *Player, run bool) {
@@ -76,35 +83,44 @@ func (z *zone) turned(p *Player, facing mapv1.Direction) {
 // showChanges, for a saved player, adds the events of what changed without an intent of its
 // own: the follower (a party change) and entering or leaving a battle (D9). Battles start and
 // end in many places (launch, finish, a failed start, a dropped connection); comparing here
-// catches them all, once saved.
-func (z *zone) showChanges(p *Player) {
+// catches them all. Whether anything changed: the zone's Redis entry is saved again first.
+func (z *zone) showChanges(p *Player) bool {
+	changed := false
 	if p.syncFollower() {
+		changed = true
 		z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Follower{Follower: &worldv1.PlayerFollower{Id: uint64(p.accountID), Follower: p.follower.proto()}}})
 	}
 	if in := p.battle != nil; in != p.shownBattle {
+		changed = true
 		p.shownBattle = in
 		z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Battle{Battle: &worldv1.PlayerBattle{Id: uint64(p.accountID), InBattle: in}}})
 	}
+	return changed
 }
 
-// takeEvents returns the tick's events ready to show, in order, and keeps those of players still
-// in the zone with unsaved changes (Redis unreachable) for the next tick.
-func (z *zone) takeEvents() []*worldv1.ZoneEvent {
+// takeEvents returns the tick's events ready to show to the local players and those of the local
+// players to publish (zone_bus.go), in order, and keeps those of players still in the zone with
+// unsaved changes (Redis unreachable) for the next tick.
+func (z *zone) takeEvents() (shown, local []*worldv1.ZoneEvent) {
 	if len(z.events) == 0 {
-		return nil
+		return nil, nil
 	}
-	var ready []*worldv1.ZoneEvent
 	kept := z.events[:0]
 	for _, e := range z.events {
-		if _, in := z.players[e.p]; in && e.p.dirty {
+		if _, in := z.players[e.p]; !e.remote && in && e.p.dirty {
 			kept = append(kept, e)
 			continue
 		}
-		ready = append(ready, e.ev)
+		if !e.hidden {
+			shown = append(shown, e.ev)
+		}
+		if !e.remote {
+			local = append(local, e.ev)
+		}
 	}
 	clear(z.events[len(kept):])
 	z.events = kept
-	return ready
+	return shown, local
 }
 
 // encodeEvents marshals the tick's ZoneEvents once for the whole zone; nil when there are none.

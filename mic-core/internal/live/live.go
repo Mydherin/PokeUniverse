@@ -7,7 +7,11 @@
 //     the player; only that connection may save positions, so two connections (or replicas)
 //     never both write one player. It expires unless its replica keeps it alive (KeepAlive), so a
 //     crashed replica leaves no session behind.
-//   - player:<id>:pos     — hash: gen, map, x, y, facing, played_ms (play time).
+//   - player:<id>:pos     — hash: gen, map, x, y, facing, played_ms (play time), zone (the zone
+//     hash the player is listed in while online).
+//   - zone:<map>:<phase>  — hash: trainer → encoded ZoneMember (phase-8 D3), the players of a zone
+//     on every replica, written with their positions in the same session check; a player entering
+//     the zone reads it once (ZoneMembers).
 //   - players:moved       — set of players whose position or play time isn't copied to PostgreSQL yet.
 //
 // Play time counts while a connection plays the trainer (FireRed counts it every frame in the
@@ -58,11 +62,17 @@ type Session struct {
 	Conn     string
 }
 
-// Save is one position to write for the connection that owns the player.
+// Save is one position to write for the connection that owns the player, and how the others in
+// its zone see the player (ZoneKey, an encoded ZoneMember).
 type Save struct {
 	Owner
 	Position
+	Zone   string
+	Member []byte
 }
+
+// ZoneKey is the Redis hash of the players in a map's phase (phase-8 D19).
+func ZoneKey(mapID string, phase uint32) string { return fmt.Sprintf("zone:%s:%d", mapID, phase) }
 
 // ErrSessionActive: another copy of the game plays the trainer (and taking it over wasn't asked).
 var ErrSessionActive = errors.New("session active elsewhere")
@@ -98,14 +108,54 @@ redis.call('HSET', KEYS[2], 'gen', ARGV[5], 'map', ARGV[6], 'x', ARGV[7], 'y', A
 return {'ok', prev, ARGV[6], ARGV[7], ARGV[8], ARGV[9], ARGV[10]}
 `)
 
-// saveScript: KEYS session, pos, moved; ARGV conn, gen, map, x, y, facing, account, ttl ms. 0 when
-// the connection no longer owns the player.
+// leaveZone (Lua): takes player ARGV[n] out of the zone hash its pos (KEYS[2]) lists.
+const leaveZone = `
+local function leaveZone(n)
+  local z = redis.call('HGET', KEYS[2], 'zone')
+  if z then
+    redis.call('HDEL', z, ARGV[n])
+    redis.call('HDEL', KEYS[2], 'zone')
+  end
+end
+`
+
+// saveScript: KEYS session, pos, moved, zone; ARGV conn, gen, map, x, y, facing, account, ttl ms,
+// member. 0 when the connection no longer owns the player. Moves the player's zone entry out of
+// the zone it was listed in (a take-over from another map) into KEYS[4]. The zone hashes are
+// standalone Redis keys (no cluster), so the previous one needn't be declared.
 var saveScript = redis.NewScript(`
 if redis.call('HGET', KEYS[1], 'conn') ~= ARGV[1] then return 0 end
 redis.call('PEXPIRE', KEYS[1], ARGV[8])
-redis.call('HSET', KEYS[2], 'gen', ARGV[2], 'map', ARGV[3], 'x', ARGV[4], 'y', ARGV[5], 'facing', ARGV[6])
+local prev = redis.call('HGET', KEYS[2], 'zone')
+if prev and prev ~= KEYS[4] then redis.call('HDEL', prev, ARGV[7]) end
+redis.call('HSET', KEYS[2], 'gen', ARGV[2], 'map', ARGV[3], 'x', ARGV[4], 'y', ARGV[5], 'facing', ARGV[6], 'zone', KEYS[4])
+redis.call('HSET', KEYS[4], ARGV[7], ARGV[9])
 redis.call('SADD', KEYS[3], ARGV[7])
 return 1
+`)
+
+// leaveZoneScript: KEYS session, pos; ARGV conn, account. Takes the player out of its zone hash if
+// the connection still owns it (a taken-over connection never rewrites the entry).
+var leaveZoneScript = redis.NewScript(leaveZone + `
+if redis.call('HGET', KEYS[1], 'conn') ~= ARGV[1] then return 0 end
+leaveZone(2)
+return 1
+`)
+
+// membersScript: KEYS zone. The zone's entries, dropping (HDEL) those whose player has no session
+// (its replica crashed, or New Game) or is listed in another zone by now.
+var membersScript = redis.NewScript(`
+local all = redis.call('HGETALL', KEYS[1])
+local out = {}
+for i = 1, #all, 2 do
+  local id = all[i]
+  if redis.call('EXISTS', 'player:' .. id .. ':session') == 1 and redis.call('HGET', 'player:' .. id .. ':pos', 'zone') == KEYS[1] then
+    out[#out + 1] = all[i + 1]
+  else
+    redis.call('HDEL', KEYS[1], id)
+  end
+end
+return out
 `)
 
 // addPlayed (Lua): adds ARGV[n] ms of play time to KEYS[2] up to ARGV[n+1] ms, and marks the
@@ -130,11 +180,12 @@ return 1
 `)
 
 // releaseScript: KEYS session, pos, moved; ARGV played ms, max ms, account, conn. Ends the
-// session if the connection owns it, counts its last play time and returns the player's state
+// session if the connection owns it, takes the player out of its zone hash, counts its last play time and returns the player's state
 // (gen, map, x, y, facing, played ms); nil otherwise.
-var releaseScript = redis.NewScript(addPlayed + `
+var releaseScript = redis.NewScript(addPlayed + leaveZone + `
 if redis.call('HGET', KEYS[1], 'conn') ~= ARGV[4] then return false end
 redis.call('DEL', KEYS[1])
+leaveZone(3)
 addPlayed(1)
 return redis.call('HMGET', KEYS[2], 'gen', 'map', 'x', 'y', 'facing', 'played_ms')
 `)
@@ -194,8 +245,8 @@ func (s *Store) KeepAlive(ctx context.Context, owners []Owner) ([]bool, error) {
 func (s *Store) SaveAll(ctx context.Context, saves []Save) ([]bool, error) {
 	return s.pipelined(ctx, saveScript, len(saves), func(i int) ([]string, []any) {
 		v := saves[i]
-		return []string{sessionKey(v.AccountID), posKey(v.AccountID), movedKey},
-			[]any{v.Conn, v.Gen, v.Map, v.X, v.Y, int32(v.Facing), v.AccountID, SessionTTL.Milliseconds()}
+		return []string{sessionKey(v.AccountID), posKey(v.AccountID), movedKey, v.Zone},
+			[]any{v.Conn, v.Gen, v.Map, v.X, v.Y, int32(v.Facing), v.AccountID, SessionTTL.Milliseconds(), v.Member}
 	})
 }
 
@@ -229,6 +280,26 @@ func (s *Store) pipelined(ctx context.Context, script *redis.Script, n int, args
 		}
 		return ok, nil
 	}
+}
+
+// LeaveZone takes the player out of its zone hash (left the zone: a warp, a disconnect), unless
+// another connection owns it by now.
+func (s *Store) LeaveZone(ctx context.Context, o Owner) error {
+	return leaveZoneScript.Run(ctx, s.rdb, []string{sessionKey(o.AccountID), posKey(o.AccountID)}, o.Conn, o.AccountID).Err()
+}
+
+// ZoneMembers is the encoded ZoneMembers of zone hash `zone` whose players are online there; the
+// others (a crashed replica's, once their session expired) are removed.
+func (s *Store) ZoneMembers(ctx context.Context, zone string) ([][]byte, error) {
+	res, err := membersScript.Run(ctx, s.rdb, []string{zone}).StringSlice()
+	if err != nil {
+		return nil, fmt.Errorf("zone members: %w", err)
+	}
+	out := make([][]byte, len(res))
+	for i, v := range res {
+		out[i] = []byte(v)
+	}
+	return out, nil
 }
 
 // Release ends o's session, adds its last play time and copies the player's state to

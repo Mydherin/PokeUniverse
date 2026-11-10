@@ -56,6 +56,9 @@ services:
       context: .
       dockerfile: mic-core/Dockerfile
     restart: unless-stopped
+    # Stateless: any replica takes any player; zones share their events over NATS (phase-8 D2).
+    deploy:
+      replicas: ${MIC_CORE_REPLICAS:-1}
     environment:
       HTTP_ADDR: ":8081"
       PUBLIC_URL: ${PUBLIC_URL}
