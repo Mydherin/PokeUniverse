@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress:** M1 ✅ 2026-11-10 (Manual Test passed); M2-M4 code done 2026-11-10, never played in game: 🧪. Next: [M2 Manual Test](milestones/m02-zone-presence.md#manual-test), first case #1, then M3-M4's in order (fix and re-test each failure), then [M5](milestones/m05-chat-server.md). Setup: [How to Test in Game](../README.md#how-to-test-in-game). Shared decisions (D1-D24; zone = map + phase, D19; mobile-first chat, D21-D24, from 2026-11-10) and the FireRed/HeartGold references: [context.md](milestones/context.md). Q1-Q4 all answered 2026-11-10.
+**In progress:** M1 ✅ 2026-11-10 (Manual Test passed); M2-M4 code done 2026-11-10, never played in game: 🧪. Next: [M2 Manual Test](milestones/m02-zone-presence.md#resume-here), cases 1-4 ✅, next case #5, then M3-M4's in order (fix and re-test each failure), then [M5](milestones/m05-chat-server.md). Setup: [How to Test in Game](../README.md#how-to-test-in-game). Shared decisions (D1-D24; zone = map + phase, D19; mobile-first chat, D21-D24, from 2026-11-10) and the FireRed/HeartGold references: [context.md](milestones/context.md). Q1-Q4 all answered 2026-11-10.
 
 Carried in: O7 (other players' following Pokémon, from [Phase 6 M9](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)), server done in M2, client in M3 (closed). From Phase 7: other players seeing a player in battle (D9).
 

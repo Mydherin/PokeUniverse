@@ -6,7 +6,21 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 
 ## Resume Here
 
-**Code done 2026-11-10; Manual Test pending, first case #1.** Then [M3's Manual Test](m03-drawing-others.md#manual-test). One replica (`MIC_CORE_REPLICAS=1`).
+**Manual Test in progress (2026-11-11): cases 1-4 ✅, next case #5** (battle flag), then 6-10, then [M3's Manual Test](m03-drawing-others.md#manual-test). One replica (`MIC_CORE_REPLICAS=1`). No code bug found so far; nothing TEMP left in the tree.
+
+- **Case 5 state:** bot-4 printed `BOT5 entered a battle` for the room trainer (twice). The battle's end was not seen yet: the first try lost the tab's token mid-battle, the second had bot-4 wander to 1F. Replay it with `--idle` (below) so bot-4 stays on 2F, and expect `BOT5 left a battle`; then the wild battle: run the bots with `--map pallet_town_players_house_1f --idle`, take the tab down to 1F's test grass (10-12,5-6), RUN at the first encounter; expect `entered` then `left a battle`.
+- **Files touched (uncommitted):** this file (cases 1-4); `infra/bots/run.ts`: `--idle` (the verbose bot never walks) and `who()` prints `(in battle)` in snapshots and `joined`.
+
+### How this test is played (saves re-discovery)
+
+1. Fresh bot accounts + the tab's token: `S=$(grep '^BOTS_SECRET=' .env | cut -d= -f2-); curl -s -X POST localhost:8080/api/dev/bots -H "X-Bots-Secret: $S" -H 'Content-Type: application/json' -d '{"count":5,"map":"pallet_town_players_house_2f"}'` → take bot `n=5`'s `accessToken`; open `http://localhost:8080/play?bot=<token>` in the browser pane; `Return` ×3 then `z` ×2 (CONTINUE) to reach the world. `refreshOnly: true` renews tokens without a New Game.
+2. Bots: `node infra/bots/bots.ts --count 4 --verbose [--idle] > <scratchpad>/bots.log 2>&1` in the background; `grep BOT5` the log. bot-4 = observer, BOT5 (id 50) = the tab.
+3. **Tab tokens last 15 min and the tab can't renew them:** a long battle can drop the tab (the battle is then abandoned and the party restored). Get a fresh token before a long case.
+4. **Input:** the pane's `key` action is too short for walking; dispatch `KeyboardEvent`s from `javascript_tool` on `document.body` and `window` (`keydown`, wait, `keyup`): ~330 ms = turn + 1 step, ~270 ms per extra step; a 60 ms tap turns. A = `z` (`KeyZ`), B = `x` (`KeyX`), Start = `Return`. Keep each script under 45 s.
+5. **Stairs:** 2F's warp is (10,2), down-left: stand on it and press West again; 1F's (10,2) is up-right: press East.
+6. **Room trainer** `test_trainer` (9,4): from (10,4) face West, `z`. Six Lv50s: a full battle takes ~8 min. Loop per turn: `z`,`z` (FIGHT, first move) then `x` ×5 (B advances text and answers NO to "Will you switch?"). On a faint the party screen needs `ArrowRight` then `ArrowDown` ×k to a live Pokémon, `z`,`z`.
+7. **Running:** nobody can run in game until Phase 10 (`hasRunningShoes = false`, both house maps `allow_running: false`); case 2 used a TEMP `canRun = true` in `world.go` Join and `warp.go` arrive (removed).
+8. Rebuild after a code change: `docker compose up -d --build mic-core` (bots and the tab reconnect by themselves).
 
 ## What Was Built
 
@@ -56,10 +70,10 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Snapshot lists the others | 3 bots on 2F, the real tab on 2F, then `--count 4 --verbose` | bot-4's snapshot lists bots 1-3 and the real player, not itself | ⬜ |
-| 2 | Moves and turns | Walk, run and turn in the real tab | bot-4 prints `moved` (with `run` when running) and `turned` for the real player and each bot | ⬜ |
-| 3 | Join and leave by warp | Take the stairs down and back up | bot-4 prints `left` then `joined`; the `Warped` snapshot on 1F lists who is there | ⬜ |
-| 4 | Follower change | Party SWITCH of the lead in the real tab | bot-4 prints `follower` with the new species | ⬜ |
+| 1 | Snapshot lists the others | 3 bots on 2F, the real tab on 2F, then `--count 4 --verbose` | bot-4's snapshot lists bots 1-3 and the real player, not itself | ✅ 2026-11-10 (BOT2 entered just after bot-4: came as `joined`) |
+| 2 | Moves and turns | Walk, run and turn in the real tab | bot-4 prints `moved` (with `run` when running) and `turned` for the real player and each bot | ✅ 2026-11-10 (`run` only with a TEMP `canRun = true`: no Running Shoes and no running map until Phase 10, O1) |
+| 3 | Join and leave by warp | Take the stairs down and back up | bot-4 prints `left` then `joined`; the `Warped` snapshot on 1F lists who is there | ✅ 2026-11-10 (the tab drew BOT2 and Mom on 1F) |
+| 4 | Follower change | Party SWITCH of the lead in the real tab | bot-4 prints `follower` with the new species | ✅ 2026-11-10 (Charizard → Pikachu: `follower #25`) |
 | 5 | Battle flag | Room trainer's battle, then a wild battle in the test grass | `battle` true at start, false at the end, each time | ⬜ |
 | 6 | Disconnect | Close the real tab; Ctrl-C one bot | `left` for each within the session's 15 s, no duplicate | ⬜ |
 | 7 | Reconnect | `docker compose restart mic-core` | Every bot's new snapshot has all the others, none twice, none missing | ⬜ |

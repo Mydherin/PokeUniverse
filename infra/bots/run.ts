@@ -1,11 +1,12 @@
 // Dev bots (phase-8 M1, D16): N bot players that log in through POST /api/dev/bots, enter the world
 // over the real WebSocket protocol and walk at FireRed's pace, printing latency and traffic.
 //
-//   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--url http://localhost:8080] [--secret …] [--verbose]
+//   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--url http://localhost:8080] [--secret …] [--verbose] [--idle]
 //
 // Each bot tracks the other players in its zone (phase-8 M2) from its snapshot and `zone_events`;
 // --verbose prints every event the last bot (bot-N) receives: one bot's view, readable; a second
-// script run would re-spawn bot-1 and take it over.
+// script run would re-spawn bot-1 and take it over. --idle keeps that bot standing where it spawned,
+// so it stays in the zone for a whole test case.
 //
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
@@ -43,6 +44,7 @@ const { values: args } = parseArgs({
     secret: { type: "string", default: process.env.BOTS_SECRET ?? dotenv.BOTS_SECRET ?? "" },
     chat: { type: "boolean", default: false },
     verbose: { type: "boolean", default: false },
+    idle: { type: "boolean", default: false },
   },
 });
 const base = new URL(args.url);
@@ -142,7 +144,7 @@ class Bot {
           this.connected = true;
           this.every(PING_EVERY_MS, () => this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } }));
         }
-        if (!this.walking) this.walk();
+        if (!this.walking && !(this.verbose && args.idle)) this.walk();
         break;
       }
       case "pong":
@@ -199,7 +201,7 @@ class Bot {
       case "joined": {
         const p = ev.value.player!;
         this.others.set(id, p); // A snapshot may already list it (sent before this tick's events).
-        text = `${who(p)} joined at ${p.x},${p.y}${p.inBattle ? " (in battle)" : ""}`;
+        text = `${who(p)} joined at ${p.x},${p.y}`;
         break;
       }
       case "left":
@@ -384,7 +386,7 @@ function othersKnown(bots: Bot[]): string {
 }
 
 function who(p: OtherPlayer): string {
-  return `${p.name} (${p.id})`;
+  return `${p.name} (${p.id})${p.inBattle ? " (in battle)" : ""}`;
 }
 
 function readDotenv(): Record<string, string> {
