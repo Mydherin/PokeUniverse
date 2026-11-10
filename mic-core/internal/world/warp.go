@@ -28,7 +28,7 @@ func (p *Player) UseWarp(m *worldv1.UseWarp, at time.Time) {
 		w.mu.Unlock()
 		return // Shutting down: the last saved position is still the warp's tile.
 	}
-	z := w.zoneOf(to)
+	z := w.zoneOf(to, phaseOf(p, to))
 	w.mu.Unlock()
 	p.zone = z
 	z.call(func() { z.arrive(p, spot) })
@@ -92,10 +92,10 @@ func (z *zone) arrive(p *Player, at Point) {
 	if p.clearFlute() {
 		z.saveTrainer(p, item.Changed{State: true}, false)
 	}
-	z.add(p)
 	p.placeFollower()
+	z.add(p)
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Warped{Warped: &worldv1.Warped{
-		Map: z.m.ID, X: uint32(at.X), Y: uint32(at.Y), Facing: p.facing, CanRun: p.canRun, Follower: p.follower.proto(),
+		Map: z.m.ID, X: uint32(at.X), Y: uint32(at.Y), Facing: p.facing, CanRun: p.canRun, Follower: p.follower.proto(), Others: z.others(p),
 	}}})
 }
 

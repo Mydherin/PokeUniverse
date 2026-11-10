@@ -55,21 +55,23 @@ func directionTowards(from, to Point, same mapv1.Direction) mapv1.Direction {
 }
 
 // syncFollower follows a party change (FollowMon_ChangeMon): another lead keeps the tile; from no
-// follower it starts hidden on the player's tile. Sent with the tick's other messages.
-func (p *Player) syncFollower() {
+// follower it starts hidden on the player's tile. Sent with the tick's other messages; whether it
+// changed.
+func (p *Player) syncFollower() bool {
 	var species uint32
 	var shiny bool
 	if lead := p.party.Lead(); lead != nil {
 		species, shiny = uint32(lead.Species), lead.Shiny()
 	}
 	if species == p.follower.species && shiny == p.follower.shiny {
-		return
+		return false
 	}
 	if p.follower.species == 0 {
 		p.placeFollower()
 	}
 	p.follower.species, p.follower.shiny = species, shiny
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_FollowerChanged{FollowerChanged: &worldv1.FollowerChanged{Follower: p.follower.proto()}}})
+	return true
 }
 
 // proto is the follower for the client; nil when there is none.

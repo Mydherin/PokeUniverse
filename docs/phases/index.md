@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 1/9 milestones, next [M2 Zone presence](phase-8-multiplayer-world/milestones/m02-zone-presence.md) (Phase 7 done 2026-11-10). **Updated:** 2026-11-10.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 2/9 milestones, next [M3 Drawing other players](phase-8-multiplayer-world/milestones/m03-drawing-others.md) (Phase 7 done 2026-11-10). **Updated:** 2026-11-10.
 
 ## Milestones of Phases With Folders
 

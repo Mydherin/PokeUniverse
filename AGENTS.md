@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8 M2: Zone presence on one replica](docs/phases/phase-8-multiplayer-world/milestones/m02-zone-presence.md), not started ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1 done 2026-11-10, 1/9). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8 M3: Drawing other players](docs/phases/phase-8-multiplayer-world/milestones/m03-drawing-others.md), not started ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1, M2 done 2026-11-10, 2/9). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

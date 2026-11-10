@@ -14,7 +14,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"golang.org/x/time/rate"
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
@@ -378,6 +380,8 @@ type sink struct{ c *conn }
 
 func (s sink) Send(msg *realtimev1.ServerMessage) { s.c.write(msg) }
 
+func (s sink) SendZoneEvents(encoded []byte) { s.c.writeZoneEvents(encoded) }
+
 func (s sink) Kick() { s.c.fail(realtimev1.ErrorCode_ERROR_CODE_REPLACED, closeReplaced) }
 
 // authenticate accepts the first token and every refreshed one for the same account. The
@@ -416,6 +420,31 @@ func (c *conn) write(msg *realtimev1.ServerMessage) {
 		c.h.log.Error("marshal server message", "err", err)
 		return
 	}
+	c.enqueue(data)
+}
+
+// The envelope's fields that writeZoneEvents encodes by hand.
+var (
+	seqField        = envelopeField("seq")
+	zoneEventsField = envelopeField("zone_events")
+)
+
+func envelopeField(name protoreflect.Name) protowire.Number {
+	return (&realtimev1.ServerMessage{}).ProtoReflect().Descriptor().Fields().ByName(name).Number()
+}
+
+// writeZoneEvents queues a ZoneEvents encoded once for the whole zone (phase-8 D7): only the
+// envelope (this connection's seq, then the payload as field zone_events) is built here.
+func (c *conn) writeZoneEvents(encoded []byte) {
+	data := make([]byte, 0, len(encoded)+16)
+	data = protowire.AppendTag(data, seqField, protowire.VarintType)
+	data = protowire.AppendVarint(data, uint64(c.seq.Add(1)))
+	data = protowire.AppendTag(data, zoneEventsField, protowire.BytesType)
+	data = protowire.AppendBytes(data, encoded)
+	c.enqueue(data)
+}
+
+func (c *conn) enqueue(data []byte) {
 	select {
 	case c.send <- data:
 	case <-c.done:

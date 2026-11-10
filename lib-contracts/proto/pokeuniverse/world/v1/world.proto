@@ -80,6 +80,8 @@ message WorldSnapshot {
   pokeuniverse.party.v1.Party party = 7;
   // The battle the trainer is in, if any: the client redraws it (phase-5, Resume).
   pokeuniverse.battle.v1.BattleView battle = 8;
+  // The other players in the zone (same map and phase), never the player itself.
+  repeated OtherPlayer others = 9;
 }
 
 message Avatar {
@@ -122,6 +124,76 @@ message Warped {
   bool can_run = 5;
   // On the player's tile, hidden; unset when there is none.
   Follower follower = 6;
+  // The other players in the new zone, never the player itself.
+  repeated OtherPlayer others = 7;
+}
+
+// Another player in the same zone (map and phase), as the others see it.
+message OtherPlayer {
+  // The trainer's ID.
+  uint64 id = 1;
+  string name = 2;
+  pokeuniverse.trainer.v1.Gender gender = 3;
+  uint32 x = 4;
+  uint32 y = 5;
+  pokeuniverse.map.v1.Direction facing = 6;
+  // Unset when there is none.
+  Follower follower = 7;
+  bool in_battle = 8;
+}
+
+// Server -> client: what changed in the zone during one tick, in order. Encoded once per zone and
+// sent as the same bytes to every player in it.
+message ZoneEvents {
+  repeated ZoneEvent events = 1;
+}
+
+message ZoneEvent {
+  oneof event {
+    PlayerJoined joined = 1;
+    PlayerLeft left = 2;
+    PlayerMoved moved = 3;
+    PlayerTurned turned = 4;
+    PlayerFollower follower = 5;
+    PlayerBattle battle = 6;
+  }
+}
+
+// A player entered the zone (entered the world, warped in, reconnected).
+message PlayerJoined {
+  OtherPlayer player = 1;
+}
+
+// A player left the zone (warped out, disconnected).
+message PlayerLeft {
+  uint64 id = 1;
+}
+
+// A player took an accepted step to (x, y).
+message PlayerMoved {
+  uint64 id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  pokeuniverse.map.v1.Direction facing = 4;
+  bool run = 5;
+}
+
+// A player turned in place.
+message PlayerTurned {
+  uint64 id = 1;
+  pokeuniverse.map.v1.Direction facing = 2;
+}
+
+// A player's follower changed: another Pokémon, or none (unset).
+message PlayerFollower {
+  uint64 id = 1;
+  Follower follower = 2;
+}
+
+// A player entered or left a battle.
+message PlayerBattle {
+  uint64 id = 1;
+  bool in_battle = 2;
 }
 
 message Correction {

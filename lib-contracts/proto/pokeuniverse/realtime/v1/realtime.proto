@@ -81,6 +81,8 @@ message ServerMessage {
     pokeuniverse.party.v1.FieldMoveResult field_move_result = 19;
     pokeuniverse.party.v1.BoxView box_view = 20;
     pokeuniverse.world.v1.FollowerChanged follower_changed = 21;
+    // What changed in the player's zone this tick; the same bytes go to every player in it.
+    pokeuniverse.world.v1.ZoneEvents zone_events = 22;
   }
 }
 

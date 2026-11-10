@@ -63,7 +63,7 @@ type World struct {
 	stop    chan struct{}
 
 	mu       sync.Mutex
-	zones    map[string]*zone
+	zones    map[ZoneKey]*zone
 	players  map[int64]*Player // Online on this replica, by account.
 	openPCs  map[int64]openPC  // PCs left open by dropped connections, by account (reopenPC).
 	closed   bool
@@ -75,7 +75,7 @@ func New(maps Maps, store *live.Store, bus Bus, pool *pgxpool.Pool, b *battles.C
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
 	w := &World{maps: maps, live: store, bus: bus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
-		zones: map[string]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}}
+		zones: map[ZoneKey]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}}
 	go w.keepAlive()
 	return w, nil
 }
@@ -136,7 +136,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	old := w.players[accountID]
 	w.players[accountID] = p
 	w.reopenPC(p, m.ID, time.Now())
-	z := w.zoneOf(m)
+	z := w.zoneOf(m, phaseOf(p, m))
 	p.zone = z
 	w.mu.Unlock()
 	if old != nil {
@@ -146,10 +146,12 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		w.bus.SessionTaken(accountID, previous) // Played from another replica.
 	}
 	var follower *worldv1.Follower
+	var others []*worldv1.OtherPlayer
 	z.call(func() {
 		p.placeFollower()
 		follower = p.follower.proto()
 		z.add(p)
+		others = z.others(p)
 		if p.battle != nil && p.battle.request == nil {
 			z.resumeBattle(p) // mic-battles didn't answer in time, or the battle was over.
 		}
@@ -168,15 +170,29 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		Pokedex:         p.pokedex.Proto(),
 		Party:           party.Proto(),
 		Battle:          battleView,
+		Others:          others,
 	}, nil
 }
 
-// zoneOf is the map's zone, started the first time someone goes there. Call it with w.mu held.
-func (w *World) zoneOf(m *Map) *zone {
-	z := w.zones[m.ID]
+// ZoneKey names a zone: a map in one of its phases (phase-8 D19). Players in different phases
+// of a map are in different zones and never see each other.
+type ZoneKey struct {
+	Map   string
+	Phase uint32
+}
+
+// phaseOf is the phase of the map the player is in, computed on entering and warping. Always 0
+// until Phase 10 adds the maps' phase flags and private scene phases.
+func phaseOf(_ *Player, _ *Map) uint32 { return 0 }
+
+// zoneOf is the zone of the map in that phase, started the first time someone goes there. Call
+// it with w.mu held.
+func (w *World) zoneOf(m *Map, phase uint32) *zone {
+	key := ZoneKey{m.ID, phase}
+	z := w.zones[key]
 	if z == nil {
-		z = newZone(w, m)
-		w.zones[m.ID] = z
+		z = newZone(w, m, key)
+		w.zones[key] = z
 	}
 	return z
 }

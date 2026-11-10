@@ -1,7 +1,11 @@
 // Dev bots (phase-8 M1, D16): N bot players that log in through POST /api/dev/bots, enter the world
 // over the real WebSocket protocol and walk at FireRed's pace, printing latency and traffic.
 //
-//   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--url http://localhost:8080] [--secret …]
+//   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--url http://localhost:8080] [--secret …] [--verbose]
+//
+// Each bot tracks the other players in its zone (phase-8 M2) from its snapshot and `zone_events`;
+// --verbose prints every event the last bot (bot-N) receives: one bot's view, readable; a second
+// script run would re-spawn bot-1 and take it over.
 //
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
@@ -12,6 +16,7 @@ import { create, fromBinary, fromJson, toBinary, toJson, type MessageInitShape }
 import { SpawnBotsSchema, SpawnedBotsSchema, type SpawnedBot } from "../../lib-contracts/gen/ts/src/pokeuniverse/dev/v1/bots_pb.ts";
 import { ClientMapSchema, Direction, TileBehavior, type ClientMap } from "../../lib-contracts/gen/ts/src/pokeuniverse/map/v1/map_pb.ts";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "../../lib-contracts/gen/ts/src/pokeuniverse/realtime/v1/realtime_pb.ts";
+import type { OtherPlayer, ZoneEvent } from "../../lib-contracts/gen/ts/src/pokeuniverse/world/v1/world_pb.ts";
 import { behaviorAt, elevationAt, warpAt } from "../../spa-pokeuniverse/src/game/world/map.ts";
 import { checkStep, Collision, DELTAS, elevationAfter } from "../../spa-pokeuniverse/src/game/world/rules.ts";
 
@@ -37,6 +42,7 @@ const { values: args } = parseArgs({
     url: { type: "string", default: `http://localhost:${dotenv.SPA_PORT ?? "8080"}` },
     secret: { type: "string", default: process.env.BOTS_SECRET ?? dotenv.BOTS_SECRET ?? "" },
     chat: { type: "boolean", default: false },
+    verbose: { type: "boolean", default: false },
   },
 });
 const base = new URL(args.url);
@@ -55,7 +61,7 @@ function loadMap(id: string): ClientMap {
   return m;
 }
 
-const stats = { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, pings: [] as number[] };
+const stats = { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, pings: [] as number[] };
 let stopping = false;
 
 class Bot {
@@ -73,7 +79,14 @@ class Bot {
   private retries = 0;
   private timers = new Set<ReturnType<typeof setTimeout>>();
   private readonly instance = crypto.randomUUID();
+  /** The trainer's account ID (Welcome): events about it are ignored (phase-8 D7). */
+  private id = 0n;
+  /** The other players in the zone, by account ID. */
+  readonly others = new Map<bigint, OtherPlayer>();
   connected = false;
+  private get verbose(): boolean {
+    return args.verbose && this.n === count;
+  }
 
   constructor(
     readonly n: number,
@@ -116,6 +129,7 @@ class Bot {
     const msg = fromBinary(ServerMessageSchema, data).payload;
     switch (msg.case) {
       case "welcome":
+        this.id = msg.value.accountId;
         this.retries = 0;
         this.send({ case: "enterWorld", value: { takeOver: this.firstEntry() } });
         break;
@@ -123,6 +137,7 @@ class Bot {
         const p = msg.value.player;
         this.place(msg.value.map, p?.x ?? 0, p?.y ?? 0, p?.facing ?? Direction.SOUTH);
         this.canRun = msg.value.canRun;
+        this.meet(msg.value.map, msg.value.others);
         if (!this.connected) {
           this.connected = true;
           this.every(PING_EVERY_MS, () => this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } }));
@@ -145,6 +160,11 @@ class Bot {
         this.place(msg.value.map, msg.value.x, msg.value.y, msg.value.facing);
         this.canRun = msg.value.canRun;
         this.warping = false;
+        this.meet(msg.value.map, msg.value.others);
+        break;
+      case "zoneEvents":
+        stats.zoneFrames++;
+        for (const e of msg.value.events) this.zoneEvent(e);
         break;
       case "script":
         this.send({ case: "scriptDone", value: { script: msg.value.id } });
@@ -158,6 +178,53 @@ class Bot {
         if (msg.value.code !== ErrorCode.TOKEN_EXPIRED) console.warn(`bot-${this.n}: error ${ErrorCode[msg.value.code]}`);
         break;
     }
+  }
+
+  /** A new zone (snapshot or warp): the others are exactly those listed. */
+  private meet(map: string, others: OtherPlayer[]): void {
+    this.others.clear();
+    for (const o of others) this.others.set(o.id, o);
+    if (this.verbose) console.log(`bot-${this.n}: on ${map} with ${others.map(who).join(", ") || "no one"}`);
+  }
+
+  private zoneEvent(e: ZoneEvent): void {
+    const ev = e.event;
+    if (ev.case === undefined) return;
+    const id = ev.case === "joined" ? (ev.value.player?.id ?? 0n) : ev.value.id;
+    if (id === this.id) return;
+    stats.events++;
+    const o = this.others.get(id);
+    let text: string;
+    switch (ev.case) {
+      case "joined": {
+        const p = ev.value.player!;
+        this.others.set(id, p); // A snapshot may already list it (sent before this tick's events).
+        text = `${who(p)} joined at ${p.x},${p.y}${p.inBattle ? " (in battle)" : ""}`;
+        break;
+      }
+      case "left":
+        this.others.delete(id);
+        text = `${o ? who(o) : id} left`;
+        break;
+      case "moved":
+        if (o) Object.assign(o, { x: ev.value.x, y: ev.value.y, facing: ev.value.facing });
+        text = `${o ? o.name : id} ${ev.value.run ? "ran" : "walked"} ${Direction[ev.value.facing]} to ${ev.value.x},${ev.value.y}`;
+        break;
+      case "turned":
+        if (o) o.facing = ev.value.facing;
+        text = `${o ? o.name : id} turned ${Direction[ev.value.facing]}`;
+        break;
+      case "follower":
+        if (o) o.follower = ev.value.follower;
+        text = `${o ? o.name : id} follower ${ev.value.follower ? `#${ev.value.follower.species}${ev.value.follower.shiny ? " shiny" : ""}` : "none"}`;
+        break;
+      case "battle":
+        if (o) o.inBattle = ev.value.inBattle;
+        text = `${o ? o.name : id} ${ev.value.inBattle ? "entered" : "left"} a battle`;
+        break;
+    }
+    if (!o && ev.case !== "joined" && ev.case !== "left") text += " (unknown player)";
+    if (this.verbose) console.log(`bot-${this.n}: ${text}`);
   }
 
   private entered = false;
@@ -301,9 +368,23 @@ function printStats(bots: Bot[]): void {
       ` | per bot: ${(stats.messages / secs / per).toFixed(1)} msg/s, ${(stats.bytes / secs / per).toFixed(0)} B/s` +
       ` | ping p50 ${pct(0.5)} p99 ${pct(0.99)}` +
       (stats.reconnects ? ` | reconnects ${stats.reconnects}` : "") +
-      (stats.battles ? ` | battles ${stats.battles}` : ""),
+      (stats.battles ? ` | battles ${stats.battles}` : "") +
+      ` | zone: ${(stats.events / secs).toFixed(1)} events/s, ${(stats.zoneFrames / secs / per).toFixed(1)} frames/s per bot` +
+      `, others known ${othersKnown(bots)}`,
   );
-  Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, pings: [] });
+  Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, pings: [] });
+}
+
+/** The fewest and most others a connected bot knows: equal once every bot sees the whole zone. */
+function othersKnown(bots: Bot[]): string {
+  const sizes = bots.filter((b) => b.connected).map((b) => b.others.size);
+  if (!sizes.length) return "-";
+  const [lo, hi] = [Math.min(...sizes), Math.max(...sizes)];
+  return lo === hi ? `${lo}` : `${lo}-${hi}`;
+}
+
+function who(p: OtherPlayer): string {
+  return `${p.name} (${p.id})`;
 }
 
 function readDotenv(): Record<string, string> {

@@ -16,20 +16,23 @@ import (
 // Tick is how often a zone saves what changed and sends it (tech-stack.md#efficient-event-model).
 const Tick = 50 * time.Millisecond
 
-// zone runs one map: its players' intents, one at a time in its own goroutine (no locks), and a
+// zone runs one map in one phase (ZoneKey): its players' intents, one at a time in its own goroutine (no locks), and a
 // tick that saves the changes to Redis in one round trip before sending them
 // (saved before shown). It ticks only while it has players.
 type zone struct {
 	m       *Map
+	key     ZoneKey
 	w       *World
 	inbox   chan func()
 	done    chan struct{}
 	players map[*Player]struct{}
 	ticker  *time.Ticker
+	// What the players did this tick that the others see (zone_presence.go).
+	events []zoneEvent
 }
 
-func newZone(w *World, m *Map) *zone {
-	z := &zone{m: m, w: w, inbox: make(chan func(), 256), done: make(chan struct{}), players: map[*Player]struct{}{}}
+func newZone(w *World, m *Map, key ZoneKey) *zone {
+	z := &zone{m: m, key: key, w: w, inbox: make(chan func(), 256), done: make(chan struct{}), players: map[*Player]struct{}{}}
 	go z.run()
 	return z
 }
@@ -73,13 +76,18 @@ func (z *zone) run() {
 		case len(z.players) == 0 && z.ticker != nil:
 			z.ticker.Stop()
 			z.ticker, tick = nil, nil
+			z.events = nil // No one left to tell.
 		}
 	}
 }
 
-func (z *zone) add(p *Player) { z.players[p] = struct{}{} }
+// add puts the player in the zone and tells the others, once it's saved.
+func (z *zone) add(p *Player) {
+	z.players[p] = struct{}{}
+	z.joined(p)
+}
 
-// remove saves the player's last changes, then forgets it.
+// remove saves the player's last changes, then forgets it and tells the others.
 func (z *zone) remove(p *Player) {
 	if _, ok := z.players[p]; !ok {
 		return
@@ -87,10 +95,14 @@ func (z *zone) remove(p *Player) {
 	if p.dirty {
 		z.save([]*Player{p})
 	}
-	delete(z.players, p)
+	if _, ok := z.players[p]; ok { // Not taken over during the save (save already told the others).
+		delete(z.players, p)
+		z.left(p)
+	}
 }
 
-// tick saves every player who changed, then sends what they're waiting for.
+// tick saves every player who changed, then sends what they're waiting for: each player's own
+// answers, then the zone's events encoded once (phase-8 D7).
 func (z *zone) tick() {
 	var changed []*Player
 	for p := range z.players {
@@ -100,14 +112,27 @@ func (z *zone) tick() {
 	}
 	z.save(changed)
 	for p := range z.players {
-		if p.dirty {
-			continue // Not saved (Redis unreachable): retried next tick, nothing shown before.
+		if !p.dirty {
+			z.showChanges(p)
 		}
-		p.syncFollower()
+	}
+	events := z.takeEvents()
+	encoded := z.encodeEvents(events)
+	for p := range z.players {
+		if p.dirty {
+			// Not saved (Redis unreachable): retried next tick, nothing shown before.
+			if len(events) > 0 {
+				p.missedEvents(events)
+			}
+			continue
+		}
 		for _, msg := range p.out {
 			p.sink.Send(msg)
 		}
 		p.out = p.out[:0]
+		if encoded != nil {
+			p.sink.SendZoneEvents(encoded)
+		}
 	}
 }
 
@@ -131,6 +156,7 @@ func (z *zone) save(players []*Player) {
 		if !owned[i] {
 			// Another connection took the player over: this one stops playing it.
 			delete(z.players, p)
+			z.left(p)
 			p.sink.Kick()
 		}
 	}
@@ -151,10 +177,14 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 		z.correct(p, m.Step)
 		return
 	}
-	if p.facing != m.Direction {
+	turned := p.facing != m.Direction
+	if turned {
 		p.facing, p.dirty = m.Direction, true
 	}
 	if CheckStep(z.m, p.pos, p.elevation, m.Direction) != CollisionNone || !p.pace.Allow(at, m.Run && p.canRun) {
+		if turned {
+			z.turned(p, p.facing) // Bumped: the others see it turn.
+		}
 		z.correct(p, m.Step)
 		return
 	}
@@ -162,6 +192,7 @@ func (z *zone) move(p *Player, m *worldv1.Move, at time.Time) {
 	p.elevation = ElevationAfter(z.m, p.elevation, p.pos, to)
 	p.followStep(p.pos)
 	p.pos, p.dirty, p.corrected = to, true, false
+	z.moved(p, m.Run && p.canRun)
 	z.countFriendshipStep(p)
 	z.stepped(p)
 }
@@ -183,6 +214,7 @@ func (z *zone) turn(p *Player, d mapv1.Direction) {
 		return
 	}
 	p.facing, p.dirty = d, true
+	z.turned(p, d)
 }
 
 func (z *zone) interact(p *Player, walkInto bool) {

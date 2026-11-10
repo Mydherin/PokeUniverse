@@ -758,6 +758,7 @@ type ServerMessage struct {
 	//	*ServerMessage_FieldMoveResult
 	//	*ServerMessage_BoxView
 	//	*ServerMessage_FollowerChanged
+	//	*ServerMessage_ZoneEvents
 	Payload       isServerMessage_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -987,6 +988,15 @@ func (x *ServerMessage) GetFollowerChanged() *v1.FollowerChanged {
 	return nil
 }
 
+func (x *ServerMessage) GetZoneEvents() *v1.ZoneEvents {
+	if x != nil {
+		if x, ok := x.Payload.(*ServerMessage_ZoneEvents); ok {
+			return x.ZoneEvents
+		}
+	}
+	return nil
+}
+
 type isServerMessage_Payload interface {
 	isServerMessage_Payload()
 }
@@ -1071,6 +1081,11 @@ type ServerMessage_FollowerChanged struct {
 	FollowerChanged *v1.FollowerChanged `protobuf:"bytes,21,opt,name=follower_changed,json=followerChanged,proto3,oneof"`
 }
 
+type ServerMessage_ZoneEvents struct {
+	// What changed in the player's zone this tick; the same bytes go to every player in it.
+	ZoneEvents *v1.ZoneEvents `protobuf:"bytes,22,opt,name=zone_events,json=zoneEvents,proto3,oneof"`
+}
+
 func (*ServerMessage_Welcome) isServerMessage_Payload() {}
 
 func (*ServerMessage_Pong) isServerMessage_Payload() {}
@@ -1110,6 +1125,8 @@ func (*ServerMessage_FieldMoveResult) isServerMessage_Payload() {}
 func (*ServerMessage_BoxView) isServerMessage_Payload() {}
 
 func (*ServerMessage_FollowerChanged) isServerMessage_Payload() {}
+
+func (*ServerMessage_ZoneEvents) isServerMessage_Payload() {}
 
 // First message after opening the socket, and again after every token refresh.
 type Authenticate struct {
@@ -1403,7 +1420,7 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x0fstore_held_item\x18# \x01(\v2$.pokeuniverse.party.v1.StoreHeldItemH\x00R\rstoreHeldItem\x12K\n" +
 	"\x0egive_held_item\x18$ \x01(\v2#.pokeuniverse.party.v1.GiveHeldItemH\x00R\fgiveHeldItem\x12Z\n" +
 	"\x13name_caught_pokemon\x18% \x01(\v2(.pokeuniverse.party.v1.NameCaughtPokemonH\x00R\x11nameCaughtPokemonB\t\n" +
-	"\apayload\"\xb2\v\n" +
+	"\apayload\"\xf8\v\n" +
 	"\rServerMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\rR\x03seq\x12=\n" +
 	"\awelcome\x18\x02 \x01(\v2!.pokeuniverse.realtime.v1.WelcomeH\x00R\awelcome\x124\n" +
@@ -1432,7 +1449,9 @@ const file_pokeuniverse_realtime_v1_realtime_proto_rawDesc = "" +
 	"\x11learn_move_result\x18\x12 \x01(\v2&.pokeuniverse.party.v1.LearnMoveResultH\x00R\x0flearnMoveResult\x12T\n" +
 	"\x11field_move_result\x18\x13 \x01(\v2&.pokeuniverse.party.v1.FieldMoveResultH\x00R\x0ffieldMoveResult\x12;\n" +
 	"\bbox_view\x18\x14 \x01(\v2\x1e.pokeuniverse.party.v1.BoxViewH\x00R\aboxView\x12S\n" +
-	"\x10follower_changed\x18\x15 \x01(\v2&.pokeuniverse.world.v1.FollowerChangedH\x00R\x0ffollowerChangedB\t\n" +
+	"\x10follower_changed\x18\x15 \x01(\v2&.pokeuniverse.world.v1.FollowerChangedH\x00R\x0ffollowerChanged\x12D\n" +
+	"\vzone_events\x18\x16 \x01(\v2!.pokeuniverse.world.v1.ZoneEventsH\x00R\n" +
+	"zoneEventsB\t\n" +
 	"\apayload\"M\n" +
 	"\fAuthenticate\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1a\n" +
@@ -1533,6 +1552,7 @@ var file_pokeuniverse_realtime_v1_realtime_proto_goTypes = []any{
 	(*v12.FieldMoveResult)(nil),   // 56: pokeuniverse.party.v1.FieldMoveResult
 	(*v12.BoxView)(nil),           // 57: pokeuniverse.party.v1.BoxView
 	(*v1.FollowerChanged)(nil),    // 58: pokeuniverse.world.v1.FollowerChanged
+	(*v1.ZoneEvents)(nil),         // 59: pokeuniverse.world.v1.ZoneEvents
 }
 var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	3,  // 0: pokeuniverse.realtime.v1.ClientMessage.authenticate:type_name -> pokeuniverse.realtime.v1.Authenticate
@@ -1591,12 +1611,13 @@ var file_pokeuniverse_realtime_v1_realtime_proto_depIdxs = []int32{
 	56, // 53: pokeuniverse.realtime.v1.ServerMessage.field_move_result:type_name -> pokeuniverse.party.v1.FieldMoveResult
 	57, // 54: pokeuniverse.realtime.v1.ServerMessage.box_view:type_name -> pokeuniverse.party.v1.BoxView
 	58, // 55: pokeuniverse.realtime.v1.ServerMessage.follower_changed:type_name -> pokeuniverse.world.v1.FollowerChanged
-	0,  // 56: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
-	57, // [57:57] is the sub-list for method output_type
-	57, // [57:57] is the sub-list for method input_type
-	57, // [57:57] is the sub-list for extension type_name
-	57, // [57:57] is the sub-list for extension extendee
-	0,  // [0:57] is the sub-list for field type_name
+	59, // 56: pokeuniverse.realtime.v1.ServerMessage.zone_events:type_name -> pokeuniverse.world.v1.ZoneEvents
+	0,  // 57: pokeuniverse.realtime.v1.Error.code:type_name -> pokeuniverse.realtime.v1.ErrorCode
+	58, // [58:58] is the sub-list for method output_type
+	58, // [58:58] is the sub-list for method input_type
+	58, // [58:58] is the sub-list for extension type_name
+	58, // [58:58] is the sub-list for extension extendee
+	0,  // [0:58] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_realtime_v1_realtime_proto_init() }
@@ -1663,6 +1684,7 @@ func file_pokeuniverse_realtime_v1_realtime_proto_init() {
 		(*ServerMessage_FieldMoveResult)(nil),
 		(*ServerMessage_BoxView)(nil),
 		(*ServerMessage_FollowerChanged)(nil),
+		(*ServerMessage_ZoneEvents)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

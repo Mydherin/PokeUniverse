@@ -19,6 +19,9 @@ import (
 // connection because the player is now played from another one.
 type Sink interface {
 	Send(msg *realtimev1.ServerMessage)
+	// SendZoneEvents sends a ZoneEvents already encoded once for the whole zone (phase-8 D7),
+	// as the envelope's zone_events in the connection's own envelope.
+	SendZoneEvents(encoded []byte)
 	Kick()
 }
 
@@ -57,6 +60,8 @@ type Player struct {
 	party pokemon.Party
 	// The lead walking behind the player (follower.go).
 	follower follower
+	// Whether the zone's others were last told the player is in a battle (zone_presence.go).
+	shownBattle bool
 	// Steps toward the next walking friendship; saved on leaving, not every step.
 	friendshipSteps int
 	// What a won battle left to do while its script goes on (memory only: leaving loses it, as a

@@ -26,7 +26,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/world/v1/world.proto.
  */
 export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSKzAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcisgEKBkF2YXRhchIJCgF4GAEgASgNEgkKAXkYAiABKA0SLgoGZmFjaW5nGAMgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SLwoGZ2VuZGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIoABCghGb2xsb3dlchIPCgdzcGVjaWVzGAEgASgNEg0KBXNoaW55GAIgASgIEgkKAXgYAyABKA0SCQoBeRgEIAEoDRIuCgZmYWNpbmcYBSABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIOCgZoaWRkZW4YBiABKAgiRAoPRm9sbG93ZXJDaGFuZ2VkEjEKCGZvbGxvd2VyGAEgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIp8BCgZXYXJwZWQSCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIPCgdjYW5fcnVuGAUgASgIEjEKCGZvbGxvd2VyGAYgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIpMBCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIlMKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwEgsKA25wYxgDIAEoCSL5AgoKU2NyaXB0U3RlcBIxCgdtZXNzYWdlGAEgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1lc3NhZ2VIABIPCgVzb3VuZBgCIAEoCUgAEjQKCXBjX3NjcmVlbhgDIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5QY1NjcmVlbkgAEjYKCnBsYXllcnNfcGMYBCABKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyc1BjSAASLgoGeWVzX25vGAUgASgLMhwucG9rZXVuaXZlcnNlLndvcmxkLnYxLlllc05vSAASPgoOdHJhaW5lcl9iYXR0bGUYBiABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuVHJhaW5lckJhdHRsZUgAEg8KBW11c2ljGAcgASgJSAASFwoNZmFjZV9vcmlnaW5hbBgIIAEoCEgAEhUKC3dpbGRfYmF0dGxlGAkgASgISABCCAoGYWN0aW9uIjYKBVllc05vEi0KAm5vGAEgAygLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdFN0ZXAiIAoNVHJhaW5lckJhdHRsZRIPCgd0cmFpbmVyGAEgASgJIh4KDFNjcmlwdEJhdHRsZRIOCgZzY3JpcHQYASABKA0iPQoIUGNTY3JlZW4SJQoCcGMYASABKA4yGS5wb2tldW5pdmVyc2Uud29ybGQudjEuUGMSCgoCb24YAiABKAgiOQoJUGxheWVyc1BjEiwKBWl0ZW1zGAEgAygLMh0ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnU2xvdCIlCgdNZXNzYWdlEgwKBHRleHQYASABKAkSDAoEc2lnbhgCIAEoCCIwCgxTZXNzaW9uVGFrZW4SEgoKYWNjb3VudF9pZBgBIAEoBBIMCgRjb25uGAIgASgJKigKAlBjEhIKDlBDX1VOU1BFQ0lGSUVEEAASDgoKUENfUExBWUVSUxABQkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2Uvd29ybGQvdjE7d29ybGR2MWIGcHJvdG8z", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIh0KCEludGVyYWN0EhEKCXdhbGtfaW50bxgBIAEoCCIcCgpTY3JpcHREb25lEg4KBnNjcmlwdBgBIAEoDSLnAgoNV29ybGRTbmFwc2hvdBILCgNtYXAYASABKAkSLQoGcGxheWVyGAIgASgLMh0ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkF2YXRhchIPCgdjYW5fcnVuGAMgASgIEhkKEXBsYXlfdGltZV9zZWNvbmRzGAQgASgNEiYKA2JhZxgFIAEoCzIZLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZxIxCgdwb2tlZGV4GAYgASgLMiAucG9rZXVuaXZlcnNlLnBva2VkZXgudjEuUG9rZWRleBIrCgVwYXJ0eRgHIAEoCzIcLnBva2V1bml2ZXJzZS5wYXJ0eS52MS5QYXJ0eRIyCgZiYXR0bGUYCCABKAsyIi5wb2tldW5pdmVyc2UuYmF0dGxlLnYxLkJhdHRsZVZpZXcSMgoGb3RoZXJzGAkgAygLMiIucG9rZXVuaXZlcnNlLndvcmxkLnYxLk90aGVyUGxheWVyIrIBCgZBdmF0YXISCQoBeBgBIAEoDRIJCgF5GAIgASgNEi4KBmZhY2luZxgDIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEi8KBmdlbmRlchgEIAEoDjIfLnBva2V1bml2ZXJzZS50cmFpbmVyLnYxLkdlbmRlchIxCghmb2xsb3dlchgFIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlciKAAQoIRm9sbG93ZXISDwoHc3BlY2llcxgBIAEoDRINCgVzaGlueRgCIAEoCBIJCgF4GAMgASgNEgkKAXkYBCABKA0SLgoGZmFjaW5nGAUgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SDgoGaGlkZGVuGAYgASgIIkQKD0ZvbGxvd2VyQ2hhbmdlZBIxCghmb2xsb3dlchgBIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlciLTAQoGV2FycGVkEgsKA21hcBgBIAEoCRIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SDwoHY2FuX3J1bhgFIAEoCBIxCghmb2xsb3dlchgGIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlchIyCgZvdGhlcnMYByADKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuT3RoZXJQbGF5ZXIi5AEKC090aGVyUGxheWVyEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgkKAXgYBCABKA0SCQoBeRgFIAEoDRIuCgZmYWNpbmcYBiABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIxCghmb2xsb3dlchgHIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlchIRCglpbl9iYXR0bGUYCCABKAgiPgoKWm9uZUV2ZW50cxIwCgZldmVudHMYASADKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuWm9uZUV2ZW50ItwCCglab25lRXZlbnQSNQoGam9pbmVkGAEgASgLMiMucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllckpvaW5lZEgAEjEKBGxlZnQYAiABKAsyIS5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyTGVmdEgAEjMKBW1vdmVkGAMgASgLMiIucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllck1vdmVkSAASNQoGdHVybmVkGAQgASgLMiMucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllclR1cm5lZEgAEjkKCGZvbGxvd2VyGAUgASgLMiUucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllckZvbGxvd2VySAASNQoGYmF0dGxlGAYgASgLMiMucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBsYXllckJhdHRsZUgAQgcKBWV2ZW50IkIKDFBsYXllckpvaW5lZBIyCgZwbGF5ZXIYASABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuT3RoZXJQbGF5ZXIiGAoKUGxheWVyTGVmdBIKCgJpZBgBIAEoBCJsCgtQbGF5ZXJNb3ZlZBIKCgJpZBgBIAEoBBIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAUgASgIIkoKDFBsYXllclR1cm5lZBIKCgJpZBgBIAEoBBIuCgZmYWNpbmcYAiABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbiJPCg5QbGF5ZXJGb2xsb3dlchIKCgJpZBgBIAEoBBIxCghmb2xsb3dlchgCIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlciItCgxQbGF5ZXJCYXR0bGUSCgoCaWQYASABKAQSEQoJaW5fYmF0dGxlGAIgASgIIpMBCgpDb3JyZWN0aW9uEgwKBHN0ZXAYASABKA0SCQoBeBgCIAEoDRIJCgF5GAMgASgNEi4KBmZhY2luZxgEIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIlMKBlNjcmlwdBIKCgJpZBgBIAEoDRIwCgVzdGVwcxgCIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwEgsKA25wYxgDIAEoCSL5AgoKU2NyaXB0U3RlcBIxCgdtZXNzYWdlGAEgASgLMh4ucG9rZXVuaXZlcnNlLndvcmxkLnYxLk1lc3NhZ2VIABIPCgVzb3VuZBgCIAEoCUgAEjQKCXBjX3NjcmVlbhgDIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5QY1NjcmVlbkgAEjYKCnBsYXllcnNfcGMYBCABKAsyIC5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyc1BjSAASLgoGeWVzX25vGAUgASgLMhwucG9rZXVuaXZlcnNlLndvcmxkLnYxLlllc05vSAASPgoOdHJhaW5lcl9iYXR0bGUYBiABKAsyJC5wb2tldW5pdmVyc2Uud29ybGQudjEuVHJhaW5lckJhdHRsZUgAEg8KBW11c2ljGAcgASgJSAASFwoNZmFjZV9vcmlnaW5hbBgIIAEoCEgAEhUKC3dpbGRfYmF0dGxlGAkgASgISABCCAoGYWN0aW9uIjYKBVllc05vEi0KAm5vGAEgAygLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdFN0ZXAiIAoNVHJhaW5lckJhdHRsZRIPCgd0cmFpbmVyGAEgASgJIh4KDFNjcmlwdEJhdHRsZRIOCgZzY3JpcHQYASABKA0iPQoIUGNTY3JlZW4SJQoCcGMYASABKA4yGS5wb2tldW5pdmVyc2Uud29ybGQudjEuUGMSCgoCb24YAiABKAgiOQoJUGxheWVyc1BjEiwKBWl0ZW1zGAEgAygLMh0ucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnU2xvdCIlCgdNZXNzYWdlEgwKBHRleHQYASABKAkSDAoEc2lnbhgCIAEoCCIwCgxTZXNzaW9uVGFrZW4SEgoKYWNjb3VudF9pZBgBIAEoBBIMCgRjb25uGAIgASgJKigKAlBjEhIKDlBDX1VOU1BFQ0lGSUVEEAASDgoKUENfUExBWUVSUxABQkFaP3Bva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2Uvd29ybGQvdjE7d29ybGR2MWIGcHJvdG8z", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
@@ -250,6 +250,13 @@ export type WorldSnapshot = Message$1<"pokeuniverse.world.v1.WorldSnapshot"> & {
    * @generated from field: pokeuniverse.battle.v1.BattleView battle = 8;
    */
   battle?: BattleView | undefined;
+
+  /**
+   * The other players in the zone (same map and phase), never the player itself.
+   *
+   * @generated from field: repeated pokeuniverse.world.v1.OtherPlayer others = 9;
+   */
+  others: OtherPlayer[];
 };
 
 /**
@@ -408,6 +415,13 @@ export type Warped = Message$1<"pokeuniverse.world.v1.Warped"> & {
    * @generated from field: pokeuniverse.world.v1.Follower follower = 6;
    */
   follower?: Follower | undefined;
+
+  /**
+   * The other players in the new zone, never the player itself.
+   *
+   * @generated from field: repeated pokeuniverse.world.v1.OtherPlayer others = 7;
+   */
+  others: OtherPlayer[];
 };
 
 /**
@@ -416,6 +430,286 @@ export type Warped = Message$1<"pokeuniverse.world.v1.Warped"> & {
  */
 export const WarpedSchema: GenMessage<Warped> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_world_v1_world, 10);
+
+/**
+ * Another player in the same zone (map and phase), as the others see it.
+ *
+ * @generated from message pokeuniverse.world.v1.OtherPlayer
+ */
+export type OtherPlayer = Message$1<"pokeuniverse.world.v1.OtherPlayer"> & {
+  /**
+   * The trainer's ID.
+   *
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: pokeuniverse.trainer.v1.Gender gender = 3;
+   */
+  gender: Gender;
+
+  /**
+   * @generated from field: uint32 x = 4;
+   */
+  x: number;
+
+  /**
+   * @generated from field: uint32 y = 5;
+   */
+  y: number;
+
+  /**
+   * @generated from field: pokeuniverse.map.v1.Direction facing = 6;
+   */
+  facing: Direction;
+
+  /**
+   * Unset when there is none.
+   *
+   * @generated from field: pokeuniverse.world.v1.Follower follower = 7;
+   */
+  follower?: Follower | undefined;
+
+  /**
+   * @generated from field: bool in_battle = 8;
+   */
+  inBattle: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.OtherPlayer.
+ * Use `create(OtherPlayerSchema)` to create a new message.
+ */
+export const OtherPlayerSchema: GenMessage<OtherPlayer> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 11);
+
+/**
+ * Server -> client: what changed in the zone during one tick, in order. Encoded once per zone and
+ * sent as the same bytes to every player in it.
+ *
+ * @generated from message pokeuniverse.world.v1.ZoneEvents
+ */
+export type ZoneEvents = Message$1<"pokeuniverse.world.v1.ZoneEvents"> & {
+  /**
+   * @generated from field: repeated pokeuniverse.world.v1.ZoneEvent events = 1;
+   */
+  events: ZoneEvent[];
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.ZoneEvents.
+ * Use `create(ZoneEventsSchema)` to create a new message.
+ */
+export const ZoneEventsSchema: GenMessage<ZoneEvents> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 12);
+
+/**
+ * @generated from message pokeuniverse.world.v1.ZoneEvent
+ */
+export type ZoneEvent = Message$1<"pokeuniverse.world.v1.ZoneEvent"> & {
+  /**
+   * @generated from oneof pokeuniverse.world.v1.ZoneEvent.event
+   */
+  event: {
+    /**
+     * @generated from field: pokeuniverse.world.v1.PlayerJoined joined = 1;
+     */
+    value: PlayerJoined;
+    case: "joined";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.PlayerLeft left = 2;
+     */
+    value: PlayerLeft;
+    case: "left";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.PlayerMoved moved = 3;
+     */
+    value: PlayerMoved;
+    case: "moved";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.PlayerTurned turned = 4;
+     */
+    value: PlayerTurned;
+    case: "turned";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.PlayerFollower follower = 5;
+     */
+    value: PlayerFollower;
+    case: "follower";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.world.v1.PlayerBattle battle = 6;
+     */
+    value: PlayerBattle;
+    case: "battle";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.ZoneEvent.
+ * Use `create(ZoneEventSchema)` to create a new message.
+ */
+export const ZoneEventSchema: GenMessage<ZoneEvent> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 13);
+
+/**
+ * A player entered the zone (entered the world, warped in, reconnected).
+ *
+ * @generated from message pokeuniverse.world.v1.PlayerJoined
+ */
+export type PlayerJoined = Message$1<"pokeuniverse.world.v1.PlayerJoined"> & {
+  /**
+   * @generated from field: pokeuniverse.world.v1.OtherPlayer player = 1;
+   */
+  player?: OtherPlayer | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayerJoined.
+ * Use `create(PlayerJoinedSchema)` to create a new message.
+ */
+export const PlayerJoinedSchema: GenMessage<PlayerJoined> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 14);
+
+/**
+ * A player left the zone (warped out, disconnected).
+ *
+ * @generated from message pokeuniverse.world.v1.PlayerLeft
+ */
+export type PlayerLeft = Message$1<"pokeuniverse.world.v1.PlayerLeft"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayerLeft.
+ * Use `create(PlayerLeftSchema)` to create a new message.
+ */
+export const PlayerLeftSchema: GenMessage<PlayerLeft> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 15);
+
+/**
+ * A player took an accepted step to (x, y).
+ *
+ * @generated from message pokeuniverse.world.v1.PlayerMoved
+ */
+export type PlayerMoved = Message$1<"pokeuniverse.world.v1.PlayerMoved"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: uint32 x = 2;
+   */
+  x: number;
+
+  /**
+   * @generated from field: uint32 y = 3;
+   */
+  y: number;
+
+  /**
+   * @generated from field: pokeuniverse.map.v1.Direction facing = 4;
+   */
+  facing: Direction;
+
+  /**
+   * @generated from field: bool run = 5;
+   */
+  run: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayerMoved.
+ * Use `create(PlayerMovedSchema)` to create a new message.
+ */
+export const PlayerMovedSchema: GenMessage<PlayerMoved> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 16);
+
+/**
+ * A player turned in place.
+ *
+ * @generated from message pokeuniverse.world.v1.PlayerTurned
+ */
+export type PlayerTurned = Message$1<"pokeuniverse.world.v1.PlayerTurned"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: pokeuniverse.map.v1.Direction facing = 2;
+   */
+  facing: Direction;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayerTurned.
+ * Use `create(PlayerTurnedSchema)` to create a new message.
+ */
+export const PlayerTurnedSchema: GenMessage<PlayerTurned> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 17);
+
+/**
+ * A player's follower changed: another Pokémon, or none (unset).
+ *
+ * @generated from message pokeuniverse.world.v1.PlayerFollower
+ */
+export type PlayerFollower = Message$1<"pokeuniverse.world.v1.PlayerFollower"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: pokeuniverse.world.v1.Follower follower = 2;
+   */
+  follower?: Follower | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayerFollower.
+ * Use `create(PlayerFollowerSchema)` to create a new message.
+ */
+export const PlayerFollowerSchema: GenMessage<PlayerFollower> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 18);
+
+/**
+ * A player entered or left a battle.
+ *
+ * @generated from message pokeuniverse.world.v1.PlayerBattle
+ */
+export type PlayerBattle = Message$1<"pokeuniverse.world.v1.PlayerBattle"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: bool in_battle = 2;
+   */
+  inBattle: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.PlayerBattle.
+ * Use `create(PlayerBattleSchema)` to create a new message.
+ */
+export const PlayerBattleSchema: GenMessage<PlayerBattle> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 19);
 
 /**
  * @generated from message pokeuniverse.world.v1.Correction
@@ -456,7 +750,7 @@ export type Correction = Message$1<"pokeuniverse.world.v1.Correction"> & {
  * Use `create(CorrectionSchema)` to create a new message.
  */
 export const CorrectionSchema: GenMessage<Correction> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 11);
+  messageDesc(file_pokeuniverse_world_v1_world, 20);
 
 /**
  * What an interaction runs, step by step. When it has steps, the player can't move until the
@@ -488,7 +782,7 @@ export type Script = Message$1<"pokeuniverse.world.v1.Script"> & {
  * Use `create(ScriptSchema)` to create a new message.
  */
 export const ScriptSchema: GenMessage<Script> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 12);
+  messageDesc(file_pokeuniverse_world_v1_world, 21);
 
 /**
  * @generated from message pokeuniverse.world.v1.ScriptStep
@@ -580,7 +874,7 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
  * Use `create(ScriptStepSchema)` to create a new message.
  */
 export const ScriptStepSchema: GenMessage<ScriptStep> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 13);
+  messageDesc(file_pokeuniverse_world_v1_world, 22);
 
 /**
  * @generated from message pokeuniverse.world.v1.YesNo
@@ -599,7 +893,7 @@ export type YesNo = Message$1<"pokeuniverse.world.v1.YesNo"> & {
  * Use `create(YesNoSchema)` to create a new message.
  */
 export const YesNoSchema: GenMessage<YesNo> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 14);
+  messageDesc(file_pokeuniverse_world_v1_world, 23);
 
 /**
  * @generated from message pokeuniverse.world.v1.TrainerBattle
@@ -618,7 +912,7 @@ export type TrainerBattle = Message$1<"pokeuniverse.world.v1.TrainerBattle"> & {
  * Use `create(TrainerBattleSchema)` to create a new message.
  */
 export const TrainerBattleSchema: GenMessage<TrainerBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 15);
+  messageDesc(file_pokeuniverse_world_v1_world, 24);
 
 /**
  * The client reached the running script's TrainerBattle or WildBattle step: the battle starts.
@@ -637,7 +931,7 @@ export type ScriptBattle = Message$1<"pokeuniverse.world.v1.ScriptBattle"> & {
  * Use `create(ScriptBattleSchema)` to create a new message.
  */
 export const ScriptBattleSchema: GenMessage<ScriptBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 16);
+  messageDesc(file_pokeuniverse_world_v1_world, 25);
 
 /**
  * AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
@@ -661,7 +955,7 @@ export type PcScreen = Message$1<"pokeuniverse.world.v1.PcScreen"> & {
  * Use `create(PcScreenSchema)` to create a new message.
  */
 export const PcScreenSchema: GenMessage<PcScreen> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 17);
+  messageDesc(file_pokeuniverse_world_v1_world, 26);
 
 /**
  * BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
@@ -683,7 +977,7 @@ export type PlayersPc = Message$1<"pokeuniverse.world.v1.PlayersPc"> & {
  * Use `create(PlayersPcSchema)` to create a new message.
  */
 export const PlayersPcSchema: GenMessage<PlayersPc> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 18);
+  messageDesc(file_pokeuniverse_world_v1_world, 27);
 
 /**
  * @generated from message pokeuniverse.world.v1.Message
@@ -709,7 +1003,7 @@ export type Message = Message$1<"pokeuniverse.world.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 19);
+  messageDesc(file_pokeuniverse_world_v1_world, 28);
 
 /**
  * mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
@@ -734,7 +1028,7 @@ export type SessionTaken = Message$1<"pokeuniverse.world.v1.SessionTaken"> & {
  * Use `create(SessionTakenSchema)` to create a new message.
  */
 export const SessionTakenSchema: GenMessage<SessionTaken> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 20);
+  messageDesc(file_pokeuniverse_world_v1_world, 29);
 
 /**
  * @generated from enum pokeuniverse.world.v1.Pc
