@@ -1,4 +1,4 @@
-# M2 Zone Presence on One Replica 🧪
+# M2 Zone Presence on One Replica ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [context.md](context.md) D1, D5, D6, D7, D9, D10, D12, D19.
 
@@ -6,10 +6,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 
 ## Resume Here
 
-**Manual Test in progress (2026-11-11): cases 1-4 ✅, next case #5** (battle flag), then 6-10, then [M3's Manual Test](m03-drawing-others.md#manual-test). One replica (`MIC_CORE_REPLICAS=1`). No code bug found so far; nothing TEMP left in the tree.
-
-- **Case 5 state:** bot-4 printed `BOT5 entered a battle` for the room trainer (twice). The battle's end was not seen yet: the first try lost the tab's token mid-battle, the second had bot-4 wander to 1F. Replay it with `--idle` (below) so bot-4 stays on 2F, and expect `BOT5 left a battle`; then the wild battle: run the bots with `--map pallet_town_players_house_1f --idle`, take the tab down to 1F's test grass (10-12,5-6), RUN at the first encounter; expect `entered` then `left a battle`.
-- **Files touched (uncommitted):** this file (cases 1-4); `infra/bots/run.ts`: `--idle` (the verbose bot never walks) and `who()` prints `(in battle)` in snapshots and `joined`.
+**Done 2026-11-11: every Manual Test case passed** (one replica). No code bug found; nothing TEMP left. `infra/bots/run.ts` gained `--idle` (the verbose bot never walks) and `(in battle)` in `who()`. Next: [M3's Manual Test](m03-drawing-others.md#resume-here).
 
 ### How this test is played (saves re-discovery)
 
@@ -74,12 +71,12 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 | 2 | Moves and turns | Walk, run and turn in the real tab | bot-4 prints `moved` (with `run` when running) and `turned` for the real player and each bot | ✅ 2026-11-10 (`run` only with a TEMP `canRun = true`: no Running Shoes and no running map until Phase 10, O1) |
 | 3 | Join and leave by warp | Take the stairs down and back up | bot-4 prints `left` then `joined`; the `Warped` snapshot on 1F lists who is there | ✅ 2026-11-10 (the tab drew BOT2 and Mom on 1F) |
 | 4 | Follower change | Party SWITCH of the lead in the real tab | bot-4 prints `follower` with the new species | ✅ 2026-11-10 (Charizard → Pikachu: `follower #25`) |
-| 5 | Battle flag | Room trainer's battle, then a wild battle in the test grass | `battle` true at start, false at the end, each time | ⬜ |
-| 6 | Disconnect | Close the real tab; Ctrl-C one bot | `left` for each within the session's 15 s, no duplicate | ⬜ |
-| 7 | Reconnect | `docker compose restart mic-core` | Every bot's new snapshot has all the others, none twice, none missing | ⬜ |
-| 8 | Take-over | Open the same bot token in a second tab | Old tab stops; others see one player (no ghost, no duplicate) | ⬜ |
-| 9 | Traffic | Stats with 5 bots for 1 min | At most one `zone_events` frame per tick per bot; bytes/s printed and small | ⬜ |
-| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Both maps, stairs, wild battle, room trainer; no `Correction` walking through bots | ⬜ |
+| 5 | Battle flag | Room trainer's battle, then a wild battle in the test grass | `battle` true at start, false at the end, each time | ✅ 2026-11-11 (room trainer: `entered`, then `left a battle` at the blackout; wild Rattata on 1F: `entered`, RUN → `left`; once each) |
+| 6 | Disconnect | Close the real tab; Ctrl-C one bot | `left` for each within the session's 15 s, no duplicate | ✅ 2026-11-11 (tab left the page: `BOT5 left` in <10 s; a 2nd `--count 1` run took bot-1 over (old one closed 4004 REPLACED, no reconnect), its Ctrl-C: `BOT1 left` in ~6 s; once each, Redis zones clean) |
+| 7 | Reconnect | `docker compose restart mic-core` | Every bot's new snapshot has all the others, none twice, none missing | ✅ 2026-11-11 (4 bots + tab, `reconnects 4`; bot-4 reconnected first so its snapshot was empty, then BOT2, BOT3, BOT5 each one `joined`: snapshot + joins = Redis `zone:…_1f:0`, none twice; BOT1 on 2F) |
+| 8 | Take-over | Open the same bot token in a second tab | Old tab stops; others see one player (no ghost, no duplicate) | ✅ 2026-11-11 (old tab: "Playing somewhere else"; bot-4: one `BOT5 joined` (upsert), no `left` after 20 s; Redis lists 50 once) |
+| 9 | Traffic | Stats with 5 bots for 1 min | At most one `zone_events` frame per tick per bot; bytes/s printed and small | ✅ 2026-11-11 (5 bots, 70 s: 7.0-10.7 frames/s per bot at a 20/s tick (`Tick` 50 ms), 33-65 events/s, 159-378 B/s per bot, 0 corrections) |
+| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Both maps, stairs, wild battle, room trainer; no `Correction` walking through bots | ✅ 2026-11-11 (the tab as a 6th account with `--count 5`: 2F ↔ 1F both ways through the crowd, 0 `Correction` in the tab (counted on its socket) and 0 in bot stats; trainer and wild battle played in case 5 with bots around; mic-core logs clean but for the expected stale saves below) |
 
 ## Gotchas
 
@@ -87,3 +84,6 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 - A player leaving and rejoining in one tick: `left` then `joined`, in that order.
 - A snapshot can list a player whose `joined` is still buffered (not saved yet): the client must treat `joined` as an upsert (bots do; M3 too).
 - `gofmt -l` flags `internal/pokemon/wild.go`: already so before M2, not touched.
+- A `save trainer … stale save` ERROR in the logs right after `POST /api/dev/bots` re-creates an account that is still connected (a second bot run, or the tab's account) is the stale-save guard refusing the old session: expected, not a bug.
+- Tab position: the camera crops the map, so read the tab's tile from Redis (`HGET zone:<map>:0 <id>`: `OtherPlayer` fields 4 = x, 5 = y) instead of guessing from a screenshot.
+- Counting the tab's `Correction`s: wrap `WebSocket.prototype.send` before CONTINUE to grab the socket, then count server frames whose payload tag after `seq` is `0x32` (field 6).
