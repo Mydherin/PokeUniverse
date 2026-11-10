@@ -1,4 +1,4 @@
-# M1 Bot Players 🧪
+# M1 Bot Players ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [context.md](context.md) D16, D17.
 
@@ -6,7 +6,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [
 
 ## Resume Here
 
-**Code done 2026-11-10; Manual Test pending, first case #1.** Then [M2's Manual Test](m02-zone-presence.md#manual-test). Setup: [How to Test in Game](../../README.md#how-to-test-in-game).
+**Done 2026-11-10:** every Manual Test case passed in game (5-6 bots, bot-6 played in the pane, mic-core restart mid-battle, a renewal at 22:32:31 for a 22:33:31 expiry, empty-secret image checked, `bots-clean` left accounts 2 and 8 byte-identical). No fixes needed. Then [M2's Manual Test](m02-zone-presence.md#manual-test). Setup: [How to Test in Game](../../README.md#how-to-test-in-game).
 
 ## What Was Built
 
@@ -31,17 +31,19 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Bots start | `node infra/bots/bots.ts --count 5` on 2F | 5 connected, stats every 10 s: ~3 steps/s each, 0 corrections, ping p99 a few ms | ⬜ |
-| 2 | FireRed pace | Watch the stats and `make logs` for 1 min | Walk 16 / run 8 frames per step; no rate-limit drops, no ERROR/WARN | ⬜ |
-| 3 | Stairs and grass | Let them run 2-3 min | Some reach 1F by the stairs; none walks into tall grass or a non-stair warp | ⬜ |
-| 4 | Real player beside them | Run 6 bots, take bot-6 over with `/play?bot=<token>` in the pane | Script's bot-6 stops (4004); the tab plays: walk, menu, stairs, a wild battle | ⬜ |
-| 5 | Re-spawn and refresh | Stop and restart the script; get tokens with `refreshOnly` | Re-spawn = fresh New Game on free tiles; `refreshOnly` only issues tokens (trainer unchanged) | ⬜ |
-| 6 | Server restart | `docker compose restart mic-core` with bots and the tab | All bots reconnect in one backoff step and walk on; the tab resumes (a battle too) | ⬜ |
-| 7 | Token renewal | Run bots past one token lifetime (`expires_at`) | Renewed a minute before expiry, no disconnect | ⬜ |
-| 8 | Guard | `BOTS_SECRET=` (empty) and rebuild; wrong `X-Bots-Secret`; unknown map | 404; 403; 422. `?bot=` login absent from the image | ⬜ |
-| 9 | Cleanup | `make bots-clean` | Bot accounts and `player:<id>:*` keys gone; the test account untouched | ⬜ |
+| 1 | Bots start | `node infra/bots/bots.ts --count 5` on 2F | 5 connected, stats every 10 s: ~3 steps/s each, 0 corrections, ping p99 a few ms | ✅ 2026-11-10 |
+| 2 | FireRed pace | Watch the stats and `make logs` for 1 min | Walk 16 / run 8 frames per step; no rate-limit drops, no ERROR/WARN | ✅ 2026-11-10 |
+| 3 | Stairs and grass | Let them run 2-3 min | Some reach 1F by the stairs; none walks into tall grass or a non-stair warp | ✅ 2026-11-10 |
+| 4 | Real player beside them | Run 6 bots, take bot-6 over with `/play?bot=<token>` in the pane | Script's bot-6 stops (4004); the tab plays: walk, menu, stairs, a wild battle | ✅ 2026-11-10 |
+| 5 | Re-spawn and refresh | Stop and restart the script; get tokens with `refreshOnly` | Re-spawn = fresh New Game on free tiles; `refreshOnly` only issues tokens (trainer unchanged) | ✅ 2026-11-10 |
+| 6 | Server restart | `docker compose restart mic-core` with bots and the tab | All bots reconnect in one backoff step and walk on; the tab resumes (a battle too) | ✅ 2026-11-10 |
+| 7 | Token renewal | Run bots past one token lifetime (`expires_at`) | Renewed a minute before expiry, no disconnect | ✅ 2026-11-10 |
+| 8 | Guard | `BOTS_SECRET=` (empty) and rebuild; wrong `X-Bots-Secret`; unknown map | 404; 403; 422. `?bot=` login absent from the image | ✅ 2026-11-10 |
+| 9 | Cleanup | `make bots-clean` | Bot accounts and `player:<id>:*` keys gone; the test account untouched | ✅ 2026-11-10 |
 
 ## Gotchas
 
 - `pkill -INT` on a backgrounded `node … > log` kills the wrapping shell with exit 1; start it with `exec node …` to see the script's own exit.
 - The 2F trainers (9,4) and (9,6) are talk-only (no sight). The 2F sign at (11,1) is above the stairs' approach tile (11,2): pressing Up there reads it.
+- **Driving the pane:** a `computer` key tap is too short to step (the game reads held keys per frame; menus and A/B still work). Hold keys from `javascript_tool`: dispatch `keydown` on `window` with `code` (`ArrowUp`, `KeyZ` = A, `KeyX` = B, `Enter` = START), wait ~250 ms per step, then `keyup`. Player tile: Redis `HMGET player:<id>:pos map x y`.
+- Stair warps take two presses: the first steps onto the stair tile, the second (same direction) warps, as in FireRed.
