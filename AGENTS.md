@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7 M8: Phase check](docs/phases/phase-7-wild-battles-catching/milestones/m08-phase-check.md): in progress; read its Resume Here (next: Run 5 rest, then Runs 6-8, follower, restore, close). M7 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 7 M8: Phase check](docs/phases/phase-7-wild-battles-catching/milestones/m08-phase-check.md): in progress; read its Resume Here (next: Run 8 win, Pickup, Run 7 whiteout, follower, restore, close). M7 done 2026-11-09. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
