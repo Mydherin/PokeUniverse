@@ -29,7 +29,7 @@ import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import { FieldMoveOutcome, FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
-import type { Correction, Follower, FollowerChanged, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, Follower, FollowerChanged, OtherPlayer, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
 import type { Task } from "../gba/tasks";
@@ -49,6 +49,9 @@ import { Assets, WORLD_TEXTS } from "./manifest";
 import { PlayerSprite } from "./player-sprite";
 import { FollowerSprite } from "./follower-sprite";
 import { FollowerModel } from "../world/follower";
+import { Others, type OtherPlayerModel } from "../world/others";
+import { getSession } from "../../auth/session";
+import { OtherPlayerSprite } from "./other-player-sprite";
 import { SaveDialog } from "./save-dialog";
 import { ArrivingStairs, LeavingStairs } from "./stair-warp";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
@@ -144,6 +147,7 @@ export function startOverworld(flow: Flow): void {
     fieldMoveResult: (r) => overworld?.fieldMoveResult(r),
     boxView: (v) => overworld?.boxView(v),
     followerChanged: (f) => overworld?.followerChanged(f),
+    zoneEvents: (z) => overworld?.zoneEvents(z),
     pokedexChanged: (p) => overworld?.pokedexChanged(p),
     itemResult: (r) => overworld?.itemResult(r),
     battleStarted: (b) => overworld?.battleStarted(b),
@@ -247,6 +251,11 @@ class Overworld {
   private follower!: FollowerModel;
   private followerSprite!: FollowerSprite;
   private tallGrass!: TallGrass;
+  /** Everyone else in the zone (phase 8), and how each is drawn. */
+  private others!: Others;
+  private readonly otherSprites = new Map<bigint, OtherPlayerSprite>();
+  /** Zone events after the Warped: the next map's, played once it's placed. */
+  private nextZone: ZoneEvents[] = [];
   private npcs!: NpcSprite[];
   private readonly gender: Gender;
   private warp: Warp | null = null;
@@ -306,7 +315,7 @@ class Overworld {
     this.bag = new BagState(snapshot.bag);
     this.pokedex = new PokedexState(snapshot.pokedex);
     this.party = new PartyState(snapshot.party);
-    this.place(map, p.x, p.y, p.facing, snapshot.canRun, p.follower);
+    this.place(map, p.x, p.y, p.facing, snapshot.canRun, p.follower, snapshot.others);
     this.battle = snapshot.battle?.battleId ?? null;
     if (map.music) gba.sound.playBgm(map.music);
     this.enter(false);
@@ -319,7 +328,7 @@ class Overworld {
   }
 
   /** The player and NPCs on a map that's already drawn. */
-  private place(map: ClientMap, x: number, y: number, facing: Direction, canRun: boolean, follower: Follower | undefined): void {
+  private place(map: ClientMap, x: number, y: number, facing: Direction, canRun: boolean, follower: Follower | undefined, others: OtherPlayer[]): void {
     const { flow } = this;
     const { world, link } = flow;
     this.map = map;
@@ -346,6 +355,31 @@ class Overworld {
     this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
     this.tallGrass = new TallGrass(world, flow.assets, map);
     this.regrass();
+    this.others = new Others(map, getSession()?.account.id ?? 0n, {
+      joined: (p) => this.otherSprites.set(p.id, new OtherPlayerSprite(world, flow.assets, p)),
+      left: (p) => {
+        this.otherSprites.get(p.id)?.destroy();
+        this.otherSprites.delete(p.id);
+        this.tallGrass.forget(`other:${p.id}`);
+        this.tallGrass.forget(`other-follower:${p.id}`);
+      },
+      stepped: (p, fx, fy) => {
+        this.tallGrass.enter(`other:${p.id}`, p.x, p.y);
+        if (p.follower.species) this.tallGrass.enter(`other-follower:${p.id}`, fx, fy);
+      },
+      placed: (p) => this.regrassOther(p),
+    });
+    this.others.fromSnapshot(others);
+  }
+
+  /** The grass over another player's feet and its shown follower's, standing where they are now. */
+  private regrassOther(p: OtherPlayerModel): void {
+    const [me, mine] = [`other:${p.id}`, `other-follower:${p.id}`];
+    this.tallGrass.forget(me);
+    this.tallGrass.forget(mine);
+    this.tallGrass.enter(me, p.x, p.y, true);
+    const f = p.follower;
+    if (f.species && !f.hidden) this.tallGrass.enter(mine, f.x, f.y, true);
   }
 
   /** The grass over the feet of the player and a shown follower, standing where they are now. */
@@ -397,6 +431,8 @@ class Overworld {
     this.avatar.snap(p.x, p.y, p.facing);
     this.follower.set(p.follower);
     this.regrass();
+    this.nextZone = [];
+    this.others.fromSnapshot(s.others);
     this.avatar.waiting = false;
     this.endScript(false);
     if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
@@ -450,6 +486,11 @@ class Overworld {
   followerChanged(f: FollowerChanged): void {
     this.follower.set(f.follower);
     this.regrass();
+  }
+
+  zoneEvents(z: ZoneEvents): void {
+    if (this.warp?.arrival) this.nextZone.push(z);
+    else this.others.apply(z);
   }
 
   boxView(v: BoxView): void {
@@ -826,6 +867,7 @@ class Overworld {
   private cancelWarp(): void {
     if (!this.warp || this.warp.loading) return;
     this.warp = null;
+    this.nextZone = [];
     this.sprite.offsetX = this.sprite.offsetY = 0;
     this.sprite.forceOver = false;
     const { palettes } = this.flow.gba;
@@ -844,7 +886,9 @@ class Overworld {
         if (this.destroyed) return;
         const previousMusic = this.map.music;
         this.warp = null;
-        this.place(map, to.x, to.y, to.facing, to.canRun, to.follower);
+        this.place(map, to.x, to.y, to.facing, to.canRun, to.follower, to.others);
+        for (const z of this.nextZone) this.others.apply(z);
+        this.nextZone = [];
         // The same song keeps playing (TryFadeOutOldMapMusic).
         if (map.music && map.music !== previousMusic) flow.gba.sound.playBgm(map.music);
         this.enter(false);
@@ -890,6 +934,7 @@ class Overworld {
   private destroySprites(): void {
     this.sprite.destroy();
     this.followerSprite.destroy();
+    this.others.clear();
     this.tallGrass.destroy();
     for (const npc of this.npcs) npc.destroy();
   }
@@ -900,6 +945,7 @@ class Overworld {
     this.runWarp();
     // Just started loading: the sprites are gone.
     if (this.warp?.loading) return;
+    this.runOthers();
     if (this.fieldOpening) {
       if (this.flow.gba.palettes.fadeActive) return;
       const open = this.fieldOpening;
@@ -1014,6 +1060,19 @@ class Overworld {
         this.enter(withMenu && !this.sweetScent);
       });
     };
+  }
+
+  /**
+   * The others move on their own, whatever the own player does (a menu, a message, a screen over
+   * the field). Offline they're gone: the reconnect's snapshot draws them again.
+   */
+  private runOthers(): void {
+    if (!this.flow.link.inWorld) {
+      if (this.others.players.size) this.others.clear();
+      return;
+    }
+    this.others.update();
+    for (const p of this.others.players.values()) this.otherSprites.get(p.id)?.update(p, this.sprite.overFade);
   }
 
   private draw(): void {

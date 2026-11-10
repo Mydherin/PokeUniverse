@@ -1,4 +1,4 @@
-# M3 Drawing Other Players ⬜
+# M3 Drawing Other Players ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D6, D8, D9, D10, D11, D12; [references](context.md#firered-and-heartgold-references).
 
@@ -6,7 +6,12 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ## Resume Here
 
-**Not started.** First step: the model (`world/others.ts`).
+**Done 2026-11-10** (code, `tsc` green; Play It not run in the building session, no manual test asked). Next: [M4 Zones across replicas](m04-zones-across-replicas.md).
+
+- **Files:** new `spa-pokeuniverse/src/game/world/others.ts`, `firered/other-player-sprite.ts`; changed `firered/overworld.ts`, `firered/player-sprite.ts`, `firered/tall-grass.ts`, `src/realtime/connection.ts` (`zoneEvents` in `WorldEvents`, routed from `ServerMessage.zoneEvents`).
+- **Model:** `OtherPlayerModel` queues `move`/`turn`/`follower` in arrival order (a follower change waits for the steps before it, so it isn't placed ahead of its trainer); `battle` sets `inBattle` at once. Catch-up: more than 2 moves queued → run frames (8), shown with the walk sheet unless the step itself ran. Elevation tracked per step with `elevationAfter`, `overTiles` as `Avatar`'s; its follower draws by its trainer's `overTiles`. `joined` is an upsert (M2 gotcha). Own id: `getSession()?.account.id` (bot tabs too), skipped in snapshots and events.
+- **View:** `OtherPlayerSprite` = `PlayerSprite` (now takes any `Walking`: `pixelX/Y`, `facing`, `action`, `overTiles`) + `FollowerSprite`. Player sheets are built once per gender (cache in `player-sprite.ts`). `frameOf` walk: foot for the first half of `frames` (same 8 of 16 for the own player). `TallGrass` walkers are now any string (`other:<id>`, `other-follower:<id>`), kept in a `Map`.
+- **Overworld:** `place(…, others)` builds `Others` (constructor snapshot, `travel`'s `Warped.others`); `resume` (reconnect snapshot) → `fromSnapshot`; `destroySprites` clears them. `runOthers()` runs each frame right after the warp checks, before menus/scripts/`away`, separate from `Avatar` (gotcha 1); offline it clears everyone (the reconnect snapshot draws them again). Zone events that come after a `Warped` (`warp.arrival` set) are buffered in `nextZone` and applied once the next map is placed; dropped on `cancelWarp` and `resume`.
 
 ## Tasks
 

@@ -17,7 +17,7 @@ import type { BoxAction } from "./box-action";
 import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
-import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot } from "@pokeuniverse/contracts/world/v1/world";
+import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 
 export type ConnectionStatus =
@@ -50,6 +50,8 @@ export interface WorldEvents {
   fieldMoveResult(r: FieldMoveResult): void;
   boxView(v: BoxView): void;
   followerChanged(f: FollowerChanged): void;
+  /** What the other players in the zone did this tick (the own player's included: skip them). */
+  zoneEvents(z: ZoneEvents): void;
   pokedexChanged(p: PokedexChanged): void;
   /** What using, giving, tossing, withdrawing or depositing an item, or giving or taking a held one, did. */
   itemResult(r: ItemResult): void;
@@ -353,6 +355,9 @@ export class Connection implements WorldLink {
         break;
       case "followerChanged":
         this.world?.followerChanged(msg.payload.value);
+        break;
+      case "zoneEvents":
+        this.world?.zoneEvents(msg.payload.value);
         break;
       case "pokedexChanged":
         this.world?.pokedexChanged(msg.payload.value);

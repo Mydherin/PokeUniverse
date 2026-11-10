@@ -4,7 +4,7 @@
 import { Direction } from "@pokeuniverse/contracts/map/v1/map";
 import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { IndexedImage } from "../gba/assets";
-import type { Action, Avatar } from "../world/avatar";
+import type { Action } from "../world/avatar";
 import type { CharacterSheet, CharacterView, WorldView } from "../world/view";
 import type { Assets } from "./manifest";
 
@@ -29,15 +29,23 @@ const RUN: Record<number, [number, number, number]> = {
   [Direction.EAST]: [15, 16, 17],
 };
 
+/** Built once per gender: every other player of that gender draws from the same sheet. */
+const sheets = new Map<string, CharacterSheet>();
+
 /** Builds the player's sheet: walk frames, then run frames, colored with the player palette. */
 function playerSheet(assets: Assets, gender: Gender): CharacterSheet {
   const girl = gender === Gender.GIRL;
+  const key = `firered-player-${girl ? "girl" : "boy"}`;
+  const cached = sheets.get(key);
+  if (cached) return cached;
   const walk = assets.get(girl ? "owGreen" : "owRed").image!;
   const run = assets.get(girl ? "owGreenRun" : "owRedRun").image!;
-  return characterSheet(`firered-player-${girl ? "girl" : "boy"}`, assets.get("owPlayerPal").palette, [
+  const sheet = characterSheet(key, assets.get("owPlayerPal").palette, [
     [walk, 0, WALK_FRAMES],
     [run, RUN_FIRST, RUN_FRAMES],
   ]);
+  sheets.set(key, sheet);
+  return sheet;
 }
 
 /**
@@ -94,7 +102,8 @@ function frameOf(facing: Direction, a: Action | null): number {
   switch (a.kind) {
     case "walk":
     case "walkInPlace":
-      return a.t < 8 ? foot(a.foot) : stand;
+      // Half the step on a foot (8 of 16 frames; 4 of 8 for another player catching up).
+      return a.t * 2 < a.frames ? foot(a.foot) : stand;
     case "run":
       return a.t < 5 ? stand : foot(a.foot);
     case "turn":
@@ -104,6 +113,15 @@ function frameOf(facing: Direction, a: Action | null): number {
       return cmd === 0 ? footA : cmd === 2 ? footB : stand;
     }
   }
+}
+
+/** What a trainer's sprite follows: the own player (Avatar) or another one (OtherPlayerModel). */
+export interface Walking {
+  readonly pixelX: number;
+  readonly pixelY: number;
+  readonly facing: Direction;
+  readonly action: Action | null;
+  readonly overTiles: boolean;
 }
 
 /** The player drawn on the world, following the avatar. */
@@ -122,7 +140,7 @@ export class PlayerSprite {
   }
 
   /** Feet on the avatar's cell: the 16×32 frame starts 16 pixels above it. */
-  update(avatar: Avatar): void {
+  update(avatar: Walking): void {
     this.view.setPosition(avatar.pixelX + this.offsetX, avatar.pixelY - 16 + this.offsetY);
     this.view.setFrame(frameOf(avatar.facing, avatar.action), avatar.facing === Direction.EAST);
     this.view.setOverTiles(this.forceOver || avatar.overTiles);

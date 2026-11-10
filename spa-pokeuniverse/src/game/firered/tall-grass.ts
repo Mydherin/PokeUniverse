@@ -9,7 +9,8 @@ import type { CharacterSheet, CharacterView, WorldView } from "../world/view";
 import type { Assets } from "./manifest";
 import { sheetOf } from "./player-sprite";
 
-export type Walker = "player" | "follower";
+/** "player", "follower", or another player's: "other:<id>", "other-follower:<id>". */
+export type Walker = string;
 
 interface Cell {
   x: number;
@@ -35,10 +36,7 @@ export class TallGrass {
   overFade = false;
   private blades: Blade[] = [];
   private cachedSheet: CharacterSheet | null = null;
-  private readonly at: Record<Walker, { now: Cell | null; before: Cell | null }> = {
-    player: { now: null, before: null },
-    follower: { now: null, before: null },
-  };
+  private readonly at = new Map<Walker, { now: Cell | null; before: Cell | null }>();
 
   constructor(
     private readonly world: WorldView,
@@ -51,7 +49,8 @@ export class TallGrass {
    * (OnSpawn): it stands there from the start, the grass at rest.
    */
   enter(walker: Walker, x: number, y: number, spawned = false): void {
-    const at = this.at[walker];
+    let at = this.at.get(walker);
+    if (!at) this.at.set(walker, (at = { now: null, before: null }));
     at.before = spawned ? null : at.now;
     at.now = { x, y };
     if (behaviorAt(this.map, x, y) !== TileBehavior.TALL_GRASS) return;
@@ -62,7 +61,7 @@ export class TallGrass {
 
   /** Gone from the map (a warp, a correction, no follower any more): its blades go. */
   forget(walker: Walker): void {
-    this.at[walker] = { now: null, before: null };
+    this.at.delete(walker);
     this.blades = this.blades.filter((b) => b.walker !== walker || (b.view.destroy(), false));
   }
 
@@ -70,7 +69,7 @@ export class TallGrass {
   update(): void {
     this.blades = this.blades.filter((b) => {
       if (b.t < ANIM_FRAMES) b.t++;
-      const { now, before } = this.at[b.walker];
+      const { now, before } = this.at.get(b.walker) ?? { now: null, before: null };
       const left = !same(now, b) && !same(before, b);
       if (left && b.t >= ANIM_FRAMES) {
         b.view.destroy();
