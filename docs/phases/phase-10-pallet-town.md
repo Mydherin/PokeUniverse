@@ -13,6 +13,7 @@
 - The starter is saved with the Pokémon data model from [Phase 5](phase-5-battle-system/phase-5-battle-system.md), and it replaces the test team; the test trainer and the test grass patch on 1F ([Phase 7](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md)) leave the room.
 - Oak gives the POKéDEX (`FLAG_SYS_POKEDEX_GET`: the START menu shows it; the screen exists since [Phase 4](phase-4-players-room.md)), and the starters seen and caught are registered.
 - The START menu shows POKéMON once the starter is chosen, as in FireRed (the party screen and summary exist since [Phase 5](phase-5-battle-system/phase-5-battle-system.md)).
+- The house's maps get Pallet Town's map section, so SUMMARY stops showing "Met in Somewhere"; look at the naming screen's Pokémon icon fix when the starter is named ([O12](index.md#open-items), from Phase 7 M8).
 - **Per-player story:** each player sees their own Oak, rival and events, in the shared world from [Phase 8](phase-8-multiplayer-world.md).
 
 ## Done When

@@ -1,14 +1,12 @@
-# Phase 7: Wild Battles and Catching
+# Phase 7: Wild Battles and Catching ✅
 
 **Goal:** walking through grass starts FireRed's wild battles with Gen 4 rules; the player can run, catch the Pokémon with any ball, name it, see it registered in the Pokédex and find it in the party or the PC. Added to the [Battle System](../phase-5-battle-system/phase-5-battle-system.md), tried on a test grass patch in the player's house; the real tables come with the maps ([Phase 12](../phase-12-world-content.md)).
 
 ## Resume Here
 
-**Next step:** finish [M8](milestones/m08-phase-check.md): every play check ✅ and test data restored; only its Closing is left (docs only; read only its Resume Here), then close the phase (O4's Smoke Ball animation was played ✅ in M8).
+**Done (2026-11-10).** Every milestone ✅, the whole phase played in [M8](milestones/m08-phase-check.md) with restarts, follower and regression. Leftovers moved on: test grass with the test content (O9, Phase 10), real tables, Safari, roamers, rods and Surf, `FLAG_SYS_NOT_SOMEONES_PC` (O10, Phase 12), field-move cut-in (O11, Phase 12), "Met in Somewhere" and the naming-screen icon (O12, Phase 10) ([index](../index.md#open-items)). O4 closed in M8.
 
-Carried over from Phase 6: the test team (`mic-core/internal/pokemon/testteam.go`) stays until Phase 10 with the other test content; whiteout's respawn map stays as is (D12); re-check the follower with walking NPCs when they come ([Phase 6 M9's follow-ups](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
-
-Every milestone is played in the game before it closes, with the regression check ([context.md](milestones/context.md#playing-a-milestone)).
+Carried over from Phase 6 (still open): the test team stays until Phase 10 (O9); whiteout's respawn map stays as is (O6, D12); the follower with walking NPCs (O8, [Phase 6 M9](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)).
 
 ## Milestones
 
@@ -23,21 +21,21 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M5 | [Catching rules](milestones/m05-catching-rules.md) | ✅ | M4 | Gen 4 catch formula and every ball; trainer block; full storage; the caught Pokémon saved to party or box, Pokédex caught, the nickname intent |
 | M6 | [The wild battle screen](milestones/m06-wild-battle-screen.md) | ✅ | M4 | Wild transitions, terrains, intro slides, "Wild X appeared!", shiny sparkle, caught-ball mark, wild music, RUN and escape messages, wild whiteout text |
 | M7 | [Ball throw and the catch scene](milestones/m07-catch-scene.md) | ✅ | M5, M6 | Throw, shakes, break free, Gotcha and its fanfare, stars, every ball's art; the Pokédex page, nickname with the naming screen, sent-to-PC messages |
-| M8 | [Phase check](milestones/m08-phase-check.md) | 🚧 | M1-M7 | The whole phase played; restarts at every new step; follower in grass; regression |
+| M8 | [Phase check](milestones/m08-phase-check.md) | ✅ | M1-M7 | The whole phase played; restarts at every new step; follower in grass; regression |
 
 M1 → M2 → M3 → M4 is a chain. After M4, M5 and M6 can go in either order; M7 needs both.
 
 ## Scope
 
-- **Encounters:** FireRed's tables and step check for grass and caves (played), Surf, Rock Smash and the three rods (server ready, hooked with their maps in Phase 12); Repel, the White and Black Flutes, the Cleanse Tag and Pure Incense; Gen 4 lead abilities, both on the encounter rate and on the Pokémon made; Sweet Scent from the party menu.
-- **Wild Pokémon:** random IVs, nature, gender and ability, shiny at 1/8192, held items by species (FireRed's and the expansion's `itemCommon` / `itemRare`).
-- **Wild battles:** FireRed's transitions, terrains, intro and music; RUN with the Gen 4 rules and escape items; moves that end a wild battle; items stolen and kept; Pay Day; Pickup after battles; whiteout against a wild Pokémon.
-- **Catching:** every ball in the catalog (FireRed's twelve and Gen 4's Heal, Dusk and Quick) with the Gen 4 formula; FireRed's throw and catch scene; the Pokédex page for a new species; nicknaming; the party, or the PC when it's full.
+- ✅ **Encounters:** FireRed's tables and step check for grass and caves (played), Surf, Rock Smash and the three rods (server ready, hooked with their maps in Phase 12); Repel, the White and Black Flutes, the Cleanse Tag and Pure Incense; Gen 4 lead abilities, both on the encounter rate and on the Pokémon made; Sweet Scent from the party menu.
+- ✅ **Wild Pokémon:** random IVs, nature, gender and ability, shiny at 1/8192, held items by species (FireRed's and the expansion's `itemCommon` / `itemRare`).
+- ✅ **Wild battles:** FireRed's transitions, terrains, intro and music; RUN with the Gen 4 rules and escape items; moves that end a wild battle; items stolen and kept; Pay Day; Pickup after battles; whiteout against a wild Pokémon.
+- ✅ **Catching:** every ball in the catalog (FireRed's twelve and Gen 4's Heal, Dusk and Quick) with the Gen 4 formula; FireRed's throw and catch scene; the Pokédex page for a new species; nicknaming; the party, or the PC when it's full.
 - **Not here:** the field moves' cut-in of the Pokémon, Sweet Scent's included (O11, Phase 12); Safari Zone, static and roaming legendaries, the Old Man's catching demo, Pokédex area pages and every real table (Phase 12); using the rods and Surf on water maps (Phase 12); other players seeing a player in battle (Phase 8); Pokémon Center respawn (Phase 10).
 
 ## Done When
 
-- A player walks into the test grass, meets a wild Pokémon with FireRed's transition and intro, runs from one and catches another with a ball, names it, sees its Pokédex page, and finds it in the party (or the PC when the party is full); battles there level up the team.
-- Repel, the flutes, the Cleanse Tag and the lead's ability change encounters as the rules say.
-- Restarting `mic-battles` or `mic-core` mid-battle resumes it at the last turn, including mid-catch and at the nickname question.
-- Every milestone played in the game, with no regression in the regression check.
+- ✅ A player walks into the test grass, meets a wild Pokémon with FireRed's transition and intro, runs from one and catches another with a ball, names it, sees its Pokédex page, and finds it in the party (or the PC when the party is full); battles there level up the team.
+- ✅ Repel, the flutes, the Cleanse Tag and the lead's ability change encounters as the rules say.
+- ✅ Restarting `mic-battles` or `mic-core` mid-battle resumes it at the last turn, including mid-catch and at the nickname question.
+- ✅ Every milestone played in the game, with no regression in the regression check.

@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 7 M8: Phase check](docs/phases/phase-7-wild-battles-catching/milestones/m08-phase-check.md): every play check done and test data restored; only Closing is left (docs only: cut milestone files, follow-ups, close Phase 7, point this line at Phase 8). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8: Multiplayer World](docs/phases/phase-8-multiplayer-world.md): not started, no milestones planned yet (Phase 7 done 2026-11-10). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
