@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8: Multiplayer World](docs/phases/phase-8-multiplayer-world.md): not started, no milestones planned yet (Phase 7 done 2026-11-10). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8 M1: Bot players](docs/phases/phase-8-multiplayer-world/milestones/m01-bot-players.md), not started ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md) planned 2026-11-10: 8 milestones). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

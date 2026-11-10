@@ -39,7 +39,7 @@ Built for the [Battle System](../phase-5-battle-system/phase-5-battle-system.md)
 
 ## Scope Outside This Phase
 
-- What field moves do on the map, and tutor NPCs: [Phase 12](../phase-12-world-content.md). Other players seeing following Pokémon: [Phase 8](../phase-8-multiplayer-world.md). Cleanse Tag, Sweet Scent, and catching into the boxes: [Phase 7](../phase-7-wild-battles-catching/phase-7-wild-battles-catching.md).
+- What field moves do on the map, and tutor NPCs: [Phase 12](../phase-12-world-content.md). Other players seeing following Pokémon: [Phase 8](../phase-8-multiplayer-world/phase-8-multiplayer-world.md). Cleanse Tag, Sweet Scent, and catching into the boxes: [Phase 7](../phase-7-wild-battles-catching/phase-7-wild-battles-catching.md).
 
 ## Done When
 
