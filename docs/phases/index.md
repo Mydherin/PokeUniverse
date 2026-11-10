@@ -27,9 +27,9 @@ Current state of **every phase** of the project and everything still open, in on
 | 5 | [Battle System](phase-5-battle-system/phase-5-battle-system.md) | ✅ | O3 (user) | A Gen 4 battle against a test trainer plays to the end like FireRed ([milestones](phase-5-battle-system/phase-5-battle-system.md#milestones)) |
 | 6 | [Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md) | ✅ | Moved: O6-O8 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you ([milestones](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones)) |
 | 7 | [Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) | ✅ | Moved: O9, O10, O11, O12 | Wild battles and catching work, on a test grass patch ([milestones](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones)) |
-| 8 | [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md) | 🚧 | O7 | Many players move together smoothly, with chat ([milestones](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones)) |
-| 9 | [Social](phase-9-social.md) | ⬜ | | Players use the social menus, trade and battle each other |
-| 10 | [Pallet Town](phase-10-pallet-town.md) | ⬜ | O1, O6, O9, O12 | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
+| 8 | [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md) | 🚧 | O7; Moved: O13, O14 | Many players move together smoothly, with chat ([milestones](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones)) |
+| 9 | [Social](phase-9-social.md) | ⬜ | O14 | Players use the social menus, trade and battle each other |
+| 10 | [Pallet Town](phase-10-pallet-town.md) | ⬜ | O1, O6, O9, O12, O13 | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
 | 11 | [Pallet Town Art Upgrade](phase-11-pallet-town-art.md) | ⬜ | | Pallet Town with awesome public art, same game |
 | 12 | [World Content](phase-12-world-content.md) | ⬜ | O2, O8, O10, O11 | All of Kanto playable start to end |
 | 13 | [Polish and Launch](phase-13-polish-launch.md) | ⬜ | | Game is public and stable |
@@ -50,3 +50,5 @@ Everything a phase left open, reopened or handed to another phase. An item leave
 | O10 | Real encounter tables, Surf, Rock Smash and rod encounters, Safari Zone and Safari Ball, roamers, `FLAG_SYS_NOT_SOMEONES_PC` | 7 | 12 | [Phase 7 M8](phase-7-wild-battles-catching/milestones/m08-phase-check.md#follow-ups-later-phases) |
 | O11 | Field moves' cut-in of the Pokémon (`CreateFieldEffectShowMon`), Sweet Scent's included | 7 | 12 | [Phase 7 M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) |
 | O12 | SUMMARY shows "Met in Somewhere" in the house (no map section name); look at the naming screen's Pokémon icon fix | 7 | 10 | [Phase 7 M8](phase-7-wild-battles-catching/milestones/m08-phase-check.md#follow-ups-later-phases) |
+| O13 | Story flags' personal layer (flag-filtered objects and collisions), map phase flags, private scene phases (zone key is map + phase from Phase 8) | 8 | 10 | [Phase 8 D19, D20](phase-8-multiplayer-world/milestones/context.md#decisions), [Phase 10](phase-10-pallet-town.md) |
+| O14 | Trainer card on A facing a player; friends list, private chat per friend, party group chat, add or invite from a zone chat line | 8 | 9 | [Phase 9](phase-9-social.md) |

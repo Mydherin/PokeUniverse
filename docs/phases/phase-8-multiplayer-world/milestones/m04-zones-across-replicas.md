@@ -1,6 +1,6 @@
 # M4 Zones Across Replicas ⬜
 
-Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D2, D3, D7.
+Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D2, D3, D7, D19.
 
 **Done when:** with two `mic-core` replicas, players on the same map see each other whichever replica holds them; a snapshot lists everyone on the map; a crashed replica's players vanish from the others within the session's 15 s, with no ghost left in Redis.
 
@@ -16,13 +16,13 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ### Live state (`mic-core/internal/live`)
 
-- `zone:<map>` hash: trainer → encoded `OtherPlayer` (D3). Set on join and on every change that changes it (tile, facing, follower, battle) in the zone's existing tick pipeline, inside the same session-checking Lua; `HDEL` on leave, warp (with the new map's `HSET` in one script) and disconnect.
+- `zone:<map>:<phase>` hash (the zone key from M2, D19): trainer → encoded `OtherPlayer` (D3). Set on join and on every change that changes it (tile, facing, follower, battle) in the zone's existing tick pipeline, inside the same session-checking Lua; `HDEL` on leave, warp (with the new map's `HSET` in one script) and disconnect.
 - `ZoneMembers(map)`: `HGETALL`, then drops entries whose `player:<id>:session` is gone (crashed replica) and `HDEL`s them.
 
 ### Zone bus (`mic-core/internal/world`, wiring in `cmd/mic-core`)
 
 - A replica ID (random at start, or the hostname).
-- Zone start: subscribe `world.zone.<map>` (map IDs are safe subject tokens; check); stop: unsubscribe. Messages from our own replica are skipped. Received batches go into the zone inbox (`do`) and are appended to the next tick's events (D7), kept in arrival order per replica.
+- Zone start: subscribe `world.zone.<map>.<phase>` (map IDs are safe subject tokens; check); stop: unsubscribe. Messages from our own replica are skipped. Received batches go into the zone inbox (`do`) and are appended to the next tick's events (D7), kept in arrival order per replica.
 - Tick: publish the local events of the tick (`ZoneBatch`) after the save, before sending (saved before shown holds; others may see it one tick later).
 - Snapshot on enter, warp and reconnect: `others` = local players + `ZoneMembers(map)` from other replicas (by id, no duplicates); remote ones are remembered by replica (map of id → replica).
 - Presence beat: every 5 s a zone with players publishes `ZonePresence` with its local ids; a receiver drops a remote player missing from its replica's beat, or whose replica was silent 15 s (no batch, no beat), as a `left` to its local players.
@@ -35,7 +35,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ### Docs
 
-- tech-stack.md: Movement → Zones (zones of a map share events over NATS), Live positions (`zone:<map>`), NATS subjects table (`world.zone.<map>`).
+- tech-stack.md: Movement → Zones (zones of a map share events over NATS), Live positions (`zone:<map>:<phase>`), NATS subjects table (`world.zone.<map>.<phase>`).
 
 ## Play It
 
@@ -49,4 +49,4 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 ## Gotchas
 
 - A replica must not deliver its own batches twice (local + NATS echo).
-- `zone:<map>` writes must use the session check, or a taken-over old connection can rewrite the entry.
+- `zone:<map>:<phase>` writes must use the session check, or a taken-over old connection can rewrite the entry.

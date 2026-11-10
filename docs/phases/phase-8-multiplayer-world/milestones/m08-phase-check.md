@@ -22,4 +22,4 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1-M7. Rules: [co
 
 ## Follow-ups (Later Phases)
 
-- To fill in at the end: what moved to Phase 9 (acting on a player, busy state in the social menu), Phase 12 (players across connected maps), Phase 13 (moderation, production limits).
+- To fill in at the end: what moved to Phase 9 (trainer card on A, friends, private and party chat, busy state in the social menu), Phase 10 (story flags, personal layer, map phases, D19-D20), Phase 12 (players across connected maps), Phase 13 (moderation, production limits).

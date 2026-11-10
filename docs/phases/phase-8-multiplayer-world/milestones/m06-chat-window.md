@@ -1,6 +1,6 @@
 # M6 Chat Window ⬜
 
-Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M5, M3. Rules: [context.md](context.md) D13, D15, D17; [ui.md](../../../ui.md) (Desktop keys, Mobile Keyboard, Game Screen). Provisional answers to Q3, Q4 ([context.md](context.md#questions-for-the-user)): check the user's answer first.
+Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M5, M3. Rules: [context.md](context.md) D13, D15, D17; [ui.md](../../../ui.md) (Desktop keys, Mobile Keyboard, Game Screen). Q3 answered (no names over sprites, D11); Q4 still provisional ([context.md](context.md#questions-for-the-user)): check the user's answer first.
 
 **Done when:** on desktop and phone the player opens the chat, types with the device keyboard, sends, and reads the last lines of everyone on the map, in the style of FireRed's Union Room chat, while the game stays visible and keeps running.
 

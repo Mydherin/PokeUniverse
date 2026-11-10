@@ -1,6 +1,6 @@
 # M2 Zone Presence on One Replica ⬜
 
-Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [context.md](context.md) D1, D5, D6, D7, D9, D10, D12.
+Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [context.md](context.md) D1, D5, D6, D7, D9, D10, D12, D19.
 
 **Done when:** on one `mic-core` replica, a player entering a map gets the others in its snapshot, then each tick one `ZoneEvents` with who joined, left, moved, turned, changed follower or entered/left a battle; bots print what they receive. Nothing is drawn yet (M3).
 
@@ -19,6 +19,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 
 ### Server (`mic-core/internal/world`)
 
+- Zone key (D19): zones are keyed by `ZoneKey{map, phase}` instead of the map ID (zone map, enter, warp, reconnect); `phaseOf(player, map)` returns `0` for now (Phase 10 fills it). Snapshot `others` come from the same key only.
 - `zone`: an `events []*worldv1.ZoneEvent` buffer for the tick; `add`/`remove` append `joined`/`left` (remove also on warp and disconnect); `move` (accepted step) appends `moved` with `run`; `turn` → `turned`; `syncFollower` when it changes → `follower`; battle start/end (`world/battle.go`, the lock already there) → `battle` (D9).
 - Snapshot (`EnterWorld`, reconnect) and `Warped` fill `others` from the zone's players (excluding self), using `Player`'s name, gender, tile, facing, follower, battle. The join is appended after the new player is in, so others get it in the same tick it saves.
 - `tick`: after the save, if `events` is non-empty, marshal one `ZoneEvents` once and send the same bytes to every player in the zone (D7): build each envelope by appending the pre-encoded field 22 to the envelope's own `seq` (`protowire.AppendTag`/`AppendBytes`); `sink` gets a `SendRaw` (or equivalent). Events of a player not saved this tick (dirty after a failed save) wait for the next tick with that player's answers.

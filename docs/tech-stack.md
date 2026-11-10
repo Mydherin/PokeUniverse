@@ -286,7 +286,8 @@ Goal: send **only the minimum information** needed for each event to happen on e
 - Never resend data the client already has.
 
 **Interest management**
-- Players receive events **only from their current zone** (map area), not the whole world.
+- Players receive events **only from their current zone**, not the whole world. A zone is **map + phase**: a map may list story flags that split it into phases (Saffron with Team Rocket vs cleared), and players in different phases never see each other; a map listing none has phase `0`. A scripted story scene puts the player in a private phase until it ends ([Phase 8 D19](phases/phase-8-multiplayer-world/milestones/context.md#decisions)).
+- Inside a zone, each player's story flags filter their **personal layer** (item balls, temporary NPCs, beaten trainers, Cut trees, Snorlax…): the server checks their collisions against their own flags, the client hides objects by them; permanent NPCs are shared (D20).
 - Each zone runs in its own goroutine, so load spreads naturally.
 
 **Minimal payloads**
@@ -318,7 +319,7 @@ The client **predicts**, the server **decides** ([Phase 4](phases/phase-4-player
 - **Offline or in a message:** the client takes no steps.
 - **Drawn by elevation:** the player is drawn over the tiles that usually cover characters while their last elevation (not 0 or 15) is 4, 6, 8, 10, 12, 13 or 14, as FireRed's sprite priority does (e.g. beside a bed).
 - **One copy of the game per trainer:** each copy (page load) has a random `instance` ID, sent in `Authenticate`. Entering the world from the game (CONTINUE, New Game) sends `EnterWorld` with `take_over`: the newest copy always plays, without asking. The old copy is disconnected at once (`4004`): directly on the same replica, through NATS `world.sessions.taken` on another one; it stops its game for good and shows "Playing somewhere else", whose only way on is back home (PLAY starts again). Re-entering after a reconnect sends no `take_over`, so a copy replaced while offline gets `SESSION_ACTIVE` and stops the same way, never taking the trainer back.
-- **Zones:** one goroutine per map owns its players (no locks); intents run in arrival order, stamped with their receive time. Every 50 ms tick it saves what changed to Redis in one pipeline, then sends the answers (saved before shown). It ticks only while it has players. Other players in a zone come with [Phase 8](phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md).
+- **Zones:** one goroutine per zone (map + phase) owns its players (no locks); intents run in arrival order, stamped with their receive time. Every 50 ms tick it saves what changed to Redis in one pipeline, then sends the answers (saved before shown). It ticks only while it has players. Other players in a zone come with [Phase 8](phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md).
 
 **One envelope**
 - All messages share one Protocol Buffers envelope (`oneof` payload) with a **sequence number** for ordering.
