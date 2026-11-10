@@ -30,7 +30,21 @@ The phase file is the source of its goal, scope, technical details and progress,
   ```
 
 - **Planning a milestone:** list every piece, on every layer: contract, server, client screens, and what FireRed shows for it (scenes, art, strings, sounds, with their functions and files). What's missing gets rediscovered at full cost. If it won't fit one session (about 14% of the context after the start, reading included), split it.
-- **When a milestone is ✅,** cut its file down to what later milestones use.
+- **Manual Test:** every milestone file has a `## Manual Test` section (it replaces `## Play It`): a table `| # | Case | Steps | Expected | Result |`, Result ⬜ / ✅ date / ❌ date + short note.
+  - Played **in the game only:** the SPA in a browser, bots, `make logs`, Redis/NATS inspection when a case needs it. Never automated or deterministic suites ([AGENTS.md](../../AGENTS.md#testing)).
+  - Covers the milestone's **Done when** in depth: happy path, then the edges that apply (warps, reconnect, battle, follower, many players, mobile layout where UI applies), not move by move. 5-12 cases.
+  - Status: 🧪 = code done, Manual Test pending; ✅ only when every case passes. A ❌ gets its fix and a re-test in the same session.
+- **When a milestone is ✅,** cut its file down to what later milestones use (keep the Manual Test table).
+
+### How to Test in Game
+
+- **Stack:** `make env` once (then a dev `BOTS_SECRET=` in `.env`, local only), `make up` (`docker compose up -d --build mic-core spa-pokeuniverse` after changing `.env` or code). `make ps`, `make logs` (`docker compose logs -f mic-core`; with two replicas lines are prefixed `mic-core-1`/`mic-core-2`).
+- **Open the SPA:** `http://localhost:8080` (`SPA_PORT`) in the browser pane. The pane has no Google sign-in: log in as a bot by token, `/play?bot=<token>` (Phase 8 M1). Tokens: `curl -s -X POST localhost:8080/api/dev/bots -H "X-Bots-Secret: $S" -d '{"count":N,"refreshOnly":true}'`; run the bot script with one bot more than needed and take the last one over. A bot spawn is a fresh New Game on the map's free tiles.
+- **Bots:** `node infra/bots/bots.ts --count N --map <id> [--verbose]` (Node ≥ 24; `--verbose` prints what the last bot receives; stats every 10 s). Ctrl-C stops them; `make bots-clean` deletes their accounts after.
+- **Two replicas:** `MIC_CORE_REPLICAS=2` in `.env` (or `docker compose up -d --scale mic-core=2`); kill one with `docker kill <name from make ps>`.
+- **Inspect:** Redis `docker compose exec redis redis-cli -a $REDIS_PASSWORD HKEYS zone:<map>:0`; NATS monitoring `docker compose exec nats wget -qO- localhost:8222/subsz?subs=1`.
+- **Mobile layout:** the pane's mobile preset (portrait/landscape); real phones via the dev server on the LAN when a case says so.
+- Back up the test account's save first when a case may change it ([Phase 6 backup steps](phase-6-pokemon-party/milestones/context.md#playing-a-milestone)); nothing a test leaves is committed.
 - **Code comments** cite a phase's milestones and decisions by short name: `phase-5 M7`, `phase-5 D9` (decisions are in its `context.md`).
 
 ## Phases

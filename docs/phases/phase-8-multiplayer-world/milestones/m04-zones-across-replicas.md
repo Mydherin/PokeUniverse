@@ -1,4 +1,4 @@
-# M4 Zones Across Replicas ✅
+# M4 Zones Across Replicas 🧪
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D2, D3, D7, D19.
 
@@ -6,14 +6,14 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ## Resume Here
 
-**Done 2026-11-10** (code; Go build, vet, `buf lint`/`breaking`, `docker compose config` green; Play It not run in the building session, no manual test asked). Next: [M5 Chat: server and contracts](m05-chat-server.md).
+**Code done 2026-11-10** (Go build, vet, `buf lint`/`breaking`, `docker compose config` green); **Manual Test pending, first case #1.** Then [M5](m05-chat-server.md).
 
 - **Files:** new `mic-core/internal/zonebus/zonebus.go` (NATS), `mic-core/internal/world/zone_bus.go` (remote state, publish, beat, silence, Redis snapshot, prune); changed `world.proto` (`ZoneBus`, `ZonePresence`, `ZoneMember`), `internal/live/live.go`, `world/zone.go`, `world/zone_presence.go`, `world/world.go` (`ZoneBus` interface, `New(..., zoneBus, ...)`), `cmd/mic-core/main.go` (logs `replica` in `world loaded`), `compose.yaml` (`deploy.replicas: ${MIC_CORE_REPLICAS:-1}`), `.env.example`, `docs/tech-stack.md`.
 - **Contracts:** one `ZoneBus{replica, oneof batch: ZoneEvents | presence: ZonePresence{ids}}` (no `tick` field: NATS keeps one publisher's order, nothing read it). Redis value `ZoneMember{replica, OtherPlayer}`, so a snapshot knows which replica holds each remote player.
 - **Redis:** `zone:<map>:<phase>` (`live.ZoneKey`) written by `saveScript` (KEYS session, pos, moved, zone; ARGV 9 = member) in the same session check; `pos` gets a `zone` field naming the hash the player is listed in, and the save `HDEL`s the old hash when it differs (take-over onto another map; undeclared key, fine on standalone Redis, not cluster). `LeaveZone` (session-checked) on `zone.remove` (warp, disconnect); `Release` also removes it. `ZoneMembers` (Lua) returns entries and `HDEL`s those whose session is gone or whose `pos.zone` names another hash; each zone runs it every beat as a prune too (crashed replica's players who never come back). New Game's `Clear` leaves the entry to that prune.
 - **Zone:** `add` subscribes first (`Subscribe` flushes, so the Redis read after it misses nothing); the zone-empty branch of `run` ticks once more (publishes the last `left`s) then unsubscribes. Tick: `showChanges` now runs before the save and marks the player dirty (follower/battle rewrite its Redis entry); save; `takeEvents` → (shown, local); `publish(local)` + beat every 5 s + silence check (15 s = `live.SessionTTL`); send. Remote events: `zoneEvent{remote: true}` (never held, never republished); a remote event counts only if `remote.players[id]` is its replica (`joined` sets it). A local `joined` deletes `remote.players[id]`; a local `left` of a player another replica already holds is `hidden` (published, not shown locally). Subscription `gen` drops messages queued for an old subscription.
 - **Bots:** `Welcome` carries no replica, so bots print nothing new; `make logs` prefixes `mic-core-1`/`mic-core-2` on `player connected`.
-- **Play It how-to:** `MIC_CORE_REPLICAS=2` in `.env` (or `docker compose up -d --scale mic-core=2`), then `make up`; `docker compose exec redis redis-cli -a $REDIS_PASSWORD HKEYS zone:pallet_town_players_house_2f:0`; kill one: `docker kill pokeuniverse-mic-core-2` (name per `make ps`).
+- **Manual Test how-to:** `MIC_CORE_REPLICAS=2` in `.env` (or `docker compose up -d --scale mic-core=2`), then `make up`; `docker compose exec redis redis-cli -a $REDIS_PASSWORD HKEYS zone:pallet_town_players_house_2f:0`; kill one: `docker kill pokeuniverse-mic-core-2` (name per `make ps`).
 - **Build checks:** `make contracts`, `make breaking`; Go: `docker run --rm -v "$PWD":/repo -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build -w /repo/mic-core golang:1.27-alpine sh -c 'go build ./... && go vet ./...'`; `docker compose config --quiet`.
 
 ## Tasks
@@ -45,14 +45,20 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 - tech-stack.md: Movement → Zones (zones of a map share events over NATS), Live positions (`zone:<map>:<phase>`), NATS subjects table (`world.zone.<map>.<phase>`).
 
-## Play It
+## Manual Test
 
-1. Two replicas; 10 bots spread over both (check logs); the real player sees all of them move smoothly, and bots on either replica list everyone in their snapshots.
-2. Stairs between maps across replicas: leaves and joins seen on both maps.
-3. `docker kill` one replica: its bots and maybe the real player reconnect to the other; the survivors see the dead replica's players vanish within 15 s and then come back once reconnected; `zone:<map>` holds no ghost (`redis-cli HKEYS`).
-4. Graceful restart of one replica (`1012`): players leave and rejoin cleanly.
-5. Back to one replica: everything still works (M2's Play It, short).
-6. Regression check.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Two replicas | `MIC_CORE_REPLICAS=2`, `make up`, 10 bots on 1F | `make logs`: `player connected` on both `mic-core-1` and `mic-core-2` | ⬜ |
+| 2 | Everyone sees everyone | Real tab on 1F; a `--verbose` bot | The tab draws all 10 moving smoothly; the verbose bot's snapshot lists everyone, whichever replica | ⬜ |
+| 3 | Redis members | `HKEYS zone:pallet_town_players_house_1f:0` | Exactly the players on 1F, no one else | ⬜ |
+| 4 | Stairs across replicas | Bots and the tab use the stairs | Leaves and joins seen on both maps; the hashes move with them | ⬜ |
+| 5 | NATS subscriptions | `subsz?subs=1` (README) while both maps have players, then after one empties | `world.zone.<map>.0` subscribed per replica with players there; unsubscribed when the zone empties | ⬜ |
+| 6 | Replica crash | `docker kill` the replica holding some bots | Survivors see those players vanish within 15 s, then come back on reconnect; no ghost in `HKEYS` | ⬜ |
+| 7 | Graceful restart | `docker compose restart` one replica (`1012`) | Its players leave and rejoin cleanly, none twice | ⬜ |
+| 8 | Take-over across replicas | Same bot token in a second tab (lands on the other replica) | Old one stops; others see one leave and one join, ending with one player | ⬜ |
+| 9 | Back to one replica | `MIC_CORE_REPLICAS=1`, `make up` | M2's cases 1-3 short: still fine | ⬜ |
+| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ⬜ |
 
 ## Gotchas
 

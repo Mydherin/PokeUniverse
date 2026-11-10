@@ -8,17 +8,21 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1-M8. Rules: [co
 
 **Not started.** First step: back up the test account's save (Phase 6's backup steps) and start two replicas with bots.
 
-## Play It
+## Manual Test
 
-1. **Together:** two real players (pane tab + `?bot=` tab) and 30 bots on both maps, two replicas: each sees the others and their followers walk, run, turn, use the stairs; walking through others never corrects.
-2. **Followers:** a lead swap, a faint in the test grass making another lead, an empty-follower case if any: seen by the other tab.
-3. **Battles:** one tab in a wild battle and one in the room trainer's: the other sees them standing; after it they walk again.
-4. **Chat:** lines between the two tabs and bots on one map; not on the other map; flood limited; charset and length; PC panel; phone ticker, sheet, compose and gestures on iOS Safari and Android Chrome (D21-D23).
-5. **Reconnects:** network off and on in one tab: the others drawn again, chat log cleared; take-over (same account in a third tab): the old one stops, the others see one leave and one join.
-6. **Restarts:** restart each replica in turn, `docker kill` one, restart Redis and NATS: no ghost players, everyone back within 15 s, no lost position.
-7. **Load:** M8's ramp, short (100 on one map): numbers still within D18.
-8. **Regression:** Phase 7's regression check (party, bag, PC, boxes, the room trainer, the test grass, catching).
-9. Restore the backup; `make bots-clean`.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Backup | Phase 6's backup steps | Save backed up in the shared notes folder | ⬜ |
+| 2 | Together | Two real tabs (pane + `?bot=`), 30 bots on both maps, two replicas | Each sees the others and their followers walk, run, turn, use the stairs; no `Correction` walking through | ⬜ |
+| 3 | Followers | Lead swap; a faint in the test grass making another lead | The other tab sees each new follower | ⬜ |
+| 4 | Battles | One tab in a wild battle, the other in the room trainer's | Each sees the other standing; both walk after | ⬜ |
+| 5 | Chat, PC | Lines between tabs and bots; the other map; flood; charset and length; panel | Zone-only, limited, valid text only | ⬜ |
+| 6 | Chat, phones | Ticker, sheet, compose, gestures on iOS Safari and Android Chrome (D21-D23) | As M6, M7 | ⬜ |
+| 7 | Reconnect and take-over | Network off/on in one tab; same account in a third tab | Others redrawn, chat log cleared; old tab stops, one leave + one join | ⬜ |
+| 8 | Restarts | Restart each replica in turn, `docker kill` one, restart Redis and NATS | No ghost, everyone back within 15 s, no lost position | ⬜ |
+| 9 | Load | M8's ramp, short (100 on one map) | Within D18 | ⬜ |
+| 10 | Regression | Phase 7's check: party, bag, PC, boxes, room trainer, test grass, catching | Nothing broken | ⬜ |
+| 11 | Clean up | Restore the backup; `make bots-clean` | Save equal to the backup; no bot accounts | ⬜ |
 
 ## Follow-ups (Later Phases)
 

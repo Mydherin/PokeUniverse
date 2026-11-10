@@ -1,4 +1,4 @@
-# M1 Bot Players ✅
+# M1 Bot Players 🧪
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [context.md](context.md) D16, D17.
 
@@ -6,7 +6,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [
 
 ## Resume Here
 
-**Done 2026-11-10.** Next: [M2 Zone presence](m02-zone-presence.md).
+**Code done 2026-11-10; Manual Test pending, first case #1.** Then [M2's Manual Test](m02-zone-presence.md#manual-test). Setup: [How to Test in Game](../../README.md#how-to-test-in-game).
 
 ## What Was Built
 
@@ -20,12 +20,26 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** nothing. Rules: [
   - Every 10 s: connected, steps/s, corrections, per-bot msg/s and B/s, ping p50/p99, reconnects, battles. Ctrl-C closes all sockets.
 - **Client:** `src/auth/session.ts`: `/play?bot=<token>` uses the token instead of Google (kept in `sessionStorage` for the tab, removed from the URL, not renewed, ignores other tabs' logout) when `import.meta.env.DEV` or the image was built with `VITE_BOT_LOGIN=1`, which `compose.yaml` passes only when `BOTS_SECRET` is set (`spa-pokeuniverse/Dockerfile` build arg). Production never sets it.
 
-## Playing It
+## Setup Notes
 
 - `.env` has a dev `BOTS_SECRET` (local only, never committed); `docker compose up -d --build mic-core spa-pokeuniverse` after changing it.
 - A second player: run the script with one bot more than you need, get tokens with `curl -s -X POST localhost:8080/api/dev/bots -H "X-Bots-Secret: $S" -d '{"count":6,"refreshOnly":true}'`, open `/play?bot=<bot-6 token>`: it takes bot-6 over (the script's bot-6 stops with 4004).
-- **Results (5-6 bots, 2026-11-10):** ~15 steps/s total, 0 corrections, ~0.2 msg/s and 4 B/s per bot (pongs only, until M2), ping p50 2 ms p99 3 ms. Bots reach 1F by the stairs. `docker compose restart mic-core`: all reconnected in one backoff step and kept walking; the browser's wild battle resumed. No ERROR/WARN in `mic-core`/`mic-battles`. `BOTS_SECRET=` → 404. `bots-clean` left the DB equal to the backup but for migration 18 and the `bot` role.
+- **Building session's run (5-6 bots, 2026-11-10, before Manual Test existed):** ~15 steps/s total, 0 corrections, ~0.2 msg/s and 4 B/s per bot (pongs only, until M2), ping p50 2 ms p99 3 ms. Bots reach 1F by the stairs. `docker compose restart mic-core`: all reconnected in one backoff step and kept walking; the browser's wild battle resumed. No ERROR/WARN in `mic-core`/`mic-battles`. `BOTS_SECRET=` → 404. `bots-clean` left the DB equal to the backup but for migration 18 and the `bot` role.
 - **Regression (as BOT6 via `?bot=`, the pane has no Google sign-in):** walk, menu, POKéMON, sign, stairs, wild battle won, restart mid-battle, SAVE, reload. Not replayed: the room trainer, BAG/PC items, party SWITCH/GIVE/TAKE (no code they use changed).
+
+## Manual Test
+
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Bots start | `node infra/bots/bots.ts --count 5` on 2F | 5 connected, stats every 10 s: ~3 steps/s each, 0 corrections, ping p99 a few ms | ⬜ |
+| 2 | FireRed pace | Watch the stats and `make logs` for 1 min | Walk 16 / run 8 frames per step; no rate-limit drops, no ERROR/WARN | ⬜ |
+| 3 | Stairs and grass | Let them run 2-3 min | Some reach 1F by the stairs; none walks into tall grass or a non-stair warp | ⬜ |
+| 4 | Real player beside them | Run 6 bots, take bot-6 over with `/play?bot=<token>` in the pane | Script's bot-6 stops (4004); the tab plays: walk, menu, stairs, a wild battle | ⬜ |
+| 5 | Re-spawn and refresh | Stop and restart the script; get tokens with `refreshOnly` | Re-spawn = fresh New Game on free tiles; `refreshOnly` only issues tokens (trainer unchanged) | ⬜ |
+| 6 | Server restart | `docker compose restart mic-core` with bots and the tab | All bots reconnect in one backoff step and walk on; the tab resumes (a battle too) | ⬜ |
+| 7 | Token renewal | Run bots past one token lifetime (`expires_at`) | Renewed a minute before expiry, no disconnect | ⬜ |
+| 8 | Guard | `BOTS_SECRET=` (empty) and rebuild; wrong `X-Bots-Secret`; unknown map | 404; 403; 422. `?bot=` login absent from the image | ⬜ |
+| 9 | Cleanup | `make bots-clean` | Bot accounts and `player:<id>:*` keys gone; the test account untouched | ⬜ |
 
 ## Gotchas
 

@@ -4,7 +4,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). Open only the section a step
 
 ## Playing a Milestone
 
-Same steps as Phase 6 and 7 (build, play the milestone's **Play It**, regression check, fix, cut the file down). Differences:
+Same steps as Phase 6 and 7 (build, play the milestone's **Manual Test**, regression check, fix, cut the file down; setup in [How to Test in Game](../../README.md#how-to-test-in-game)). Differences:
 
 - **Other players are bots** (M1 on): `node infra/bots/bots.ts --count N --map <id>` beside the real player in the browser pane. A second real player, if needed, is a second browser tab after the bots exist: one Google account can only play one copy (take-over), so the second tab logs in a bot by token (M1's `?bot=` dev login, D16).
 - **Regression check** adds, from M2 on: the real player walks both maps and the stairs with 5 bots around; a wild battle in the test grass and the room trainer still work; no `Correction` while walking through bots (D6).

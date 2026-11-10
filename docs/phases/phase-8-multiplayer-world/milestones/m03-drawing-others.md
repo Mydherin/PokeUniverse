@@ -1,4 +1,4 @@
-# M3 Drawing Other Players ✅
+# M3 Drawing Other Players 🧪
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D6, D8, D9, D10, D11, D12; [references](context.md#firered-and-heartgold-references).
 
@@ -6,7 +6,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ## Resume Here
 
-**Done 2026-11-10** (code, `tsc` green; Play It not run in the building session, no manual test asked). Next: [M4 Zones across replicas](m04-zones-across-replicas.md).
+**Code done 2026-11-10 (`tsc` green); Manual Test pending, first case #1.** Then [M4's Manual Test](m04-zones-across-replicas.md#manual-test).
 
 - **Files:** new `spa-pokeuniverse/src/game/world/others.ts`, `firered/other-player-sprite.ts`; changed `firered/overworld.ts`, `firered/player-sprite.ts`, `firered/tall-grass.ts`, `src/realtime/connection.ts` (`zoneEvents` in `WorldEvents`, routed from `ServerMessage.zoneEvents`).
 - **Model:** `OtherPlayerModel` queues `move`/`turn`/`follower` in arrival order (a follower change waits for the steps before it, so it isn't placed ahead of its trainer); `battle` sets `inBattle` at once. Catch-up: more than 2 moves queued → run frames (8), shown with the walk sheet unless the step itself ran. Elevation tracked per step with `elevationAfter`, `overTiles` as `Avatar`'s; its follower draws by its trainer's `overTiles`. `joined` is an upsert (M2 gotcha). Own id: `getSession()?.account.id` (bot tabs too), skipped in snapshots and events.
@@ -29,17 +29,23 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ### Server
 
-- Nothing new unless Play It finds a bug.
+- Nothing new unless the Manual Test finds a bug.
 
-## Play It
+## Manual Test
 
-1. 5 bots on 1F with the real player: they walk and run at FireRed's speed, turn, step with their followers; the one lower on screen is drawn in front; the real player walks through them with no `Correction`.
-2. A bot goes upstairs: it vanishes from 1F and appears on 2F (the real player follows) with its follower hidden until its next step.
-3. Bots in the test grass show the grass over their feet and their followers' (start one bot on it with `--map` tile or walk the real player's second tab there).
-4. A second real tab (`?bot=`) swaps its lead: the first tab sees the new follower; it battles: drawn standing, nothing over it.
-5. Restart `mic-core`: everyone disappears with the disconnect and is drawn again from the snapshot, none twice. Kill a bot (Ctrl-C): it vanishes.
-6. Phone size in the pane (mobile preset): frame rate stays smooth with 10 bots.
-7. Regression check.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Others drawn | 5 bots on 1F with the real tab there | Each drawn with its gender's sheet, walking and running at FireRed's speed and frames, turning in place | ⬜ |
+| 2 | Followers | Same | Each bot's follower steps onto the tile its trainer left, as the own follower does | ⬜ |
+| 3 | Draw order and walk-through | Walk the real player around and through bots | The one lower on screen is in front; no `Correction`, own steps never wait | ⬜ |
+| 4 | Warp out and in | Watch a bot take the stairs; follow it | It vanishes on 1F at once and appears on 2F on the warp tile, follower hidden until its next step | ⬜ |
+| 5 | Tall grass | A bot or a second `?bot=` tab in the test grass | Grass over its feet and its follower's, as the own player's | ⬜ |
+| 6 | Elevation | A bot on and by the stairs | Drawn over/under tiles like the own player | ⬜ |
+| 7 | Lead swap and battle (second tab) | Second `?bot=` tab swaps its lead, then battles | First tab: new follower after its queued steps; the battler stands still with nothing over it, walks after | ⬜ |
+| 8 | Catch-up | Throttle the tab briefly (DevTools) with bots walking | Queued steps play at run speed, then normal; no teleport except a non-neighbor step | ⬜ |
+| 9 | Reconnect and leave | `docker compose restart mic-core`; then Ctrl-C a bot | All vanish and are redrawn from the snapshot, none twice; the killed bot and its follower vanish (no stray follower) | ⬜ |
+| 10 | Mobile, many players | Mobile preset portrait and landscape, 10 bots | Smooth frame rate, touch controls work | ⬜ |
+| 11 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ⬜ |
 
 ## Gotchas
 

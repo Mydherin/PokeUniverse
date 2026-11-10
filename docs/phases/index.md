@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 4/9 milestones, next [M5 Chat: server and contracts](phase-8-multiplayer-world/milestones/m05-chat-server.md) (Phase 7 done 2026-11-10). **Updated:** 2026-11-10.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 0/9 milestones ✅ (M1-M4 🧪 code done, Manual Test pending), next [M1 Manual Test](phase-8-multiplayer-world/milestones/m01-bot-players.md#manual-test) (Phase 7 done 2026-11-10). **Updated:** 2026-11-10.
 
 ## Milestones of Phases With Folders
 
@@ -11,11 +11,11 @@ Current state of **every phase** of the project and everything still open, in on
 | [5 Battle System](phase-5-battle-system/phase-5-battle-system.md#milestones) | 14 / 14 ✅ | |
 | [6 Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones) | 10 / 10 ✅ | |
 | [7 Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones) | 8 / 8 ✅ | |
-| [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 4 / 9 | [M5 Chat: server and contracts](phase-8-multiplayer-world/milestones/m05-chat-server.md) |
+| [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 0 / 9 (M1-M4 🧪) | [M1 Manual Test](phase-8-multiplayer-world/milestones/m01-bot-players.md#manual-test) |
 
 ## Phases
 
-✅ done · 🚧 in progress · 🔁 reopened · ⬜ not started
+✅ done · 🚧 in progress · 🧪 code done, Manual Test pending · 🔁 reopened · ⬜ not started
 
 | # | Phase | State | Open | Done when |
 |---|---|---|---|---|

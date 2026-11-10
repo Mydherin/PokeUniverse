@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8 M5: Chat: server and contracts](docs/phases/phase-8-multiplayer-world/milestones/m05-chat-server.md), not started ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M4 done 2026-11-10, 4/9). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8 M1 Manual Test](docs/phases/phase-8-multiplayer-world/milestones/m01-bot-players.md#manual-test), first case #1 ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M4 code done 🧪, 0/9 ✅; then M2-M4's tests, then M5). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
@@ -74,7 +74,7 @@ Documentation must always reflect the current state of the project.
 ### Testing
 
 - **No automated tests in the repository:** no unit, integration or end-to-end test suites.
-- **Manual tests only when the user explicitly asks** (e.g. run the app and check a behavior). Don't commit anything they leave behind.
+- **Every milestone ends with its Manual Test played in game** by the session that builds it ([how](docs/phases/README.md#how-a-phase-is-tracked)): 🧪 until every case passes, a failed case fixed and re-tested in the same session. Don't commit anything a test leaves behind.
 
 ### Git
 

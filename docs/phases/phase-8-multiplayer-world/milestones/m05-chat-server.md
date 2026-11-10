@@ -29,12 +29,20 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4. Rules: [conte
 
 - tech-stack.md: Efficient Event Model or a short Chat bullet (zone-only, not saved, limit); `lib-contracts` packages list.
 
-## Play It
+## Manual Test
 
-1. 5 bots with `--chat` on 1F across two replicas, plus a verbose bot: it receives every line from both replicas; bots on 2F receive none of them.
-2. `--flood` bot: at most 4 lines then one per 2 s reach others; no disconnect, other intents unaffected.
-3. Invalid text (empty, 65 characters, an emoji, a control character) sent by a bot: dropped, nothing broadcast; logged lines show the accepted ones.
-4. Regression check.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Zone chat | 5 bots `--chat` on 1F, a `--verbose` bot on 1F | The verbose bot prints every line, its own included, as `ChatMessage` in `ZoneEvents` | ⬜ |
+| 2 | Across replicas | Same with `MIC_CORE_REPLICAS=2` (`make logs` shows both) | Lines from bots on either replica reach the verbose bot once | ⬜ |
+| 3 | Other map silent | Bots on 2F alongside | They receive none of 1F's lines | ⬜ |
+| 4 | Flood | A `--flood` bot (10/s) | Others get at most 4 lines, then one per 2 s; no disconnect; its steps still accepted | ⬜ |
+| 5 | Invalid text | A bot sends empty, spaces only, 65 characters, an emoji, a control character | Nothing broadcast; no answer, no disconnect | ⬜ |
+| 6 | Valid edges | 64 characters; `:;()&+=%`; runs of spaces | Broadcast; trimmed, spaces collapsed | ⬜ |
+| 7 | Not in world | Send before `EnterWorld` / after leaving | Dropped | ⬜ |
+| 8 | Log | `make logs` | One `chat` line per accepted message (trainer, map, phase, text); none for dropped ones | ⬜ |
+| 9 | Warp mid-chat | A chatting bot takes the stairs | Its next lines reach 2F, not 1F | ⬜ |
+| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ⬜ |
 
 ## Gotchas
 

@@ -28,15 +28,22 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M5, M3. Rules: [c
 
 - ui.md if the button's or panel's place changed while building it.
 
-## Play It
+## Manual Test
 
-1. PC: `T`, type, `Enter`: the line appears once (from the server); bots' lines appear with their names and colors; `/` opens with `/`; `Esc` closes; `Enter` outside opens START.
-2. Wide and narrow window: the panel moves beside / below the GBA screen; the wheel scrolls older lines.
-3. Flood with held `Enter`: stops after 4, then one per 2 s.
-4. Mobile preset: bots chat → ticker lines fade, badge counts; tap → sheet with the log; close → controls work.
-5. Warp upstairs: the log clears; lines from 1F no longer arrive.
-6. During the room trainer's battle the chat is hidden; afterwards the log has the lines.
-7. Regression check (menus; the naming screen still uses its letter grid).
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | PC send | `T`, type, `Enter` | The line shows once (from the server) as `NAME: text` in the own color | ⬜ |
+| 2 | Others' lines | Bots `--chat` on the map | Lines with their names, a color each, FireRed's font crisp | ⬜ |
+| 3 | Keys | `/` opens with `/` typed; `Esc` closes; `Enter` with the chat closed opens START; arrows while typing don't walk, none stuck after | As listed | ⬜ |
+| 4 | Panel place and scroll | Wide then narrow window | Panel beside, then below the GBA screen; wheel scrolls older lines (50 kept) | ⬜ |
+| 5 | Charset and length | Type an emoji, 70 characters | Unsupported characters refused, stops at 64 | ⬜ |
+| 6 | Flood | Hold `Enter` with text | 4 sent, then one per 2 s | ⬜ |
+| 7 | Phone ticker and badge | Mobile preset portrait, bots chatting | 1-2 ticker lines fade 5 s after the last; the button's badge counts unread | ⬜ |
+| 8 | Phone sheet | Tap the button (portrait above Start, landscape top of the right column) | Sheet over the controls: "Zone" chip, log (drag scrolls), input; close → controls work | ⬜ |
+| 9 | Warp and reconnect | Stairs; then `docker compose restart mic-core` | Log cleared each time; 1F lines stop after going up | ⬜ |
+| 10 | Battle and menus | Room trainer's battle, START menu | Chat hidden; the lines that came meanwhile are in the log after | ⬜ |
+| 11 | Line hook | Long-press a line / tap a name | Selects that player id; nothing opens | ⬜ |
+| 12 | Regression | Menus; naming screen still uses its letter grid; context.md's check | Nothing broken | ⬜ |
 
 ## Gotchas
 

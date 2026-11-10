@@ -28,11 +28,18 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M6. Rules: [conte
 - Keyboard dismissed (iOS "Done", Android back with the keyboard up) → sheet stays with the log; tap the input to type again.
 - Drag the log to scroll older lines without moving the sheet; long-press / name tap keep M6's hook.
 
-## Play It
+## Manual Test
 
-1. Pane, mobile preset, portrait: open the sheet, type a 64-character sentence: all of it visible over 3 lines, counter shows, the GBA screen and the last lines visible above; the send key sends.
-2. Emoji typed: dropped with the hint; the server never sees it.
-3. Swipe down and back gesture each close the sheet; dismissing the keyboard keeps it.
-4. Landscape: input and last lines over the dimmed game; rotate back while typing: no jump.
-5. **iOS Safari and Android Chrome** on a real phone (browser and PWA, via the dev server on the LAN): steps 1-4; no page scroll or zoom on focus, nothing behind the keyboard.
-6. Regression: naming screen (letter grid, no device keyboard), D-pad slide and A/B/Start after closing chat, fullscreen.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Portrait compose | Mobile preset portrait, open the sheet, type 64 characters | Whole sentence over up to 3 lines, counter from 54; GBA screen and latest lines visible above | ⬜ |
+| 2 | Send key | Enter / send button | Sends, no newline; the line appears once | ⬜ |
+| 3 | Unsupported characters | Type an emoji | Dropped as typed with the hint; never reaches the server | ⬜ |
+| 4 | Player stops | Hold a D-pad direction, then focus the input | The own player stops; no direction stuck after closing | ⬜ |
+| 5 | Close gestures | Swipe down; system back | Each closes the sheet (history entry popped) | ⬜ |
+| 6 | Keyboard dismissed | iOS "Done" / Android back with the keyboard up | Sheet stays with the log; tap the input types again | ⬜ |
+| 7 | Landscape | Rotate, type | Input bar and last 2-3 lines over the dimmed game; rotate back while typing: no jump | ⬜ |
+| 8 | Log drag | Drag the log | Older lines scroll, the sheet doesn't move | ⬜ |
+| 9 | Real iPhone (Safari, PWA) | Dev server on the LAN, cases 1-8 | Same; no page scroll or zoom on focus, nothing behind the keyboard | ⬜ |
+| 10 | Real Android (Chrome, PWA) | Same | Same | ⬜ |
+| 11 | Regression | Naming screen (letter grid, no device keyboard), D-pad slide, A/B/Start after chat, fullscreen | As before | ⬜ |

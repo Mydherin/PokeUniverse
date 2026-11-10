@@ -32,8 +32,15 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4, M5 (M3 for th
 
 - tech-stack.md: measured budget (players per zone, tick p99, bytes/s per client, replicas) under Efficient Event Model → Batching and rate; context.md D18 updated to the measured values.
 
-## Play It
+## Manual Test
 
-1. The ramp to 200 on one map and 500 total on two replicas, with the real player walking among them: smooth for them, numbers recorded here.
-2. A slow client (DevTools throttling in the pane's tab, or a bot that stops reading): dropped and reconnected without hurting the zone's tick.
-3. Regression check.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Zone metrics | 25 bots, `make logs` | A zone line every 10 s: players, events/tick, tick p50/p99, bytes/s, NATS in/out, drops | ⬜ |
+| 2 | Ramp, one map | `--ramp` to 200 on 1F, two replicas | Per step: server and bot stats, `docker stats` CPU/memory written here; within D18 | ⬜ |
+| 3 | Ramp, both maps | 500 over 1F and 2F | Within D18; numbers written here | ⬜ |
+| 4 | Real player among them | Pane tab walking during the ramp | Own steps smooth, no `Correction` | ⬜ |
+| 5 | Client frame time | 50 bots drawn on desktop, 30 on the mobile preset | Frame time within one 60 Hz frame; recorded | ⬜ |
+| 6 | No drops at FireRed's pace | Walking/running bots, normal chat | Zero intent and chat drops | ⬜ |
+| 7 | Slow client | DevTools throttling, or a bot that stops reading | It's dropped and reconnects with a snapshot; the zone's tick p99 holds | ⬜ |
+| 8 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ⬜ |

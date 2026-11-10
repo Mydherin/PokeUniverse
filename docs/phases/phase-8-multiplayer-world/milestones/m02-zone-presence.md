@@ -1,4 +1,4 @@
-# M2 Zone Presence on One Replica ✅
+# M2 Zone Presence on One Replica 🧪
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [context.md](context.md) D1, D5, D6, D7, D9, D10, D12, D19.
 
@@ -6,7 +6,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 
 ## Resume Here
 
-**Done 2026-11-10** (code; Play It not run in the building session, no manual test asked). Next: [M3 Drawing other players](m03-drawing-others.md).
+**Code done 2026-11-10; Manual Test pending, first case #1.** Then [M3's Manual Test](m03-drawing-others.md#manual-test). One replica (`MIC_CORE_REPLICAS=1`).
 
 ## What Was Built
 
@@ -21,7 +21,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 - **Bots (`infra/bots/run.ts`):** `--verbose` prints what the last bot (`bot-N`) receives (a second script run would re-spawn `bot-1` and take it over, so the "4th verbose bot" is `--count 4 --verbose`); each bot keeps `others` (reset from snapshot/`Warped`, upsert on joined), ignores its own id; stats add `zone: events/s, frames/s per bot, others known lo-hi`.
 - **Docs:** tech-stack.md Movement → Zones line and `world.v1` package list.
 
-## Playing It (how to)
+## Setup Notes
 
 - Step 1: `node infra/bots/bots.ts --count 4 --verbose`: bot-4 prints its snapshot's others and every event; the real player plays beside them.
 - Build checks used: `make contracts`, `make breaking`; Go: `docker run --rm -v "$PWD":/repo -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.cache/go-build -w /repo/mic-core golang:1.27-alpine sh -c 'go build ./... && go vet ./...'`; bots: `node infra/bots/bots.ts --count 0 --secret x` loads every module (prints the count error). `tsc` on `infra/bots` only reports the environment (no Node types, `@bufbuild/protobuf` unresolved from `infra/`), nothing in the new code.
@@ -52,13 +52,20 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M1. Rules: [conte
 
 - tech-stack.md: Movement → **Zones** line (others in the zone, `ZoneEvents` per tick encoded once); `lib-contracts` packages list (`world.v1` new messages).
 
-## Play It
+## Manual Test
 
-1. 3 bots on 2F; a 4th with `--verbose`: its snapshot lists the other 3 and the real player; it prints their steps, turns and joins/leaves as they move and use the stairs.
-2. The real player swaps the lead (party SWITCH): the verbose bot gets `follower`; the real player starts the room trainer's battle: `battle` true, then false.
-3. Reconnect (restart `mic-core`): each bot's new snapshot has the others, no duplicates, no one missing.
-4. Traffic: one `zone_events` frame per tick at most per bot; bytes/s printed.
-5. Regression check.
+| # | Case | Steps | Expected | Result |
+|---|---|---|---|---|
+| 1 | Snapshot lists the others | 3 bots on 2F, the real tab on 2F, then `--count 4 --verbose` | bot-4's snapshot lists bots 1-3 and the real player, not itself | ⬜ |
+| 2 | Moves and turns | Walk, run and turn in the real tab | bot-4 prints `moved` (with `run` when running) and `turned` for the real player and each bot | ⬜ |
+| 3 | Join and leave by warp | Take the stairs down and back up | bot-4 prints `left` then `joined`; the `Warped` snapshot on 1F lists who is there | ⬜ |
+| 4 | Follower change | Party SWITCH of the lead in the real tab | bot-4 prints `follower` with the new species | ⬜ |
+| 5 | Battle flag | Room trainer's battle, then a wild battle in the test grass | `battle` true at start, false at the end, each time | ⬜ |
+| 6 | Disconnect | Close the real tab; Ctrl-C one bot | `left` for each within the session's 15 s, no duplicate | ⬜ |
+| 7 | Reconnect | `docker compose restart mic-core` | Every bot's new snapshot has all the others, none twice, none missing | ⬜ |
+| 8 | Take-over | Open the same bot token in a second tab | Old tab stops; others see one player (no ghost, no duplicate) | ⬜ |
+| 9 | Traffic | Stats with 5 bots for 1 min | At most one `zone_events` frame per tick per bot; bytes/s printed and small | ⬜ |
+| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Both maps, stairs, wild battle, room trainer; no `Correction` walking through bots | ⬜ |
 
 ## Gotchas
 
