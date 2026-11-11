@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8 M8 Load and Tuning](docs/phases/phase-8-multiplayer-world/milestones/m08-load-tuning.md#resume-here) ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M6 ✅, 6/9 ✅; M7 🧪 built, real-phone cases 9-10 wait on the user's phones; M8 🔨 code done, Manual Test 1-7 ✅, next case 8's room trainer, then docs). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8 M9 Phase check](docs/phases/phase-8-multiplayer-world/milestones/m09-phase-check.md) ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M6 and M8 ✅, 7/9 ✅; M7 🧪 built, real-phone cases 9-10 wait on the user's phones; M9 ⬜ next). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

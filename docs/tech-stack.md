@@ -312,6 +312,7 @@ Goal: send **only the minimum information** needed for each event to happen on e
 - **Chat** goes to the zone (map + phase) as a `ChatMessage` event, the sender's own line included (shown only when it comes back). FireRed's charset only, trimmed, spaces collapsed, 1-64 characters; 1 line per 2 s, burst 4, per connection; anything else is dropped without an answer. Not saved, not replayed; every line is logged (`slog` `chat`: trainer, map, phase, text) for moderation ([Phase 8 D13, D14, D17](phases/phase-8-multiplayer-world/milestones/context.md#decisions)).
 - Events per zone are **batched per server tick** (10–20 ticks/second) into one WebSocket message.
 - Rapid repeated intents are rate-limited per player.
+- **Measured budget** (Phase 8 M8, bots on 2 `mic-core` replicas, [D18](phases/phase-8-multiplayer-world/milestones/context.md#decisions)): 200 players on one map: zone tick p99 ≤ 5 ms, 7.9 KB/s per client (1.8 KB/s with 50 others), bot ping p99 9 ms; 500 over two maps: tick p99 ≤ 2 ms, 9.8 KB/s per client (249 others); mic-core ≤ 3% CPU and ≤ 51 MiB per replica; 0 corrections and 0 dropped intents or chats at FireRed's pace. Client frame work p99 0.6 ms with 50 others drawn (desktop) and 1.2 ms with 30 (phone), well inside a 60 Hz frame. A client that stops reading is closed (1013) once its queue of 64 is full and reconnects with a snapshot; the zone tick holds. Nothing needed tuning: no culling, pooling or buffer reuse.
 
 ### Movement
 

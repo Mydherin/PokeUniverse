@@ -1,4 +1,4 @@
-# M8 Load and Tuning 🔨
+# M8 Load and Tuning ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4, M5 (M3 for the client part). Rules: [context.md](context.md) D1, D7, D17, D18.
 
@@ -6,19 +6,12 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4, M5 (M3 for th
 
 ## Resume Here
 
-**In progress (2026-11-11):** code done (Go build/vet, `make contracts`, SPA `tsc` green; nothing needed tuning). Manual Test 1-7 ✅; **next: case 8**, then the Docs task, then close M8.
+**Done 2026-11-11:** Manual Test 1-8 ✅, the measured budget is in [tech-stack.md](../../../tech-stack.md#efficient-event-model) and D18; nothing needed tuning (no marshal buffer reuse, queue, NATS, pooling or culling change; limits unchanged; the slow-consumer drop already existed, case 7). The `TEMP-PLAYIT` hooks are removed and the SPA rebuilt (`--no-deps`).
 
-- **Next steps, in order:**
-  1. **Case 8 (regression):** already seen with 5 bots on two replicas, 0 corrections and no own jumps: stairs both ways, a 1F wild battle won, walking after it. **Left:** the 2F room trainer. Talking at 9,5 facing up started nothing (`c8_trainer_start.png`): find the trainer's tile in `lib-maps` (grep the 2F map's objects) or in M4's notes, stand facing it, then mash A. Driver: `m8-headless/c8mine.mjs` (below); a fresh bot each run (`FIRST=305…`, `MAP=pallet_town_players_house_2f`). The route to the stairs is `toStairs` (go to y ≥ 4, then x = 10, then up), because the rail blocks a straight walk at 8,2.
-  2. **Remove the `TEMP-PLAYIT` hooks** (grep `TEMP-PLAYIT`): `spa-pokeuniverse/src/game/game.ts` (`__dt`, `__ft` in `update`) and `src/game/firered/overworld.ts` (`__self`, `__othersN`, `__playit` after `this.draw()`, `__corrections` in `correct`). Rebuild with `docker compose up -d --build --no-deps spa-pokeuniverse`.
-  3. **Docs task:** `tech-stack.md` → Efficient Event Model → Batching and rate: the measured budget (cases 2-3, 5-7 below). `context.md` D18: the measured values. Mark the Docs task ✅.
-  4. **Close:** M8 ✅. Move the phase file's Resume Here and status, `docs/phases/index.md` (7/9 ✅) and the AGENTS.md Now line to M9, still noting M7's phone cases 9-10. Run `make bots-clean`; the stack can stay up.
-- **Stack now:** two replicas (`pokeuniverse-mic-core-3`, `-4`), started with `--scale mic-core=2`; `.env` is unchanged (no `MIC_CORE_REPLICAS`). **Gotcha:** `docker compose up -d --build spa-pokeuniverse` *without* `--no-deps` resets mic-core to one replica. Restore with `docker compose up -d --no-recreate --scale mic-core=2 mic-core`. No bots running.
-- **Test driver:** shared notes folder `m8-headless/` (`pw.mjs`, `lib.mjs`, `up.mjs`, `down.mjs`, `c4load.mjs`, `c7slow.mjs`, `c8mine.mjs`, `stall.py`, `frames.ts`). Copy it into your scratchpad and run `node pw.mjs 1 1 ./case.mjs`. `FIRST=n [MAP=…]` spawns bot-n alone, so it doesn't take over a running bot. `MOBILE=1 VW=375 VH=812` is the phone layout; `STILL=1` keeps `c4load` standing. Bot numbers used so far: 1-250 and 501-750 (ramp), 300-304 (pane), 400-404 (regression bots).
-- **Slow client (case 7) how-to:** `F=$(node --import ./infra/bots/hooks.mjs frames.ts 301 2>/dev/null)`, then `docker run --rm --network pokeuniverse_default -v <dir>:/s python:3-alpine python /s/stall.py mic-core 20 ${=F}` (zsh needs `${=F}`). Inside the network mic-core listens on `:8081`.
-- **Stats:** `curl -s localhost:8080/api/dev/stats -H "X-Bots-Secret: $S"` answers one replica per request. A zone that has emptied is gone from it, so read `docker logs pokeuniverse-mic-core-N | grep '"zone stats"'` after a run. Ramp: `node infra/bots/bots.ts --ramp --map pallet_town_players_house_1f [--hold 30]` (about 4 min, then the bots keep walking). `--stay` keeps bots off the stairs.
-- **Code files:** new `mic-core/internal/stats/stats.go` (realtime drop counters), `internal/world/zone_stats.go` (10 s window, `zone stats` line, `World.Stats`, `Player.Dropped`). Changed: `zone.go` (tick timing; bytes = `proto.Size` of each answer + the encoded events per player; corrections; `emptied`), `zone_bus.go` (batches in/out), `world.go` (`zoneStats`), `realtime.go` (`c.dropped` by reason; the slow-consumer close now logs a warning and counts), `bots.go` (`GET /api/dev/stats`; `first` up to 1000), `main.go`, `dev/v1/bots.proto` (`ReplicaStats`, `ZoneStats`, `Drops`), `infra/bots/run.ts` (`--ramp`, `--stay`, `--map2`, `--hold`; spawns in calls of 100; `--count` up to 500).
-- **Tuning decision:** nothing missed D18, so there is no marshal buffer reuse, no queue or NATS change, no client pooling or culling, and the limits stay as they are. The slow-consumer drop (queue of 64 → close 1013 → the client reconnects with a snapshot) already existed and is verified in case 7.
+- **For M9:** the stack runs two replicas (`--scale mic-core=2`, `.env` unchanged). `docker compose up -d --build spa-pokeuniverse` *without* `--no-deps` resets mic-core to one replica; restore with `docker compose up -d --no-recreate --scale mic-core=2 mic-core`.
+- **Test driver:** shared notes folder `m8-headless/` (copy into the scratchpad; `node pw.mjs 1 1 ./case.mjs`, `FIRST=n [MAP=…]` spawns bot-n alone). It reads `window.__self`, `__playit`, `__corrections`, which only the `TEMP-PLAYIT` hooks set (code in `m8-headless/hooks.md`): add them back for a headless run, remove them after. `t3.mjs` (with `t2.mjs`) plays the room trainer. **Hold keys ≥ 60 ms** (`keyboard.down`, sleep, `up`): a `keyboard.press` tap falls between game frames and is lost. Room trainer: reach 8,5 (row 3 to x=7, down to 4, right to 8, down to 5), step right to 9,5, face up, A. Leaving mid-battle rolls it back (no resume after a reload).
+- **Stats:** `curl -s localhost:8080/api/dev/stats -H "X-Bots-Secret: $S"` (one replica per request); `docker logs pokeuniverse-mic-core-N | grep '"zone stats"'`. Ramp: `node --import ./infra/bots/hooks.mjs infra/bots/bots.ts --ramp --map pallet_town_players_house_1f [--hold 30]`.
+- **Code files:** new `mic-core/internal/stats/stats.go`, `internal/world/zone_stats.go`; changed `zone.go`, `zone_bus.go`, `world.go`, `realtime.go`, `bots.go`, `main.go`, `dev/v1/bots.proto`, `infra/bots/run.ts` (committed in 26834e8). This session changed docs only.
 
 ## Tasks
 
@@ -45,7 +38,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4, M5 (M3 for th
 
 ### Docs
 
-- tech-stack.md: measured budget (players per zone, tick p99, bytes/s per client, replicas) under Efficient Event Model → Batching and rate; context.md D18 updated to the measured values.
+- ✅ tech-stack.md: measured budget (players per zone, tick p99, bytes/s per client, replicas) under Efficient Event Model → Batching and rate; context.md D18 updated to the measured values.
 
 ## Manual Test
 
@@ -58,4 +51,4 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M4, M5 (M3 for th
 | 5 | Client frame time | 50 bots drawn on desktop, 30 on the mobile preset | Frame time within one 60 Hz frame; recorded | ✅ 2026-11-11 (TEMP-PLAYIT `performance.now()` around `game.ts` `update`, headless Chromium): desktop 1280×720, 50 others drawn: work p50 0.4 ms p99 0.6 ms max 0.8 ms, rAF interval p99 16.9 ms, 0 frames over 16.7 ms; mobile 375×812 @3x, 30 others: p50 0.8 p99 1.2 max 1.4 ms, 0 over; 250 others (case 4): p99 1.1 ms. No client tuning needed |
 | 6 | No drops at FireRed's pace | Walking/running bots, normal chat | Zero intent and chat drops | ✅ 2026-11-11: 100 bots (25% running, stairs, `--chat`) 80 s on two replicas: every `zone stats` line 0 corrections, 0 dropped intents, 0 dropped chats; tick p99 2.4-4.8 ms; ~250 chat lines sent |
 | 7 | Slow client | DevTools throttling, or a bot that stops reading | It's dropped and reconnects with a snapshot; the zone's tick p99 holds | ✅ 2026-11-11 with 200 bots on 1F: a raw client in the Docker network (`SO_RCVBUF` 2 KB, straight to `mic-core:8081`) entered, then stopped reading: `slow consumer dropped` 6 s later (queue of 64 full, close 1013); reconnecting got the snapshot and events again (32 KB in 3 s, as on first entry); tick p99 2.0-2.8 ms throughout. (Pausing the page's JS doesn't stall the socket, and through the host port Docker buffers > 60 s of frames.) |
-| 8 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ⬜ |
+| 8 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ✅ 2026-11-11, 5 bots on two replicas: stairs both ways, a 1F wild battle won and walking after it (0 corrections, no own jumps); the 2F room trainer (stand at 9,5 from 8,5, face up, A): question, YES, intro, battle played 10 min to the end (lost by random input) → whiteout to 6,6 with its one server correction, walking after it with no own jumps; no ERROR/WARN in mic-core or mic-battles. (The earlier "nothing happens" was the driver: a `keyboard.press` tap is shorter than a game frame; hold keys ≥ 60 ms.) |
