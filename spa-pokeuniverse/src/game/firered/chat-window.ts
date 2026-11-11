@@ -6,6 +6,8 @@
 
 import type { WorldLink } from "../../realtime/connection";
 import { h } from "../../ui/dom";
+import { KeyboardTracker } from "../../ui/keyboard";
+import type { Input } from "../gba/input";
 import { fitScreen } from "../screen";
 import { encodeText, type Charmap, type Font } from "../gba/text";
 import { ChatLog, cleanLine, filterInput, MAX_LENGTH, type ChatLine } from "../world/chat";
@@ -50,6 +52,15 @@ const PANEL_HEIGHT = 5 * ROW + 2 * (BORDER + PAD) + 34;
 const TICKER_ROWS = 2;
 const TICKER_FADE_MS = 5000;
 const LONG_PRESS_MS = 500;
+/** The counter shows from this many characters (D22). */
+const COUNTER_FROM = 54;
+const HINT_MS = 2500;
+/** Rows of the log kept while composing: at least 3 in portrait, 2-3 in landscape (D22). */
+const COMPOSE_ROWS = 3;
+/** A swipe down this far closes the sheet (D23). */
+const SWIPE_CLOSE = 60;
+/** The textarea grows to this many lines, then scrolls (D22). */
+const INPUT_LINES = 3;
 
 function colorsOf(line: ChatLine): [number, number, number] {
   const c = line.own ? OWN_COLOR : 1 + Number(line.id % 3n);
@@ -221,25 +232,34 @@ class LogView {
   }
 }
 
-/** The text field: the font's characters only, 64 at most; Enter sends, Esc closes. */
-function composer(send: () => void, close: () => void, extra: string): HTMLInputElement {
-  const input = h("input", {
-    type: "text",
-    class: `chat-input min-w-0 flex-1 ${extra}`,
-    maxlength: String(MAX_LENGTH),
-    enterkeyhint: "send",
-    autocomplete: "off",
-    "aria-label": "Chat message",
-  }) as HTMLInputElement;
+type Field = HTMLInputElement | HTMLTextAreaElement;
+
+/**
+ * The text field: the font's characters only, 64 at most; Enter sends, Esc closes. On phones a
+ * textarea (D22): line breaks become spaces, `onEdit` gets whether something was dropped.
+ */
+function composer(send: () => void, close: () => void, multiline = false, onEdit: (dropped: boolean) => void = () => {}): Field {
+  const attrs = { class: "chat-input min-w-0 flex-1", maxlength: String(MAX_LENGTH), enterkeyhint: "send", autocomplete: "off", "aria-label": "Chat message" };
+  const input = (multiline ? h("textarea", { ...attrs, rows: "1", autocorrect: "on", spellcheck: "true" }) : h("input", { ...attrs, type: "text" })) as Field;
   input.addEventListener("input", () => {
-    const { text, dropped } = filterInput(input.value);
-    if (!dropped) return;
-    const caret = input.selectionStart ?? text.length;
-    input.value = text;
-    input.setSelectionRange(Math.min(caret, text.length), Math.min(caret, text.length));
+    const raw = multiline ? input.value.replace(/\s*[\r\n]+\s*/g, " ") : input.value;
+    const { text, dropped } = filterInput(raw);
+    if (text !== input.value) {
+      const caret = Math.min(input.selectionStart ?? text.length, text.length);
+      input.value = text;
+      input.setSelectionRange(caret, caret);
+    }
+    onEdit(dropped && raw !== text);
   });
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+  // The keyboard's send key: no line break, the line goes (some keyboards send only beforeinput).
+  const el: HTMLElement = input;
+  el.addEventListener("beforeinput", (e) => {
+    if (e.inputType !== "insertLineBreak" && e.inputType !== "insertParagraph") return;
+    e.preventDefault();
+    send();
+  });
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.isComposing) {
       e.preventDefault();
       send();
     } else if (e.key === "Escape") {
@@ -260,6 +280,9 @@ export interface ChatSlots {
   right: HTMLElement;
 }
 
+/** The sheet's layout while the keyboard is up (D22). */
+type Compose = "portrait" | "landscape" | null;
+
 export class ChatWindow {
   readonly log = new ChatLog();
   /** Phase 9 opens the line actions; Phase 8 only keeps the chosen player. */
@@ -268,7 +291,7 @@ export class ChatWindow {
   private readonly touch = window.matchMedia("(pointer: coarse)");
   private readonly panel: HTMLElement;
   private readonly panelLog: LogView;
-  private readonly panelInput: HTMLInputElement;
+  private readonly panelInput: Field;
   private readonly panelCompose: HTMLElement;
   private readonly panelHint: HTMLElement;
   private inWorld = false;
@@ -279,7 +302,15 @@ export class ChatWindow {
   private readonly badge: HTMLElement;
   private readonly sheet: HTMLElement;
   private readonly sheetLog: LogView;
-  private readonly sheetInput: HTMLInputElement;
+  private readonly sheetInput: Field;
+  private readonly sheetLogBox: HTMLElement;
+  private readonly counter: HTMLElement;
+  private readonly hint: HTMLElement;
+  private hintTimer: number | undefined;
+  private readonly keyboard: KeyboardTracker;
+  private readonly offKeyboard: () => void;
+  private readonly portrait = window.matchMedia("(orientation: portrait)");
+  private compose: Compose = null;
   private readonly observer: ResizeObserver;
   private readonly offChange: () => void;
 
@@ -288,10 +319,11 @@ export class ChatWindow {
     font: Font,
     charmap: Charmap,
     private readonly link: WorldLink,
+    private readonly input: Input,
   ) {
     // PC: the panel beside or below the screen.
     this.panelLog = new LogView(font, charmap, PC_SCALE);
-    this.panelInput = composer(() => this.send(this.panelInput), () => this.close(), "");
+    this.panelInput = composer(() => this.send(this.panelInput), () => this.close());
     this.panelCompose = h("div", { class: "chat-compose", hidden: true }, this.panelInput);
     this.panelHint = h("p", { class: "chat-hint" }, "T or / to chat");
     this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, chips(), h("div", { class: "chat-log-box" }, this.panelLog.el), this.panelCompose, this.panelHint);
@@ -301,16 +333,32 @@ export class ChatWindow {
     this.badge = h("span", { class: "chat-badge", hidden: true });
     this.button = h("button", { type: "button", class: "chat-button", "aria-label": "Chat", tabindex: "-1" }, bubble(), this.badge) as HTMLButtonElement;
     this.sheetLog = new LogView(font, charmap, PHONE_SCALE);
-    this.sheetInput = composer(() => this.send(this.sheetInput), () => this.close(), "");
+    this.sheetInput = composer(() => this.send(this.sheetInput), () => this.close(), true, (dropped) => this.edited(dropped));
     const close = h("button", { type: "button", class: "chat-close", "aria-label": "Close chat" }, "×");
     const sendButton = h("button", { type: "button", class: "chat-send", "aria-label": "Send" }, "SEND");
+    this.sheetLogBox = h("div", { class: "chat-log-box" }, this.sheetLog.el);
+    this.hint = h("span", { class: "chat-status-hint", "aria-live": "polite" });
+    this.counter = h("span", { class: "chat-counter" });
     this.sheet = h(
       "section",
       { class: "chat-sheet", "aria-label": "Chat", hidden: true },
       h("div", { class: "chat-sheet-head" }, chips(), close),
-      h("div", { class: "chat-log-box" }, this.sheetLog.el),
+      this.sheetLogBox,
       h("div", { class: "chat-compose" }, this.sheetInput, sendButton),
+      h("div", { class: "chat-status" }, this.hint, this.counter),
     );
+    // Typing: the own player stops and nothing stays held (ui.md#mobile-keyboard).
+    this.sheetInput.addEventListener("focus", () => {
+      this.input.suspend(true);
+      this.keyboard.refresh();
+    });
+    this.sheetInput.addEventListener("blur", () => {
+      this.input.suspend(false);
+      this.keyboard.refresh();
+    });
+    this.swipe();
+    // Pressing × or SEND keeps the field focused: the keyboard going down first would move them.
+    close.addEventListener("pointerdown", (e) => e.preventDefault());
     close.addEventListener("click", () => this.close());
     sendButton.addEventListener("pointerdown", (e) => e.preventDefault());
     sendButton.addEventListener("click", () => this.send(this.sheetInput));
@@ -327,6 +375,10 @@ export class ChatWindow {
     const start = slots.right.lastElementChild;
     slots.right.insertBefore(this.button, start);
     window.addEventListener("keydown", this.onKey);
+    window.addEventListener("popstate", this.onPopState);
+    this.keyboard = new KeyboardTracker(slots.layout);
+    this.offKeyboard = this.keyboard.onChange(() => this.layout());
+    this.portrait.addEventListener("change", this.onPointerChange);
     this.offChange = this.log.onChange(() => this.changed());
     this.observer = new ResizeObserver(() => this.layout());
     this.observer.observe(slots.layout);
@@ -375,7 +427,13 @@ export class ChatWindow {
 
   destroy(): void {
     window.removeEventListener("keydown", this.onKey);
+    window.removeEventListener("popstate", this.onPopState);
     this.touch.removeEventListener("change", this.onPointerChange);
+    this.portrait.removeEventListener("change", this.onPointerChange);
+    this.offKeyboard();
+    this.keyboard.destroy();
+    this.input.suspend(false);
+    window.clearTimeout(this.hintTimer);
     window.clearTimeout(this.tickerTimer);
     this.observer.disconnect();
     this.offChange();
@@ -386,6 +444,11 @@ export class ChatWindow {
   }
 
   private readonly onPointerChange = () => this.layout();
+
+  /** The system back gesture closes the sheet (D23); the entry is already gone. */
+  private readonly onPopState = () => {
+    if (this.log.open && !this.sheet.hidden) this.close(true);
+  };
 
   /** PC: T opens the input, / opens it with / typed (D15). */
   private readonly onKey = (e: KeyboardEvent) => {
@@ -405,8 +468,11 @@ export class ChatWindow {
     if (!this.shownNow) return;
     const touch = this.touch.matches;
     const input = touch ? this.sheetInput : this.panelInput;
-    if (touch) this.sheet.hidden = false;
-    else {
+    if (touch) {
+      this.sheet.hidden = false;
+      // A history entry on the same path: the back gesture closes the sheet, not the page.
+      if (!(history.state as { chatSheet?: boolean } | null)?.chatSheet) history.pushState({ chatSheet: true }, "");
+    } else {
       this.panelCompose.hidden = false;
       this.panelHint.hidden = true;
     }
@@ -414,11 +480,15 @@ export class ChatWindow {
     input.value = text;
     input.focus();
     input.setSelectionRange(text.length, text.length);
+    this.edited(false);
     this.layout();
   }
 
-  private close(): void {
+  /** `fromHistory`: the back gesture already popped the sheet's entry. */
+  private close(fromHistory = false): void {
     if (!this.log.open) return;
+    if (!fromHistory && !this.sheet.hidden && (history.state as { chatSheet?: boolean } | null)?.chatSheet) history.back();
+    this.sheet.style.transform = "";
     this.panelInput.blur();
     this.sheetInput.blur();
     this.panelCompose.hidden = true;
@@ -429,11 +499,61 @@ export class ChatWindow {
   }
 
   /** Enter: the line goes to mic-core and shows when it comes back; over the rate nothing happens. */
-  private send(input: HTMLInputElement): void {
+  private send(input: Field): void {
     const line = cleanLine(input.value);
     if (!line || !this.link.inWorld || !this.log.allowSend()) return;
     this.link.sendChat(line);
     input.value = "";
+    if (input === this.sheetInput) this.edited(false);
+  }
+
+  /** The sheet's field changed: its height (1-3 lines), the counter, the hint (D22). */
+  private edited(dropped: boolean): void {
+    const field = this.sheetInput;
+    const n = [...field.value].length;
+    this.counter.textContent = n >= COUNTER_FROM ? `${n}/${MAX_LENGTH}` : "";
+    if (dropped) {
+      this.hint.textContent = "Not in the game's font";
+      window.clearTimeout(this.hintTimer);
+      this.hintTimer = window.setTimeout(() => (this.hint.textContent = ""), HINT_MS);
+    }
+    const before = field.style.height;
+    field.style.height = "auto";
+    const style = getComputedStyle(field);
+    const frame = field.offsetHeight - field.clientHeight;
+    const pad = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const max = INPUT_LINES * parseFloat(style.lineHeight) + pad + frame;
+    field.style.height = `${Math.min(field.scrollHeight + frame, max)}px`;
+    if (field.style.height !== before && this.compose) this.layout();
+  }
+
+  /** A swipe down on the sheet (not the log, which scrolls, nor the field) closes it (D23). */
+  private swipe(): void {
+    let start: { id: number; y: number } | null = null;
+    let dy = 0;
+    this.sheet.addEventListener("pointerdown", (e) => {
+      const t = e.target as HTMLElement;
+      if (t === this.sheetLog.el || t.closest("textarea, button")) return;
+      start = { id: e.pointerId, y: e.clientY };
+      dy = 0;
+      this.sheet.setPointerCapture(e.pointerId);
+    });
+    this.sheet.addEventListener("pointermove", (e) => {
+      if (start?.id !== e.pointerId) return;
+      dy = Math.max(0, e.clientY - start.y);
+      this.sheet.style.transform = dy ? `translateY(${dy}px)` : "";
+    });
+    const end = (e: PointerEvent) => {
+      if (start?.id !== e.pointerId) return;
+      start = null;
+      this.sheet.style.transform = "";
+      if (dy >= SWIPE_CLOSE) this.close();
+    };
+    this.sheet.addEventListener("pointerup", end);
+    this.sheet.addEventListener("pointercancel", (e) => {
+      dy = 0;
+      end(e);
+    });
   }
 
   /** Long-press a line or tap its name: that player is chosen (D24). */
@@ -502,10 +622,11 @@ export class ChatWindow {
     this.panel.hidden = touch;
     if (touch || !this.inWorld) {
       delete layout.dataset.chat;
+      this.layoutCompose(touch);
       if (!touch) return;
       this.ticker.style.height = `${this.tickerLog.cssHeight}px`;
       this.fit(this.tickerLog, this.tickerLog.el.parentElement!);
-      if (!this.sheet.hidden) this.fit(this.sheetLog, this.sheetLog.el.parentElement!);
+      if (!this.sheet.hidden) this.fit(this.sheetLog, this.sheetLogBox);
       return;
     }
     const W = layout.clientWidth;
@@ -522,6 +643,41 @@ export class ChatWindow {
       layout.style.setProperty("--chat-size", `${Math.floor(Math.max(PANEL_HEIGHT * s, H - 160 * below))}px`);
     }
     this.fit(this.panelLog, this.panelLog.el.parentElement!);
+  }
+
+  /**
+   * The keyboard is up with the sheet open (D22). Portrait: the GBA screen scaled into what
+   * the sheet leaves with 3 rows of log; landscape: the field and the last 2-3 rows over the
+   * dimmed game. Normal again when the keyboard goes down.
+   */
+  private layoutCompose(touch: boolean): void {
+    const { layout } = this.slots;
+    const compose: Compose = touch && !this.sheet.hidden && this.keyboard.state.open ? (this.portrait.matches ? "portrait" : "landscape") : null;
+    this.compose = compose;
+    if (!compose) {
+      delete layout.dataset.compose;
+      layout.style.removeProperty("--compose-screen");
+      this.sheetLogBox.style.height = "";
+      return;
+    }
+    layout.dataset.compose = compose;
+    const s = deviceScale(PHONE_SCALE);
+    const rowsHeight = (rows: number) => (rows * ROW + 2 * (BORDER + PAD)) * s;
+    const style = getComputedStyle(layout);
+    const room = layout.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    if (compose === "portrait") {
+      // What the sheet takes besides its log, then the screen gets the rest.
+      this.sheetLogBox.style.height = "";
+      const rest = this.sheet.offsetHeight - this.sheetLogBox.offsetHeight;
+      const { scale } = fitScreen(layout.clientWidth, room - rest - rowsHeight(COMPOSE_ROWS));
+      layout.style.setProperty("--compose-screen", `${Math.max(0, Math.floor(160 * scale))}px`);
+    } else {
+      // The field and the status first; then 3 rows of log if they fit, else 2.
+      this.sheetLogBox.style.height = "0px";
+      const rest = this.sheet.offsetHeight;
+      const rows = room - rest >= rowsHeight(COMPOSE_ROWS) ? COMPOSE_ROWS : COMPOSE_ROWS - 1;
+      this.sheetLogBox.style.height = `${Math.ceil(rowsHeight(rows))}px`;
+    }
   }
 
   /** The log fills its box once the grid has placed it. */

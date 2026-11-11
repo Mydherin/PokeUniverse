@@ -20,6 +20,8 @@ type Guard = (route: Route, path: string) => string | null;
 export class Router {
   private view: View | null = null;
   private route: Route | null = null;
+  /** The path last rendered: a history entry on the same path (an open sheet's, ui.md#mobile-keyboard) renders nothing. */
+  private rendered = "";
 
   constructor(
     private readonly root: HTMLElement,
@@ -27,7 +29,9 @@ export class Router {
     private readonly fallback: string,
     private readonly guard: Guard,
   ) {
-    window.addEventListener("popstate", () => void this.render());
+    window.addEventListener("popstate", () => {
+      if (location.pathname + location.search !== this.rendered) void this.render();
+    });
     // Same-origin links are handled here instead of reloading the page.
     document.addEventListener("click", (e) => {
       const link = (e.target as Element).closest?.("a[data-link]") as HTMLAnchorElement | null;
@@ -45,6 +49,7 @@ export class Router {
 
   async render(): Promise<void> {
     const path = location.pathname;
+    this.rendered = path + location.search;
     const route = this.routes.find((r) => r.paths.includes(path));
     if (!route) return this.go(this.fallback, true);
 

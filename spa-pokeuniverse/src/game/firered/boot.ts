@@ -100,7 +100,7 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   useTrainer(null);
   void trainer.then(useTrainer);
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
-  const chat = new ChatWindow(chatSlots, font, assets.charmap, link);
+  const chat = new ChatWindow(chatSlots, font, assets.charmap, link, gba.input);
   let fonts: Record<FontId, Font> | null = null;
   let text: TextPrinters | null = null;
   // The New Game set loads in the background while the intro plays.

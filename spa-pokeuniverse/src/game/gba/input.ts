@@ -55,6 +55,8 @@ export class Input {
   private heldRaw = 0;
   private down = 0;
   private latched = 0;
+  /** Chat is composing (ui.md#mobile-keyboard): no button goes down, none stays held. */
+  private suspended = false;
   private readonly onKeyDown = (e: KeyboardEvent) => {
     const button = KEYS[e.code];
     if (!button || e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
@@ -78,7 +80,14 @@ export class Input {
     window.addEventListener("focusin", this.onFocusIn);
   }
 
+  /** While on, presses are ignored; turning it on lets go of everything. */
+  suspend(on: boolean): void {
+    this.suspended = on;
+    if (on) this.down = this.latched = 0;
+  }
+
   press(button: number): void {
+    if (this.suspended) return;
     this.down |= button;
     this.latched |= button;
   }

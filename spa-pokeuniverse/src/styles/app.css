@@ -228,6 +228,7 @@
       border-radius: 0.75rem 0.75rem 0 0;
     }
     .chat-sheet-head { display: flex; align-items: center; gap: 0.5rem; }
+    .game-layout[data-keyboard="true"] .chat-sheet { padding-bottom: 0.5rem; }
   }
   @media (pointer: coarse) and (orientation: portrait) {
     .chat-sheet { grid-row: 2 / -1; grid-column: 1 / -1; }
@@ -237,6 +238,45 @@
     .chat-button { position: absolute; top: 0.75rem; }
     /* Below the top bar, like the layout's padding: its buttons stay usable, the close control visible. */
     .chat-sheet { position: absolute; top: calc(env(safe-area-inset-top) + 3.5rem); right: 0; bottom: 0; width: min(24rem, 60%); border-radius: 0.75rem 0 0 0.75rem; }
+  }
+  /* The on-screen keyboard (ui.md#mobile-keyboard, phase-8 D22): the shell is pinned to the
+     visual viewport (--vvh, --vv-top from src/ui/keyboard.ts) over the top bar, without the
+     bottom inset the keyboard covers; the sheet's compose layout takes what's left. */
+  .chat-input { resize: none; line-height: 1.25rem; }
+  textarea.chat-input { padding: 0.625rem 0.75rem; overflow-y: auto; }
+  .chat-status { display: none; }
+  @media (pointer: coarse) {
+    .chat-status { display: flex; justify-content: space-between; gap: 0.5rem; min-height: 1rem; color: rgb(246 246 255); font-family: var(--font-display); font-size: 0.875rem; line-height: 1rem; }
+    .chat-counter { margin-left: auto; }
+    .chat-sheet { touch-action: none; }
+    .chat-sheet .chat-input { touch-action: manipulation; }
+    .game-layout[data-keyboard="true"] {
+      position: fixed;
+      inset: auto 0 auto 0;
+      top: var(--vv-top);
+      height: var(--vvh);
+      z-index: 15;
+      background: #000;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: 0;
+    }
+    .game-layout[data-compose] .game-left, .game-layout[data-compose] .game-right, .game-layout[data-compose] .chat-ticker { display: none; }
+    .game-layout[data-compose="portrait"] { grid-template: "screen" var(--compose-screen, auto) "sheet" minmax(0, 1fr) / minmax(0, 1fr); }
+    .game-layout[data-compose="portrait"] .game-screen { aspect-ratio: auto; max-height: none; }
+    .game-layout[data-compose="portrait"] .chat-sheet { grid-area: sheet; }
+    .game-layout[data-compose="landscape"] { grid-template: "screen" minmax(0, 1fr) / minmax(0, 1fr); }
+    .game-layout[data-compose="landscape"] .game-screen { filter: brightness(0.45); }
+    .game-layout[data-compose="landscape"] .chat-sheet {
+      position: absolute;
+      inset: auto env(safe-area-inset-right) 0 env(safe-area-inset-left);
+      width: auto;
+      gap: 0.25rem;
+      padding-bottom: 0.25rem;
+      background: rgb(0 82 172 / 0.85);
+      border-radius: 0.75rem 0.75rem 0 0;
+    }
+    .game-layout[data-compose="landscape"] .chat-sheet-head { display: none; }
+    .game-layout[data-compose="landscape"] .chat-sheet .chat-log-box { flex: none; }
   }
 
   /* Pokémon sprites are pixel art: never smooth them. */

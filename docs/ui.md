@@ -71,6 +71,7 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 
 When the on-screen keyboard opens (chat, search). Names are entered on FireRed's own naming screen (letter grid), not with the device keyboard, so nothing changes there. The game is played mostly on phones (Chrome on Android, Safari on iOS, browser and PWA): every screen that types follows this one pattern (user 2026-11-10; first used by chat, [Phase 8](phases/phase-8-multiplayer-world/milestones/context.md#decisions) D21-D24).
 
+- **Code:** `spa-pokeuniverse/src/ui/keyboard.ts` (`KeyboardTracker`) is the one tracker every typing screen reuses.
 - **One code path for both browsers:** the viewport meta adds `interactive-widget=resizes-visual` (Chrome's default, iOS's only behavior), so the keyboard never resizes the layout viewport on either; the keyboard's size comes from the **VisualViewport API** (`resize` and `scroll`: `height`, `offsetTop`). *Why:* Android's `resizes-content` and iOS's overlay would otherwise need two layouts.
 - **The app shell is pinned to the visual viewport** while the keyboard is open (`position: fixed`, top = `offsetTop`, height = `height`, also exposed as `--vvh`), so iOS doesn't scroll the page to the focused field and nothing jumps; `dvh` everywhere else, never `100vh`.
 - **The screen is re-laid out in the space left**, not covered: the focused input sits right on top of the keyboard, the content it belongs to (e.g. recent chat lines) above it, the game scaled to fit what's left and still running.
