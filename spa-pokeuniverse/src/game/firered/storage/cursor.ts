@@ -40,8 +40,8 @@ const CURSOR_ANIMS: AnimCmd[][] = [
   [{ image: 48, duration: 5 }, "end"],
 ];
 
-/** GetCursorBoxColumnAndRow's inverse: the hand's place for a position. */
-function target(area: Area, pos: number): [number, number] {
+/** GetCursorCoordsByPos: the hand's place for a position (the buttons' is higher while it carries one). */
+function target(area: Area, pos: number, holding: boolean): [number, number] {
   switch (area) {
     case Area.Box:
       return [24 * (pos % BOX_COLUMNS) + 100, 24 * Math.trunc(pos / BOX_COLUMNS) + 32];
@@ -51,7 +51,7 @@ function target(area: Area, pos: number): [number, number] {
     case Area.Title:
       return [162, 12];
     case Area.Buttons:
-      return [88 * pos + 120, 14];
+      return [88 * pos + 120, holding ? 8 : 14];
   }
 }
 
@@ -80,7 +80,7 @@ export class StorageCursor {
     this.pos = pos;
     gba.sprites.loadSheet("storageCursor", assets.get("storageCursor").tiles);
     gba.sprites.loadSheet("storageCursorShadow", assets.get("storageCursorShadow").tiles);
-    const [x, y] = target(area, pos);
+    const [x, y] = target(area, pos, false);
     const hand: SpriteTemplate = { sheet: "storageCursor", palette: STORAGE_SPRITE_PALETTE, width: 32, height: 32, priority: 1, anims: CURSOR_ANIMS };
     const shadow: SpriteTemplate = { sheet: "storageCursorShadow", palette: STORAGE_SPRITE_PALETTE, width: 16, height: 16, priority: 2 };
     this.hand = gba.sprites.create(hand, x, y, 6)!;
@@ -98,7 +98,7 @@ export class StorageCursor {
 
   /** InitCursorMove: wrapping takes twice as long, and adds a screen to the distance. */
   moveTo(to: CursorMove): void {
-    const [x, y] = target(to.area, to.pos);
+    const [x, y] = target(to.area, to.pos, this.holding);
     const steps = to.wrapX || to.wrapY ? STEPS_WRAPPING : STEPS;
     const distX = x - this.hand.x + (to.wrapX ?? 0) * WRAP_DISTANCE;
     const distY = y - this.hand.y + (to.wrapY ?? 0) * WRAP_DISTANCE;
@@ -109,7 +109,9 @@ export class StorageCursor {
       dx: Math.trunc((distX * 256) / steps),
       dy: Math.trunc((distY * 256) / steps),
       steps,
-      flipIn: to.flip ? steps / 2 : 0,
+      // The hand stays turned over on the buttons; SetUpShowPartyMenu turns it back on the way
+      // to the party (cursorFlipTimer = 1 while vFlip).
+      flipIn: to.flip || (to.area === Area.Party && this.hand.vFlip) ? steps / 2 : 0,
     };
     if (!this.holding) this.hand.startAnim(ANIM_STILL);
     this.shadow.invisible = !(this.area === Area.Box && to.area === Area.Box);
@@ -120,7 +122,7 @@ export class StorageCursor {
     const m = this.move;
     if (!m) return false;
     if (--m.steps === 0) {
-      const [x, y] = target(m.to.area, m.to.pos);
+      const [x, y] = target(m.to.area, m.to.pos, this.holding);
       this.hand.x = x;
       this.hand.y = y;
       this.area = m.to.area;
@@ -178,7 +180,6 @@ export class StorageCursor {
     const inBox = this.area === Area.Box;
     this.hand.startAnim(this.holding ? HAND_FIST : ANIM_BOUNCE);
     this.hand.priority = inBox ? 2 : 1;
-    this.hand.vFlip = false;
     this.shadow.invisible = !inBox;
   }
 }
