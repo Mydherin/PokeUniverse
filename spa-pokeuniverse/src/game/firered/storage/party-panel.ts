@@ -66,12 +66,16 @@ export class PartyPanel {
     this.mons = [...party];
     this.map = Uint16Array.from(assets.get("storagePartyMenu").map!);
     this.updateSlots();
-    const close = assets.get("storageCloseBox").map!;
     if (shown) {
       this.createIcons(0);
       this.drawRows(PANEL_ROWS);
     } else this.drawRows(HIDDEN_ROWS);
-    putMapRect(bg, close, CLOSE_WIDTH, 0, CLOSE_WIDTH, 2, CLOSE_X, 0);
+    this.drawClose();
+  }
+
+  /** TilemapUtil_SetRect(TILEMAP_CLOSE_BUTTON): the panel's last column lies under its left edge. */
+  private drawClose(): void {
+    putMapRect(this.bg, this.flow.assets.get("storageCloseBox").map!, CLOSE_WIDTH, 0, CLOSE_WIDTH, 2, CLOSE_X, 0);
   }
 
   /** SetUpDoShowPartyMenu. */
@@ -196,6 +200,8 @@ export class PartyPanel {
     if (!showing) {
       for (const icon of this.icons) this.flow.gba.sprites.destroy(icon?.sprite);
       this.icons = [];
+      // HidePartyMenu: the close button is drawn again over the panel's last column.
+      this.drawClose();
     }
     return false;
   }
