@@ -623,12 +623,16 @@ class Overworld {
     if (this.map.music) this.flow.gba.sound.playBgm(this.map.music);
   }
 
-  /** After a win (or running from a wild Pokémon) the script goes on; a loss (whiteout) or a battle that couldn't start ends it. */
+  /**
+   * After a win, running from a wild Pokémon or catching it the script goes on (its end tells
+   * mic-core, which keeps the player still until then); a loss (whiteout) or a battle that
+   * couldn't start ends it.
+   */
   private afterBattle(result: BattleResult): void {
     const s = this.script;
     if (!s?.battling) return;
     s.battling = false;
-    if (result === BattleResult.WON || result === BattleResult.RAN) s.index++;
+    if (result === BattleResult.WON || result === BattleResult.RAN || result === BattleResult.CAUGHT) s.index++;
     else this.endScript(false);
   }
 
