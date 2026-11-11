@@ -5,6 +5,7 @@ import type { WorldLink } from "../../realtime/connection";
 import type { Gba } from "../gba/gba";
 import type { Font, FontId, Text, TextPrinters } from "../gba/text";
 import type { WorldView } from "../world/view";
+import type { ChatWindow } from "./chat-window";
 import type { Assets, SoundId } from "./manifest";
 import type { Options } from "./options";
 import type { PlayTime } from "./play-time";
@@ -23,6 +24,8 @@ export interface Flow {
   readonly world: WorldView;
   /** The world on the server: entering it, the player's intents, its answers. */
   readonly link: WorldLink;
+  /** The zone's chat beside the screen: shown on the field, fed with the zone's lines. */
+  readonly chat: ChatWindow;
   /** FONT_NORMAL, ready from boot. */
   readonly font: Font;
   /** Every font, and the text printers; ready once `newGameReady` resolved. */

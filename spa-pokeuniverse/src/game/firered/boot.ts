@@ -21,6 +21,7 @@ const TEXT_SONGS: Record<number, SoundId> = { 17: "se_flee", 49: "se_ball_bounce
 const TEXT_MUSIC: Record<number, SoundId> = { 322: "mus_caught" };
 import { startNewGame } from "./new-game";
 import { textScrollSpeed, validOptions, type Options } from "./options";
+import { ChatWindow, type ChatSlots } from "./chat-window";
 import { startOverworld } from "./overworld";
 import { PlayTime } from "./play-time";
 import { startTitle } from "./title";
@@ -84,7 +85,8 @@ class OptionsSaver {
   }
 }
 
-export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: WorldLink, trainer: Promise<TrainerSummary | null>): void {
+/** Starts the game's screens; the returned function stops what lives outside the GBA screen (the chat). */
+export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: WorldLink, trainer: Promise<TrainerSummary | null>, chatSlots: ChatSlots): () => void {
   let summary: TrainerSummary | null = null;
   let options = validOptions(undefined);
   const saver = new OptionsSaver();
@@ -98,6 +100,7 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   useTrainer(null);
   void trainer.then(useTrainer);
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
+  const chat = new ChatWindow(chatSlots, font, assets.charmap, link);
   let fonts: Record<FontId, Font> | null = null;
   let text: TextPrinters | null = null;
   // The New Game set loads in the background while the intro plays.
@@ -134,13 +137,17 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   void newGame.catch(() => {});
 
   const playTime = new PlayTime();
-  gba.onFrame = () => playTime.update();
+  gba.onFrame = () => {
+    playTime.update();
+    chat.update();
+  };
   const flow: Flow = {
     gba,
     playTime,
     assets,
     world,
     link,
+    chat,
     font,
     get fonts() {
       return fonts!;
@@ -188,4 +195,5 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
     toOverworld: () => startOverworld(flow),
   };
   flow.toCopyright();
+  return () => chat.destroy();
 }

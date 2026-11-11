@@ -110,16 +110,132 @@
   }
   @media (pointer: coarse) and (orientation: portrait) {
     .game-layout {
-      grid-template: "screen screen" auto "left right" minmax(0, 1fr) / 1fr 1fr;
+      grid-template: "screen screen" auto "ticker ticker" auto "left right" minmax(0, 1fr) / 1fr 1fr;
       padding: calc(env(safe-area-inset-top) + 4rem) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
     .game-screen { aspect-ratio: 3 / 2; max-height: 62dvh; }
   }
   @media (pointer: coarse) and (orientation: landscape) {
     .game-layout {
-      grid-template: "left screen right" minmax(0, 1fr) / 10rem minmax(0, 1fr) 10rem;
+      grid-template: "left screen right" minmax(0, 1fr) "left ticker right" auto / 10rem minmax(0, 1fr) 10rem;
       padding: calc(env(safe-area-inset-top) + 3.5rem) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
+  }
+
+  /* The zone's chat (phase-8 D15, D23, D24), in Union Room chat's colors: a panel beside or
+     below the screen on PC; a ticker, a button and a sheet over the controls on touch screens.
+     Only on the field (data-chat-shown); the logs are canvases drawn at an integer scale. */
+  .game-layout[data-chat="side"] { grid-template: "screen chat" minmax(0, 1fr) / minmax(0, 1fr) var(--chat-size); }
+  .game-layout[data-chat="below"] { grid-template: "screen" minmax(0, 1fr) "chat" var(--chat-size) / minmax(0, 1fr); }
+  .chat-panel {
+    grid-area: chat;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.5rem;
+    background: rgb(0 82 172);
+    visibility: hidden;
+  }
+  .game-layout[data-chat="side"] .chat-panel { padding-top: calc(env(safe-area-inset-top) + 3.75rem); }
+  .chat-panel[hidden], .chat-sheet[hidden], .chat-compose[hidden] { display: none; }
+  .game-layout[data-chat-shown="true"] .chat-panel { visibility: visible; }
+  .chat-log-box { flex: 1; min-height: 0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+  .chat-log { image-rendering: pixelated; touch-action: none; }
+  .chat-chips { display: flex; gap: 0.375rem; }
+  .chat-chip {
+    padding: 0.125rem 0.75rem;
+    border-radius: 999px;
+    background: rgb(246 246 255);
+    color: rgb(0 82 172);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+  }
+  .chat-compose { display: flex; gap: 0.375rem; }
+  .chat-hint { color: rgb(246 246 255); font-family: var(--font-display); font-size: 0.875rem; text-align: center; }
+  .chat-hint[hidden] { display: none; }
+  .chat-input {
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border: 3px solid rgb(41 131 222);
+    border-radius: 0.25rem;
+    background: rgb(246 246 255);
+    color: rgb(0 0 0);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    outline: none;
+  }
+  .chat-input:focus { border-color: rgb(255 189 0); }
+  .chat-send, .chat-close {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border-radius: 0.25rem;
+    background: rgb(41 131 222);
+    color: rgb(246 246 255);
+    font-family: var(--font-display);
+  }
+  .chat-close { margin-left: auto; font-size: 1.5rem; line-height: 1; }
+  .chat-ticker, .chat-button { display: none; }
+  @media (pointer: coarse) {
+    .chat-ticker {
+      grid-area: ticker;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0.25rem 0.5rem 0;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+    }
+    .game-layout[data-chat-shown="true"] .chat-ticker:not([data-fade="true"]) { opacity: 1; pointer-events: auto; }
+    .chat-button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 3rem;
+      height: 2.75rem;
+      border-radius: 999px;
+      background: rgb(255 255 255 / 0.12);
+      color: var(--color-ink-soft);
+      visibility: hidden;
+    }
+    .game-layout[data-chat-shown="true"] .chat-button { visibility: visible; }
+    .chat-badge {
+      position: absolute;
+      top: -0.25rem;
+      right: -0.375rem;
+      min-width: 1.25rem;
+      padding: 0 0.25rem;
+      border-radius: 999px;
+      background: rgb(255 49 49);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1.25rem;
+      text-align: center;
+    }
+    .chat-badge[hidden] { display: none; }
+    .chat-sheet {
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 0;
+      padding: 0.5rem 0.5rem calc(env(safe-area-inset-bottom) + 0.5rem);
+      background: rgb(0 82 172);
+      border-radius: 0.75rem 0.75rem 0 0;
+    }
+    .chat-sheet-head { display: flex; align-items: center; gap: 0.5rem; }
+  }
+  @media (pointer: coarse) and (orientation: portrait) {
+    .chat-sheet { grid-row: 2 / -1; grid-column: 1 / -1; }
+  }
+  @media (pointer: coarse) and (orientation: landscape) {
+    .game-right { position: relative; }
+    .chat-button { position: absolute; top: 0.75rem; }
+    .chat-sheet { position: absolute; top: 0; right: 0; bottom: 0; width: min(24rem, 60%); border-radius: 0.75rem 0 0 0.75rem; }
   }
 
   /* Pokémon sprites are pixel art: never smooth them. */

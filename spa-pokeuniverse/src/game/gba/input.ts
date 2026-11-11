@@ -36,6 +36,11 @@ const KEYS: Record<string, number> = {
   ShiftRight: Button.Select,
 };
 
+/** A text field has the keys (chat): the game doesn't read them (ui.md#desktop). */
+function typing(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+}
+
 export class Input {
   held = 0;
   pressed = 0;
@@ -52,7 +57,7 @@ export class Input {
   private latched = 0;
   private readonly onKeyDown = (e: KeyboardEvent) => {
     const button = KEYS[e.code];
-    if (!button || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!button || e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
     e.preventDefault();
     if (!e.repeat) this.press(button);
   };
@@ -61,11 +66,16 @@ export class Input {
     if (button) this.release(button);
   };
   private readonly onBlur = () => (this.down = 0);
+  /** Typing starts: nothing stays held from before. */
+  private readonly onFocusIn = (e: FocusEvent) => {
+    if (typing(e.target)) this.down = 0;
+  };
 
   constructor() {
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
     window.addEventListener("blur", this.onBlur);
+    window.addEventListener("focusin", this.onFocusIn);
   }
 
   press(button: number): void {
@@ -113,5 +123,6 @@ export class Input {
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
     window.removeEventListener("blur", this.onBlur);
+    window.removeEventListener("focusin", this.onFocusIn);
   }
 }

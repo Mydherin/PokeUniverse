@@ -355,7 +355,10 @@ class Overworld {
     this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
     this.tallGrass = new TallGrass(world, flow.assets, map);
     this.regrass();
-    this.others = new Others(map, getSession()?.account.id ?? 0n, {
+    const self = getSession()?.account.id ?? 0n;
+    // A new map: its chat starts empty (D13).
+    this.flow.chat.clear();
+    this.others = new Others(map, self, {
       joined: (p) => this.otherSprites.set(p.id, new OtherPlayerSprite(world, flow.assets, p)),
       left: (p) => {
         this.otherSprites.get(p.id)?.destroy();
@@ -368,6 +371,11 @@ class Overworld {
         if (p.follower.species) this.tallGrass.enter(`other-follower:${p.id}`, fx, fy);
       },
       placed: (p) => this.regrassOther(p),
+      chat: (id, name, text) => {
+        const own = id === self;
+        // Someone already gone from the map: nobody to name.
+        if (own || name !== undefined) this.flow.chat.add({ id, name: own ? (this.flow.trainer?.name ?? "") : name!, text, own });
+      },
     });
     this.others.fromSnapshot(others);
   }
@@ -409,12 +417,15 @@ class Overworld {
       draw?.();
       this.fadeIn();
     }
-    gba.setMain(() => {
+    const main = () => {
       this.frame();
       if (this.away) return;
       this.flow.runFrame();
       if (this.menu?.returning !== Return.Drawing) world.setFade(gba.palettes.fadeY, gba.palettes.fadeColor);
-    });
+    };
+    gba.setMain(main);
+    // The chat shows on the field, not over battles and START's menus (FireRed's screens stay as they are).
+    this.flow.chat.field = () => !this.destroyed && gba.currentMain === main && !this.away && this.menu === null && this.battleScreen === null;
   }
 
   /** FadeInFromBlack. */
@@ -433,6 +444,8 @@ class Overworld {
     this.regrass();
     this.nextZone = [];
     this.others.fromSnapshot(s.others);
+    // Nothing said while away is replayed (D13).
+    this.flow.chat.clear();
     this.avatar.waiting = false;
     this.endScript(false);
     if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
@@ -927,6 +940,7 @@ class Overworld {
 
   destroy(): void {
     this.destroyed = true;
+    this.flow.chat.field = null;
     this.destroySprites();
     this.message.hide();
   }

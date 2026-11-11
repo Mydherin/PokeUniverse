@@ -77,6 +77,8 @@ export interface WorldLink {
   /** Through the warp the player stands on: answered with Warped, or a Correction when refused. */
   useWarp(direction: Direction, x: number, y: number): void;
   interact(walkInto: boolean): void;
+  /** A line for the zone's chat; it shows once it comes back in ZoneEvents (phase-8 D13). */
+  sendChat(text: string): void;
   scriptDone(script: number): void;
   /** The running script reached its TrainerBattle step: answered with BattleStarted (or BattleEnded). */
   scriptBattle(script: number): void;
@@ -211,6 +213,10 @@ export class Connection implements WorldLink {
 
   interact(walkInto: boolean): void {
     if (this.inWorld) this.send({ case: "interact", value: { walkInto } });
+  }
+
+  sendChat(text: string): void {
+    if (this.inWorld) this.send({ case: "sendChat", value: { text } });
   }
 
   scriptDone(script: number): void {

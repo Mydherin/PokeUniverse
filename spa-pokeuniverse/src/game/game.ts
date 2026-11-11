@@ -13,6 +13,7 @@ import { Sound } from "./gba/sound";
 import { touchControls } from "./gba/touch-controls";
 import { HEIGHT, WIDTH } from "./gba/video";
 import { fetchTrainer, startFireRed } from "./firered/boot";
+import type { ChatSlots } from "./firered/chat-window";
 import { Assets, SOUNDS } from "./firered/manifest";
 import { fitScreen } from "./screen";
 import type { WorldView } from "./world/view";
@@ -35,7 +36,7 @@ class GbaScreen extends Phaser.Scene {
     private readonly overlay: HTMLElement,
     private readonly world: WorldView,
     private readonly link: WorldLink,
-    private readonly onGba: (gba: Gba) => void,
+    private readonly onGba: (gba: Gba) => ChatSlots,
   ) {
     super({ key: "gba", active: true });
   }
@@ -56,11 +57,12 @@ class GbaScreen extends Phaser.Scene {
       await sound.load([...SOUNDS], Assets.soundUrl);
       if (this.destroyed) return;
       this.gba = new Gba(sound);
-      this.onGba(this.gba);
+      const chat = this.onGba(this.gba);
       const start = () => {
         this.elapsed = 0;
         this.running = true;
-        startFireRed(this.gba, assets, this.world, this.link, trainer);
+        const stop = startFireRed(this.gba, assets, this.world, this.link, trainer, chat);
+        this.events.once(Phaser.Scenes.Events.DESTROY, stop);
       };
       if (ctx.state === "running") start();
       else this.waitForUnlock(ctx, start);
@@ -138,11 +140,16 @@ export function startGame(parent: HTMLElement, link: WorldLink): () => void {
         const controls = touchControls(g.input);
         left.append(controls.left);
         right.append(controls.right);
+        return { layout, right: controls.right };
       }),
     ],
   });
   // Follow the screen size (rotation, keyboard, browser bars), not only window resizes.
-  const observer = new ResizeObserver(() => game.scale.refresh());
+  // refresh() alone keeps the parent's last size: read it first (the chat panel resizes the cell).
+  const observer = new ResizeObserver(() => {
+    game.scale.getParentBounds();
+    game.scale.refresh();
+  });
   game.events.once(Phaser.Core.Events.READY, () => observer.observe(screen));
   return () => {
     observer.disconnect();

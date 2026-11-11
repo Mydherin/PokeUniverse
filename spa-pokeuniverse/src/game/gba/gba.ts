@@ -27,6 +27,11 @@ export class Gba {
 
   constructor(readonly sound: Sound) {}
 
+  /** The main callback running now. */
+  get currentMain(): () => void {
+    return this.main;
+  }
+
   /** Runs `fn` from the next frame on, with the state counter back at 0. */
   setMain(fn: () => void): void {
     this.main = fn;

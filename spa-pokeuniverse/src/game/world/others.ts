@@ -28,6 +28,9 @@ export interface OthersListener {
   stepped(p: OtherPlayerModel, fromX: number, fromY: number): void;
   /** `p` (and its follower) are somewhere new without a step: joined, placed or a new follower. */
   placed(p: OtherPlayerModel): void;
+  /** A line in the zone's chat, the own player's included; `name` is unset for the own player
+   *  and for someone not on the map. */
+  chat(id: bigint, name: string | undefined, text: string): void;
 }
 
 export class OtherPlayerModel {
@@ -153,6 +156,11 @@ export class Others {
   apply(z: ZoneEvents): void {
     for (const { event: e } of z.events) {
       if (!e.case) continue;
+      // Chat comes back to its sender too (M5): read before the own player's events are skipped.
+      if (e.case === "chat") {
+        this.listener.chat(e.value.id, this.players.get(e.value.id)?.name, e.value.text);
+        continue;
+      }
       const id = e.case === "joined" ? e.value.player?.id : e.value.id;
       if (id === undefined || id === this.self) continue;
       const p = this.players.get(id);
