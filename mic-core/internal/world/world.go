@@ -13,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	devv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/dev/v1"
 
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
@@ -76,6 +77,9 @@ type World struct {
 	openPCs  map[int64]openPC  // PCs left open by dropped connections, by account (reopenPC).
 	closed   bool
 	draining bool // The server is stopping: players leaving keep their battles.
+
+	statsMu   sync.Mutex
+	zoneStats map[ZoneKey]*devv1.ZoneStats // Each zone's last window (zone_stats.go).
 }
 
 func New(maps Maps, store *live.Store, bus Bus, zoneBus ZoneBus, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
@@ -83,7 +87,7 @@ func New(maps Maps, store *live.Store, bus Bus, zoneBus ZoneBus, pool *pgxpool.P
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
 	w := &World{maps: maps, live: store, bus: bus, zoneBus: zoneBus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
-		zones: map[ZoneKey]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}}
+		zones: map[ZoneKey]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}, zoneStats: map[ZoneKey]*devv1.ZoneStats{}}
 	go w.keepAlive()
 	return w, nil
 }

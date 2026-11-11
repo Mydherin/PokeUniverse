@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 6/9 milestones ✅ (M1-M6), now [M7 Mobile compose](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (built; real-phone cases 9-10 left) (Phase 7 done 2026-11-10). **Updated:** 2026-11-11.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 6/9 milestones ✅ (M1-M6), now [M8 Load and tuning](phase-8-multiplayer-world/milestones/m08-load-tuning.md#resume-here) 🔨 (Manual Test 1-7 ✅; case 8 and docs left); [M7 Mobile compose](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (built; real-phone cases 9-10 wait on the user's phones) (Phase 7 done 2026-11-10). **Updated:** 2026-11-11.
 
 ## Milestones of Phases With Folders
 

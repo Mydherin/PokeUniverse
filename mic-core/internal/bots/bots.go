@@ -35,7 +35,9 @@ const Role = "bot"
 
 const (
 	maxBots = 100
-	maxBody = 1 << 10
+	// The highest first bot: a load run (phase-8 M8) spawns up to 500 in calls of 100.
+	maxFirst = 1000
+	maxBody  = 1 << 10
 )
 
 // RateLimit wraps a handler with a per-IP limit.
@@ -43,6 +45,8 @@ type RateLimit func(name string, limit int, window time.Duration, next http.Hand
 
 type Handler struct {
 	Secret string
+	// The replica's zone stats, for GET /api/dev/stats (phase-8 M8).
+	Stats  func() *devv1.ReplicaStats
 	Tokens *auth.Tokens
 	Pool   *pgxpool.Pool
 	Live   *live.Store
@@ -57,6 +61,22 @@ func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
 	}
 	h.Log.Warn("dev bots endpoint enabled (BOTS_SECRET is set): never set it in production")
 	mux.Handle("POST /api/dev/bots", limit("dev-bots", 30, time.Minute, http.HandlerFunc(h.spawn)))
+	mux.HandleFunc("GET /api/dev/stats", h.stats)
+}
+
+// stats answers the replica's last zone windows as Protocol Buffers JSON.
+func (h *Handler) stats(w http.ResponseWriter, r *http.Request) {
+	if subtle.ConstantTimeCompare([]byte(r.Header.Get("X-Bots-Secret")), []byte(h.Secret)) != 1 {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+	data, err := protojson.Marshal(h.Stats())
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(data)
 }
 
 func (h *Handler) spawn(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +90,7 @@ func (h *Handler) spawn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req devv1.SpawnBots
-	if err := protojson.Unmarshal(body, &req); err != nil || req.Count < 1 || req.Count > maxBots || req.First > maxBots {
+	if err := protojson.Unmarshal(body, &req); err != nil || req.Count < 1 || req.Count > maxBots || req.First > maxFirst {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}

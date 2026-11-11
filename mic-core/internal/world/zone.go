@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
@@ -32,6 +34,7 @@ type zone struct {
 	// The zone's Redis hash, and the same zone on the other replicas (zone_bus.go).
 	hash   string
 	remote remoteState
+	stats  zoneStats // zone_stats.go
 }
 
 func newZone(w *World, m *Map, key ZoneKey) *zone {
@@ -83,6 +86,7 @@ func (z *zone) run() {
 			z.tick() // The other replicas hear who left.
 			z.unsubscribe()
 			z.events = nil // No one left to tell.
+			z.emptied()
 		}
 	}
 }
@@ -113,6 +117,7 @@ func (z *zone) remove(p *Player) {
 // what the local players are waiting for: each player's own answers, then the zone's events
 // (local and received) encoded once (phase-8 D7).
 func (z *zone) tick() {
+	start := time.Now()
 	var changed []*Player
 	for p := range z.players {
 		if z.showChanges(p) {
@@ -135,12 +140,17 @@ func (z *zone) tick() {
 			continue
 		}
 		for _, msg := range p.out {
+			z.stats.bytes += proto.Size(msg)
 			p.sink.Send(msg)
 		}
 		p.out = p.out[:0]
 		if encoded != nil {
+			z.stats.bytes += len(encoded)
 			p.sink.SendZoneEvents(encoded)
 		}
+	}
+	if len(z.players) > 0 {
+		z.ticked(start, len(events))
 	}
 }
 
@@ -264,6 +274,7 @@ func (z *zone) withPlayer(p *Player, steps Script) Script {
 
 // correct tells the client where the player really is.
 func (z *zone) correct(p *Player, step uint32) {
+	z.stats.corrections++
 	p.corrected = true
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Correction{Correction: &worldv1.Correction{
 		Step: step, X: uint32(p.pos.X), Y: uint32(p.pos.Y), Facing: p.facing, Follower: p.follower.proto(),

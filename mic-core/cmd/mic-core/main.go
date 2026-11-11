@@ -142,7 +142,7 @@ func run(log *slog.Logger) error {
 	authHandler.Register(mux, limit)
 	(&admin.Handler{Tokens: tokens}).Register(mux, limit)
 	(&trainer.Handler{Tokens: tokens, Pool: pool, Live: positions, Log: log}).Register(mux, limit)
-	(&bots.Handler{Secret: cfg.BotsSecret, Tokens: tokens, Pool: pool, Live: positions, Maps: worldMaps, Log: log}).Register(mux, limit)
+	(&bots.Handler{Secret: cfg.BotsSecret, Stats: game.Stats, Tokens: tokens, Pool: pool, Live: positions, Maps: worldMaps, Log: log}).Register(mux, limit)
 	mux.Handle("GET /ws", ws)
 
 	srv := &http.Server{

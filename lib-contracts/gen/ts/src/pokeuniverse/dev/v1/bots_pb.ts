@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/dev/v1/bots.proto.
  */
 export const file_pokeuniverse_dev_v1_bots: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wb2tldW5pdmVyc2UvZGV2L3YxL2JvdHMucHJvdG8SE3Bva2V1bml2ZXJzZS5kZXYudjEiTAoJU3Bhd25Cb3RzEg0KBWNvdW50GAEgASgNEgsKA21hcBgCIAEoCRIUCgxyZWZyZXNoX29ubHkYAyABKAgSDQoFZmlyc3QYBCABKA0iPAoLU3Bhd25lZEJvdHMSLQoEYm90cxgBIAMoCzIfLnBva2V1bml2ZXJzZS5kZXYudjEuU3Bhd25lZEJvdCJVCgpTcGF3bmVkQm90EgkKAW4YASABKA0SEgoKYWNjb3VudF9pZBgCIAEoBBIUCgxhY2Nlc3NfdG9rZW4YAyABKAkSEgoKZXhwaXJlc19hdBgEIAEoA0I9Wjtwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2Rldi92MTtkZXZ2MWIGcHJvdG8z");
+  fileDesc("Ch5wb2tldW5pdmVyc2UvZGV2L3YxL2JvdHMucHJvdG8SE3Bva2V1bml2ZXJzZS5kZXYudjEiTAoJU3Bhd25Cb3RzEg0KBWNvdW50GAEgASgNEgsKA21hcBgCIAEoCRIUCgxyZWZyZXNoX29ubHkYAyABKAgSDQoFZmlyc3QYBCABKA0iPAoLU3Bhd25lZEJvdHMSLQoEYm90cxgBIAMoCzIfLnBva2V1bml2ZXJzZS5kZXYudjEuU3Bhd25lZEJvdCJVCgpTcGF3bmVkQm90EgkKAW4YASABKA0SEgoKYWNjb3VudF9pZBgCIAEoBBIUCgxhY2Nlc3NfdG9rZW4YAyABKAkSEgoKZXhwaXJlc19hdBgEIAEoAyJ5CgxSZXBsaWNhU3RhdHMSDwoHcmVwbGljYRgBIAEoCRItCgV6b25lcxgCIAMoCzIeLnBva2V1bml2ZXJzZS5kZXYudjEuWm9uZVN0YXRzEikKBWRyb3BzGAMgASgLMhoucG9rZXVuaXZlcnNlLmRldi52MS5Ecm9wcyK8AgoJWm9uZVN0YXRzEgsKA21hcBgBIAEoCRINCgVwaGFzZRgCIAEoDRIVCg1sb2NhbF9wbGF5ZXJzGAMgASgNEhYKDnJlbW90ZV9wbGF5ZXJzGAQgASgNEg0KBXRpY2tzGAUgASgNEhcKD2V2ZW50c19wZXJfdGljaxgGIAEoARITCgt0aWNrX3A1MF91cxgHIAEoDRITCgt0aWNrX3A5OV91cxgIIAEoDRIYChBieXRlc19wZXJfc2Vjb25kGAkgASgEEhIKCmJhdGNoZXNfaW4YCiABKA0SEwoLYmF0Y2hlc19vdXQYCyABKA0SEwoLY29ycmVjdGlvbnMYDCABKA0SFwoPZHJvcHBlZF9pbnRlbnRzGA0gASgNEhUKDWRyb3BwZWRfY2hhdHMYDiABKA0SCgoCYXQYDyABKAMiigEKBURyb3BzEhMKC2ludGVudF9yYXRlGAEgASgEEhMKC2ludGVudF9zaXplGAIgASgEEhYKDmludGVudF9pbnZhbGlkGAMgASgEEhEKCWNoYXRfcmF0ZRgEIAEoBBIUCgxjaGF0X2ludmFsaWQYBSABKAQSFgoOc2xvd19jb25zdW1lcnMYBiABKARCPVo7cG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9kZXYvdjE7ZGV2djFiBnByb3RvMw");
 
 /**
  * Request of POST /api/dev/bots: bot accounts bot-1 … bot-<count>, created or reused.
@@ -45,7 +45,7 @@ export type SpawnBots = Message<"pokeuniverse.dev.v1.SpawnBots"> & {
 
   /**
    * The first bot's n (0 or 1: bot-1), so several bot scripts can run side by side without
-   * taking each other's bots over: bot-<first> … bot-<first+count-1>.
+   * taking each other's bots over: bot-<first> … bot-<first+count-1>. Up to 1000.
    *
    * @generated from field: uint32 first = 4;
    */
@@ -113,4 +113,184 @@ export type SpawnedBot = Message<"pokeuniverse.dev.v1.SpawnedBot"> & {
  */
 export const SpawnedBotSchema: GenMessage<SpawnedBot> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_dev_v1_bots, 2);
+
+/**
+ * Response of GET /api/dev/stats (phase-8 M8): what the replica that answered measured in its
+ * last 10 s window, the same numbers its `zone stats` log lines carry. A load balancer picks the
+ * replica, so a caller asks a few times and keeps one answer per replica.
+ *
+ * @generated from message pokeuniverse.dev.v1.ReplicaStats
+ */
+export type ReplicaStats = Message<"pokeuniverse.dev.v1.ReplicaStats"> & {
+  /**
+   * @generated from field: string replica = 1;
+   */
+  replica: string;
+
+  /**
+   * @generated from field: repeated pokeuniverse.dev.v1.ZoneStats zones = 2;
+   */
+  zones: ZoneStats[];
+
+  /**
+   * Messages realtime dropped since the replica started, by reason.
+   *
+   * @generated from field: pokeuniverse.dev.v1.Drops drops = 3;
+   */
+  drops?: Drops | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.dev.v1.ReplicaStats.
+ * Use `create(ReplicaStatsSchema)` to create a new message.
+ */
+export const ReplicaStatsSchema: GenMessage<ReplicaStats> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_dev_v1_bots, 3);
+
+/**
+ * @generated from message pokeuniverse.dev.v1.ZoneStats
+ */
+export type ZoneStats = Message<"pokeuniverse.dev.v1.ZoneStats"> & {
+  /**
+   * @generated from field: string map = 1;
+   */
+  map: string;
+
+  /**
+   * @generated from field: uint32 phase = 2;
+   */
+  phase: number;
+
+  /**
+   * @generated from field: uint32 local_players = 3;
+   */
+  localPlayers: number;
+
+  /**
+   * @generated from field: uint32 remote_players = 4;
+   */
+  remotePlayers: number;
+
+  /**
+   * Over the window: ticks run and zone events sent per tick (local and received).
+   *
+   * @generated from field: uint32 ticks = 5;
+   */
+  ticks: number;
+
+  /**
+   * @generated from field: double events_per_tick = 6;
+   */
+  eventsPerTick: number;
+
+  /**
+   * Tick time (save + marshal + send), microseconds.
+   *
+   * @generated from field: uint32 tick_p50_us = 7;
+   */
+  tickP50Us: number;
+
+  /**
+   * @generated from field: uint32 tick_p99_us = 8;
+   */
+  tickP99Us: number;
+
+  /**
+   * Bytes queued to the zone's local players per second, all of them together.
+   *
+   * @generated from field: uint64 bytes_per_second = 9;
+   */
+  bytesPerSecond: bigint;
+
+  /**
+   * NATS batches received from and published to the other replicas.
+   *
+   * @generated from field: uint32 batches_in = 10;
+   */
+  batchesIn: number;
+
+  /**
+   * @generated from field: uint32 batches_out = 11;
+   */
+  batchesOut: number;
+
+  /**
+   * Corrections sent, and intents and chats dropped (rate, invalid), by the zone's players.
+   *
+   * @generated from field: uint32 corrections = 12;
+   */
+  corrections: number;
+
+  /**
+   * @generated from field: uint32 dropped_intents = 13;
+   */
+  droppedIntents: number;
+
+  /**
+   * @generated from field: uint32 dropped_chats = 14;
+   */
+  droppedChats: number;
+
+  /**
+   * Unix milliseconds the window ended.
+   *
+   * @generated from field: int64 at = 15;
+   */
+  at: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.dev.v1.ZoneStats.
+ * Use `create(ZoneStatsSchema)` to create a new message.
+ */
+export const ZoneStatsSchema: GenMessage<ZoneStats> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_dev_v1_bots, 4);
+
+/**
+ * @generated from message pokeuniverse.dev.v1.Drops
+ */
+export type Drops = Message<"pokeuniverse.dev.v1.Drops"> & {
+  /**
+   * Intents: over 20/s burst 40 (the connection is closed), over the size limit, or invalid.
+   *
+   * @generated from field: uint64 intent_rate = 1;
+   */
+  intentRate: bigint;
+
+  /**
+   * @generated from field: uint64 intent_size = 2;
+   */
+  intentSize: bigint;
+
+  /**
+   * @generated from field: uint64 intent_invalid = 3;
+   */
+  intentInvalid: bigint;
+
+  /**
+   * Chat: over 0.5/s burst 4, or not valid text.
+   *
+   * @generated from field: uint64 chat_rate = 4;
+   */
+  chatRate: bigint;
+
+  /**
+   * @generated from field: uint64 chat_invalid = 5;
+   */
+  chatInvalid: bigint;
+
+  /**
+   * Connections closed because their send queue was full.
+   *
+   * @generated from field: uint64 slow_consumers = 6;
+   */
+  slowConsumers: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.dev.v1.Drops.
+ * Use `create(DropsSchema)` to create a new message.
+ */
+export const DropsSchema: GenMessage<Drops> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_dev_v1_bots, 5);
 

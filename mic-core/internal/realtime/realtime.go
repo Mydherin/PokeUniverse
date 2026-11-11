@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -23,6 +24,7 @@ import (
 	"pokeuniverse/mic-core/internal/auth"
 	"pokeuniverse/mic-core/internal/chat"
 	"pokeuniverse/mic-core/internal/live"
+	"pokeuniverse/mic-core/internal/stats"
 	"pokeuniverse/mic-core/internal/world"
 )
 
@@ -189,15 +191,20 @@ func (c *conn) run() {
 	for {
 		kind, data, err := c.ws.ReadMessage()
 		if err != nil {
+			if errors.Is(err, websocket.ErrReadLimit) {
+				c.dropped(stats.IntentSize)
+			}
 			return
 		}
 		at := time.Now()
 		if kind != websocket.BinaryMessage || !c.limiter.Allow() {
+			c.dropped(map[bool]stats.Drop{true: stats.IntentInvalid, false: stats.IntentRate}[kind != websocket.BinaryMessage])
 			c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 			return
 		}
 		var msg realtimev1.ClientMessage
 		if err := proto.Unmarshal(data, &msg); err != nil {
+			c.dropped(stats.IntentInvalid)
 			c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 			return
 		}
@@ -227,11 +234,17 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 	case *realtimev1.ClientMessage_SendChat:
 		// Dropped without an answer outside the world, over the rate or invalid (phase-8 D17):
 		// FireRed has no refusal message, and a slow or old client isn't misbehaving.
-		if c.player == nil || !c.chat.Allow() {
+		if c.player == nil {
+			return true
+		}
+		if !c.chat.Allow() {
+			c.dropped(stats.ChatRate)
 			return true
 		}
 		if line, ok := chat.Clean(p.SendChat.GetText()); ok {
 			c.player.SendChat(line)
+		} else {
+			c.dropped(stats.ChatInvalid)
 		}
 		return true
 	}
@@ -350,8 +363,17 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		c.player.BattleChoice(p.BattleChoice)
 		return true
 	}
+	c.dropped(stats.IntentInvalid)
 	c.fail(realtimev1.ErrorCode_ERROR_CODE_BAD_MESSAGE, closeBadMessage)
 	return false
+}
+
+// dropped counts a message dropped by reason, and in the player's zone once in the world (phase-8 M8).
+func (c *conn) dropped(d stats.Drop) {
+	stats.Count(d)
+	if c.player != nil {
+		c.player.Dropped(d)
+	}
 }
 
 // enterWorld puts the trainer in the world (again, after a reconnect) and sends the snapshot.
@@ -462,8 +484,12 @@ func (c *conn) enqueue(data []byte) {
 	case c.send <- data:
 	case <-c.done:
 	default:
-		// The client can't keep up; drop it instead of growing memory.
-		c.requestClose(websocket.CloseTryAgainLater, "slow consumer")
+		// The client can't keep up; drop it instead of growing memory (it reconnects with a snapshot).
+		c.closeOnce.Do(func() {
+			stats.Count(stats.SlowConsumer)
+			c.h.log.Warn("slow consumer dropped", "account_id", c.principal.AccountID)
+			c.closeReq <- closeFrame{websocket.CloseTryAgainLater, "slow consumer"}
+		})
 	}
 }
 

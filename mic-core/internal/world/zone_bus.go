@@ -72,6 +72,7 @@ func (z *zone) received(msg *worldv1.ZoneBus) {
 	z.remote.heard[from] = time.Now()
 	switch m := msg.Message.(type) {
 	case *worldv1.ZoneBus_Batch:
+		z.stats.batchesIn++
 		for _, ev := range m.Batch.GetEvents() {
 			id := zoneEventID(ev)
 			switch {
@@ -112,6 +113,7 @@ func (z *zone) publish(local []*worldv1.ZoneEvent, now time.Time) {
 		return
 	}
 	if len(local) > 0 {
+		z.stats.batchesOut++
 		z.w.zoneBus.Publish(z.key.Map, z.key.Phase, &worldv1.ZoneBus{Message: &worldv1.ZoneBus_Batch{Batch: &worldv1.ZoneEvents{Events: local}}})
 	}
 	if now.Sub(z.remote.beat) >= presenceEvery && len(z.players) > 0 {

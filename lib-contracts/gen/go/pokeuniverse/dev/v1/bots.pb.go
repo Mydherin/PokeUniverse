@@ -35,7 +35,7 @@ type SpawnBots struct {
 	// renews its tokens before they expire); nothing else changes.
 	RefreshOnly bool `protobuf:"varint,3,opt,name=refresh_only,json=refreshOnly,proto3" json:"refresh_only,omitempty"`
 	// The first bot's n (0 or 1: bot-1), so several bot scripts can run side by side without
-	// taking each other's bots over: bot-<first> … bot-<first+count-1>.
+	// taking each other's bots over: bot-<first> … bot-<first+count-1>. Up to 1000.
 	First         uint32 `protobuf:"varint,4,opt,name=first,proto3" json:"first,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -214,6 +214,319 @@ func (x *SpawnedBot) GetExpiresAt() int64 {
 	return 0
 }
 
+// Response of GET /api/dev/stats (phase-8 M8): what the replica that answered measured in its
+// last 10 s window, the same numbers its `zone stats` log lines carry. A load balancer picks the
+// replica, so a caller asks a few times and keeps one answer per replica.
+type ReplicaStats struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Replica string                 `protobuf:"bytes,1,opt,name=replica,proto3" json:"replica,omitempty"`
+	Zones   []*ZoneStats           `protobuf:"bytes,2,rep,name=zones,proto3" json:"zones,omitempty"`
+	// Messages realtime dropped since the replica started, by reason.
+	Drops         *Drops `protobuf:"bytes,3,opt,name=drops,proto3" json:"drops,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReplicaStats) Reset() {
+	*x = ReplicaStats{}
+	mi := &file_pokeuniverse_dev_v1_bots_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReplicaStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReplicaStats) ProtoMessage() {}
+
+func (x *ReplicaStats) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_dev_v1_bots_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReplicaStats.ProtoReflect.Descriptor instead.
+func (*ReplicaStats) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_dev_v1_bots_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ReplicaStats) GetReplica() string {
+	if x != nil {
+		return x.Replica
+	}
+	return ""
+}
+
+func (x *ReplicaStats) GetZones() []*ZoneStats {
+	if x != nil {
+		return x.Zones
+	}
+	return nil
+}
+
+func (x *ReplicaStats) GetDrops() *Drops {
+	if x != nil {
+		return x.Drops
+	}
+	return nil
+}
+
+type ZoneStats struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Map           string                 `protobuf:"bytes,1,opt,name=map,proto3" json:"map,omitempty"`
+	Phase         uint32                 `protobuf:"varint,2,opt,name=phase,proto3" json:"phase,omitempty"`
+	LocalPlayers  uint32                 `protobuf:"varint,3,opt,name=local_players,json=localPlayers,proto3" json:"local_players,omitempty"`
+	RemotePlayers uint32                 `protobuf:"varint,4,opt,name=remote_players,json=remotePlayers,proto3" json:"remote_players,omitempty"`
+	// Over the window: ticks run and zone events sent per tick (local and received).
+	Ticks         uint32  `protobuf:"varint,5,opt,name=ticks,proto3" json:"ticks,omitempty"`
+	EventsPerTick float64 `protobuf:"fixed64,6,opt,name=events_per_tick,json=eventsPerTick,proto3" json:"events_per_tick,omitempty"`
+	// Tick time (save + marshal + send), microseconds.
+	TickP50Us uint32 `protobuf:"varint,7,opt,name=tick_p50_us,json=tickP50Us,proto3" json:"tick_p50_us,omitempty"`
+	TickP99Us uint32 `protobuf:"varint,8,opt,name=tick_p99_us,json=tickP99Us,proto3" json:"tick_p99_us,omitempty"`
+	// Bytes queued to the zone's local players per second, all of them together.
+	BytesPerSecond uint64 `protobuf:"varint,9,opt,name=bytes_per_second,json=bytesPerSecond,proto3" json:"bytes_per_second,omitempty"`
+	// NATS batches received from and published to the other replicas.
+	BatchesIn  uint32 `protobuf:"varint,10,opt,name=batches_in,json=batchesIn,proto3" json:"batches_in,omitempty"`
+	BatchesOut uint32 `protobuf:"varint,11,opt,name=batches_out,json=batchesOut,proto3" json:"batches_out,omitempty"`
+	// Corrections sent, and intents and chats dropped (rate, invalid), by the zone's players.
+	Corrections    uint32 `protobuf:"varint,12,opt,name=corrections,proto3" json:"corrections,omitempty"`
+	DroppedIntents uint32 `protobuf:"varint,13,opt,name=dropped_intents,json=droppedIntents,proto3" json:"dropped_intents,omitempty"`
+	DroppedChats   uint32 `protobuf:"varint,14,opt,name=dropped_chats,json=droppedChats,proto3" json:"dropped_chats,omitempty"`
+	// Unix milliseconds the window ended.
+	At            int64 `protobuf:"varint,15,opt,name=at,proto3" json:"at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ZoneStats) Reset() {
+	*x = ZoneStats{}
+	mi := &file_pokeuniverse_dev_v1_bots_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ZoneStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ZoneStats) ProtoMessage() {}
+
+func (x *ZoneStats) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_dev_v1_bots_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ZoneStats.ProtoReflect.Descriptor instead.
+func (*ZoneStats) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_dev_v1_bots_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ZoneStats) GetMap() string {
+	if x != nil {
+		return x.Map
+	}
+	return ""
+}
+
+func (x *ZoneStats) GetPhase() uint32 {
+	if x != nil {
+		return x.Phase
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetLocalPlayers() uint32 {
+	if x != nil {
+		return x.LocalPlayers
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetRemotePlayers() uint32 {
+	if x != nil {
+		return x.RemotePlayers
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetTicks() uint32 {
+	if x != nil {
+		return x.Ticks
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetEventsPerTick() float64 {
+	if x != nil {
+		return x.EventsPerTick
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetTickP50Us() uint32 {
+	if x != nil {
+		return x.TickP50Us
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetTickP99Us() uint32 {
+	if x != nil {
+		return x.TickP99Us
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetBytesPerSecond() uint64 {
+	if x != nil {
+		return x.BytesPerSecond
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetBatchesIn() uint32 {
+	if x != nil {
+		return x.BatchesIn
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetBatchesOut() uint32 {
+	if x != nil {
+		return x.BatchesOut
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetCorrections() uint32 {
+	if x != nil {
+		return x.Corrections
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetDroppedIntents() uint32 {
+	if x != nil {
+		return x.DroppedIntents
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetDroppedChats() uint32 {
+	if x != nil {
+		return x.DroppedChats
+	}
+	return 0
+}
+
+func (x *ZoneStats) GetAt() int64 {
+	if x != nil {
+		return x.At
+	}
+	return 0
+}
+
+type Drops struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Intents: over 20/s burst 40 (the connection is closed), over the size limit, or invalid.
+	IntentRate    uint64 `protobuf:"varint,1,opt,name=intent_rate,json=intentRate,proto3" json:"intent_rate,omitempty"`
+	IntentSize    uint64 `protobuf:"varint,2,opt,name=intent_size,json=intentSize,proto3" json:"intent_size,omitempty"`
+	IntentInvalid uint64 `protobuf:"varint,3,opt,name=intent_invalid,json=intentInvalid,proto3" json:"intent_invalid,omitempty"`
+	// Chat: over 0.5/s burst 4, or not valid text.
+	ChatRate    uint64 `protobuf:"varint,4,opt,name=chat_rate,json=chatRate,proto3" json:"chat_rate,omitempty"`
+	ChatInvalid uint64 `protobuf:"varint,5,opt,name=chat_invalid,json=chatInvalid,proto3" json:"chat_invalid,omitempty"`
+	// Connections closed because their send queue was full.
+	SlowConsumers uint64 `protobuf:"varint,6,opt,name=slow_consumers,json=slowConsumers,proto3" json:"slow_consumers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Drops) Reset() {
+	*x = Drops{}
+	mi := &file_pokeuniverse_dev_v1_bots_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Drops) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Drops) ProtoMessage() {}
+
+func (x *Drops) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_dev_v1_bots_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Drops.ProtoReflect.Descriptor instead.
+func (*Drops) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_dev_v1_bots_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Drops) GetIntentRate() uint64 {
+	if x != nil {
+		return x.IntentRate
+	}
+	return 0
+}
+
+func (x *Drops) GetIntentSize() uint64 {
+	if x != nil {
+		return x.IntentSize
+	}
+	return 0
+}
+
+func (x *Drops) GetIntentInvalid() uint64 {
+	if x != nil {
+		return x.IntentInvalid
+	}
+	return 0
+}
+
+func (x *Drops) GetChatRate() uint64 {
+	if x != nil {
+		return x.ChatRate
+	}
+	return 0
+}
+
+func (x *Drops) GetChatInvalid() uint64 {
+	if x != nil {
+		return x.ChatInvalid
+	}
+	return 0
+}
+
+func (x *Drops) GetSlowConsumers() uint64 {
+	if x != nil {
+		return x.SlowConsumers
+	}
+	return 0
+}
+
 var File_pokeuniverse_dev_v1_bots_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_dev_v1_bots_proto_rawDesc = "" +
@@ -233,7 +546,39 @@ const file_pokeuniverse_dev_v1_bots_proto_rawDesc = "" +
 	"account_id\x18\x02 \x01(\x04R\taccountId\x12!\n" +
 	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x04 \x01(\x03R\texpiresAtB=Z;pokeuniverse/lib-contracts/gen/go/pokeuniverse/dev/v1;devv1b\x06proto3"
+	"expires_at\x18\x04 \x01(\x03R\texpiresAt\"\x90\x01\n" +
+	"\fReplicaStats\x12\x18\n" +
+	"\areplica\x18\x01 \x01(\tR\areplica\x124\n" +
+	"\x05zones\x18\x02 \x03(\v2\x1e.pokeuniverse.dev.v1.ZoneStatsR\x05zones\x120\n" +
+	"\x05drops\x18\x03 \x01(\v2\x1a.pokeuniverse.dev.v1.DropsR\x05drops\"\xe7\x03\n" +
+	"\tZoneStats\x12\x10\n" +
+	"\x03map\x18\x01 \x01(\tR\x03map\x12\x14\n" +
+	"\x05phase\x18\x02 \x01(\rR\x05phase\x12#\n" +
+	"\rlocal_players\x18\x03 \x01(\rR\flocalPlayers\x12%\n" +
+	"\x0eremote_players\x18\x04 \x01(\rR\rremotePlayers\x12\x14\n" +
+	"\x05ticks\x18\x05 \x01(\rR\x05ticks\x12&\n" +
+	"\x0fevents_per_tick\x18\x06 \x01(\x01R\reventsPerTick\x12\x1e\n" +
+	"\vtick_p50_us\x18\a \x01(\rR\ttickP50Us\x12\x1e\n" +
+	"\vtick_p99_us\x18\b \x01(\rR\ttickP99Us\x12(\n" +
+	"\x10bytes_per_second\x18\t \x01(\x04R\x0ebytesPerSecond\x12\x1d\n" +
+	"\n" +
+	"batches_in\x18\n" +
+	" \x01(\rR\tbatchesIn\x12\x1f\n" +
+	"\vbatches_out\x18\v \x01(\rR\n" +
+	"batchesOut\x12 \n" +
+	"\vcorrections\x18\f \x01(\rR\vcorrections\x12'\n" +
+	"\x0fdropped_intents\x18\r \x01(\rR\x0edroppedIntents\x12#\n" +
+	"\rdropped_chats\x18\x0e \x01(\rR\fdroppedChats\x12\x0e\n" +
+	"\x02at\x18\x0f \x01(\x03R\x02at\"\xd7\x01\n" +
+	"\x05Drops\x12\x1f\n" +
+	"\vintent_rate\x18\x01 \x01(\x04R\n" +
+	"intentRate\x12\x1f\n" +
+	"\vintent_size\x18\x02 \x01(\x04R\n" +
+	"intentSize\x12%\n" +
+	"\x0eintent_invalid\x18\x03 \x01(\x04R\rintentInvalid\x12\x1b\n" +
+	"\tchat_rate\x18\x04 \x01(\x04R\bchatRate\x12!\n" +
+	"\fchat_invalid\x18\x05 \x01(\x04R\vchatInvalid\x12%\n" +
+	"\x0eslow_consumers\x18\x06 \x01(\x04R\rslowConsumersB=Z;pokeuniverse/lib-contracts/gen/go/pokeuniverse/dev/v1;devv1b\x06proto3"
 
 var (
 	file_pokeuniverse_dev_v1_bots_proto_rawDescOnce sync.Once
@@ -247,19 +592,24 @@ func file_pokeuniverse_dev_v1_bots_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_dev_v1_bots_proto_rawDescData
 }
 
-var file_pokeuniverse_dev_v1_bots_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_pokeuniverse_dev_v1_bots_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_pokeuniverse_dev_v1_bots_proto_goTypes = []any{
-	(*SpawnBots)(nil),   // 0: pokeuniverse.dev.v1.SpawnBots
-	(*SpawnedBots)(nil), // 1: pokeuniverse.dev.v1.SpawnedBots
-	(*SpawnedBot)(nil),  // 2: pokeuniverse.dev.v1.SpawnedBot
+	(*SpawnBots)(nil),    // 0: pokeuniverse.dev.v1.SpawnBots
+	(*SpawnedBots)(nil),  // 1: pokeuniverse.dev.v1.SpawnedBots
+	(*SpawnedBot)(nil),   // 2: pokeuniverse.dev.v1.SpawnedBot
+	(*ReplicaStats)(nil), // 3: pokeuniverse.dev.v1.ReplicaStats
+	(*ZoneStats)(nil),    // 4: pokeuniverse.dev.v1.ZoneStats
+	(*Drops)(nil),        // 5: pokeuniverse.dev.v1.Drops
 }
 var file_pokeuniverse_dev_v1_bots_proto_depIdxs = []int32{
 	2, // 0: pokeuniverse.dev.v1.SpawnedBots.bots:type_name -> pokeuniverse.dev.v1.SpawnedBot
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 1: pokeuniverse.dev.v1.ReplicaStats.zones:type_name -> pokeuniverse.dev.v1.ZoneStats
+	5, // 2: pokeuniverse.dev.v1.ReplicaStats.drops:type_name -> pokeuniverse.dev.v1.Drops
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_dev_v1_bots_proto_init() }
@@ -273,7 +623,7 @@ func file_pokeuniverse_dev_v1_bots_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_dev_v1_bots_proto_rawDesc), len(file_pokeuniverse_dev_v1_bots_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

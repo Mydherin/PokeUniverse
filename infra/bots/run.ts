@@ -14,13 +14,19 @@
 // second (to see the limit), --say (repeatable) the given lines once each after entering, 2.1 s
 // apart. The verbose bot prints every ChatMessage, its own included; stats count the lines received.
 //
+// Load (phase-8 M8): --ramp adds bots in steps, 25, 50, 100, 200 on --map, then 500 (250 there and
+// 250 on --map2, the other floor by default); bots stay on their map (no stairs, as --stay does).
+// Each step settles 10 s, measures --hold seconds (default 30), then prints the bots' stats, each
+// replica's zone stats (GET /api/dev/stats) and `docker stats`. --map2's bots are bot-<first+500> on.
+//
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
 
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { create, fromBinary, fromJson, toBinary, toJson, type MessageInitShape } from "@bufbuild/protobuf";
-import { SpawnBotsSchema, SpawnedBotsSchema, type SpawnedBot } from "../../lib-contracts/gen/ts/src/pokeuniverse/dev/v1/bots_pb.ts";
+import { ReplicaStatsSchema, SpawnBotsSchema, SpawnedBotsSchema, type ReplicaStats, type SpawnedBot } from "../../lib-contracts/gen/ts/src/pokeuniverse/dev/v1/bots_pb.ts";
 import { ClientMapSchema, Direction, TileBehavior, type ClientMap } from "../../lib-contracts/gen/ts/src/pokeuniverse/map/v1/map_pb.ts";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "../../lib-contracts/gen/ts/src/pokeuniverse/realtime/v1/realtime_pb.ts";
 import type { OtherPlayer, ZoneEvent } from "../../lib-contracts/gen/ts/src/pokeuniverse/world/v1/world_pb.ts";
@@ -57,14 +63,22 @@ const { values: args } = parseArgs({
     say: { type: "string", multiple: true, default: [] },
     verbose: { type: "boolean", default: false },
     idle: { type: "boolean", default: false },
+    stay: { type: "boolean", default: false },
+    ramp: { type: "boolean", default: false },
+    map2: { type: "string", default: "" },
+    hold: { type: "string", default: "30" },
   },
 });
 const base = new URL(args.url);
 const count = Number(args.count);
 const first = Number(args.first);
 if (!args.secret) fail("no secret: set BOTS_SECRET in .env (and restart mic-core) or pass --secret");
-if (!Number.isInteger(count) || count < 1 || count > 100) fail("--count must be 1 to 100");
-if (!Number.isInteger(first) || first < 1 || first > 100) fail("--first must be 1 to 100");
+if (!Number.isInteger(count) || count < 1 || count > 500) fail("--count must be 1 to 500");
+if (!Number.isInteger(first) || first < 1 || first > 500) fail("--first must be 1 to 500");
+const stay = args.stay || args.ramp;
+const map2 = args.map2 || (args.map.endsWith("_1f") ? args.map.replace(/_1f$/, "_2f") : args.map.replace(/_2f$/, "_1f"));
+const hold = Number(args.hold);
+if (!(hold > 0)) fail("--hold must be a number of seconds");
 
 const maps = new Map<string, ClientMap>();
 function loadMap(id: string): ClientMap {
@@ -294,7 +308,7 @@ class Bot {
     const collision = checkStep(this.map, this.x, this.y, this.elevation, d);
     if (collision === Collision.StairWarp) {
       // The stairs, now and then, so both floors fill.
-      if (Math.random() < 0.15) {
+      if (!stay && Math.random() < 0.15) {
         this.warping = true;
         this.facing = d;
         this.send({ case: "useWarp", value: { direction: d, x: this.x, y: this.y } });
@@ -366,33 +380,33 @@ class Bot {
   }
 }
 
-async function spawn(refreshOnly: boolean): Promise<SpawnedBot[]> {
+/** One spawn call (up to 100 bots): bot-<first> … on `map`. */
+async function spawn(refreshOnly: boolean, from = first, n = count, map = args.map): Promise<SpawnedBot[]> {
   const res = await fetch(new URL("/api/dev/bots", base), {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Bots-Secret": args.secret },
-    body: JSON.stringify(toJson(SpawnBotsSchema, create(SpawnBotsSchema, { count, first, map: args.map, refreshOnly }))),
+    body: JSON.stringify(toJson(SpawnBotsSchema, create(SpawnBotsSchema, { count: n, first: from, map, refreshOnly }))),
   });
   if (!res.ok) fail(`POST /api/dev/bots: ${res.status} ${(await res.text()).trim()}${res.status === 404 ? " (is BOTS_SECRET set for mic-core?)" : ""}`);
   return fromJson(SpawnedBotsSchema, await res.json()).bots;
 }
 
-/** Renews every bot's token a minute before it expires. */
-function scheduleRenewal(spawned: SpawnedBot[], bots: Bot[]): void {
+/** Renews every bot's token of one spawn call a minute before it expires. */
+function scheduleRenewal(spawned: SpawnedBot[], bots: Map<number, Bot>, from = first, n = count): void {
   const expires = Math.min(...spawned.map((b) => Number(b.expiresAt) * 1000));
   setTimeout(async () => {
     try {
-      const fresh = await spawn(true);
-      for (const b of fresh) bots[b.n - first]?.renew(b.accessToken);
-      scheduleRenewal(fresh, bots);
+      const fresh = await spawn(true, from, n);
+      for (const b of fresh) bots.get(b.n)?.renew(b.accessToken);
+      scheduleRenewal(fresh, bots, from, n);
     } catch (err) {
       console.warn(`token renewal failed: ${err}; retrying`);
-      scheduleRenewal(spawned.map((b) => ({ ...b, expiresAt: BigInt(Math.floor(Date.now() / 1000) + 70) })), bots);
+      scheduleRenewal(spawned.map((b) => ({ ...b, expiresAt: BigInt(Math.floor(Date.now() / 1000) + 70) })), bots, from, n);
     }
   }, Math.max(expires - Date.now() - 60_000, 5_000)).unref();
 }
 
-function printStats(bots: Bot[]): void {
-  const secs = STATS_EVERY_MS / 1000;
+function printStats(bots: Bot[], secs = STATS_EVERY_MS / 1000): void {
   const connected = bots.filter((b) => b.connected).length;
   const pings = stats.pings.sort((a, b) => a - b);
   const pct = (p: number) => (pings.length ? `${pings[Math.min(pings.length - 1, Math.floor(p * pings.length))]}ms` : "-");
@@ -445,18 +459,95 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-const spawned = await spawn(false);
-const bots = spawned.map((b) => new Bot(b.n, b.accessToken));
-console.log(`${bots.length} bots on ${args.map} (${base.origin}); stats every ${STATS_EVERY_MS / 1000} s, Ctrl-C to stop`);
-for (const b of bots) b.connect();
-scheduleRenewal(spawned, bots);
-const statsTimer = setInterval(() => printStats(bots), STATS_EVERY_MS);
+const byN = new Map<number, Bot>();
+
+/** Spawns and connects bot-<from> … bot-<from+n-1> on `map`, in calls of up to 100. */
+async function add(from: number, n: number, map: string): Promise<void> {
+  for (let i = 0; i < n; i += 100) {
+    const k = Math.min(100, n - i);
+    const spawned = await spawn(false, from + i, k, map);
+    for (const s of spawned) {
+      const b = new Bot(s.n, s.accessToken);
+      byN.set(s.n, b);
+      b.connect();
+    }
+    scheduleRenewal(spawned, byN, from + i, k);
+  }
+}
+
+/** Every replica's stats: the load balancer picks one per request, so ask until both answered. */
+async function replicaStats(): Promise<ReplicaStats[]> {
+  const seen = new Map<string, ReplicaStats>();
+  for (let i = 0; i < 12 && seen.size < 2; i++) {
+    const res = await fetch(new URL("/api/dev/stats", base), { headers: { "X-Bots-Secret": args.secret } });
+    if (!res.ok) fail(`GET /api/dev/stats: ${res.status}`);
+    const s = fromJson(ReplicaStatsSchema, await res.json());
+    seen.set(s.replica, s);
+  }
+  return [...seen.values()];
+}
+
+function printServer(all: ReplicaStats[]): void {
+  for (const r of all) {
+    const d = r.drops!;
+    console.log(`  replica ${r.replica.slice(0, 8)}: drops intent rate/size/invalid ${d.intentRate}/${d.intentSize}/${d.intentInvalid}, chat rate/invalid ${d.chatRate}/${d.chatInvalid}, slow consumers ${d.slowConsumers}`);
+    for (const z of r.zones) {
+      console.log(
+        `    ${z.map}: local ${z.localPlayers} remote ${z.remotePlayers} | ${z.eventsPerTick.toFixed(1)} events/tick | tick p50 ${(z.tickP50Us / 1000).toFixed(2)}ms p99 ${(z.tickP99Us / 1000).toFixed(2)}ms` +
+          ` | ${(Number(z.bytesPerSecond) / 1024).toFixed(1)} KB/s (${(Number(z.bytesPerSecond) / Math.max(z.localPlayers, 1) / 1024).toFixed(2)} KB/s per player)` +
+          ` | NATS in ${z.batchesIn} out ${z.batchesOut} | corrections ${z.corrections} | dropped intents ${z.droppedIntents} chats ${z.droppedChats}`,
+      );
+    }
+  }
+}
+
+function printDocker(): void {
+  try {
+    const out = execFileSync("docker", ["stats", "--no-stream", "--format", "{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"], { encoding: "utf8" });
+    for (const line of out.trim().split("\n").filter((l) => l.startsWith("pokeuniverse-")).sort()) console.log(`  docker ${line.replaceAll("\t", "  ")}`);
+  } catch (err) {
+    console.warn(`docker stats: ${err}`);
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function ramp(): Promise<void> {
+  const plan: [number, number][] = [[25, 0], [50, 0], [100, 0], [200, 0], [250, 250]];
+  let on1 = 0;
+  let on2 = 0;
+  console.log(`ramp on ${args.map} (then ${map2}) (${base.origin}): settle 10 s, hold ${hold} s per step, Ctrl-C to stop`);
+  for (const [a, b] of plan) {
+    await add(first + on1, a - on1, args.map);
+    await add(first + 500 + on2, b - on2, map2);
+    [on1, on2] = [a, b];
+    await sleep(10_000);
+    Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, pings: [] });
+    const cpu = process.cpuUsage();
+    await sleep(hold * 1000);
+    const used = process.cpuUsage(cpu);
+    console.log(`\n== step ${a + b} bots (${a} on ${args.map}${b ? `, ${b} on ${map2}` : ""}); bot process CPU ${(((used.user + used.system) / 1e6 / hold) * 100).toFixed(0)}%`);
+    printStats([...byN.values()], hold);
+    printServer(await replicaStats());
+    printDocker();
+  }
+  console.log("\nramp done; bots keep walking, Ctrl-C to stop");
+}
+
+let statsTimer: ReturnType<typeof setInterval> | undefined;
+if (args.ramp) {
+  void ramp();
+} else {
+  await add(first, count, args.map);
+  console.log(`${count} bots on ${args.map} (${base.origin}); stats every ${STATS_EVERY_MS / 1000} s, Ctrl-C to stop`);
+  statsTimer = setInterval(() => printStats([...byN.values()]), STATS_EVERY_MS);
+}
 
 process.on("SIGINT", () => {
   if (stopping) process.exit(1);
   stopping = true;
   clearInterval(statsTimer);
-  for (const b of bots) b.close();
+  for (const b of byN.values()) b.close();
   console.log("closing…");
   setTimeout(() => process.exit(0), 500);
 });
