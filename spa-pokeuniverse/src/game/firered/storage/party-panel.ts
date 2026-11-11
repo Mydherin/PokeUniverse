@@ -189,7 +189,7 @@ export class PartyPanel {
     const showing = this.sliding === 1;
     this.drawRows(showing ? HIDDEN_ROWS + this.frames : PANEL_ROWS - this.frames);
     if (!showing) for (let x = 0; x < PANEL_WIDTH; x++) this.bg.setEntry(PANEL_X + x, PANEL_ROWS - this.frames, BLANK);
-    for (const icon of this.icons) if (icon) icon.sprite.y += this.sliding * SLIDE_SPEED;
+    for (const icon of this.icons) if (icon) this.moveIcon(icon, this.sliding * SLIDE_SPEED);
     if (this.frames < SLIDE_FRAMES) return true;
     this.shown = showing;
     this.sliding = 0;
@@ -198,6 +198,16 @@ export class PartyPanel {
       this.icons = [];
     }
     return false;
+  }
+
+  /**
+   * MovePartySprites: an icon still above the screen stays hidden, or the GBA's 8-bit Y would
+   * wrap it onto the box below (its top corner plus 16, as a u16, past 192).
+   */
+  private moveIcon(icon: MonIcon, dy: number): void {
+    const s = icon.sprite;
+    s.y += dy;
+    s.invisible = ((s.y + s.y2 + s.centerToCornerY + 16) & 0xffff) > 192;
   }
 
   /** SetPartySlotTilemap: the first slot always looks taken. */
@@ -235,6 +245,8 @@ export class PartyPanel {
     const [x, y] = slotXY(pos);
     const icon = new MonIcon(this.flow, mon.species, x, y + offsetY, 12, 1);
     icon.setAnim(ICON_STILL);
+    // CreatePartyMonsSprites: created above the screen, hidden until MovePartySprites shows it.
+    if (offsetY) icon.sprite.invisible = true;
     return icon;
   }
 
