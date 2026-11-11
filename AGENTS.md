@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8 M3 Manual Test](docs/phases/phase-8-multiplayer-world/milestones/m03-drawing-others.md#resume-here), cases 1-6 ✅, finish case 7, then 8-11 ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M2 ✅, M3-M4 code done 🧪, 2/9 ✅; then M4's test, then M5). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8 M4 Manual Test](docs/phases/phase-8-multiplayer-world/milestones/m04-zones-across-replicas.md#resume-here) ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M3 ✅, M4 code done 🧪, 3/9 ✅; then M5). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
