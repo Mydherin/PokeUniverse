@@ -374,8 +374,8 @@ export function seekAnim(sprite: Sprite, index: number): void {
   sprite.animBeginning = false;
   if (typeof cmd === "object" && "image" in cmd) {
     sprite.tileNum = cmd.image;
-    sprite.hFlip = cmd.hFlip ?? false;
-    sprite.vFlip = cmd.vFlip ?? false;
+    sprite.animHFlip = cmd.hFlip ?? false;
+    sprite.animVFlip = cmd.vFlip ?? false;
     sprite.animDelay = cmd.duration ? cmd.duration - 1 : 0;
   }
 }

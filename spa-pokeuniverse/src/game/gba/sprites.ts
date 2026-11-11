@@ -62,8 +62,12 @@ export class Sprite {
   affine = false;
   /** With `affine`: drawn in a double-size box. */
   affineDouble = true;
+  /** The sprite's own flip (sprite->hFlip/vFlip); an animation frame's flip is XORed onto it when drawn. */
   hFlip = false;
   vFlip = false;
+  /** The current animation frame's flip (SetSpriteOamFlipBits). */
+  animHFlip = false;
+  animVFlip = false;
   /** Moved by the shared sprite offset (gSpriteCoordOffsetX/Y). */
   coordOffsetEnabled = false;
   animPaused = false;
@@ -213,8 +217,9 @@ export class Sprites {
     const first = s.anims[0][0];
     const frame = typeof first === "object" && "image" in first ? first : null;
     s.tileNum = frame?.image ?? 0;
-    s.hFlip = frame?.hFlip ?? false;
-    s.vFlip = frame?.vFlip ?? false;
+    s.hFlip = s.vFlip = false;
+    s.animHFlip = frame?.hFlip ?? false;
+    s.animVFlip = frame?.vFlip ?? false;
     s.paletteNum = this.palettes.spritePaletteSlot(template.palette) & 15;
     return s;
   }
@@ -300,8 +305,8 @@ export class Sprites {
         priority: s.priority,
         mode: s.mode,
         onBg: s.onBg,
-        hFlip: s.hFlip,
-        vFlip: s.vFlip,
+        hFlip: s.hFlip !== s.animHFlip,
+        vFlip: s.vFlip !== s.animVFlip,
         matrix: s.affine ? { a: s.matrixA, b: s.matrixB, c: s.matrixC, d: s.matrixD } : null,
         double: s.affine && s.affineDouble,
       });
@@ -313,8 +318,8 @@ export class Sprites {
 function applyFrame(s: Sprite, cmd: { image: number; duration: number; hFlip?: boolean; vFlip?: boolean }): void {
   s.animDelay = cmd.duration ? cmd.duration - 1 : 0;
   s.tileNum = cmd.image;
-  s.hFlip = cmd.hFlip ?? false;
-  s.vFlip = cmd.vFlip ?? false;
+  s.animHFlip = cmd.hFlip ?? false;
+  s.animVFlip = cmd.vFlip ?? false;
 }
 
 function beginAnim(s: Sprite): void {
