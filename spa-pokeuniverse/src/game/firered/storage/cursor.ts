@@ -84,12 +84,17 @@ export class StorageCursor {
     const hand: SpriteTemplate = { sheet: "storageCursor", palette: STORAGE_SPRITE_PALETTE, width: 32, height: 32, priority: 1, anims: CURSOR_ANIMS };
     const shadow: SpriteTemplate = { sheet: "storageCursorShadow", palette: STORAGE_SPRITE_PALETTE, width: 16, height: 16, priority: 2 };
     this.hand = gba.sprites.create(hand, x, y, 6)!;
+    // FireRed's hand turns over through sprite->vFlip, which shows only when its animation runs:
+    // a held Pokémon's fist never restarts, so it stays as it was.
+    this.hand.latchFlip = true;
     this.shadow = gba.sprites.create(shadow, x, y + 20, 21)!;
     this.shadow.callback = (s) => {
       s.x = this.hand.x;
       s.y = this.hand.y + 20;
     };
     this.land();
+    // CreateCursorSprites: the template's first animation, the bounce.
+    this.hand.startAnim(ANIM_BOUNCE);
   }
 
   get moving(): boolean {
@@ -178,7 +183,8 @@ export class StorageCursor {
 
   private land(): void {
     const inBox = this.area === Area.Box;
-    this.hand.startAnim(this.holding ? HAND_FIST : ANIM_BOUNCE);
+    // DoCursorNewPosUpdate: the still frame again, unless it carries one (the fist stays).
+    if (!this.holding) this.hand.startAnim(ANIM_STILL);
     this.hand.priority = inBox ? 2 : 1;
     this.shadow.invisible = !inBox;
   }

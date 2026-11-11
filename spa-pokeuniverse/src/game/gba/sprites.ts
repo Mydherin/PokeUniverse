@@ -68,6 +68,27 @@ export class Sprite {
   /** The current animation frame's flip (SetSpriteOamFlipBits). */
   animHFlip = false;
   animVFlip = false;
+  /**
+   * The GBA's rule for the sprite's own flip: it reaches OAM only when a frame is applied or its
+   * delay counts down (SetSpriteOamFlipBits), so once the animation ends a flip waits for the next
+   * StartSpriteAnim. Off by default: ports of code that writes OAM's flip bits directly
+   * (`oam.matrixNum ^= ST_OAM_HFLIP`) set `hFlip` and need it drawn at once.
+   */
+  latchFlip = false;
+  private oamHFlip = false;
+  private oamVFlip = false;
+  /** SetSpriteOamFlipBits. */
+  latchOamFlip(): void {
+    this.oamHFlip = this.hFlip !== this.animHFlip;
+    this.oamVFlip = this.vFlip !== this.animVFlip;
+  }
+  /** The flip OAM draws. */
+  get drawnHFlip(): boolean {
+    return this.latchFlip ? this.oamHFlip : this.hFlip !== this.animHFlip;
+  }
+  get drawnVFlip(): boolean {
+    return this.latchFlip ? this.oamVFlip : this.vFlip !== this.animVFlip;
+  }
   /** Moved by the shared sprite offset (gSpriteCoordOffsetX/Y). */
   coordOffsetEnabled = false;
   animPaused = false;
@@ -220,6 +241,8 @@ export class Sprites {
     s.hFlip = s.vFlip = false;
     s.animHFlip = frame?.hFlip ?? false;
     s.animVFlip = frame?.vFlip ?? false;
+    s.latchFlip = false;
+    s.latchOamFlip();
     s.paletteNum = this.palettes.spritePaletteSlot(template.palette) & 15;
     return s;
   }
@@ -305,8 +328,8 @@ export class Sprites {
         priority: s.priority,
         mode: s.mode,
         onBg: s.onBg,
-        hFlip: s.hFlip !== s.animHFlip,
-        vFlip: s.vFlip !== s.animVFlip,
+        hFlip: s.drawnHFlip,
+        vFlip: s.drawnVFlip,
         matrix: s.affine ? { a: s.matrixA, b: s.matrixB, c: s.matrixC, d: s.matrixD } : null,
         double: s.affine && s.affineDouble,
       });
@@ -320,6 +343,7 @@ function applyFrame(s: Sprite, cmd: { image: number; duration: number; hFlip?: b
   s.tileNum = cmd.image;
   s.animHFlip = cmd.hFlip ?? false;
   s.animVFlip = cmd.vFlip ?? false;
+  if (!s.affine) s.latchOamFlip();
 }
 
 function beginAnim(s: Sprite): void {
@@ -346,7 +370,9 @@ function runLoop(anim: readonly (object | string)[], index: number, times: numbe
 
 function continueAnim(s: Sprite): void {
   if (s.animDelay) {
+    // ContinueAnim: the flip bits are set again while a frame's delay counts down.
     s.animDelay--;
+    if (!s.affine) s.latchOamFlip();
     return;
   }
   const anim = s.anims[s.animNum];
