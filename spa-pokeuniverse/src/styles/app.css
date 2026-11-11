@@ -235,7 +235,8 @@
   @media (pointer: coarse) and (orientation: landscape) {
     .game-right { position: relative; }
     .chat-button { position: absolute; top: 0.75rem; }
-    .chat-sheet { position: absolute; top: 0; right: 0; bottom: 0; width: min(24rem, 60%); border-radius: 0.75rem 0 0 0.75rem; }
+    /* Below the top bar, like the layout's padding: its buttons stay usable, the close control visible. */
+    .chat-sheet { position: absolute; top: calc(env(safe-area-inset-top) + 3.5rem); right: 0; bottom: 0; width: min(24rem, 60%); border-radius: 0.75rem 0 0 0.75rem; }
   }
 
   /* Pokémon sprites are pixel art: never smooth them. */

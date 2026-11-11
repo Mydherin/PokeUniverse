@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8 M6 Chat Window](docs/phases/phase-8-multiplayer-world/milestones/m06-chat-window.md#resume-here) ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M5 ✅, 5/9 ✅; M6 🧪 built, Manual Test 1/12 ✅, next case 2). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8 M7 Mobile Compose](docs/phases/phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M6 ✅, 6/9 ✅; M7 ⬜ not started). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 
