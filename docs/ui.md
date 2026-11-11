@@ -37,11 +37,12 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 - **On-screen game controls:** D-pad and action buttons, sized for thumbs, never covering important game areas.
   - In the game: a D-pad you can slide across (8 directions), **A**, **B** and **Start**; at least 44×44 px; shown on touch screens only (`pointer: coarse`).
   - A **chat button** (speech bubble, unread badge) on the touch layer, clear of the game buttons ([Mobile Keyboard](#mobile-keyboard) for typing).
+- **Chat log scroll bar:** the PC panel's and the phone sheet's logs show a scroll bar in the panel's own blue (thumb at the bottom for the newest); on PC it's dragged or clicked, on phones the log scrolls with a touch drag as before.
 - No accidental zoom or text selection inside the game.
 
 ### Desktop
 
-- Full **keyboard** support: game controls, menu navigation, shortcuts (`T` opens chat, `/` opens it with `/` typed, `Enter` sends, `Esc` closes; `Enter` stays START while chat is closed; game keys aren't read while a text field has focus).
+- Full **keyboard** support: game controls, menu navigation, shortcuts (`T` opens chat, `Enter` sends, `Esc` closes; `Enter` stays START while chat is closed; game keys aren't read while a text field has focus). `/` does nothing in the game: it's kept for chat commands later (user 2026-11-11).
 - **Game buttons:**
 
   | GBA button | Keys |
@@ -56,8 +57,8 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 
 ## Game Screen
 
-- The game draws at the **GBA resolution (240×160)**, centered on black: **integer scale** when at least 2× fits, otherwise the largest fit; always nearest-neighbor (crisp pixels).
-- **Mouse and keyboard:** the game fills the screen under the top bar (Home, connection status, fullscreen).
+- The game draws at the **GBA resolution (240×160)**, centered on black, **as large as its space allows** at 3:2 (any scale, user 2026-11-11: whole-number steps left big black bars in smaller windows); always nearest-neighbor.
+- **Mouse and keyboard:** the game fills the screen under the top bar (Home, connection status, fullscreen). In the world, the chat panel sits beside the game when the window is wide and below it when it's narrow, whichever leaves the game bigger; the game takes the rest. Before the world (title, intro) the panel takes no room.
 - **Touch, portrait:** the game at the top under the top bar, the controls below it (D-pad left, A/B and Start right).
 - **Touch, landscape:** the game in the middle, the D-pad on the left side and A/B/Start on the right.
 - The controls never cover the game; the layout follows rotation and browser bars.

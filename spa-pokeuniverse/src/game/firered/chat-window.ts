@@ -1,7 +1,7 @@
 // The zone's chat drawn in Union Room chat's style (phase-8 D15, D23, D24): every log is a
 // canvas printed with FireRed's font at an integer scale, a color per player from
 // graphics/union_room_chat/messages.pal, a panel framed like its panel.png. Beside or below the
-// GBA screen on PC (input with T or /), a ticker, a button and a sheet on touch screens.
+// GBA screen on PC (input with T), a ticker, a button and a sheet on touch screens.
 // Hidden during battles and full-screen menus; lines that come meanwhile are in the log after.
 
 import type { WorldLink } from "../../realtime/connection";
@@ -18,6 +18,8 @@ const FRAME = 10;
 const FRAME_DARK = 11;
 const SHADOW = 12;
 const SELECTED = 13;
+/** The scroll bar's track (messages.pal's light grey); its thumb is the frame's blue. */
+const TRACK = 3;
 const PALETTE: Record<number, [number, number, number]> = {
   // messages.pal: the window's fill, then text and shadow per player (PrintTextOnWin0Colorized).
   1: [246, 246, 255],
@@ -43,6 +45,9 @@ const COLON_X = 42;
 /** The frame on each side (2 blue, 1 dark) and the shadow at the right and the bottom. */
 const BORDER = 3;
 const PAD = 2;
+/** The scroll bar inside the frame's right edge, and the gap before it. */
+const BAR = 5;
+const BAR_GAP = 1;
 /** Size of a GBA pixel in CSS pixels, rounded to whole device pixels. */
 const PC_SCALE = 2;
 const PHONE_SCALE = 1.4;
@@ -101,6 +106,51 @@ class LogView {
     private readonly maxRows = 0,
   ) {}
 
+  /** Logs that scroll show a bar; the ticker's 2 rows don't. */
+  get hasBar(): boolean {
+    return this.maxRows === 0;
+  }
+
+  /** The bar's track in canvas pixels, and its thumb: as tall as the rows shown, at the bottom for the newest. */
+  private bar(): { x: number; top: number; height: number; thumbTop: number; thumbHeight: number; max: number } {
+    const x = this.width - BORDER - 1 - BAR;
+    const top = BORDER + 1;
+    const height = Math.max(0, this.height - BORDER - 1 - top);
+    const shown = this.visibleRows;
+    const total = Math.max(this.rows.length, shown, 1);
+    const max = Math.max(0, this.rows.length - shown);
+    const thumbHeight = Math.min(height, Math.max(6, Math.round((height * shown) / total)));
+    const thumbTop = top + (max ? Math.round((height - thumbHeight) * (1 - this.scroll / max)) : 0);
+    return { x, top, height, thumbTop, thumbHeight, max };
+  }
+
+  /** Whether a point (CSS pixels from the canvas corner) is on the bar. */
+  onBar(x: number): boolean {
+    return this.hasBar && x / this.scale >= this.bar().x - 1;
+  }
+
+  /** The thumb's height in canvas pixels. */
+  get thumbHeight(): number {
+    return this.bar().thumbHeight;
+  }
+
+  /** Where on the thumb a point is (canvas pixels from its top), or null off the thumb. */
+  thumbOffset(y: number): number | null {
+    const { thumbTop, thumbHeight } = this.bar();
+    const py = y / this.scale;
+    return py >= thumbTop && py < thumbTop + thumbHeight ? py - thumbTop : null;
+  }
+
+  /** Drags the thumb so `offset` (canvas pixels into it) sits under `y` (CSS pixels). */
+  dragThumb(y: number, offset: number): void {
+    const { top, height, thumbHeight, max } = this.bar();
+    const room = height - thumbHeight;
+    if (!max || room <= 0) return;
+    const at = Math.max(0, Math.min(1, (y / this.scale - offset - top) / room));
+    this.scroll = Math.round(max * (1 - at));
+    this.draw();
+  }
+
   /** Fits the canvas in a box of CSS pixels. */
   resize(cssWidth: number, cssHeight: number): void {
     this.scale = deviceScale(this.target);
@@ -128,7 +178,7 @@ class LogView {
 
   /** The rows of `lines` wrapped to the canvas: the name, the colon at 42, the words after. */
   layout(lines: readonly ChatLine[]): void {
-    const right = this.width - BORDER - PAD - 2;
+    const right = this.width - BORDER - PAD - 2 - (this.hasBar ? BAR + BAR_GAP : 0);
     const left = BORDER + PAD;
     const space = this.charmap.encode[" "];
     const advance = (g: number) => this.font.glyphWidth(g) + this.font.letterSpacing;
@@ -218,6 +268,18 @@ class LogView {
         if (g === COLON) x = BORDER + PAD + COLON_X;
         this.font.drawGlyph(glyph, px, width, height - BORDER, x, y, colors);
         x += this.font.glyphWidth(glyph) + this.font.letterSpacing;
+      }
+    }
+    if (this.hasBar) {
+      // The track, then the thumb: the frame's blue with its dark edge.
+      const b = this.bar();
+      for (let yy = b.top; yy < b.top + b.height; yy++) {
+        const inThumb = yy >= b.thumbTop && yy < b.thumbTop + b.thumbHeight;
+        const edgeY = yy === b.thumbTop || yy === b.thumbTop + b.thumbHeight - 1;
+        for (let xx = b.x; xx < b.x + BAR; xx++) {
+          const edge = edgeY || xx === b.x || xx === b.x + BAR - 1;
+          px[yy * width + xx] = inThumb ? (edge ? FRAME_DARK : FRAME) : TRACK;
+        }
       }
     }
     const ctx = this.el.getContext("2d")!;
@@ -325,7 +387,7 @@ export class ChatWindow {
     this.panelLog = new LogView(font, charmap, PC_SCALE);
     this.panelInput = composer(() => this.send(this.panelInput), () => this.close());
     this.panelCompose = h("div", { class: "chat-compose", hidden: true }, this.panelInput);
-    this.panelHint = h("p", { class: "chat-hint" }, "T or / to chat");
+    this.panelHint = h("p", { class: "chat-hint" }, "T to chat");
     this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, chips(), h("div", { class: "chat-log-box" }, this.panelLog.el), this.panelCompose, this.panelHint);
     // Touch: the ticker, the button and the sheet.
     this.tickerLog = new LogView(font, charmap, PHONE_SCALE, TICKER_ROWS);
@@ -450,7 +512,7 @@ export class ChatWindow {
     if (this.log.open && !this.sheet.hidden) this.close(true);
   };
 
-  /** PC: T opens the input, / opens it with / typed (D15). */
+  /** PC: T opens the input (D15); / is kept for chat commands and does nothing yet. */
   private readonly onKey = (e: KeyboardEvent) => {
     if (!this.shownNow || this.touch.matches || this.log.open || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
     const t = e.target;
@@ -458,9 +520,6 @@ export class ChatWindow {
     if (e.code === "KeyT") {
       e.preventDefault();
       this.open("");
-    } else if (e.key === "/") {
-      e.preventDefault();
-      this.open("/");
     }
   };
 
@@ -565,11 +624,21 @@ export class ChatWindow {
       view.draw();
       this.onSelect(line.id);
     };
+    let drag: number | null = null;
     view.el.addEventListener("pointerdown", (e) => {
       if (!select) return;
       const r = view.el.getBoundingClientRect();
       const [x, y] = [e.clientX - r.left, e.clientY - r.top];
       view.el.setPointerCapture(e.pointerId);
+      // The bar: drag its thumb, or a press on the track brings the thumb's middle there.
+      if (view.onBar(x)) {
+        drag = view.thumbOffset(y);
+        if (drag === null) {
+          view.dragThumb(y, view.thumbHeight / 2);
+          drag = view.thumbOffset(y) ?? view.thumbHeight / 2;
+        }
+        return;
+      }
       const timer = window.setTimeout(() => {
         const hit = press && !press.moved ? view.hit(x, y) : null;
         if (hit) choose(hit.line);
@@ -578,6 +647,12 @@ export class ChatWindow {
       press = { x, y, startY: e.clientY, scroll: view.scroll, moved: false, timer };
     });
     view.el.addEventListener("pointermove", (e) => {
+      const r = view.el.getBoundingClientRect();
+      if (drag !== null) {
+        view.dragThumb(e.clientY - r.top, drag);
+        return;
+      }
+      view.el.style.cursor = !press && view.onBar(e.clientX - r.left) ? "pointer" : "";
       if (!press) return;
       const dy = e.clientY - press.startY;
       if (Math.abs(dy) > 6) press.moved = true;
@@ -588,6 +663,7 @@ export class ChatWindow {
       }
     });
     const end = (e: PointerEvent) => {
+      drag = null;
       if (!press) return;
       window.clearTimeout(press.timer);
       const r = view.el.getBoundingClientRect();
@@ -597,6 +673,7 @@ export class ChatWindow {
     };
     view.el.addEventListener("pointerup", end);
     view.el.addEventListener("pointercancel", () => {
+      drag = null;
       if (press) window.clearTimeout(press.timer);
       press = null;
     });
@@ -614,12 +691,13 @@ export class ChatWindow {
 
   /**
    * PC: the panel goes beside the screen when that leaves the screen as big as below it,
-   * below otherwise, and takes the room the screen's integer scale leaves (D15).
+   * below otherwise, and takes the room the screen leaves at 3:2 (D15).
    */
   private layout(): void {
     const { layout } = this.slots;
     const touch = this.touch.matches;
-    this.panel.hidden = touch;
+    // Out of the world the panel leaves the grid: an area-less item would add tracks.
+    this.panel.hidden = touch || !this.inWorld;
     if (touch || !this.inWorld) {
       delete layout.dataset.chat;
       this.layoutCompose(touch);

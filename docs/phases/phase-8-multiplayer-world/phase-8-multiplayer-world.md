@@ -19,7 +19,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · 🧪 code do
 | M3 | [Drawing other players](milestones/m03-drawing-others.md) | ✅ | M2 | Client: other trainers and their followers drawn as FireRed's object events, step queue at FireRed's speed, grass, elevation, warps, reconnect rebuild |
 | M4 | [Zones across replicas](milestones/m04-zones-across-replicas.md) | ✅ | M2 | NATS `world.zone.<map>.<phase>` fan-out, Redis zone members for snapshots, presence beat and crash cleanup; two `mic-core` replicas in Compose |
 | M5 | [Chat: server and contracts](milestones/m05-chat-server.md) | ✅ | M4 | `SendChat` intent, `ChatMessage` in `ZoneEvents`, FireRed charset and length check, chat rate limit, bots chatting |
-| M6 | [Chat window](milestones/m06-chat-window.md) | ✅ | M5, M3 | Client chat log in Union Room chat's style; PC panel and keys (`T`, `/`); phone ticker, chat button, sheet with channel chips |
+| M6 | [Chat window](milestones/m06-chat-window.md) | ✅ | M5, M3 | Client chat log in Union Room chat's style; PC panel (scroll bar), `T` key, game scaled to fit beside or above it; phone ticker, chat button, sheet with channel chips |
 | M7 | [Mobile compose](milestones/m07-mobile-compose.md) | 🧪 | M6 | `visualViewport` keyboard pattern ([ui.md](../../ui.md#mobile-keyboard)); compose bar on the keyboard, portrait and landscape; swipe and back gestures; iOS and Android checks |
 | M8 | [Load and tuning](milestones/m08-load-tuning.md) | ✅ | M4, M5 | Bots at scale, `mic-core` zone metrics, budgets measured and written in tech-stack.md, limits tuned |
 | M9 | [Phase check](milestones/m09-phase-check.md) | 🧪 | M1-M8 | The whole phase played with bots and two replicas; restarts; regression |

@@ -2,9 +2,8 @@
 
 import { HEIGHT, WIDTH } from "./gba/video";
 
-/** Integer scale when at least 2× fits, otherwise the largest fit; centered (ui.md#game-screen). */
+/** As large as the box allows at 3:2, centered (ui.md#game-screen). */
 export function fitScreen(width: number, height: number): { scale: number; left: number; top: number } {
-  const fit = Math.min(width / WIDTH, height / HEIGHT);
-  const scale = fit >= 2 ? Math.floor(fit) : fit;
+  const scale = Math.max(0, Math.min(width / WIDTH, height / HEIGHT));
   return { scale, left: Math.round((width - WIDTH * scale) / 2), top: Math.round((height - HEIGHT * scale) / 2) };
 }

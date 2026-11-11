@@ -23,7 +23,7 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M6. Rules: [conte
 
 ### Compose (D22)
 
-- ✅ Portrait: GBA screen scaled into what's left (integer scale if it fits), latest lines as many as fit (newest at the bottom), input bar on top of the keyboard. Touch D-pad/A/B/Start hidden; the own player stops (no held direction stuck).
+- ✅ Portrait: GBA screen scaled into what's left (as large as fits, 2026-11-11), latest lines as many as fit (newest at the bottom), input bar on top of the keyboard. Touch D-pad/A/B/Start hidden; the own player stops (no held direction stuck).
 - ✅ Input bar: textarea 1→3 lines then scrolls, font ≥ 16 px with the pixel font, `enterkeyhint="send"` (Enter sends, no newline), send button, counter from 54/64, unsupported characters dropped as typed with the hint (M6's charset list).
 - ✅ Landscape: only the input bar and the last 2-3 lines over the dimmed game; normal again when the keyboard closes.
 
@@ -48,3 +48,4 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M6. Rules: [conte
 | 9 | Real iPhone (Safari, PWA) | Dev server on the LAN, cases 1-8 | Same; no page scroll or zoom on focus, nothing behind the keyboard | ⬜ needs the user's iPhone (also the naming screen of case 11) |
 | 10 | Real Android (Chrome, PWA) | Same | Same | ⬜ needs the user's Android phone |
 | 11 | Regression | Naming screen (letter grid, no device keyboard), D-pad slide, A/B/Start after chat, fullscreen | As before | ✅ 2026-11-11 except the naming screen (not reachable with bots, see Resume Here): D-pad slide, Start/B, fullscreen after chat; layout back to normal |
+| 12 | Regression: phone layout after the desktop fixes (2026-11-11) | Mobile preset 375×812 and 812×375 with chatting bots: ticker, button, sheet; simulated keyboard (compose) | As before: game on top (portrait) or between the controls (landscape), ticker 2 rows, button with badge, sheet over the controls, compose layouts, PC panel hidden | ✅ 2026-11-11 (portrait: game 375×250 under the bar, button above START, sheet 375×498, touch drag scrolls 6 rows; landscape: game 492×266 cell, button top of the right column, badge 29, ticker 2 rows; compose portrait: game 375×250, sheet with 3 rows above the input; compose landscape: input bar and rows over the dimmed game) |
