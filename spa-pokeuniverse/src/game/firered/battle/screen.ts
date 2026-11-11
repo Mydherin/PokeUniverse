@@ -270,7 +270,8 @@ export class BattleScreen implements PlaybackHost {
     };
     yield* all(slideIn(), arrive());
 
-    const summaries = [new PartySummary(flow, false, this.playerBalls()), ...(state.trainer ? [new PartySummary(flow, true, state.side(true).balls)] : [])];
+    // BattleIntroDrawPartySummaryScreens: only trainer battles show the party summary.
+    const summaries = state.trainer ? [new PartySummary(flow, false, this.playerBalls()), new PartySummary(flow, true, state.side(true).balls)] : [];
     const tray = function* (): Generator<void, void, void> {
       while (!summaries.every((s) => s.settled)) {
         for (const s of summaries) s.update();
