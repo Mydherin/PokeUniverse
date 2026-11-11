@@ -1,4 +1,4 @@
-# M4 Zones Across Replicas 🧪
+# M4 Zones Across Replicas ✅
 
 Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [context.md](context.md) D2, D3, D7, D19.
 
@@ -6,7 +6,9 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 ## Resume Here
 
-**Code done 2026-11-10** (Go build, vet, `buf lint`/`breaking`, `docker compose config` green); **Manual Test pending, first case #1.** Then [M5](m05-chat-server.md).
+**Done 2026-11-11:** code 2026-11-10 (Go build, vet, `buf lint`/`breaking`, `docker compose config` green); every Manual Test case passed in game 2026-11-11, no fix needed. Next: [M5](m05-chat-server.md).
+
+- **Test driver (2026-11-11):** headless Playwright from the npx cache, kept outside the repo (side-session notes folder `m4-headless/`: `pw.mjs <botN> <botCount> <case.mjs>`, `up.mjs`/`down.mjs` for the stairs, `c3.mjs`'s `hkeys`, one script per case); it needs a TEMP-PLAYIT hook after `this.draw()` in `overworld.ts`'s frame (`window.__self` {x, y, map}, `__others` [id, px, py, name], `__playit` frames), removed after. Which replica holds a player: the newest `player connected` by `time` across `docker logs pokeuniverse-mic-core-N` (`docker compose logs` isn't in time order). Stairs: 10,2 on both maps; stand on them and press East (1F) or West (2F).
 
 - **Files:** new `mic-core/internal/zonebus/zonebus.go` (NATS), `mic-core/internal/world/zone_bus.go` (remote state, publish, beat, silence, Redis snapshot, prune); changed `world.proto` (`ZoneBus`, `ZonePresence`, `ZoneMember`), `internal/live/live.go`, `world/zone.go`, `world/zone_presence.go`, `world/world.go` (`ZoneBus` interface, `New(..., zoneBus, ...)`), `cmd/mic-core/main.go` (logs `replica` in `world loaded`), `compose.yaml` (`deploy.replicas: ${MIC_CORE_REPLICAS:-1}`), `.env.example`, `docs/tech-stack.md`.
 - **Contracts:** one `ZoneBus{replica, oneof batch: ZoneEvents | presence: ZonePresence{ids}}` (no `tick` field: NATS keeps one publisher's order, nothing read it). Redis value `ZoneMember{replica, OtherPlayer}`, so a snapshot knows which replica holds each remote player.
@@ -49,16 +51,16 @@ Part of [Phase 8](../phase-8-multiplayer-world.md). **Needs:** M2. Rules: [conte
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Two replicas | `MIC_CORE_REPLICAS=2`, `make up`, 10 bots on 1F | `make logs`: `player connected` on both `mic-core-1` and `mic-core-2` | ⬜ |
-| 2 | Everyone sees everyone | Real tab on 1F; a `--verbose` bot | The tab draws all 10 moving smoothly; the verbose bot's snapshot lists everyone, whichever replica | ⬜ |
-| 3 | Redis members | `HKEYS zone:pallet_town_players_house_1f:0` | Exactly the players on 1F, no one else | ⬜ |
-| 4 | Stairs across replicas | Bots and the tab use the stairs | Leaves and joins seen on both maps; the hashes move with them | ⬜ |
-| 5 | NATS subscriptions | `subsz?subs=1` (README) while both maps have players, then after one empties | `world.zone.<map>.0` subscribed per replica with players there; unsubscribed when the zone empties | ⬜ |
-| 6 | Replica crash | `docker kill` the replica holding some bots | Survivors see those players vanish within 15 s, then come back on reconnect; no ghost in `HKEYS` | ⬜ |
-| 7 | Graceful restart | `docker compose restart` one replica (`1012`) | Its players leave and rejoin cleanly, none twice | ⬜ |
-| 8 | Take-over across replicas | Same bot token in a second tab (lands on the other replica) | Old one stops; others see one leave and one join, ending with one player | ⬜ |
-| 9 | Back to one replica | `MIC_CORE_REPLICAS=1`, `make up` | M2's cases 1-3 short: still fine | ⬜ |
-| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ⬜ |
+| 1 | Two replicas | `MIC_CORE_REPLICAS=2`, `make up`, 10 bots on 1F | `make logs`: `player connected` on both `mic-core-1` and `mic-core-2` | ✅ 2026-11-11 (6 on `mic-core-1`, 4 on `mic-core-2`) |
+| 2 | Everyone sees everyone | Real tab on 1F; a `--verbose` bot | The tab draws all 10 moving smoothly; the verbose bot's snapshot lists everyone, whichever replica | ✅ 2026-11-11 (headless tab: everyone on its floor, no jumps or frame gaps over 10 s; bots roam both floors, so not all 10 stay on 1F; bot-10's snapshot after the stairs listed 6 players from both replicas) |
+| 3 | Redis members | `HKEYS zone:pallet_town_players_house_1f:0` | Exactly the players on 1F, no one else | ✅ 2026-11-11 (tab's players = `HKEYS` 1F minus itself, 10 checks over 20 s; 1F + 2F = 11, no one in both) |
+| 4 | Stairs across replicas | Bots and the tab use the stairs | Leaves and joins seen on both maps; the hashes move with them | ✅ 2026-11-11 (tab up and down: its players = that floor's `HKEYS`, itself moved between hashes; bots' joins seen within 1 s) |
+| 5 | NATS subscriptions | `subsz?subs=1` (README) while both maps have players, then after one empties | `world.zone.<map>.0` subscribed per replica with players there; unsubscribed when the zone empties | ✅ 2026-11-11 (both replicas on both maps; bots stopped: none, both hashes empty; one bot on 2F: only its replica on 2F) |
+| 6 | Replica crash | `docker kill` the replica holding some bots | Survivors see those players vanish within 15 s, then come back on reconnect; no ghost in `HKEYS` | ✅ 2026-11-11 (killed `mic-core-1`: its 3 bots reconnected to `mic-core-2` within ~1 s, redrawn in place; a tab on it closed at the kill left the survivor's view at 15.1 s and `HKEYS`; first try ran with my wrong replica lookup, redone) |
+| 7 | Graceful restart | `docker compose restart` one replica (`1012`) | Its players leave and rejoin cleanly, none twice | ✅ 2026-11-11 (restarted `mic-core-2`: its 6 bots left and rejoined once ~1 s later, on either replica; no frame drew anyone twice; `HKEYS` clean) |
+| 8 | Take-over across replicas | Same bot token in a second tab (lands on the other replica) | Old one stops; others see one leave and one join, ending with one player | ✅ 2026-11-11 (old copy on `mic-core-1`, new on `mic-core-2`: old shows "Playing somewhere else" and stops; an observer on `mic-core-2` drew exactly one copy all along, since the new `joined` replaces it and the old replica's `left` is hidden by design) |
+| 9 | Back to one replica | `MIC_CORE_REPLICAS=1`, `make up` | M2's cases 1-3 short: still fine | ✅ 2026-11-11 (`.env` line removed, one `mic-core`; 4 bots on 2F: bot-4 listed BOT1 in its snapshot, printed the tab's `joined`, walks, turns, then `left`/`joined` on the stairs; the tab drew 2F's and 1F's players) |
+| 10 | Regression | [context.md](context.md#playing-a-milestone) regression check | Nothing broken | ✅ 2026-11-11 (one replica, 5 bots: walked 1F → stairs → 2F → stairs → 1F, 3,371 frames, never more than 1 px a frame (no `Correction`); 2F's trainer battled; a wild battle in the test grass, then walking again) |
 
 ## Gotchas
 
