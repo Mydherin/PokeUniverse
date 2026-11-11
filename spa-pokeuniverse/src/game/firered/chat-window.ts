@@ -106,9 +106,12 @@ class LogView {
     private readonly maxRows = 0,
   ) {}
 
-  /** Logs that scroll show a bar; the ticker's 2 rows don't. */
+  /** Rows wrapped for a bar: only when they overflow the log (user 2026-11-11); never on the ticker's 2 rows. */
+  private overflow = false;
+
+  /** Logs that scroll show a bar while their rows overflow. */
   get hasBar(): boolean {
-    return this.maxRows === 0;
+    return this.maxRows === 0 && this.overflow;
   }
 
   /** The bar's track in canvas pixels, and its thumb: as tall as the rows shown, at the bottom for the newest. */
@@ -176,8 +179,19 @@ class LogView {
     return Math.floor((this.height - 2 * (BORDER + PAD)) / ROW);
   }
 
-  /** The rows of `lines` wrapped to the canvas: the name, the colon at 42, the words after. */
+  /** The rows of `lines` wrapped to the canvas; again with room for the bar if they overflow. */
   layout(lines: readonly ChatLine[]): void {
+    this.overflow = false;
+    this.wrap(lines);
+    if (this.maxRows === 0 && this.rows.length > this.visibleRows) {
+      this.overflow = true;
+      this.wrap(lines);
+    }
+    this.scroll = Math.max(0, Math.min(this.scroll, this.rows.length - this.visibleRows));
+  }
+
+  /** The name, the colon at 42, the words after. */
+  private wrap(lines: readonly ChatLine[]): void {
     const right = this.width - BORDER - PAD - 2 - (this.hasBar ? BAR + BAR_GAP : 0);
     const left = BORDER + PAD;
     const space = this.charmap.encode[" "];
@@ -208,7 +222,6 @@ class LogView {
       });
       this.rows.push(row);
     }
-    this.scroll = Math.max(0, Math.min(this.scroll, this.rows.length - this.visibleRows));
   }
 
   scrollBy(rows: number): void {

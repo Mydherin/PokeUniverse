@@ -37,7 +37,7 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 - **On-screen game controls:** D-pad and action buttons, sized for thumbs, never covering important game areas.
   - In the game: a D-pad you can slide across (8 directions), **A**, **B** and **Start**; at least 44×44 px; shown on touch screens only (`pointer: coarse`).
   - A **chat button** (speech bubble, unread badge) on the touch layer, clear of the game buttons ([Mobile Keyboard](#mobile-keyboard) for typing).
-- **Chat log scroll bar:** the PC panel's and the phone sheet's logs show a scroll bar in the panel's own blue (thumb at the bottom for the newest); on PC it's dragged or clicked, on phones the log scrolls with a touch drag as before.
+- **Chat log scroll bar:** the PC panel's and the phone sheet's logs show a scroll bar in the panel's own blue (thumb at the bottom for the newest) only while the lines overflow the log; otherwise none, and the text uses its width (user 2026-11-11); on PC it's dragged or clicked, on phones the log scrolls with a touch drag as before.
 - No accidental zoom or text selection inside the game.
 
 ### Desktop
@@ -58,6 +58,7 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 ## Game Screen
 
 - The game draws at the **GBA resolution (240×160)**, centered on black, **as large as its space allows** at 3:2 (any scale, user 2026-11-11: whole-number steps left big black bars in smaller windows); always nearest-neighbor.
+- **How it's scaled (one rule for every layout):** the game is drawn at exactly 240×160, the world at zoom 1; the browser scales that one image with nearest-neighbor (`image-rendering: pixelated`) to the largest 3:2 size in whole device pixels (3u × 2u), placed on a whole device pixel (`placeScreen` in `game/screen.ts`, run on every cell, window, visual viewport and pixel-ratio change). Fractional scale is kept for the largest game; each game pixel is 3 or 4 device pixels wide (or n / n+1), never split. Why: drawing the world at a fractional zoom made each tile and sprite round and sample on its own, which left 1-px stray lines while walking at most sizes (user 2026-11-11). The chat only reads the space it gets; it never sizes the game.
 - **Mouse and keyboard:** the game fills the screen under the top bar (Home, connection status, fullscreen). In the world, the chat panel sits beside the game when the window is wide and below it when it's narrow, whichever leaves the game bigger; the game takes the rest. Before the world (title, intro) the panel takes no room.
 - **Touch, portrait:** the game at the top under the top bar, the controls below it (D-pad left, A/B and Start right).
 - **Touch, landscape:** the game in the middle, the D-pad on the left side and A/B/Start on the right.

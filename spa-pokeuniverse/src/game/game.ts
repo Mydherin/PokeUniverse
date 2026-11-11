@@ -15,7 +15,7 @@ import { HEIGHT, WIDTH } from "./gba/video";
 import { fetchTrainer, startFireRed } from "./firered/boot";
 import type { ChatSlots } from "./firered/chat-window";
 import { Assets, SOUNDS } from "./firered/manifest";
-import { fitScreen } from "./screen";
+import { placeScreen } from "./screen";
 import type { WorldView } from "./world/view";
 import { WorldScene } from "./world/scene";
 
@@ -25,7 +25,6 @@ const MAX_CATCH_UP = 4;
 
 class GbaScreen extends Phaser.Scene {
   private gba!: Gba;
-  private image!: Phaser.GameObjects.Image;
   private texture!: Phaser.Textures.CanvasTexture;
   private pixels!: ImageData;
   private running = false;
@@ -46,9 +45,7 @@ class GbaScreen extends Phaser.Scene {
     const ctx = manager.context ?? new AudioContext();
     this.texture = this.textures.createCanvas("gba", WIDTH, HEIGHT)!;
     this.pixels = this.texture.context.createImageData(WIDTH, HEIGHT);
-    this.image = this.add.image(0, 0, "gba").setOrigin(0);
-    this.layout();
-    this.scale.on("resize", () => this.layout());
+    this.add.image(0, 0, "gba").setOrigin(0);
     this.events.once(Phaser.Scenes.Events.DESTROY, () => (this.destroyed = true));
 
     const trainer = fetchTrainer();
@@ -91,11 +88,6 @@ class GbaScreen extends Phaser.Scene {
     this.overlay.append(prompt);
   }
 
-  private layout(): void {
-    const { scale, left, top } = fitScreen(this.scale.width, this.scale.height);
-    this.image.setScale(scale).setPosition(left, top);
-  }
-
   update(_time: number, delta: number): void {
     if (!this.running) return;
     this.elapsed = Math.min(this.elapsed + delta, FRAME_MS * MAX_CATCH_UP);
@@ -130,7 +122,8 @@ export function startGame(parent: HTMLElement, link: WorldLink): () => void {
     parent: screen,
     pixelArt: true,
     backgroundColor: "#000000",
-    scale: { mode: Phaser.Scale.RESIZE, width: screen.clientWidth, height: screen.clientHeight },
+    // Drawn at the GBA's size; placeScreen scales the canvas (ui.md#game-screen).
+    scale: { mode: Phaser.Scale.NONE, width: WIDTH, height: HEIGHT },
     banner: false,
     // Drawn in this order: the world, then the GBA screen over it.
     scene: [
@@ -144,15 +137,28 @@ export function startGame(parent: HTMLElement, link: WorldLink): () => void {
       }),
     ],
   });
-  // Follow the screen size (rotation, keyboard, browser bars), not only window resizes.
-  // refresh() alone keeps the parent's last size: read it first (the chat panel resizes the cell).
-  const observer = new ResizeObserver(() => {
-    game.scale.getParentBounds();
-    game.scale.refresh();
+  // The cell changes with rotation, the keyboard, browser bars and the chat's layout; its
+  // place and the pixel ratio (browser zoom, another monitor) with the window.
+  const place = () => placeScreen(screen, game.canvas);
+  const observer = new ResizeObserver(place);
+  let ratio: MediaQueryList | undefined;
+  const onRatio = () => {
+    ratio?.removeEventListener("change", onRatio);
+    ratio = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    ratio.addEventListener("change", onRatio);
+    place();
+  };
+  game.events.once(Phaser.Core.Events.READY, () => {
+    observer.observe(screen);
+    window.addEventListener("resize", place);
+    window.visualViewport?.addEventListener("resize", place);
+    onRatio();
   });
-  game.events.once(Phaser.Core.Events.READY, () => observer.observe(screen));
   return () => {
     observer.disconnect();
+    window.removeEventListener("resize", place);
+    window.visualViewport?.removeEventListener("resize", place);
+    ratio?.removeEventListener("change", onRatio);
     gba?.destroy();
     game.destroy(true);
     layout.remove();

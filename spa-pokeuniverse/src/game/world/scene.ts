@@ -4,7 +4,6 @@
 import Phaser from "phaser";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
 import { HEIGHT, WIDTH } from "../gba/video";
-import { fitScreen } from "../screen";
 import { TILE, tileAt } from "./map";
 import type { CharacterSheet, CharacterView, TilesetArt, WorldView } from "./view";
 
@@ -37,8 +36,6 @@ export class WorldScene extends Phaser.Scene implements WorldView {
     this.cameras.main.setRoundPixels(true).setVisible(false);
     // Covers the camera's view, so the fade also follows it.
     this.fade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0, 0).setOrigin(0).setDepth(DEPTH_FADE);
-    this.layout();
-    this.scale.on("resize", () => this.layout());
     this.resolveReady();
   }
 
@@ -114,9 +111,8 @@ export class WorldScene extends Phaser.Scene implements WorldView {
   }
 
   snapshot(): Promise<Uint16Array> {
-    const { scale, left, top } = fitScreen(this.scale.width, this.scale.height);
     return new Promise((resolve) => {
-      this.game.renderer.snapshotArea(left, top, Math.round(WIDTH * scale), Math.round(HEIGHT * scale), (image) => {
+      this.game.renderer.snapshotArea(0, 0, WIDTH, HEIGHT, (image) => {
         const canvas = document.createElement("canvas");
         canvas.width = WIDTH;
         canvas.height = HEIGHT;
@@ -152,10 +148,5 @@ export class WorldScene extends Phaser.Scene implements WorldView {
       for (const url of missing) this.load.image(url, url);
       this.load.start();
     });
-  }
-
-  private layout(): void {
-    const { scale, left, top } = fitScreen(this.scale.width, this.scale.height);
-    this.cameras.main.setViewport(left, top, Math.round(WIDTH * scale), Math.round(HEIGHT * scale)).setZoom(scale);
   }
 }

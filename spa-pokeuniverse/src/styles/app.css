@@ -102,6 +102,17 @@
     grid-template: "screen" minmax(0, 1fr) / minmax(0, 1fr);
   }
   .game-screen { grid-area: screen; position: relative; overflow: hidden; }
+  /* Drawn at 240×160; placeScreen (game/screen.ts) sets its size and place in whole device
+     pixels, nearest-neighbour scaled (beats Phaser's own inline size). */
+  .game-screen > canvas {
+    position: absolute;
+    left: var(--screen-x, 0) !important;
+    top: var(--screen-y, 0) !important;
+    width: var(--screen-w, 0) !important;
+    height: var(--screen-h, 0) !important;
+    margin: 0 !important;
+    image-rendering: pixelated;
+  }
   .game-left, .game-right { display: none; }
   @media (pointer: coarse) {
     .game-left, .game-right { display: flex; align-items: center; justify-content: center; }
