@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8 M9 Phase check](docs/phases/phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) ([Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md): M1-M6 and M8 ✅, 7/9 ✅; M7 🧪 built, real-phone cases 9-10 wait on the user's phones; M9 🚧 cases 1-5 and 7-9 ✅, case 10 🚧 (box screen left; after-catch fix not committed), case 6 waits on phones, then case 11). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here) done except the real-phone cases (M1-M6 and M8 ✅; M7 🧪 cases 9-10 and 11's naming screen, M9 🧪 case 6: the user plays them on an iPhone and an Android phone, list in the phase's Resume Here). Phase 9 not started. Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

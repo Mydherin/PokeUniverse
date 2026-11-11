@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress:** M1 ✅ 2026-11-10, M2 ✅ 2026-11-11, M3 ✅ 2026-11-11, M4 ✅ 2026-11-11, M5 ✅ 2026-11-11, M6 ✅ 2026-11-11, M8 ✅ 2026-11-11 (Manual Tests passed; headless test driver: [M4's Resume Here](milestones/m04-zones-across-replicas.md#resume-here), [M5's](milestones/m05-chat-server.md#resume-here) for bots' chat flags, [M6's](milestones/m06-chat-window.md#resume-here) for the phone layouts and the interactive driver). [M7](milestones/m07-mobile-compose.md#resume-here) 🧪: built, Manual Test 1-8 and 11 pass headless; 9-10 (real iPhone, real Android) and the naming screen wait for the user's phones. M8: budget measured on two replicas and holds, no tuning needed; numbers in tech-stack.md and D18; its Resume Here has the headless driver notes. [M9 Phase check](milestones/m09-phase-check.md#resume-here) 🚧: cases 1-5 and 7-9 ✅, case 10 🚧 (box screen left; after-catch walking bug fixed, not committed), then 11; case 6 waits on real phones; next: finish case 10 (PC box screen), then 11. Open follow-up: walking blocked after a catch + nickname ([M6](milestones/m06-chat-window.md#resume-here)). Setup: [How to Test in Game](../README.md#how-to-test-in-game). Shared decisions (D1-D24; zone = map + phase, D19; mobile-first chat, D21-D24, from 2026-11-10) and the FireRed/HeartGold references: [context.md](milestones/context.md). Q1-Q4 all answered 2026-11-10.
+**Done except the real-phone cases (2026-11-11):** M1-M6 and M8 ✅; [M7](milestones/m07-mobile-compose.md#resume-here) 🧪 and [M9](milestones/m09-phase-check.md#resume-here) 🧪 have everything played but the user's phones: M7 cases 9-10 and case 11's naming screen, M9 case 6. On the phones: **iPhone (Safari, then the PWA)** and **Android (Chrome, then the PWA)**, dev server on the LAN ([How to Test in Game](../README.md#how-to-test-in-game)), on each phone: M7 cases 1-8 (compose bar on the keyboard, portrait and landscape, swipe and back gestures, no page scroll or zoom on focus, nothing behind the keyboard); the naming screen (letter grid, no device keyboard: catch a Pokémon in the test grass, YES to the nickname); M9 case 6 (ticker, sheet, compose, gestures with a second player or bots chatting). Then mark them, and Phase 8 is ✅. Fixed in M9: walking blocked after a catch (f977d49). Leftovers moved: O13 (Phase 10), O14 (Phase 9), O15 (Phase 12), O16 (Phase 13) ([index](../index.md#open-items)). Headless driver: M9's Resume Here. Shared decisions (D1-D24) and references: [context.md](milestones/context.md).
 
 Carried in: O7 (other players' following Pokémon, from [Phase 6 M9](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)), server done in M2, client in M3 (closed). From Phase 7: other players seeing a player in battle (D9).
 
@@ -22,7 +22,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · 🧪 code do
 | M6 | [Chat window](milestones/m06-chat-window.md) | ✅ | M5, M3 | Client chat log in Union Room chat's style; PC panel and keys (`T`, `/`); phone ticker, chat button, sheet with channel chips |
 | M7 | [Mobile compose](milestones/m07-mobile-compose.md) | 🧪 | M6 | `visualViewport` keyboard pattern ([ui.md](../../ui.md#mobile-keyboard)); compose bar on the keyboard, portrait and landscape; swipe and back gestures; iOS and Android checks |
 | M8 | [Load and tuning](milestones/m08-load-tuning.md) | ✅ | M4, M5 | Bots at scale, `mic-core` zone metrics, budgets measured and written in tech-stack.md, limits tuned |
-| M9 | [Phase check](milestones/m09-phase-check.md) | 🚧 | M1-M8 | The whole phase played with bots and two replicas; restarts; regression |
+| M9 | [Phase check](milestones/m09-phase-check.md) | 🧪 | M1-M8 | The whole phase played with bots and two replicas; restarts; regression |
 
 M1 → M2, then M3 and M4 in either order; M5 needs M4; M6 needs M5 and M3; M7 needs M6; M8 needs M4 and M5.
 
@@ -34,7 +34,7 @@ M1 → M2, then M3 and M4 in either order; M5 needs M4; M6 needs M5 and M3; M7 n
 - **Rate limits:** per-player intents (exists, 20/s burst 40), chat on its own limit; budgets measured (M5, M8).
 - **Reconnect:** a fresh snapshot with the others, drawn again from it (M2, M3, M4).
 - **Bot players** for load testing (M1, M8).
-- **Not here:** acting on another player (A on them shows the trainer card, the social menu, trade, battle: Phase 9); friends, private and party chat (Phase 9); story flags, the personal layer (D20), map phase flags and private scene phases (Phase 10); chat moderation beyond length, charset and rate (D14, Phase 13); seeing players on connected maps across a map border (no connections yet: Phase 12, D4).
+- **Not here:** acting on another player (A on them shows the trainer card, the social menu, trade, battle: Phase 9); friends, private and party chat (Phase 9); story flags, the personal layer (D20), map phase flags and private scene phases (Phase 10); chat moderation beyond length, charset and rate (D14, Phase 13, O16); seeing players on connected maps across a map border (no connections yet: Phase 12, D4, O15).
 
 ## Done When
 

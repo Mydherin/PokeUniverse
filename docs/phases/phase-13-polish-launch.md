@@ -9,6 +9,7 @@
 - Complete PWA (install, icons, offline loading screen).
 - Logs, metrics and monitoring.
 - Admin tools for the `admin` role.
+- Chat moderation: word filter, muting and reporting ([O16](index.md#open-items), Phase 8 D14).
 - Production deployment, with automatic PostgreSQL and Redis backups.
 
 ## Done When
