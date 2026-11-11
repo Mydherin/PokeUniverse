@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress:** M1 ✅ 2026-11-10, M2 ✅ 2026-11-11, M3 ✅ 2026-11-11, M4 ✅ 2026-11-11 (Manual Tests passed; headless test driver: [M4's Resume Here](milestones/m04-zones-across-replicas.md#resume-here)). Next: [M5](milestones/m05-chat-server.md) (build, then its Manual Test). Setup: [How to Test in Game](../README.md#how-to-test-in-game). Shared decisions (D1-D24; zone = map + phase, D19; mobile-first chat, D21-D24, from 2026-11-10) and the FireRed/HeartGold references: [context.md](milestones/context.md). Q1-Q4 all answered 2026-11-10.
+**In progress:** M1 ✅ 2026-11-10, M2 ✅ 2026-11-11, M3 ✅ 2026-11-11, M4 ✅ 2026-11-11, M5 ✅ 2026-11-11 (Manual Tests passed; headless test driver: [M4's Resume Here](milestones/m04-zones-across-replicas.md#resume-here), [M5's](milestones/m05-chat-server.md#resume-here) for bots' chat flags). Next: [M6](milestones/m06-chat-window.md) (build, then its Manual Test). Setup: [How to Test in Game](../README.md#how-to-test-in-game). Shared decisions (D1-D24; zone = map + phase, D19; mobile-first chat, D21-D24, from 2026-11-10) and the FireRed/HeartGold references: [context.md](milestones/context.md). Q1-Q4 all answered 2026-11-10.
 
 Carried in: O7 (other players' following Pokémon, from [Phase 6 M9](../phase-6-pokemon-party/milestones/m09-following-check.md#follow-ups-later-phases)), server done in M2, client in M3 (closed). From Phase 7: other players seeing a player in battle (D9).
 
@@ -18,7 +18,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · 🧪 code do
 | M2 | [Zone presence on one replica](milestones/m02-zone-presence.md) | ✅ | M1 | Contracts `OtherPlayer`, `ZoneEvents`; others in the snapshot and `Warped`; joined, left, moved, turned, follower, battle deltas per tick, encoded once per zone |
 | M3 | [Drawing other players](milestones/m03-drawing-others.md) | ✅ | M2 | Client: other trainers and their followers drawn as FireRed's object events, step queue at FireRed's speed, grass, elevation, warps, reconnect rebuild |
 | M4 | [Zones across replicas](milestones/m04-zones-across-replicas.md) | ✅ | M2 | NATS `world.zone.<map>.<phase>` fan-out, Redis zone members for snapshots, presence beat and crash cleanup; two `mic-core` replicas in Compose |
-| M5 | [Chat: server and contracts](milestones/m05-chat-server.md) | ⬜ | M4 | `SendChat` intent, `ChatMessage` in `ZoneEvents`, FireRed charset and length check, chat rate limit, bots chatting |
+| M5 | [Chat: server and contracts](milestones/m05-chat-server.md) | ✅ | M4 | `SendChat` intent, `ChatMessage` in `ZoneEvents`, FireRed charset and length check, chat rate limit, bots chatting |
 | M6 | [Chat window](milestones/m06-chat-window.md) | ⬜ | M5, M3 | Client chat log in Union Room chat's style; PC panel and keys (`T`, `/`); phone ticker, chat button, sheet with channel chips |
 | M7 | [Mobile compose](milestones/m07-mobile-compose.md) | ⬜ | M6 | `visualViewport` keyboard pattern ([ui.md](../../ui.md#mobile-keyboard)); compose bar on the keyboard, portrait and landscape; swipe and back gestures; iOS and Android checks |
 | M8 | [Load and tuning](milestones/m08-load-tuning.md) | ⬜ | M4, M5 | Bots at scale, `mic-core` zone metrics, budgets measured and written in tech-stack.md, limits tuned |

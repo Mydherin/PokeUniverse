@@ -33,7 +33,10 @@ type SpawnBots struct {
 	Map string `protobuf:"bytes,2,opt,name=map,proto3" json:"map,omitempty"`
 	// Only issue new access tokens for the bots' existing trainers (a running bot script
 	// renews its tokens before they expire); nothing else changes.
-	RefreshOnly   bool `protobuf:"varint,3,opt,name=refresh_only,json=refreshOnly,proto3" json:"refresh_only,omitempty"`
+	RefreshOnly bool `protobuf:"varint,3,opt,name=refresh_only,json=refreshOnly,proto3" json:"refresh_only,omitempty"`
+	// The first bot's n (0 or 1: bot-1), so several bot scripts can run side by side without
+	// taking each other's bots over: bot-<first> … bot-<first+count-1>.
+	First         uint32 `protobuf:"varint,4,opt,name=first,proto3" json:"first,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -87,6 +90,13 @@ func (x *SpawnBots) GetRefreshOnly() bool {
 		return x.RefreshOnly
 	}
 	return false
+}
+
+func (x *SpawnBots) GetFirst() uint32 {
+	if x != nil {
+		return x.First
+	}
+	return 0
 }
 
 // Response of POST /api/dev/bots.
@@ -208,11 +218,12 @@ var File_pokeuniverse_dev_v1_bots_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_dev_v1_bots_proto_rawDesc = "" +
 	"\n" +
-	"\x1epokeuniverse/dev/v1/bots.proto\x12\x13pokeuniverse.dev.v1\"V\n" +
+	"\x1epokeuniverse/dev/v1/bots.proto\x12\x13pokeuniverse.dev.v1\"l\n" +
 	"\tSpawnBots\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\rR\x05count\x12\x10\n" +
 	"\x03map\x18\x02 \x01(\tR\x03map\x12!\n" +
-	"\frefresh_only\x18\x03 \x01(\bR\vrefreshOnly\"B\n" +
+	"\frefresh_only\x18\x03 \x01(\bR\vrefreshOnly\x12\x14\n" +
+	"\x05first\x18\x04 \x01(\rR\x05first\"B\n" +
 	"\vSpawnedBots\x123\n" +
 	"\x04bots\x18\x01 \x03(\v2\x1f.pokeuniverse.dev.v1.SpawnedBotR\x04bots\"{\n" +
 	"\n" +

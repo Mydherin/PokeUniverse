@@ -15,6 +15,9 @@ message SpawnBots {
   // Only issue new access tokens for the bots' existing trainers (a running bot script
   // renews its tokens before they expire); nothing else changes.
   bool refresh_only = 3;
+  // The first bot's n (0 or 1: bot-1), so several bot scripts can run side by side without
+  // taking each other's bots over: bot-<first> … bot-<first+count-1>.
+  uint32 first = 4;
 }
 
 // Response of POST /api/dev/bots.

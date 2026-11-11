@@ -50,6 +50,12 @@ message UseWarp {
   uint32 y = 3;
 }
 
+// A line for the zone's chat: FireRed's charset, 1-64 characters once trimmed. Over the rate
+// limit, invalid or outside the world, it is dropped without an answer.
+message SendChat {
+  string text = 1;
+}
+
 // A button: check what the player faces. Always answered with a Script (empty when nothing
 // answers); the client waits for it before moving again.
 message Interact {
@@ -156,6 +162,7 @@ message ZoneEvent {
     PlayerTurned turned = 4;
     PlayerFollower follower = 5;
     PlayerBattle battle = 6;
+    ChatMessage chat = 7;
   }
 }
 
@@ -194,6 +201,13 @@ message PlayerFollower {
 message PlayerBattle {
   uint64 id = 1;
   bool in_battle = 2;
+}
+
+// A player said a line in the zone's chat. The sender gets its own line back here too: the
+// client shows a line only once it comes back, one source of order. Not saved.
+message ChatMessage {
+  uint64 id = 1;
+  string text = 2;
 }
 
 message Correction {

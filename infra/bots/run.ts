@@ -1,12 +1,18 @@
 // Dev bots (phase-8 M1, D16): N bot players that log in through POST /api/dev/bots, enter the world
 // over the real WebSocket protocol and walk at FireRed's pace, printing latency and traffic.
 //
-//   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--url http://localhost:8080] [--secret …] [--verbose] [--idle]
+//   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--first 1] [--url http://localhost:8080] [--secret …]
+//     [--verbose] [--idle] [--chat] [--flood] [--say <line> …]
 //
 // Each bot tracks the other players in its zone (phase-8 M2) from its snapshot and `zone_events`;
 // --verbose prints every event the last bot (bot-N) receives: one bot's view, readable; a second
 // script run would re-spawn bot-1 and take it over. --idle keeps that bot standing where it spawned,
-// so it stays in the zone for a whole test case.
+// so it stays in the zone for a whole test case. --first runs bot-<first> on (default 1), so several
+// runs can play side by side, each with its own bots.
+//
+// Chat (phase-8 M5): --chat makes each bot say a random line every 20-60 s, --flood 10 lines a
+// second (to see the limit), --say (repeatable) the given lines once each after entering, 2.1 s
+// apart. The verbose bot prints every ChatMessage, its own included; stats count the lines received.
 //
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
@@ -27,6 +33,9 @@ const ROOT = new URL("../../", import.meta.url);
 const WALK_MS = (16 * 1000) / 60;
 const RUN_MS = (8 * 1000) / 60;
 const PING_EVERY_MS = 5_000;
+const FLOOD_EVERY_MS = 100;
+const SAY_EVERY_MS = 2_100;
+const LINES = ["Hello!", "Anyone up for a battle?", "Nice weather in PALLET TOWN.", "Where is PROF. OAK?", "brb", "Trading PIDGEY, anyone?", "GG!", "I love my MOM's cooking."];
 const STATS_EVERY_MS = 10_000;
 // tech-stack.md#movement: 1, 2, 4, 8, then 15 s, ±25%; 8 failures in a row stop the bot.
 const BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 15_000];
@@ -42,16 +51,20 @@ const { values: args } = parseArgs({
     map: { type: "string", default: "pallet_town_players_house_2f" },
     url: { type: "string", default: `http://localhost:${dotenv.SPA_PORT ?? "8080"}` },
     secret: { type: "string", default: process.env.BOTS_SECRET ?? dotenv.BOTS_SECRET ?? "" },
+    first: { type: "string", default: "1" },
     chat: { type: "boolean", default: false },
+    flood: { type: "boolean", default: false },
+    say: { type: "string", multiple: true, default: [] },
     verbose: { type: "boolean", default: false },
     idle: { type: "boolean", default: false },
   },
 });
 const base = new URL(args.url);
 const count = Number(args.count);
+const first = Number(args.first);
 if (!args.secret) fail("no secret: set BOTS_SECRET in .env (and restart mic-core) or pass --secret");
 if (!Number.isInteger(count) || count < 1 || count > 100) fail("--count must be 1 to 100");
-if (args.chat) console.log("--chat: bots don't chat yet (Phase 8's chat milestone adds it)");
+if (!Number.isInteger(first) || first < 1 || first > 100) fail("--first must be 1 to 100");
 
 const maps = new Map<string, ClientMap>();
 function loadMap(id: string): ClientMap {
@@ -63,7 +76,7 @@ function loadMap(id: string): ClientMap {
   return m;
 }
 
-const stats = { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, pings: [] as number[] };
+const stats = { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, pings: [] as number[] };
 let stopping = false;
 
 class Bot {
@@ -87,7 +100,7 @@ class Bot {
   readonly others = new Map<bigint, OtherPlayer>();
   connected = false;
   private get verbose(): boolean {
-    return args.verbose && this.n === count;
+    return args.verbose && this.n === first + count - 1;
   }
 
   constructor(
@@ -143,6 +156,7 @@ class Bot {
         if (!this.connected) {
           this.connected = true;
           this.every(PING_EVERY_MS, () => this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } }));
+          this.startChat();
         }
         if (!this.walking && !(this.verbose && args.idle)) this.walk();
         break;
@@ -182,6 +196,18 @@ class Bot {
     }
   }
 
+  private said = 0;
+  /** --chat, --flood and --say, from each (re)connect. */
+  private startChat(): void {
+    const say = (text: string) => this.send({ case: "sendChat", value: { text } });
+    if (args.flood) this.every(FLOOD_EVERY_MS, () => say(`FLOOD ${++this.said}`));
+    if (args.chat) {
+      const next = () => this.after(20_000 + Math.random() * 40_000, () => (say(pick(LINES)), next()));
+      next();
+    }
+    args.say.forEach((text, i) => this.after(SAY_EVERY_MS * (i + 1), () => say(text)));
+  }
+
   /** A new zone (snapshot or warp): the others are exactly those listed. */
   private meet(map: string, others: OtherPlayer[]): void {
     this.others.clear();
@@ -193,6 +219,13 @@ class Bot {
     const ev = e.event;
     if (ev.case === undefined) return;
     const id = ev.case === "joined" ? (ev.value.player?.id ?? 0n) : ev.value.id;
+    if (ev.case === "chat") {
+      // Own lines too: the client shows its own line only when it comes back (phase-8 M5).
+      stats.chat++;
+      const name = id === this.id ? `BOT${this.n} (own)` : (this.others.get(id)?.name ?? `${id} (unknown player)`);
+      if (this.verbose) console.log(`bot-${this.n}: chat ${name}: ${JSON.stringify(ev.value.text)}`);
+      return;
+    }
     if (id === this.id) return;
     stats.events++;
     const o = this.others.get(id);
@@ -337,7 +370,7 @@ async function spawn(refreshOnly: boolean): Promise<SpawnedBot[]> {
   const res = await fetch(new URL("/api/dev/bots", base), {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Bots-Secret": args.secret },
-    body: JSON.stringify(toJson(SpawnBotsSchema, create(SpawnBotsSchema, { count, map: args.map, refreshOnly }))),
+    body: JSON.stringify(toJson(SpawnBotsSchema, create(SpawnBotsSchema, { count, first, map: args.map, refreshOnly }))),
   });
   if (!res.ok) fail(`POST /api/dev/bots: ${res.status} ${(await res.text()).trim()}${res.status === 404 ? " (is BOTS_SECRET set for mic-core?)" : ""}`);
   return fromJson(SpawnedBotsSchema, await res.json()).bots;
@@ -349,7 +382,7 @@ function scheduleRenewal(spawned: SpawnedBot[], bots: Bot[]): void {
   setTimeout(async () => {
     try {
       const fresh = await spawn(true);
-      for (const b of fresh) bots[b.n - 1]?.renew(b.accessToken);
+      for (const b of fresh) bots[b.n - first]?.renew(b.accessToken);
       scheduleRenewal(fresh, bots);
     } catch (err) {
       console.warn(`token renewal failed: ${err}; retrying`);
@@ -371,10 +404,11 @@ function printStats(bots: Bot[]): void {
       ` | ping p50 ${pct(0.5)} p99 ${pct(0.99)}` +
       (stats.reconnects ? ` | reconnects ${stats.reconnects}` : "") +
       (stats.battles ? ` | battles ${stats.battles}` : "") +
+      (stats.chat ? ` | chat lines ${stats.chat}` : "") +
       ` | zone: ${(stats.events / secs).toFixed(1)} events/s, ${(stats.zoneFrames / secs / per).toFixed(1)} frames/s per bot` +
       `, others known ${othersKnown(bots)}`,
   );
-  Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, pings: [] });
+  Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, pings: [] });
 }
 
 /** The fewest and most others a connected bot knows: equal once every bot sees the whole zone. */

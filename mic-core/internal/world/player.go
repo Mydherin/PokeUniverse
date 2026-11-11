@@ -95,6 +95,9 @@ func (p *Player) Move(m *worldv1.Move, at time.Time) { p.zone.do(func() { p.zone
 // Turn faces a direction without moving.
 func (p *Player) Turn(t *worldv1.Turn) { p.zone.do(func() { p.zone.turn(p, t.Direction) }) }
 
+// SendChat says an already cleaned line (chat.Clean) in the zone's chat (phase-8 D13).
+func (p *Player) SendChat(line string) { p.zone.do(func() { p.zone.chat(p, line) }) }
+
 // Interact checks what the player faces; always answered with a Script, empty when nothing answers.
 func (p *Player) Interact(i *worldv1.Interact) { p.zone.do(func() { p.zone.interact(p, i.WalkInto) }) }
 

@@ -211,6 +211,8 @@ func zoneEventID(ev *worldv1.ZoneEvent) uint64 {
 		return e.Follower.GetId()
 	case *worldv1.ZoneEvent_Battle:
 		return e.Battle.GetId()
+	case *worldv1.ZoneEvent_Chat:
+		return e.Chat.GetId()
 	}
 	return 0
 }

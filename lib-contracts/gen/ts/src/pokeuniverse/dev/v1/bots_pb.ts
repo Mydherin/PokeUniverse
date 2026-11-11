@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/dev/v1/bots.proto.
  */
 export const file_pokeuniverse_dev_v1_bots: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wb2tldW5pdmVyc2UvZGV2L3YxL2JvdHMucHJvdG8SE3Bva2V1bml2ZXJzZS5kZXYudjEiPQoJU3Bhd25Cb3RzEg0KBWNvdW50GAEgASgNEgsKA21hcBgCIAEoCRIUCgxyZWZyZXNoX29ubHkYAyABKAgiPAoLU3Bhd25lZEJvdHMSLQoEYm90cxgBIAMoCzIfLnBva2V1bml2ZXJzZS5kZXYudjEuU3Bhd25lZEJvdCJVCgpTcGF3bmVkQm90EgkKAW4YASABKA0SEgoKYWNjb3VudF9pZBgCIAEoBBIUCgxhY2Nlc3NfdG9rZW4YAyABKAkSEgoKZXhwaXJlc19hdBgEIAEoA0I9Wjtwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2Rldi92MTtkZXZ2MWIGcHJvdG8z");
+  fileDesc("Ch5wb2tldW5pdmVyc2UvZGV2L3YxL2JvdHMucHJvdG8SE3Bva2V1bml2ZXJzZS5kZXYudjEiTAoJU3Bhd25Cb3RzEg0KBWNvdW50GAEgASgNEgsKA21hcBgCIAEoCRIUCgxyZWZyZXNoX29ubHkYAyABKAgSDQoFZmlyc3QYBCABKA0iPAoLU3Bhd25lZEJvdHMSLQoEYm90cxgBIAMoCzIfLnBva2V1bml2ZXJzZS5kZXYudjEuU3Bhd25lZEJvdCJVCgpTcGF3bmVkQm90EgkKAW4YASABKA0SEgoKYWNjb3VudF9pZBgCIAEoBBIUCgxhY2Nlc3NfdG9rZW4YAyABKAkSEgoKZXhwaXJlc19hdBgEIAEoA0I9Wjtwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL2Rldi92MTtkZXZ2MWIGcHJvdG8z");
 
 /**
  * Request of POST /api/dev/bots: bot accounts bot-1 … bot-<count>, created or reused.
@@ -42,6 +42,14 @@ export type SpawnBots = Message<"pokeuniverse.dev.v1.SpawnBots"> & {
    * @generated from field: bool refresh_only = 3;
    */
   refreshOnly: boolean;
+
+  /**
+   * The first bot's n (0 or 1: bot-1), so several bot scripts can run side by side without
+   * taking each other's bots over: bot-<first> … bot-<first+count-1>.
+   *
+   * @generated from field: uint32 first = 4;
+   */
+  first: number;
 };
 
 /**

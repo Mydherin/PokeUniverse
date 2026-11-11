@@ -316,6 +316,52 @@ func (x *UseWarp) GetY() uint32 {
 	return 0
 }
 
+// A line for the zone's chat: FireRed's charset, 1-64 characters once trimmed. Over the rate
+// limit, invalid or outside the world, it is dropped without an answer.
+type SendChat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendChat) Reset() {
+	*x = SendChat{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendChat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendChat) ProtoMessage() {}
+
+func (x *SendChat) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendChat.ProtoReflect.Descriptor instead.
+func (*SendChat) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SendChat) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
 // A button: check what the player faces. Always answered with a Script (empty when nothing
 // answers); the client waits for it before moving again.
 type Interact struct {
@@ -329,7 +375,7 @@ type Interact struct {
 
 func (x *Interact) Reset() {
 	*x = Interact{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -341,7 +387,7 @@ func (x *Interact) String() string {
 func (*Interact) ProtoMessage() {}
 
 func (x *Interact) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[4]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -354,7 +400,7 @@ func (x *Interact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Interact.ProtoReflect.Descriptor instead.
 func (*Interact) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{4}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Interact) GetWalkInto() bool {
@@ -374,7 +420,7 @@ type ScriptDone struct {
 
 func (x *ScriptDone) Reset() {
 	*x = ScriptDone{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -386,7 +432,7 @@ func (x *ScriptDone) String() string {
 func (*ScriptDone) ProtoMessage() {}
 
 func (x *ScriptDone) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[5]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -399,7 +445,7 @@ func (x *ScriptDone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScriptDone.ProtoReflect.Descriptor instead.
 func (*ScriptDone) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{5}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ScriptDone) GetScript() uint32 {
@@ -435,7 +481,7 @@ type WorldSnapshot struct {
 
 func (x *WorldSnapshot) Reset() {
 	*x = WorldSnapshot{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -447,7 +493,7 @@ func (x *WorldSnapshot) String() string {
 func (*WorldSnapshot) ProtoMessage() {}
 
 func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[6]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -460,7 +506,7 @@ func (x *WorldSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorldSnapshot.ProtoReflect.Descriptor instead.
 func (*WorldSnapshot) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{6}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *WorldSnapshot) GetMap() string {
@@ -540,7 +586,7 @@ type Avatar struct {
 
 func (x *Avatar) Reset() {
 	*x = Avatar{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -552,7 +598,7 @@ func (x *Avatar) String() string {
 func (*Avatar) ProtoMessage() {}
 
 func (x *Avatar) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[7]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -565,7 +611,7 @@ func (x *Avatar) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Avatar.ProtoReflect.Descriptor instead.
 func (*Avatar) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{7}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Avatar) GetX() uint32 {
@@ -621,7 +667,7 @@ type Follower struct {
 
 func (x *Follower) Reset() {
 	*x = Follower{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -633,7 +679,7 @@ func (x *Follower) String() string {
 func (*Follower) ProtoMessage() {}
 
 func (x *Follower) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[8]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,7 +692,7 @@ func (x *Follower) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Follower.ProtoReflect.Descriptor instead.
 func (*Follower) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{8}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Follower) GetSpecies() uint32 {
@@ -701,7 +747,7 @@ type FollowerChanged struct {
 
 func (x *FollowerChanged) Reset() {
 	*x = FollowerChanged{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -713,7 +759,7 @@ func (x *FollowerChanged) String() string {
 func (*FollowerChanged) ProtoMessage() {}
 
 func (x *FollowerChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[9]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -726,7 +772,7 @@ func (x *FollowerChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FollowerChanged.ProtoReflect.Descriptor instead.
 func (*FollowerChanged) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{9}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *FollowerChanged) GetFollower() *Follower {
@@ -758,7 +804,7 @@ type Warped struct {
 
 func (x *Warped) Reset() {
 	*x = Warped{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -770,7 +816,7 @@ func (x *Warped) String() string {
 func (*Warped) ProtoMessage() {}
 
 func (x *Warped) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[10]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -783,7 +829,7 @@ func (x *Warped) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Warped.ProtoReflect.Descriptor instead.
 func (*Warped) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{10}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Warped) GetMap() string {
@@ -854,7 +900,7 @@ type OtherPlayer struct {
 
 func (x *OtherPlayer) Reset() {
 	*x = OtherPlayer{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +912,7 @@ func (x *OtherPlayer) String() string {
 func (*OtherPlayer) ProtoMessage() {}
 
 func (x *OtherPlayer) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[11]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +925,7 @@ func (x *OtherPlayer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OtherPlayer.ProtoReflect.Descriptor instead.
 func (*OtherPlayer) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{11}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *OtherPlayer) GetId() uint64 {
@@ -949,7 +995,7 @@ type ZoneEvents struct {
 
 func (x *ZoneEvents) Reset() {
 	*x = ZoneEvents{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1007,7 @@ func (x *ZoneEvents) String() string {
 func (*ZoneEvents) ProtoMessage() {}
 
 func (x *ZoneEvents) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[12]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1020,7 @@ func (x *ZoneEvents) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoneEvents.ProtoReflect.Descriptor instead.
 func (*ZoneEvents) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{12}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ZoneEvents) GetEvents() []*ZoneEvent {
@@ -994,6 +1040,7 @@ type ZoneEvent struct {
 	//	*ZoneEvent_Turned
 	//	*ZoneEvent_Follower
 	//	*ZoneEvent_Battle
+	//	*ZoneEvent_Chat
 	Event         isZoneEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1001,7 +1048,7 @@ type ZoneEvent struct {
 
 func (x *ZoneEvent) Reset() {
 	*x = ZoneEvent{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +1060,7 @@ func (x *ZoneEvent) String() string {
 func (*ZoneEvent) ProtoMessage() {}
 
 func (x *ZoneEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[13]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +1073,7 @@ func (x *ZoneEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoneEvent.ProtoReflect.Descriptor instead.
 func (*ZoneEvent) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{13}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ZoneEvent) GetEvent() isZoneEvent_Event {
@@ -1090,6 +1137,15 @@ func (x *ZoneEvent) GetBattle() *PlayerBattle {
 	return nil
 }
 
+func (x *ZoneEvent) GetChat() *ChatMessage {
+	if x != nil {
+		if x, ok := x.Event.(*ZoneEvent_Chat); ok {
+			return x.Chat
+		}
+	}
+	return nil
+}
+
 type isZoneEvent_Event interface {
 	isZoneEvent_Event()
 }
@@ -1118,6 +1174,10 @@ type ZoneEvent_Battle struct {
 	Battle *PlayerBattle `protobuf:"bytes,6,opt,name=battle,proto3,oneof"`
 }
 
+type ZoneEvent_Chat struct {
+	Chat *ChatMessage `protobuf:"bytes,7,opt,name=chat,proto3,oneof"`
+}
+
 func (*ZoneEvent_Joined) isZoneEvent_Event() {}
 
 func (*ZoneEvent_Left) isZoneEvent_Event() {}
@@ -1130,6 +1190,8 @@ func (*ZoneEvent_Follower) isZoneEvent_Event() {}
 
 func (*ZoneEvent_Battle) isZoneEvent_Event() {}
 
+func (*ZoneEvent_Chat) isZoneEvent_Event() {}
+
 // A player entered the zone (entered the world, warped in, reconnected).
 type PlayerJoined struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1140,7 +1202,7 @@ type PlayerJoined struct {
 
 func (x *PlayerJoined) Reset() {
 	*x = PlayerJoined{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[14]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1152,7 +1214,7 @@ func (x *PlayerJoined) String() string {
 func (*PlayerJoined) ProtoMessage() {}
 
 func (x *PlayerJoined) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[14]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1165,7 +1227,7 @@ func (x *PlayerJoined) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerJoined.ProtoReflect.Descriptor instead.
 func (*PlayerJoined) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{14}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *PlayerJoined) GetPlayer() *OtherPlayer {
@@ -1185,7 +1247,7 @@ type PlayerLeft struct {
 
 func (x *PlayerLeft) Reset() {
 	*x = PlayerLeft{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[15]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1197,7 +1259,7 @@ func (x *PlayerLeft) String() string {
 func (*PlayerLeft) ProtoMessage() {}
 
 func (x *PlayerLeft) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[15]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1210,7 +1272,7 @@ func (x *PlayerLeft) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerLeft.ProtoReflect.Descriptor instead.
 func (*PlayerLeft) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{15}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PlayerLeft) GetId() uint64 {
@@ -1234,7 +1296,7 @@ type PlayerMoved struct {
 
 func (x *PlayerMoved) Reset() {
 	*x = PlayerMoved{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[16]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1246,7 +1308,7 @@ func (x *PlayerMoved) String() string {
 func (*PlayerMoved) ProtoMessage() {}
 
 func (x *PlayerMoved) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[16]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1259,7 +1321,7 @@ func (x *PlayerMoved) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerMoved.ProtoReflect.Descriptor instead.
 func (*PlayerMoved) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{16}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PlayerMoved) GetId() uint64 {
@@ -1308,7 +1370,7 @@ type PlayerTurned struct {
 
 func (x *PlayerTurned) Reset() {
 	*x = PlayerTurned{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[17]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1320,7 +1382,7 @@ func (x *PlayerTurned) String() string {
 func (*PlayerTurned) ProtoMessage() {}
 
 func (x *PlayerTurned) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[17]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1333,7 +1395,7 @@ func (x *PlayerTurned) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerTurned.ProtoReflect.Descriptor instead.
 func (*PlayerTurned) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{17}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PlayerTurned) GetId() uint64 {
@@ -1361,7 +1423,7 @@ type PlayerFollower struct {
 
 func (x *PlayerFollower) Reset() {
 	*x = PlayerFollower{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[18]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1373,7 +1435,7 @@ func (x *PlayerFollower) String() string {
 func (*PlayerFollower) ProtoMessage() {}
 
 func (x *PlayerFollower) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[18]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1386,7 +1448,7 @@ func (x *PlayerFollower) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerFollower.ProtoReflect.Descriptor instead.
 func (*PlayerFollower) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{18}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PlayerFollower) GetId() uint64 {
@@ -1414,7 +1476,7 @@ type PlayerBattle struct {
 
 func (x *PlayerBattle) Reset() {
 	*x = PlayerBattle{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[19]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1426,7 +1488,7 @@ func (x *PlayerBattle) String() string {
 func (*PlayerBattle) ProtoMessage() {}
 
 func (x *PlayerBattle) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[19]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1439,7 +1501,7 @@ func (x *PlayerBattle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerBattle.ProtoReflect.Descriptor instead.
 func (*PlayerBattle) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{19}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PlayerBattle) GetId() uint64 {
@@ -1454,6 +1516,60 @@ func (x *PlayerBattle) GetInBattle() bool {
 		return x.InBattle
 	}
 	return false
+}
+
+// A player said a line in the zone's chat. The sender gets its own line back here too: the
+// client shows a line only once it comes back, one source of order. Not saved.
+type ChatMessage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatMessage) Reset() {
+	*x = ChatMessage{}
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatMessage) ProtoMessage() {}
+
+func (x *ChatMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
+func (*ChatMessage) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ChatMessage) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ChatMessage) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
 }
 
 type Correction struct {
@@ -1471,7 +1587,7 @@ type Correction struct {
 
 func (x *Correction) Reset() {
 	*x = Correction{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[20]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1483,7 +1599,7 @@ func (x *Correction) String() string {
 func (*Correction) ProtoMessage() {}
 
 func (x *Correction) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[20]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1496,7 +1612,7 @@ func (x *Correction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Correction.ProtoReflect.Descriptor instead.
 func (*Correction) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{20}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Correction) GetStep() uint32 {
@@ -1548,7 +1664,7 @@ type Script struct {
 
 func (x *Script) Reset() {
 	*x = Script{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[21]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1560,7 +1676,7 @@ func (x *Script) String() string {
 func (*Script) ProtoMessage() {}
 
 func (x *Script) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[21]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1573,7 +1689,7 @@ func (x *Script) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Script.ProtoReflect.Descriptor instead.
 func (*Script) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{21}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Script) GetId() uint32 {
@@ -1617,7 +1733,7 @@ type ScriptStep struct {
 
 func (x *ScriptStep) Reset() {
 	*x = ScriptStep{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[22]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1629,7 +1745,7 @@ func (x *ScriptStep) String() string {
 func (*ScriptStep) ProtoMessage() {}
 
 func (x *ScriptStep) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[22]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1642,7 +1758,7 @@ func (x *ScriptStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScriptStep.ProtoReflect.Descriptor instead.
 func (*ScriptStep) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{22}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ScriptStep) GetAction() isScriptStep_Action {
@@ -1813,7 +1929,7 @@ type YesNo struct {
 
 func (x *YesNo) Reset() {
 	*x = YesNo{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[23]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1825,7 +1941,7 @@ func (x *YesNo) String() string {
 func (*YesNo) ProtoMessage() {}
 
 func (x *YesNo) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[23]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1838,7 +1954,7 @@ func (x *YesNo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use YesNo.ProtoReflect.Descriptor instead.
 func (*YesNo) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{23}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *YesNo) GetNo() []*ScriptStep {
@@ -1858,7 +1974,7 @@ type TrainerBattle struct {
 
 func (x *TrainerBattle) Reset() {
 	*x = TrainerBattle{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[24]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1870,7 +1986,7 @@ func (x *TrainerBattle) String() string {
 func (*TrainerBattle) ProtoMessage() {}
 
 func (x *TrainerBattle) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[24]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +1999,7 @@ func (x *TrainerBattle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TrainerBattle.ProtoReflect.Descriptor instead.
 func (*TrainerBattle) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{24}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *TrainerBattle) GetTrainer() string {
@@ -1903,7 +2019,7 @@ type ScriptBattle struct {
 
 func (x *ScriptBattle) Reset() {
 	*x = ScriptBattle{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[25]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1915,7 +2031,7 @@ func (x *ScriptBattle) String() string {
 func (*ScriptBattle) ProtoMessage() {}
 
 func (x *ScriptBattle) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[25]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1928,7 +2044,7 @@ func (x *ScriptBattle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScriptBattle.ProtoReflect.Descriptor instead.
 func (*ScriptBattle) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{25}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ScriptBattle) GetScript() uint32 {
@@ -1949,7 +2065,7 @@ type PcScreen struct {
 
 func (x *PcScreen) Reset() {
 	*x = PcScreen{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[26]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1961,7 +2077,7 @@ func (x *PcScreen) String() string {
 func (*PcScreen) ProtoMessage() {}
 
 func (x *PcScreen) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[26]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1974,7 +2090,7 @@ func (x *PcScreen) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PcScreen.ProtoReflect.Descriptor instead.
 func (*PcScreen) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{26}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *PcScreen) GetPc() Pc {
@@ -2003,7 +2119,7 @@ type PlayersPc struct {
 
 func (x *PlayersPc) Reset() {
 	*x = PlayersPc{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[27]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2015,7 +2131,7 @@ func (x *PlayersPc) String() string {
 func (*PlayersPc) ProtoMessage() {}
 
 func (x *PlayersPc) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[27]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2028,7 +2144,7 @@ func (x *PlayersPc) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayersPc.ProtoReflect.Descriptor instead.
 func (*PlayersPc) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{27}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *PlayersPc) GetItems() []*v11.BagSlot {
@@ -2050,7 +2166,7 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[28]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2062,7 +2178,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[28]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2075,7 +2191,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{28}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Message) GetText() string {
@@ -2104,7 +2220,7 @@ type SessionTaken struct {
 
 func (x *SessionTaken) Reset() {
 	*x = SessionTaken{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[29]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2116,7 +2232,7 @@ func (x *SessionTaken) String() string {
 func (*SessionTaken) ProtoMessage() {}
 
 func (x *SessionTaken) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[29]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2129,7 +2245,7 @@ func (x *SessionTaken) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionTaken.ProtoReflect.Descriptor instead.
 func (*SessionTaken) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{29}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SessionTaken) GetAccountId() uint64 {
@@ -2163,7 +2279,7 @@ type ZoneBus struct {
 
 func (x *ZoneBus) Reset() {
 	*x = ZoneBus{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[30]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2175,7 +2291,7 @@ func (x *ZoneBus) String() string {
 func (*ZoneBus) ProtoMessage() {}
 
 func (x *ZoneBus) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[30]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2188,7 +2304,7 @@ func (x *ZoneBus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoneBus.ProtoReflect.Descriptor instead.
 func (*ZoneBus) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{30}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ZoneBus) GetReplica() string {
@@ -2251,7 +2367,7 @@ type ZonePresence struct {
 
 func (x *ZonePresence) Reset() {
 	*x = ZonePresence{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[31]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2263,7 +2379,7 @@ func (x *ZonePresence) String() string {
 func (*ZonePresence) ProtoMessage() {}
 
 func (x *ZonePresence) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[31]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2276,7 +2392,7 @@ func (x *ZonePresence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZonePresence.ProtoReflect.Descriptor instead.
 func (*ZonePresence) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{31}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ZonePresence) GetIds() []uint64 {
@@ -2298,7 +2414,7 @@ type ZoneMember struct {
 
 func (x *ZoneMember) Reset() {
 	*x = ZoneMember{}
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[32]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2310,7 +2426,7 @@ func (x *ZoneMember) String() string {
 func (*ZoneMember) ProtoMessage() {}
 
 func (x *ZoneMember) ProtoReflect() protoreflect.Message {
-	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[32]
+	mi := &file_pokeuniverse_world_v1_world_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2323,7 +2439,7 @@ func (x *ZoneMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ZoneMember.ProtoReflect.Descriptor instead.
 func (*ZoneMember) Descriptor() ([]byte, []int) {
-	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{32}
+	return file_pokeuniverse_world_v1_world_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ZoneMember) GetReplica() string {
@@ -2359,7 +2475,9 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\aUseWarp\x12<\n" +
 	"\tdirection\x18\x01 \x01(\x0e2\x1e.pokeuniverse.map.v1.DirectionR\tdirection\x12\f\n" +
 	"\x01x\x18\x02 \x01(\rR\x01x\x12\f\n" +
-	"\x01y\x18\x03 \x01(\rR\x01y\"'\n" +
+	"\x01y\x18\x03 \x01(\rR\x01y\"\x1e\n" +
+	"\bSendChat\x12\x12\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\"'\n" +
 	"\bInteract\x12\x1b\n" +
 	"\twalk_into\x18\x01 \x01(\bR\bwalkInto\"$\n" +
 	"\n" +
@@ -2409,14 +2527,15 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\tin_battle\x18\b \x01(\bR\binBattle\"F\n" +
 	"\n" +
 	"ZoneEvents\x128\n" +
-	"\x06events\x18\x01 \x03(\v2 .pokeuniverse.world.v1.ZoneEventR\x06events\"\x8b\x03\n" +
+	"\x06events\x18\x01 \x03(\v2 .pokeuniverse.world.v1.ZoneEventR\x06events\"\xc5\x03\n" +
 	"\tZoneEvent\x12=\n" +
 	"\x06joined\x18\x01 \x01(\v2#.pokeuniverse.world.v1.PlayerJoinedH\x00R\x06joined\x127\n" +
 	"\x04left\x18\x02 \x01(\v2!.pokeuniverse.world.v1.PlayerLeftH\x00R\x04left\x12:\n" +
 	"\x05moved\x18\x03 \x01(\v2\".pokeuniverse.world.v1.PlayerMovedH\x00R\x05moved\x12=\n" +
 	"\x06turned\x18\x04 \x01(\v2#.pokeuniverse.world.v1.PlayerTurnedH\x00R\x06turned\x12C\n" +
 	"\bfollower\x18\x05 \x01(\v2%.pokeuniverse.world.v1.PlayerFollowerH\x00R\bfollower\x12=\n" +
-	"\x06battle\x18\x06 \x01(\v2#.pokeuniverse.world.v1.PlayerBattleH\x00R\x06battleB\a\n" +
+	"\x06battle\x18\x06 \x01(\v2#.pokeuniverse.world.v1.PlayerBattleH\x00R\x06battle\x128\n" +
+	"\x04chat\x18\a \x01(\v2\".pokeuniverse.world.v1.ChatMessageH\x00R\x04chatB\a\n" +
 	"\x05event\"J\n" +
 	"\fPlayerJoined\x12:\n" +
 	"\x06player\x18\x01 \x01(\v2\".pokeuniverse.world.v1.OtherPlayerR\x06player\"\x1c\n" +
@@ -2437,7 +2556,10 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\bfollower\x18\x02 \x01(\v2\x1f.pokeuniverse.world.v1.FollowerR\bfollower\";\n" +
 	"\fPlayerBattle\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1b\n" +
-	"\tin_battle\x18\x02 \x01(\bR\binBattle\"\xb1\x01\n" +
+	"\tin_battle\x18\x02 \x01(\bR\binBattle\"1\n" +
+	"\vChatMessage\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\"\xb1\x01\n" +
 	"\n" +
 	"Correction\x12\x12\n" +
 	"\x04step\x18\x01 \x01(\rR\x04step\x12\f\n" +
@@ -2510,101 +2632,104 @@ func file_pokeuniverse_world_v1_world_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_world_v1_world_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_pokeuniverse_world_v1_world_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_pokeuniverse_world_v1_world_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_pokeuniverse_world_v1_world_proto_goTypes = []any{
 	(Pc)(0),                 // 0: pokeuniverse.world.v1.Pc
 	(*EnterWorld)(nil),      // 1: pokeuniverse.world.v1.EnterWorld
 	(*Move)(nil),            // 2: pokeuniverse.world.v1.Move
 	(*Turn)(nil),            // 3: pokeuniverse.world.v1.Turn
 	(*UseWarp)(nil),         // 4: pokeuniverse.world.v1.UseWarp
-	(*Interact)(nil),        // 5: pokeuniverse.world.v1.Interact
-	(*ScriptDone)(nil),      // 6: pokeuniverse.world.v1.ScriptDone
-	(*WorldSnapshot)(nil),   // 7: pokeuniverse.world.v1.WorldSnapshot
-	(*Avatar)(nil),          // 8: pokeuniverse.world.v1.Avatar
-	(*Follower)(nil),        // 9: pokeuniverse.world.v1.Follower
-	(*FollowerChanged)(nil), // 10: pokeuniverse.world.v1.FollowerChanged
-	(*Warped)(nil),          // 11: pokeuniverse.world.v1.Warped
-	(*OtherPlayer)(nil),     // 12: pokeuniverse.world.v1.OtherPlayer
-	(*ZoneEvents)(nil),      // 13: pokeuniverse.world.v1.ZoneEvents
-	(*ZoneEvent)(nil),       // 14: pokeuniverse.world.v1.ZoneEvent
-	(*PlayerJoined)(nil),    // 15: pokeuniverse.world.v1.PlayerJoined
-	(*PlayerLeft)(nil),      // 16: pokeuniverse.world.v1.PlayerLeft
-	(*PlayerMoved)(nil),     // 17: pokeuniverse.world.v1.PlayerMoved
-	(*PlayerTurned)(nil),    // 18: pokeuniverse.world.v1.PlayerTurned
-	(*PlayerFollower)(nil),  // 19: pokeuniverse.world.v1.PlayerFollower
-	(*PlayerBattle)(nil),    // 20: pokeuniverse.world.v1.PlayerBattle
-	(*Correction)(nil),      // 21: pokeuniverse.world.v1.Correction
-	(*Script)(nil),          // 22: pokeuniverse.world.v1.Script
-	(*ScriptStep)(nil),      // 23: pokeuniverse.world.v1.ScriptStep
-	(*YesNo)(nil),           // 24: pokeuniverse.world.v1.YesNo
-	(*TrainerBattle)(nil),   // 25: pokeuniverse.world.v1.TrainerBattle
-	(*ScriptBattle)(nil),    // 26: pokeuniverse.world.v1.ScriptBattle
-	(*PcScreen)(nil),        // 27: pokeuniverse.world.v1.PcScreen
-	(*PlayersPc)(nil),       // 28: pokeuniverse.world.v1.PlayersPc
-	(*Message)(nil),         // 29: pokeuniverse.world.v1.Message
-	(*SessionTaken)(nil),    // 30: pokeuniverse.world.v1.SessionTaken
-	(*ZoneBus)(nil),         // 31: pokeuniverse.world.v1.ZoneBus
-	(*ZonePresence)(nil),    // 32: pokeuniverse.world.v1.ZonePresence
-	(*ZoneMember)(nil),      // 33: pokeuniverse.world.v1.ZoneMember
-	(v1.Direction)(0),       // 34: pokeuniverse.map.v1.Direction
-	(*v11.Bag)(nil),         // 35: pokeuniverse.item.v1.Bag
-	(*v12.Pokedex)(nil),     // 36: pokeuniverse.pokedex.v1.Pokedex
-	(*v13.Party)(nil),       // 37: pokeuniverse.party.v1.Party
-	(*v14.BattleView)(nil),  // 38: pokeuniverse.battle.v1.BattleView
-	(v15.Gender)(0),         // 39: pokeuniverse.trainer.v1.Gender
-	(*v11.BagSlot)(nil),     // 40: pokeuniverse.item.v1.BagSlot
+	(*SendChat)(nil),        // 5: pokeuniverse.world.v1.SendChat
+	(*Interact)(nil),        // 6: pokeuniverse.world.v1.Interact
+	(*ScriptDone)(nil),      // 7: pokeuniverse.world.v1.ScriptDone
+	(*WorldSnapshot)(nil),   // 8: pokeuniverse.world.v1.WorldSnapshot
+	(*Avatar)(nil),          // 9: pokeuniverse.world.v1.Avatar
+	(*Follower)(nil),        // 10: pokeuniverse.world.v1.Follower
+	(*FollowerChanged)(nil), // 11: pokeuniverse.world.v1.FollowerChanged
+	(*Warped)(nil),          // 12: pokeuniverse.world.v1.Warped
+	(*OtherPlayer)(nil),     // 13: pokeuniverse.world.v1.OtherPlayer
+	(*ZoneEvents)(nil),      // 14: pokeuniverse.world.v1.ZoneEvents
+	(*ZoneEvent)(nil),       // 15: pokeuniverse.world.v1.ZoneEvent
+	(*PlayerJoined)(nil),    // 16: pokeuniverse.world.v1.PlayerJoined
+	(*PlayerLeft)(nil),      // 17: pokeuniverse.world.v1.PlayerLeft
+	(*PlayerMoved)(nil),     // 18: pokeuniverse.world.v1.PlayerMoved
+	(*PlayerTurned)(nil),    // 19: pokeuniverse.world.v1.PlayerTurned
+	(*PlayerFollower)(nil),  // 20: pokeuniverse.world.v1.PlayerFollower
+	(*PlayerBattle)(nil),    // 21: pokeuniverse.world.v1.PlayerBattle
+	(*ChatMessage)(nil),     // 22: pokeuniverse.world.v1.ChatMessage
+	(*Correction)(nil),      // 23: pokeuniverse.world.v1.Correction
+	(*Script)(nil),          // 24: pokeuniverse.world.v1.Script
+	(*ScriptStep)(nil),      // 25: pokeuniverse.world.v1.ScriptStep
+	(*YesNo)(nil),           // 26: pokeuniverse.world.v1.YesNo
+	(*TrainerBattle)(nil),   // 27: pokeuniverse.world.v1.TrainerBattle
+	(*ScriptBattle)(nil),    // 28: pokeuniverse.world.v1.ScriptBattle
+	(*PcScreen)(nil),        // 29: pokeuniverse.world.v1.PcScreen
+	(*PlayersPc)(nil),       // 30: pokeuniverse.world.v1.PlayersPc
+	(*Message)(nil),         // 31: pokeuniverse.world.v1.Message
+	(*SessionTaken)(nil),    // 32: pokeuniverse.world.v1.SessionTaken
+	(*ZoneBus)(nil),         // 33: pokeuniverse.world.v1.ZoneBus
+	(*ZonePresence)(nil),    // 34: pokeuniverse.world.v1.ZonePresence
+	(*ZoneMember)(nil),      // 35: pokeuniverse.world.v1.ZoneMember
+	(v1.Direction)(0),       // 36: pokeuniverse.map.v1.Direction
+	(*v11.Bag)(nil),         // 37: pokeuniverse.item.v1.Bag
+	(*v12.Pokedex)(nil),     // 38: pokeuniverse.pokedex.v1.Pokedex
+	(*v13.Party)(nil),       // 39: pokeuniverse.party.v1.Party
+	(*v14.BattleView)(nil),  // 40: pokeuniverse.battle.v1.BattleView
+	(v15.Gender)(0),         // 41: pokeuniverse.trainer.v1.Gender
+	(*v11.BagSlot)(nil),     // 42: pokeuniverse.item.v1.BagSlot
 }
 var file_pokeuniverse_world_v1_world_proto_depIdxs = []int32{
-	34, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
-	34, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
-	34, // 2: pokeuniverse.world.v1.UseWarp.direction:type_name -> pokeuniverse.map.v1.Direction
-	8,  // 3: pokeuniverse.world.v1.WorldSnapshot.player:type_name -> pokeuniverse.world.v1.Avatar
-	35, // 4: pokeuniverse.world.v1.WorldSnapshot.bag:type_name -> pokeuniverse.item.v1.Bag
-	36, // 5: pokeuniverse.world.v1.WorldSnapshot.pokedex:type_name -> pokeuniverse.pokedex.v1.Pokedex
-	37, // 6: pokeuniverse.world.v1.WorldSnapshot.party:type_name -> pokeuniverse.party.v1.Party
-	38, // 7: pokeuniverse.world.v1.WorldSnapshot.battle:type_name -> pokeuniverse.battle.v1.BattleView
-	12, // 8: pokeuniverse.world.v1.WorldSnapshot.others:type_name -> pokeuniverse.world.v1.OtherPlayer
-	34, // 9: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
-	39, // 10: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	9,  // 11: pokeuniverse.world.v1.Avatar.follower:type_name -> pokeuniverse.world.v1.Follower
-	34, // 12: pokeuniverse.world.v1.Follower.facing:type_name -> pokeuniverse.map.v1.Direction
-	9,  // 13: pokeuniverse.world.v1.FollowerChanged.follower:type_name -> pokeuniverse.world.v1.Follower
-	34, // 14: pokeuniverse.world.v1.Warped.facing:type_name -> pokeuniverse.map.v1.Direction
-	9,  // 15: pokeuniverse.world.v1.Warped.follower:type_name -> pokeuniverse.world.v1.Follower
-	12, // 16: pokeuniverse.world.v1.Warped.others:type_name -> pokeuniverse.world.v1.OtherPlayer
-	39, // 17: pokeuniverse.world.v1.OtherPlayer.gender:type_name -> pokeuniverse.trainer.v1.Gender
-	34, // 18: pokeuniverse.world.v1.OtherPlayer.facing:type_name -> pokeuniverse.map.v1.Direction
-	9,  // 19: pokeuniverse.world.v1.OtherPlayer.follower:type_name -> pokeuniverse.world.v1.Follower
-	14, // 20: pokeuniverse.world.v1.ZoneEvents.events:type_name -> pokeuniverse.world.v1.ZoneEvent
-	15, // 21: pokeuniverse.world.v1.ZoneEvent.joined:type_name -> pokeuniverse.world.v1.PlayerJoined
-	16, // 22: pokeuniverse.world.v1.ZoneEvent.left:type_name -> pokeuniverse.world.v1.PlayerLeft
-	17, // 23: pokeuniverse.world.v1.ZoneEvent.moved:type_name -> pokeuniverse.world.v1.PlayerMoved
-	18, // 24: pokeuniverse.world.v1.ZoneEvent.turned:type_name -> pokeuniverse.world.v1.PlayerTurned
-	19, // 25: pokeuniverse.world.v1.ZoneEvent.follower:type_name -> pokeuniverse.world.v1.PlayerFollower
-	20, // 26: pokeuniverse.world.v1.ZoneEvent.battle:type_name -> pokeuniverse.world.v1.PlayerBattle
-	12, // 27: pokeuniverse.world.v1.PlayerJoined.player:type_name -> pokeuniverse.world.v1.OtherPlayer
-	34, // 28: pokeuniverse.world.v1.PlayerMoved.facing:type_name -> pokeuniverse.map.v1.Direction
-	34, // 29: pokeuniverse.world.v1.PlayerTurned.facing:type_name -> pokeuniverse.map.v1.Direction
-	9,  // 30: pokeuniverse.world.v1.PlayerFollower.follower:type_name -> pokeuniverse.world.v1.Follower
-	34, // 31: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
-	9,  // 32: pokeuniverse.world.v1.Correction.follower:type_name -> pokeuniverse.world.v1.Follower
-	23, // 33: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
-	29, // 34: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
-	27, // 35: pokeuniverse.world.v1.ScriptStep.pc_screen:type_name -> pokeuniverse.world.v1.PcScreen
-	28, // 36: pokeuniverse.world.v1.ScriptStep.players_pc:type_name -> pokeuniverse.world.v1.PlayersPc
-	24, // 37: pokeuniverse.world.v1.ScriptStep.yes_no:type_name -> pokeuniverse.world.v1.YesNo
-	25, // 38: pokeuniverse.world.v1.ScriptStep.trainer_battle:type_name -> pokeuniverse.world.v1.TrainerBattle
-	23, // 39: pokeuniverse.world.v1.YesNo.no:type_name -> pokeuniverse.world.v1.ScriptStep
-	0,  // 40: pokeuniverse.world.v1.PcScreen.pc:type_name -> pokeuniverse.world.v1.Pc
-	40, // 41: pokeuniverse.world.v1.PlayersPc.items:type_name -> pokeuniverse.item.v1.BagSlot
-	13, // 42: pokeuniverse.world.v1.ZoneBus.batch:type_name -> pokeuniverse.world.v1.ZoneEvents
-	32, // 43: pokeuniverse.world.v1.ZoneBus.presence:type_name -> pokeuniverse.world.v1.ZonePresence
-	12, // 44: pokeuniverse.world.v1.ZoneMember.player:type_name -> pokeuniverse.world.v1.OtherPlayer
-	45, // [45:45] is the sub-list for method output_type
-	45, // [45:45] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	36, // 0: pokeuniverse.world.v1.Move.direction:type_name -> pokeuniverse.map.v1.Direction
+	36, // 1: pokeuniverse.world.v1.Turn.direction:type_name -> pokeuniverse.map.v1.Direction
+	36, // 2: pokeuniverse.world.v1.UseWarp.direction:type_name -> pokeuniverse.map.v1.Direction
+	9,  // 3: pokeuniverse.world.v1.WorldSnapshot.player:type_name -> pokeuniverse.world.v1.Avatar
+	37, // 4: pokeuniverse.world.v1.WorldSnapshot.bag:type_name -> pokeuniverse.item.v1.Bag
+	38, // 5: pokeuniverse.world.v1.WorldSnapshot.pokedex:type_name -> pokeuniverse.pokedex.v1.Pokedex
+	39, // 6: pokeuniverse.world.v1.WorldSnapshot.party:type_name -> pokeuniverse.party.v1.Party
+	40, // 7: pokeuniverse.world.v1.WorldSnapshot.battle:type_name -> pokeuniverse.battle.v1.BattleView
+	13, // 8: pokeuniverse.world.v1.WorldSnapshot.others:type_name -> pokeuniverse.world.v1.OtherPlayer
+	36, // 9: pokeuniverse.world.v1.Avatar.facing:type_name -> pokeuniverse.map.v1.Direction
+	41, // 10: pokeuniverse.world.v1.Avatar.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	10, // 11: pokeuniverse.world.v1.Avatar.follower:type_name -> pokeuniverse.world.v1.Follower
+	36, // 12: pokeuniverse.world.v1.Follower.facing:type_name -> pokeuniverse.map.v1.Direction
+	10, // 13: pokeuniverse.world.v1.FollowerChanged.follower:type_name -> pokeuniverse.world.v1.Follower
+	36, // 14: pokeuniverse.world.v1.Warped.facing:type_name -> pokeuniverse.map.v1.Direction
+	10, // 15: pokeuniverse.world.v1.Warped.follower:type_name -> pokeuniverse.world.v1.Follower
+	13, // 16: pokeuniverse.world.v1.Warped.others:type_name -> pokeuniverse.world.v1.OtherPlayer
+	41, // 17: pokeuniverse.world.v1.OtherPlayer.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	36, // 18: pokeuniverse.world.v1.OtherPlayer.facing:type_name -> pokeuniverse.map.v1.Direction
+	10, // 19: pokeuniverse.world.v1.OtherPlayer.follower:type_name -> pokeuniverse.world.v1.Follower
+	15, // 20: pokeuniverse.world.v1.ZoneEvents.events:type_name -> pokeuniverse.world.v1.ZoneEvent
+	16, // 21: pokeuniverse.world.v1.ZoneEvent.joined:type_name -> pokeuniverse.world.v1.PlayerJoined
+	17, // 22: pokeuniverse.world.v1.ZoneEvent.left:type_name -> pokeuniverse.world.v1.PlayerLeft
+	18, // 23: pokeuniverse.world.v1.ZoneEvent.moved:type_name -> pokeuniverse.world.v1.PlayerMoved
+	19, // 24: pokeuniverse.world.v1.ZoneEvent.turned:type_name -> pokeuniverse.world.v1.PlayerTurned
+	20, // 25: pokeuniverse.world.v1.ZoneEvent.follower:type_name -> pokeuniverse.world.v1.PlayerFollower
+	21, // 26: pokeuniverse.world.v1.ZoneEvent.battle:type_name -> pokeuniverse.world.v1.PlayerBattle
+	22, // 27: pokeuniverse.world.v1.ZoneEvent.chat:type_name -> pokeuniverse.world.v1.ChatMessage
+	13, // 28: pokeuniverse.world.v1.PlayerJoined.player:type_name -> pokeuniverse.world.v1.OtherPlayer
+	36, // 29: pokeuniverse.world.v1.PlayerMoved.facing:type_name -> pokeuniverse.map.v1.Direction
+	36, // 30: pokeuniverse.world.v1.PlayerTurned.facing:type_name -> pokeuniverse.map.v1.Direction
+	10, // 31: pokeuniverse.world.v1.PlayerFollower.follower:type_name -> pokeuniverse.world.v1.Follower
+	36, // 32: pokeuniverse.world.v1.Correction.facing:type_name -> pokeuniverse.map.v1.Direction
+	10, // 33: pokeuniverse.world.v1.Correction.follower:type_name -> pokeuniverse.world.v1.Follower
+	25, // 34: pokeuniverse.world.v1.Script.steps:type_name -> pokeuniverse.world.v1.ScriptStep
+	31, // 35: pokeuniverse.world.v1.ScriptStep.message:type_name -> pokeuniverse.world.v1.Message
+	29, // 36: pokeuniverse.world.v1.ScriptStep.pc_screen:type_name -> pokeuniverse.world.v1.PcScreen
+	30, // 37: pokeuniverse.world.v1.ScriptStep.players_pc:type_name -> pokeuniverse.world.v1.PlayersPc
+	26, // 38: pokeuniverse.world.v1.ScriptStep.yes_no:type_name -> pokeuniverse.world.v1.YesNo
+	27, // 39: pokeuniverse.world.v1.ScriptStep.trainer_battle:type_name -> pokeuniverse.world.v1.TrainerBattle
+	25, // 40: pokeuniverse.world.v1.YesNo.no:type_name -> pokeuniverse.world.v1.ScriptStep
+	0,  // 41: pokeuniverse.world.v1.PcScreen.pc:type_name -> pokeuniverse.world.v1.Pc
+	42, // 42: pokeuniverse.world.v1.PlayersPc.items:type_name -> pokeuniverse.item.v1.BagSlot
+	14, // 43: pokeuniverse.world.v1.ZoneBus.batch:type_name -> pokeuniverse.world.v1.ZoneEvents
+	34, // 44: pokeuniverse.world.v1.ZoneBus.presence:type_name -> pokeuniverse.world.v1.ZonePresence
+	13, // 45: pokeuniverse.world.v1.ZoneMember.player:type_name -> pokeuniverse.world.v1.OtherPlayer
+	46, // [46:46] is the sub-list for method output_type
+	46, // [46:46] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_world_v1_world_proto_init() }
@@ -2612,15 +2737,16 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 	if File_pokeuniverse_world_v1_world_proto != nil {
 		return
 	}
-	file_pokeuniverse_world_v1_world_proto_msgTypes[13].OneofWrappers = []any{
+	file_pokeuniverse_world_v1_world_proto_msgTypes[14].OneofWrappers = []any{
 		(*ZoneEvent_Joined)(nil),
 		(*ZoneEvent_Left)(nil),
 		(*ZoneEvent_Moved)(nil),
 		(*ZoneEvent_Turned)(nil),
 		(*ZoneEvent_Follower)(nil),
 		(*ZoneEvent_Battle)(nil),
+		(*ZoneEvent_Chat)(nil),
 	}
-	file_pokeuniverse_world_v1_world_proto_msgTypes[22].OneofWrappers = []any{
+	file_pokeuniverse_world_v1_world_proto_msgTypes[24].OneofWrappers = []any{
 		(*ScriptStep_Message)(nil),
 		(*ScriptStep_Sound)(nil),
 		(*ScriptStep_PcScreen)(nil),
@@ -2631,7 +2757,7 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 		(*ScriptStep_FaceOriginal)(nil),
 		(*ScriptStep_WildBattle)(nil),
 	}
-	file_pokeuniverse_world_v1_world_proto_msgTypes[30].OneofWrappers = []any{
+	file_pokeuniverse_world_v1_world_proto_msgTypes[32].OneofWrappers = []any{
 		(*ZoneBus_Batch)(nil),
 		(*ZoneBus_Presence)(nil),
 	}
@@ -2641,7 +2767,7 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_world_v1_world_proto_rawDesc), len(file_pokeuniverse_world_v1_world_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

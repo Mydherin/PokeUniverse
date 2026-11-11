@@ -80,6 +80,16 @@ func (z *zone) turned(p *Player, facing mapv1.Direction) {
 	z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Turned{Turned: &worldv1.PlayerTurned{Id: uint64(p.accountID), Facing: facing}}})
 }
 
+// chat says a line to the zone, the sender included (it shows its own line only when it comes
+// back). Logged for moderation (D14), never saved; the text stays a value, never a key.
+func (z *zone) chat(p *Player, line string) {
+	if _, ok := z.players[p]; !ok {
+		return
+	}
+	z.w.log.Info("chat", "trainer", p.accountID, "map", z.key.Map, "phase", z.key.Phase, "text", line)
+	z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Chat{Chat: &worldv1.ChatMessage{Id: uint64(p.accountID), Text: line}}})
+}
+
 // showChanges, for a saved player, adds the events of what changed without an intent of its
 // own: the follower (a party change) and entering or leaving a battle (D9). Battles start and
 // end in many places (launch, finish, a failed start, a dropped connection); comparing here

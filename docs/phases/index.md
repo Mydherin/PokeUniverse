@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 4/9 milestones ✅ (M1-M4), next [M5 Chat: server and contracts](phase-8-multiplayer-world/milestones/m05-chat-server.md#resume-here) (Phase 7 done 2026-11-10). **Updated:** 2026-11-11.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), in progress: 5/9 milestones ✅ (M1-M5), next [M6 Chat window](phase-8-multiplayer-world/milestones/m06-chat-window.md#resume-here) (Phase 7 done 2026-11-10). **Updated:** 2026-11-11.
 
 ## Milestones of Phases With Folders
 

@@ -21,6 +21,7 @@ import (
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/auth"
+	"pokeuniverse/mic-core/internal/chat"
 	"pokeuniverse/mic-core/internal/live"
 	"pokeuniverse/mic-core/internal/world"
 )
@@ -106,6 +107,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		closeReq: make(chan closeFrame, 1),
 		done:     make(chan struct{}),
 		limiter:  rate.NewLimiter(20, 40), // Per-player intent rate.
+		chat:     rate.NewLimiter(0.5, 4), // Per-player chat rate (phase-8 D17).
 		h:        h,
 	}
 	h.mu.Lock()
@@ -154,6 +156,7 @@ type conn struct {
 	closeReq chan closeFrame
 	done     chan struct{}
 	limiter  *rate.Limiter
+	chat     *rate.Limiter
 	h        *Handler
 
 	seq atomic.Uint32
@@ -221,6 +224,16 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 		return true
 	case *realtimev1.ClientMessage_EnterWorld:
 		return c.enterWorld(p.EnterWorld.GetTakeOver())
+	case *realtimev1.ClientMessage_SendChat:
+		// Dropped without an answer outside the world, over the rate or invalid (phase-8 D17):
+		// FireRed has no refusal message, and a slow or old client isn't misbehaving.
+		if c.player == nil || !c.chat.Allow() {
+			return true
+		}
+		if line, ok := chat.Clean(p.SendChat.GetText()); ok {
+			c.player.SendChat(line)
+		}
+		return true
 	}
 	// The rest are world intents: only once in the world.
 	if c.player == nil {

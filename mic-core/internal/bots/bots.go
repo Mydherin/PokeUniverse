@@ -70,10 +70,11 @@ func (h *Handler) spawn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req devv1.SpawnBots
-	if err := protojson.Unmarshal(body, &req); err != nil || req.Count < 1 || req.Count > maxBots {
+	if err := protojson.Unmarshal(body, &req); err != nil || req.Count < 1 || req.Count > maxBots || req.First > maxBots {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+	first := max(int(req.First), 1)
 	var spots []world.Point
 	if !req.RefreshOnly {
 		m, ok := h.Maps[req.Map]
@@ -87,12 +88,13 @@ func (h *Handler) spawn(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	resp := &devv1.SpawnedBots{}
-	for n := 1; n <= int(req.Count); n++ {
+	for i := range int(req.Count) {
+		n := first + i
 		var bot *devv1.SpawnedBot
 		if req.RefreshOnly {
 			bot, err = h.token(r.Context(), n)
 		} else {
-			bot, err = h.create(r.Context(), n, req.Map, spots[(n-1)%len(spots)])
+			bot, err = h.create(r.Context(), n, req.Map, spots[i%len(spots)])
 		}
 		if err != nil {
 			h.Log.Error("dev bots", "n", n, "err", err)
@@ -101,7 +103,7 @@ func (h *Handler) spawn(w http.ResponseWriter, r *http.Request) {
 		}
 		resp.Bots = append(resp.Bots, bot)
 	}
-	h.Log.Info("dev bots issued", "count", req.Count, "map", req.Map, "refresh_only", req.RefreshOnly)
+	h.Log.Info("dev bots issued", "count", req.Count, "first", first, "map", req.Map, "refresh_only", req.RefreshOnly)
 	httpx.WriteProtoJSON(w, http.StatusOK, resp)
 }
 
