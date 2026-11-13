@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress.** M1-M5 ✅ (2026-11-13). [M6](milestones/m06-private-channels.md#resume-here) 🚧: code done, Manual Test cases 1-3 pass; next: cases 4-9, then drop the `TEMP-PLAYIT` hook (its Resume Here has the steps and driver). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
+**In progress.** M1-M5 ✅ (2026-11-13). [M6](milestones/m06-private-channels.md#resume-here) 🚧: code done, cases 1-3 passed headless only; next: play cases 1-9 in the built-in browser pane (user rule 2026-11-14; its Resume Here has the pane setup), then drop the `TEMP-PLAYIT` hook (its Resume Here has the steps and driver). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
 
 Carried in: O14 (from Phase 8, rewritten: parties became private channels and the trainer card moved out, D1, D2).
 
