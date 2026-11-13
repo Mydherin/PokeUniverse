@@ -34,8 +34,7 @@ func (p *Player) UseWarp(m *worldv1.UseWarp, at time.Time) {
 	z.call(func() { z.arrive(p, spot) })
 }
 
-// leaveByWarp checks the warp as FireRed does (TryArrowWarp: a stair warp's tile, going its way,
-// with a warp event) and takes the player out of the zone, its last changes saved. The
+// leaveByWarp checks the warp as FireRed does (warpCell) and and takes the player out of the zone, its last changes saved. The
 // destination map and tile; nil when refused, answered with a Correction like a refused step.
 func (z *zone) leaveByWarp(p *Player, m *worldv1.UseWarp, at time.Time) (*Map, Point) {
 	if _, ok := z.players[p]; !ok {
@@ -54,14 +53,38 @@ func (z *zone) leaveByWarp(p *Player, m *worldv1.UseWarp, at time.Time) (*Map, P
 	if p.facing != m.Direction {
 		p.facing, p.dirty = m.Direction, true
 	}
-	to, spot := z.warpDestination(p.pos)
+	cell, ok := warpCell(z.m, p.pos, p.elevation, m.Direction)
+	var to *Map
+	var spot Point
+	if ok {
+		to, spot = z.warpDestination(cell)
+	}
 	// Paced like a step: warping back and forth is no faster than walking.
-	if to == nil || CheckStep(z.m, p.pos, p.elevation, m.Direction) != CollisionStairWarp || !p.pace.Allow(at, false) {
+	if to == nil || !p.pace.Allow(at, false) {
 		z.correct(p, 0)
 		return nil, Point{}
 	}
 	z.remove(p)
 	return to, spot
+}
+
+// warpCell is the cell whose warp the player takes, as FireRed finds it: the stair warp they
+// stand on, going its way (TryArrowWarp); the door in front, going north (TryDoorWarp); the
+// escalator they just stepped on (TryStartWarpEventScript). False when none applies.
+func warpCell(m *Map, pos Point, elevation byte, d mapv1.Direction) (Point, bool) {
+	switch {
+	case CheckStep(m, pos, elevation, d) == CollisionStairWarp:
+		return pos, true
+	case d == mapv1.Direction_DIRECTION_NORTH && m.Behavior(pos.Step(d)) == mapv1.TileBehavior_TILE_BEHAVIOR_WARP_DOOR:
+		return pos.Step(d), true
+	case isEscalator(m.Behavior(pos)):
+		return pos, true
+	}
+	return Point{}, false
+}
+
+func isEscalator(b mapv1.TileBehavior) bool {
+	return b == mapv1.TileBehavior_TILE_BEHAVIOR_UP_ESCALATOR || b == mapv1.TileBehavior_TILE_BEHAVIOR_DOWN_ESCALATOR
 }
 
 // warpDestination is where the warp on a tile leads; nil when there is none, it's dynamic or it
@@ -100,12 +123,15 @@ func (z *zone) arrive(p *Player, at Point) {
 }
 
 // arrivalFacing is where the player faces on arriving (GetAdjustedInitialDirection): away from
-// the stairs they came up or down; otherwise south.
+// the stairs they came up or down; east off an escalator (EscalatorWarpInEffect_1); otherwise
+// south (a door's arrival walks out south, Task_ExitDoor).
 func arrivalFacing(b mapv1.TileBehavior) mapv1.Direction {
 	switch b {
 	case mapv1.TileBehavior_TILE_BEHAVIOR_UP_RIGHT_STAIR_WARP, mapv1.TileBehavior_TILE_BEHAVIOR_DOWN_RIGHT_STAIR_WARP:
 		return mapv1.Direction_DIRECTION_WEST
 	case mapv1.TileBehavior_TILE_BEHAVIOR_UP_LEFT_STAIR_WARP, mapv1.TileBehavior_TILE_BEHAVIOR_DOWN_LEFT_STAIR_WARP:
+		return mapv1.Direction_DIRECTION_EAST
+	case mapv1.TileBehavior_TILE_BEHAVIOR_UP_ESCALATOR, mapv1.TileBehavior_TILE_BEHAVIOR_DOWN_ESCALATOR:
 		return mapv1.Direction_DIRECTION_EAST
 	}
 	return mapv1.Direction_DIRECTION_SOUTH

@@ -19,7 +19,7 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Current Work
 
-**Now:** [Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here) done except the real-phone cases (M1-M6 and M8 ✅; M7 🧪 cases 9-10 and 11's naming screen, M9 🧪 case 6: the user plays them on an iPhone and an Android phone, list in the phase's Resume Here). Next: record the user's phone results (a ❌ gets a fix session) and close Phase 8. [Phase 9](docs/phases/phase-9-social/phase-9-social.md#resume-here) in progress (15 milestones, D1-D29): M1-M6 ✅; next: [M7](docs/phases/phase-9-social/milestones/m07-pokemon-center-2f.md) (Pokémon Center 2F; Manual Tests in the built-in pane as M6's Resume Here sets up). Keep this one line pointing at the phase or milestone file to resume.
+**Now:** [Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here) done except the real-phone cases (M1-M6 and M8 ✅; M7 🧪 cases 9-10 and 11's naming screen, M9 🧪 case 6: the user plays them on an iPhone and an Android phone, list in the phase's Resume Here). Next: record the user's phone results (a ❌ gets a fix session) and close Phase 8. [Phase 9](docs/phases/phase-9-social/phase-9-social.md#resume-here) in progress (15 milestones, D1-D29): M1-M6 ✅; [M7](docs/phases/phase-9-social/milestones/m07-pokemon-center-2f.md#resume-here) (Pokémon Center 2F) in progress: next the client's door and escalator warps (its Resume Here; Manual Tests in the built-in pane as M6's Resume Here sets up). Keep this one line pointing at the phase or milestone file to resume.
 
 Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
 

@@ -121,7 +121,8 @@ func (c *converter) select_() ([]*firered.Map, error) {
 	return out, nil
 }
 
-// Map sections outside Kanto (the Sevii Islands and link rooms); the game covers Kanto only.
+// Map sections outside Kanto (the Sevii Islands and link rooms); the game covers Kanto only,
+// plus the link rooms in includedLinkRooms.
 var excludedSections = map[string]bool{
 	"MAPSEC_SPECIAL_AREA": true, "MAPSEC_BIRTH_ISLAND": true, "MAPSEC_NAVEL_ROCK": true, "MAPSEC_MT_EMBER": true,
 	"MAPSEC_TRAINER_TOWER": true, "MAPSEC_TRAINER_TOWER_2": true,
@@ -129,7 +130,13 @@ var excludedSections = map[string]bool{
 
 var excludedPrefixes = []string{"OneIsland", "TwoIsland", "ThreeIsland", "FourIsland", "FiveIsland", "SixIsland", "SevenIsland", "Prototype"}
 
+// Link rooms the Pokémon Center 2F leads to (phase-9 M7); the other special areas stay out.
+var includedLinkRooms = map[string]bool{"TradeCenter": true, "BattleColosseum_2P": true}
+
 func isKanto(m *firered.Map) bool {
+	if includedLinkRooms[m.Name] {
+		return true
+	}
 	for _, p := range excludedPrefixes {
 		if strings.HasPrefix(m.Name, p) {
 			return false

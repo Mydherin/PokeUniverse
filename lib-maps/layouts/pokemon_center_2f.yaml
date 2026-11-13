@@ -1,0 +1,105 @@
+id: pokemon_center_2f
+tileset: pokemon_center
+size: [15, 10]
+border:
+  - [solid_008, solid_008]
+  - [solid_008, solid_008]
+legend:
+  "!": solid_761
+  "#": solid_008
+  "$": solid_735
+  "%": solid_644
+  "&": solid_652
+  "'": ground_867
+  "(": pc_098
+  ")": solid_672
+  "*": solid_727
+  "+": solid_726
+  ",": ground_695
+  "-": ground_768
+  ".": ground_641
+  "/": warp_door_734
+  ":": ground_757
+  ";": ground_765
+  "<": battle_records_871
+  "=": counter_771
+  ">": cable_club_wireless_monitor_870
+  "?": solid_766
+  "@": counter_745
+  "A": solid_739
+  "B": solid_743
+  "C": solid_751
+  "D": solid_806
+  "[": counter_760
+  "]": counter_894
+  "^": solid_769
+  "_": ground_770
+  "`": down_escalator_740
+  "a": ground_642
+  "b": ground_673
+  "c": ground_674
+  "d": ground_675
+  "e": ground_703
+  "f": ground_710
+  "g": ground_730
+  "h": ground_731
+  "i": ground_732
+  "j": ground_747
+  "k": ground_748
+  "l": ground_758
+  "m": ground_800
+  "n": ground_801
+  "o": ground_807
+  "p": ground_808
+  "q": ground_872
+  "r": ground_873
+  "s": ground_874
+  "t": ground_875
+  "u": ground_876
+  "v": ground_877
+  "w": ground_879
+  "x": ground_880
+  "y": ground_881
+  "z": ground_882
+  "{": solid_678
+  "|": solid_869
+  "}": solid_680
+  "~": solid_686
+  "à": ground_883
+  "á": ground_884
+  "â": ground_885
+  "ã": ground_886
+  "ä": ground_888
+  "å": ground_889
+  "æ": ground_890
+  "ç": ground_891
+  "è": ground_892
+  "é": ground_893
+  "ê": impassable_east_679
+  "ë": impassable_east_687
+ground: |
+  #   0         1
+  #   012345678901234
+  00  )%%*%+%%%+%%%*{
+  01  }&&$&/&&?/&&?$~
+  02  gpoDã,_'|f_'|Bm
+  03  @@[(]!=@>!=@<Cn
+  04  a,,lqrs,tuv,w,e
+  05  hi..xyz.àáâ...ê
+  06  A`..äåæ.çèé...ë
+  07  jk.-.;:;.:;:.-d
+  08  b..^.........^c
+  09  ###############
+elevation: |
+  #   0         1
+  #   012345678901234
+  00  ...............
+  01  ...............
+  02  ...............
+  03  ...............
+  04  ...............
+  05  ..0............
+  06  ..40...........
+  07  ..0............
+  08  ...............
+  09  ...............

@@ -1,0 +1,259 @@
+id: pokemon_center
+base: building
+firered: data/tilesets/secondary/pokemon_center
+tiles:
+  solid_640: { index: 640, walkable: false, elevation: 0 }
+  ground_641: { index: 641, walkable: true, elevation: 3 }
+  ground_642: { index: 642, walkable: true, elevation: 3 }
+  ground_643: { index: 643, walkable: true, elevation: 3 }
+  solid_644: { index: 644, walkable: false, elevation: 0 }
+  solid_645: { index: 645, walkable: false, elevation: 0 }
+  solid_646: { index: 646, walkable: false, elevation: 0 }
+  solid_647: { index: 647, walkable: false, elevation: 0 }
+  ground_648: { index: 648, walkable: true, elevation: 3 }
+  ground_649: { index: 649, walkable: true, elevation: 3 }
+  ground_650: { index: 650, walkable: true, elevation: 3 }
+  ground_651: { index: 651, walkable: true, elevation: 3 }
+  solid_652: { index: 652, walkable: false, elevation: 0 }
+  solid_653: { index: 653, walkable: false, elevation: 0 }
+  solid_654: { index: 654, walkable: false, elevation: 0 }
+  solid_655: { index: 655, walkable: false, elevation: 0 }
+  ground_656: { index: 656, walkable: true, elevation: 3 }
+  ground_657: { index: 657, walkable: true, elevation: 3 }
+  ground_658: { index: 658, walkable: true, elevation: 3 }
+  ground_659: { index: 659, walkable: true, elevation: 3 }
+  ground_660: { index: 660, walkable: true, elevation: 3 }
+  ground_661: { index: 661, walkable: true, elevation: 3 }
+  solid_662: { index: 662, walkable: false, elevation: 0 }
+  solid_663: { index: 663, walkable: false, elevation: 0 }
+  counter_664: { index: 664, walkable: false, elevation: 0, behavior: counter }
+  ground_665: { index: 665, walkable: true, elevation: 3 }
+  ground_666: { index: 666, walkable: true, elevation: 3 }
+  ground_667: { index: 667, walkable: true, elevation: 3 }
+  solid_668: { index: 668, walkable: false, elevation: 0 }
+  solid_669: { index: 669, walkable: false, elevation: 0 }
+  region_map_670: { index: 670, walkable: false, elevation: 0, behavior: region_map }
+  region_map_671: { index: 671, walkable: false, elevation: 0, behavior: region_map }
+  solid_672: { index: 672, walkable: false, elevation: 0 }
+  ground_673: { index: 673, walkable: true, elevation: 3 }
+  ground_674: { index: 674, walkable: true, elevation: 3 }
+  ground_675: { index: 675, walkable: true, elevation: 3 }
+  solid_676: { index: 676, walkable: false, elevation: 0 }
+  solid_677: { index: 677, walkable: false, elevation: 0 }
+  solid_678: { index: 678, walkable: false, elevation: 0 }
+  impassable_east_679: { index: 679, walkable: true, elevation: 3, behavior: impassable_east }
+  solid_680: { index: 680, walkable: false, elevation: 0 }
+  solid_681: { index: 681, walkable: false, elevation: 0 }
+  solid_682: { index: 682, walkable: false, elevation: 0 }
+  solid_683: { index: 683, walkable: false, elevation: 0 }
+  solid_684: { index: 684, walkable: false, elevation: 0 }
+  solid_685: { index: 685, walkable: false, elevation: 0 }
+  solid_686: { index: 686, walkable: false, elevation: 0 }
+  impassable_east_687: { index: 687, walkable: true, elevation: 3, behavior: impassable_east }
+  ground_688: { index: 688, walkable: true, elevation: 3 }
+  counter_689: { index: 689, walkable: false, elevation: 0, behavior: counter }
+  solid_690: { index: 690, walkable: false, elevation: 0 }
+  solid_691: { index: 691, walkable: false, elevation: 0 }
+  solid_692: { index: 692, walkable: false, elevation: 0 }
+  counter_693: { index: 693, walkable: false, elevation: 0, behavior: counter }
+  ground_694: { index: 694, walkable: true, elevation: 3 }
+  ground_695: { index: 695, walkable: true, elevation: 3 }
+  ground_696: { index: 696, walkable: true, elevation: 3 }
+  solid_697: { index: 697, walkable: false, elevation: 0 }
+  impassable_south_698: { index: 698, walkable: false, elevation: 0, behavior: impassable_south }
+  impassable_south_699: { index: 699, walkable: false, elevation: 0, behavior: impassable_south }
+  counter_700: { index: 700, walkable: false, elevation: 0, behavior: counter }
+  solid_701: { index: 701, walkable: false, elevation: 0 }
+  ground_702: { index: 702, walkable: true, elevation: 3 }
+  ground_703: { index: 703, walkable: true, elevation: 3 }
+  impassable_north_704: { index: 704, walkable: false, elevation: 0, behavior: impassable_north }
+  impassable_north_705: { index: 705, walkable: false, elevation: 0, behavior: impassable_north }
+  ground_706: { index: 706, walkable: true, elevation: 3 }
+  south_arrow_warp_707: { index: 707, walkable: true, elevation: 3, behavior: south_arrow_warp }
+  ground_708: { index: 708, walkable: true, elevation: 3 }
+  ground_709: { index: 709, walkable: true, elevation: 3 }
+  ground_710: { index: 710, walkable: true, elevation: 3 }
+  solid_711: { index: 711, walkable: false, elevation: 0 }
+  solid_712: { index: 712, walkable: false, elevation: 0 }
+  solid_713: { index: 713, walkable: false, elevation: 0 }
+  solid_714: { index: 714, walkable: false, elevation: 0 }
+  bookshelf_715: { index: 715, walkable: false, elevation: 0, behavior: bookshelf }
+  bookshelf_716: { index: 716, walkable: false, elevation: 0, behavior: bookshelf }
+  ground_717: { index: 717, walkable: true, elevation: 0 }
+  ground_718: { index: 718, walkable: true, elevation: 0 }
+  ground_719: { index: 719, walkable: true, elevation: 3 }
+  ground_720: { index: 720, walkable: true, elevation: 3 }
+  ground_721: { index: 721, walkable: true, elevation: 3 }
+  solid_722: { index: 722, walkable: false, elevation: 0 }
+  ground_723: { index: 723, walkable: true, elevation: 3 }
+  solid_724: { index: 724, walkable: false, elevation: 0 }
+  solid_725: { index: 725, walkable: false, elevation: 0 }
+  solid_726: { index: 726, walkable: false, elevation: 0 }
+  solid_727: { index: 727, walkable: false, elevation: 0 }
+  solid_728: { index: 728, walkable: false, elevation: 0 }
+  up_escalator_729: { index: 729, walkable: true, elevation: 4, behavior: up_escalator }
+  ground_730: { index: 730, walkable: true, elevation: 3 }
+  ground_731: { index: 731, walkable: true, elevation: 3 }
+  ground_732: { index: 732, walkable: true, elevation: 3 }
+  counter_733: { index: 733, walkable: false, elevation: 0, behavior: counter }
+  warp_door_734: { index: 734, walkable: false, elevation: 0, behavior: warp_door }
+  solid_735: { index: 735, walkable: false, elevation: 0 }
+  ground_736: { index: 736, walkable: true, elevation: 3 }
+  ground_737: { index: 737, walkable: true, elevation: 3 }
+  counter_738: { index: 738, walkable: false, elevation: 0, behavior: counter }
+  solid_739: { index: 739, walkable: false, elevation: 0 }
+  down_escalator_740: { index: 740, walkable: true, elevation: 4, behavior: down_escalator }
+  battle_records_741: { index: 741, walkable: false, elevation: 0, behavior: battle_records }
+  cable_club_wireless_monitor_742: { index: 742, walkable: false, elevation: 0, behavior: cable_club_wireless_monitor }
+  solid_743: { index: 743, walkable: false, elevation: 0 }
+  solid_744: { index: 744, walkable: false, elevation: 0 }
+  counter_745: { index: 745, walkable: false, elevation: 0, behavior: counter }
+  solid_746: { index: 746, walkable: false, elevation: 0 }
+  ground_747: { index: 747, walkable: true, elevation: 3 }
+  ground_748: { index: 748, walkable: true, elevation: 3 }
+  solid_749: { index: 749, walkable: false, elevation: 0 }
+  solid_750: { index: 750, walkable: false, elevation: 0 }
+  solid_751: { index: 751, walkable: false, elevation: 0 }
+  solid_752: { index: 752, walkable: false, elevation: 0 }
+  solid_753: { index: 753, walkable: false, elevation: 0 }
+  solid_754: { index: 754, walkable: false, elevation: 0 }
+  solid_755: { index: 755, walkable: false, elevation: 0 }
+  solid_756: { index: 756, walkable: false, elevation: 0 }
+  ground_757: { index: 757, walkable: true, elevation: 3 }
+  ground_758: { index: 758, walkable: true, elevation: 3 }
+  solid_759: { index: 759, walkable: false, elevation: 0 }
+  counter_760: { index: 760, walkable: false, elevation: 0, behavior: counter }
+  solid_761: { index: 761, walkable: false, elevation: 0 }
+  solid_762: { index: 762, walkable: false, elevation: 0 }
+  solid_763: { index: 763, walkable: false, elevation: 0 }
+  solid_764: { index: 764, walkable: false, elevation: 0 }
+  ground_765: { index: 765, walkable: true, elevation: 3 }
+  solid_766: { index: 766, walkable: false, elevation: 0 }
+  solid_767: { index: 767, walkable: false, elevation: 0 }
+  ground_768: { index: 768, walkable: true, elevation: 3 }
+  solid_769: { index: 769, walkable: false, elevation: 0 }
+  ground_770: { index: 770, walkable: true, elevation: 3 }
+  counter_771: { index: 771, walkable: false, elevation: 0, behavior: counter }
+  solid_772: { index: 772, walkable: false, elevation: 0 }
+  counter_773: { index: 773, walkable: false, elevation: 0, behavior: counter }
+  solid_774: { index: 774, walkable: false, elevation: 0 }
+  solid_775: { index: 775, walkable: false, elevation: 0 }
+  solid_776: { index: 776, walkable: false, elevation: 0 }
+  solid_777: { index: 777, walkable: false, elevation: 0 }
+  solid_778: { index: 778, walkable: false, elevation: 0 }
+  solid_779: { index: 779, walkable: false, elevation: 0 }
+  solid_780: { index: 780, walkable: false, elevation: 0 }
+  solid_781: { index: 781, walkable: false, elevation: 0 }
+  solid_782: { index: 782, walkable: false, elevation: 0 }
+  solid_783: { index: 783, walkable: false, elevation: 0 }
+  solid_784: { index: 784, walkable: false, elevation: 0 }
+  up_escalator_785: { index: 785, walkable: false, elevation: 0, behavior: up_escalator }
+  solid_786: { index: 786, walkable: false, elevation: 0 }
+  up_escalator_787: { index: 787, walkable: false, elevation: 0, behavior: up_escalator }
+  solid_788: { index: 788, walkable: false, elevation: 0 }
+  down_escalator_789: { index: 789, walkable: false, elevation: 0, behavior: down_escalator }
+  solid_790: { index: 790, walkable: false, elevation: 0 }
+  down_escalator_791: { index: 791, walkable: false, elevation: 0, behavior: down_escalator }
+  solid_792: { index: 792, walkable: false, elevation: 0 }
+  solid_793: { index: 793, walkable: false, elevation: 0 }
+  solid_794: { index: 794, walkable: false, elevation: 0 }
+  solid_795: { index: 795, walkable: false, elevation: 0 }
+  solid_796: { index: 796, walkable: false, elevation: 0 }
+  solid_797: { index: 797, walkable: false, elevation: 0 }
+  solid_798: { index: 798, walkable: false, elevation: 0 }
+  solid_799: { index: 799, walkable: false, elevation: 0 }
+  ground_800: { index: 800, walkable: true, elevation: 3 }
+  ground_801: { index: 801, walkable: true, elevation: 3 }
+  solid_802: { index: 802, walkable: false, elevation: 0 }
+  solid_803: { index: 803, walkable: false, elevation: 0 }
+  solid_804: { index: 804, walkable: false, elevation: 0 }
+  solid_805: { index: 805, walkable: false, elevation: 0 }
+  solid_806: { index: 806, walkable: false, elevation: 0 }
+  ground_807: { index: 807, walkable: true, elevation: 3 }
+  ground_808: { index: 808, walkable: true, elevation: 3 }
+  solid_809: { index: 809, walkable: false, elevation: 0 }
+  solid_810: { index: 810, walkable: false, elevation: 0 }
+  solid_811: { index: 811, walkable: false, elevation: 0 }
+  solid_812: { index: 812, walkable: false, elevation: 0 }
+  solid_813: { index: 813, walkable: false, elevation: 0 }
+  solid_814: { index: 814, walkable: false, elevation: 0 }
+  indigo_plateau_sign_2_815: { index: 815, walkable: false, elevation: 0, behavior: indigo_plateau_sign_2 }
+  ground_816: { index: 816, walkable: true, elevation: 3 }
+  solid_817: { index: 817, walkable: false, elevation: 0 }
+  solid_818: { index: 818, walkable: false, elevation: 0 }
+  solid_819: { index: 819, walkable: false, elevation: 0 }
+  solid_820: { index: 820, walkable: false, elevation: 0 }
+  solid_821: { index: 821, walkable: false, elevation: 0 }
+  solid_822: { index: 822, walkable: false, elevation: 0 }
+  solid_823: { index: 823, walkable: false, elevation: 0 }
+  solid_824: { index: 824, walkable: false, elevation: 0 }
+  solid_825: { index: 825, walkable: false, elevation: 0 }
+  solid_826: { index: 826, walkable: false, elevation: 0 }
+  cave_door_827: { index: 827, walkable: true, elevation: 3, behavior: cave_door }
+  solid_828: { index: 828, walkable: false, elevation: 0 }
+  solid_829: { index: 829, walkable: false, elevation: 0 }
+  solid_830: { index: 830, walkable: false, elevation: 0 }
+  solid_831: { index: 831, walkable: false, elevation: 0 }
+  ground_832: { index: 832, walkable: true, elevation: 3 }
+  solid_833: { index: 833, walkable: false, elevation: 0 }
+  solid_834: { index: 834, walkable: false, elevation: 0 }
+  solid_835: { index: 835, walkable: false, elevation: 0 }
+  solid_836: { index: 836, walkable: false, elevation: 0 }
+  solid_837: { index: 837, walkable: false, elevation: 0 }
+  solid_838: { index: 838, walkable: false, elevation: 0 }
+  solid_839: { index: 839, walkable: false, elevation: 0 }
+  solid_840: { index: 840, walkable: false, elevation: 0 }
+  solid_841: { index: 841, walkable: false, elevation: 0 }
+  solid_842: { index: 842, walkable: false, elevation: 0 }
+  solid_843: { index: 843, walkable: false, elevation: 0 }
+  solid_844: { index: 844, walkable: false, elevation: 0 }
+  solid_845: { index: 845, walkable: false, elevation: 0 }
+  solid_846: { index: 846, walkable: false, elevation: 0 }
+  solid_847: { index: 847, walkable: false, elevation: 0 }
+  solid_848: { index: 848, walkable: false, elevation: 0 }
+  solid_849: { index: 849, walkable: false, elevation: 0 }
+  solid_850: { index: 850, walkable: false, elevation: 0 }
+  solid_851: { index: 851, walkable: false, elevation: 0 }
+  solid_852: { index: 852, walkable: false, elevation: 0 }
+  solid_853: { index: 853, walkable: false, elevation: 0 }
+  solid_854: { index: 854, walkable: false, elevation: 0 }
+  solid_855: { index: 855, walkable: false, elevation: 0 }
+  solid_856: { index: 856, walkable: false, elevation: 0 }
+  solid_857: { index: 857, walkable: false, elevation: 0 }
+  solid_858: { index: 858, walkable: false, elevation: 0 }
+  solid_859: { index: 859, walkable: false, elevation: 0 }
+  solid_860: { index: 860, walkable: false, elevation: 0 }
+  solid_861: { index: 861, walkable: false, elevation: 0 }
+  solid_862: { index: 862, walkable: false, elevation: 0 }
+  solid_863: { index: 863, walkable: false, elevation: 0 }
+  solid_864: { index: 864, walkable: false, elevation: 0 }
+  solid_865: { index: 865, walkable: false, elevation: 0 }
+  indigo_plateau_sign_1_866: { index: 866, walkable: false, elevation: 0, behavior: indigo_plateau_sign_1 }
+  ground_867: { index: 867, walkable: true, elevation: 3 }
+  solid_868: { index: 868, walkable: false, elevation: 0 }
+  solid_869: { index: 869, walkable: false, elevation: 0 }
+  cable_club_wireless_monitor_870: { index: 870, walkable: false, elevation: 0, behavior: cable_club_wireless_monitor }
+  battle_records_871: { index: 871, walkable: false, elevation: 0, behavior: battle_records }
+  ground_872: { index: 872, walkable: true, elevation: 3 }
+  ground_873: { index: 873, walkable: true, elevation: 3 }
+  ground_874: { index: 874, walkable: true, elevation: 3 }
+  ground_875: { index: 875, walkable: true, elevation: 3 }
+  ground_876: { index: 876, walkable: true, elevation: 3 }
+  ground_877: { index: 877, walkable: true, elevation: 3 }
+  solid_878: { index: 878, walkable: false, elevation: 0 }
+  ground_879: { index: 879, walkable: true, elevation: 3 }
+  ground_880: { index: 880, walkable: true, elevation: 3 }
+  ground_881: { index: 881, walkable: true, elevation: 3 }
+  ground_882: { index: 882, walkable: true, elevation: 3 }
+  ground_883: { index: 883, walkable: true, elevation: 3 }
+  ground_884: { index: 884, walkable: true, elevation: 3 }
+  ground_885: { index: 885, walkable: true, elevation: 3 }
+  ground_886: { index: 886, walkable: true, elevation: 3 }
+  solid_887: { index: 887, walkable: false, elevation: 0 }
+  ground_888: { index: 888, walkable: true, elevation: 3 }
+  ground_889: { index: 889, walkable: true, elevation: 3 }
+  ground_890: { index: 890, walkable: true, elevation: 3 }
+  ground_891: { index: 891, walkable: true, elevation: 3 }
+  ground_892: { index: 892, walkable: true, elevation: 3 }
+  ground_893: { index: 893, walkable: true, elevation: 3 }
+  counter_894: { index: 894, walkable: false, elevation: 0, behavior: counter }

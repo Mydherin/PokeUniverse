@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) in progress: 6/15 ✅ (M1-M6); next [M7](phase-9-social/milestones/m07-pokemon-center-2f.md) (Pokémon Center 2F). **Updated:** 2026-11-14.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) in progress: 6/15 ✅ (M1-M6); [M7](phase-9-social/milestones/m07-pokemon-center-2f.md#resume-here) (Pokémon Center 2F) in progress. **Updated:** 2026-11-14.
 
 ## Milestones of Phases With Folders
 

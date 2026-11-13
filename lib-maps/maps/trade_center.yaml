@@ -1,0 +1,103 @@
+id: trade_center
+type: indoor
+region: special_area
+music: mus_poke_center
+tileset: cable_club
+size: [12, 9]
+border:
+  - [solid_641, solid_641]
+  - [solid_641, solid_641]
+legend:
+  "!": solid_680
+  "#": solid_641
+  "$": solid_672
+  "%": solid_695
+  "&": solid_703
+  "'": ground_643
+  "(": solid_694
+  ")": solid_696
+  "*": solid_664
+  "+": solid_723
+  ",": ground_647
+  "-": ground_657
+  ".": ground_648
+  "/": solid_689
+  ":": ground_649
+  ";": ground_656
+  "<": solid_690
+  "=": solid_720
+  ">": solid_691
+  "?": solid_660
+  "@": solid_711
+  "A": solid_700
+  "B": solid_701
+  "C": solid_702
+  "D": solid_704
+  "E": solid_705
+  "F": solid_706
+  "G": solid_707
+  "H": solid_708
+  "I": solid_709
+  "J": solid_710
+  "K": solid_712
+  "L": solid_715
+  "M": solid_728
+  "N": solid_731
+  "[": solid_692
+  "]": solid_693
+  "^": solid_661
+  "_": ground_642
+  "`": ground_644
+  "a": ground_645
+  "b": ground_646
+  "c": ground_650
+  "d": ground_651
+  "e": ground_652
+  "f": ground_653
+  "g": ground_654
+  "h": ground_655
+  "i": ground_658
+  "j": ground_659
+  "k": ground_662
+  "l": ground_663
+  "m": ground_666
+  "n": ground_667
+  "o": ground_668
+  "p": ground_669
+  "q": ground_670
+  "r": ground_671
+  "s": ground_675
+  "t": ground_676
+  "u": ground_677
+  "v": ground_678
+  "w": ground_713
+  "x": ground_714
+  "y": ground_721
+  "z": ground_722
+  "{": solid_697
+  "|": solid_688
+  "}": solid_698
+  "~": solid_699
+  "à": ground_729
+  "á": ground_730
+  "â": south_arrow_warp_684
+  "ã": south_arrow_warp_685
+ground: |
+  #   0         1
+  #   012345678901
+  00  |/%[]**(%%<>
+  01  ){&AB$$C&&}~
+  02  DE@HI!!J@@FG
+  03  Kw,_'`ab,,xL
+  04  =;.cdefgh.-+
+  05  =y:ij?^kl:z+
+  06  =;.mnopqr.-+
+  07  Mà..stuv..áN
+  08  #####âã#####
+warps:
+  - { id: dynamic, at: [5, 8], to: dynamic }
+  - { id: dynamic_2, at: [6, 8], to: dynamic }
+objects:
+  - { type: npc, id: attendant, at: [9, 6], sprite: union_room_receptionist, movement: face_left, script: attendant }
+  - { type: trigger, id: chair_0, at: [4, 5], var: temp_0, value: 0, script: chair_0 }
+  - { type: trigger, id: chair_1, at: [7, 5], var: temp_0, value: 0, script: chair_1 }

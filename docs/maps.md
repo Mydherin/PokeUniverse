@@ -30,7 +30,7 @@ Shared by `spa-pokeuniverse` and `mic-core` through the compiled runtime maps.
 | `layouts/<id>.yaml` | Grids shared by several maps (e.g. every Poké Center): tileset, size, border, legend, grids |
 | `tilesets/<id>.yaml` | Tile catalogs: every tile's name and properties |
 
-- **Scope:** Kanto only ([vision.md](vision.md)); the Sevii Islands and link rooms are never converted.
+- **Scope:** Kanto only ([vision.md](vision.md)); the Sevii Islands and link rooms are never converted, except the Trade Center and the 2-player Colosseum (`includedLinkRooms`, phase-9 M7).
 
 ## Map Format
 

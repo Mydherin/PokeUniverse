@@ -81,8 +81,12 @@ elevation: |
   06  ....0.......
   07  .0.0........
   08  ............
+overrides:
+  # The door to the Pokémon Center 2F (phase-9 D15), drawn by the client with FireRed's Cable Club door.
+  - { at: [7, 1], behavior: warp_door }
 warps:
   - { id: 1f, at: [10, 2], to: pallet_town_players_house_1f, spawn: 2f }
+  - { id: pokemon_center_2f, at: [7, 1], to: pokemon_center_2f, spawn: pallet_town_players_house_2f }
 objects:
   - { type: sign, id: nes, at: [6, 5], script: nes }
   - { type: sign, id: pc, at: [1, 1], script: pc }

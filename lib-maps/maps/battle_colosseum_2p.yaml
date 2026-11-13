@@ -1,0 +1,92 @@
+id: battle_colosseum_2p
+type: indoor
+region: special_area
+music: mus_poke_center
+battle_scene: link
+tileset: cable_club
+size: [14, 9]
+border:
+  - [solid_641, solid_641]
+  - [solid_641, solid_641]
+legend:
+  "!": solid_781
+  "#": solid_641
+  "$": solid_780
+  "%": solid_746
+  "&": solid_750
+  "'": ground_726
+  "(": solid_747
+  ")": solid_749
+  "*": solid_766
+  "+": solid_762
+  ",": ground_733
+  "-": ground_717
+  ".": ground_725
+  "/": solid_719
+  ":": ground_778
+  ";": ground_779
+  "<": solid_727
+  "=": solid_758
+  ">": solid_735
+  "?": solid_748
+  "@": solid_754
+  "A": solid_755
+  "B": solid_757
+  "C": solid_759
+  "D": solid_760
+  "E": solid_761
+  "F": solid_763
+  "G": solid_765
+  "H": solid_767
+  "I": solid_768
+  "J": solid_775
+  "K": solid_776
+  "L": solid_783
+  "[": solid_744
+  "]": solid_745
+  "^": solid_756
+  "_": ground_724
+  "`": ground_770
+  "a": ground_772
+  "b": south_arrow_warp_673
+  "c": ground_716
+  "d": ground_718
+  "e": ground_732
+  "f": ground_734
+  "g": ground_736
+  "h": ground_737
+  "i": ground_738
+  "j": ground_739
+  "k": ground_740
+  "l": ground_741
+  "m": ground_742
+  "n": ground_743
+  "o": ground_769
+  "p": ground_771
+  "q": ground_773
+  "r": ground_774
+  "s": ground_777
+  "t": ground_782
+  "{": solid_751
+  "|": solid_764
+  "}": solid_752
+  "~": solid_753
+ground: |
+  #   0         1
+  #   01234567890123
+  00  []%%%(??)&&&{/
+  01  }~@@@A^^B===C<
+  02  DE+++F||G***H>
+  03  Io`c-paaq-d`rJ
+  04  $:._:.ij..'.;!
+  05  $:.g:.kl..h.;!
+  06  $:._:.mn..'.;!
+  07  Ks.e,,,,,,f.tL
+  08  ######bb######
+warps:
+  - { id: dynamic, at: [6, 8], to: dynamic }
+  - { id: dynamic_2, at: [7, 8], to: dynamic }
+objects:
+  - { type: npc, id: attendant, at: [9, 3], sprite: union_room_receptionist, movement: face_left, script: attendant }
+  - { type: trigger, id: player_spot_0, at: [3, 5], var: temp_0, value: 0, script: player_spot_0 }
+  - { type: trigger, id: player_spot_1, at: [10, 5], var: temp_0, value: 0, script: player_spot_1 }

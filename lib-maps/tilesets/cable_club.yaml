@@ -1,0 +1,260 @@
+id: cable_club
+base: building
+firered: data/tilesets/secondary/cable_club
+tiles:
+  solid_640: { index: 640, walkable: false, elevation: 0 }
+  solid_641: { index: 641, walkable: false, elevation: 0 }
+  ground_642: { index: 642, walkable: true, elevation: 3 }
+  ground_643: { index: 643, walkable: true, elevation: 3 }
+  ground_644: { index: 644, walkable: true, elevation: 3 }
+  ground_645: { index: 645, walkable: true, elevation: 3 }
+  ground_646: { index: 646, walkable: true, elevation: 3 }
+  ground_647: { index: 647, walkable: true, elevation: 3 }
+  ground_648: { index: 648, walkable: true, elevation: 3 }
+  ground_649: { index: 649, walkable: true, elevation: 3 }
+  ground_650: { index: 650, walkable: true, elevation: 3 }
+  ground_651: { index: 651, walkable: true, elevation: 3 }
+  ground_652: { index: 652, walkable: true, elevation: 3 }
+  ground_653: { index: 653, walkable: true, elevation: 3 }
+  ground_654: { index: 654, walkable: true, elevation: 3 }
+  ground_655: { index: 655, walkable: true, elevation: 3 }
+  ground_656: { index: 656, walkable: true, elevation: 3 }
+  ground_657: { index: 657, walkable: true, elevation: 3 }
+  ground_658: { index: 658, walkable: true, elevation: 3 }
+  ground_659: { index: 659, walkable: true, elevation: 3 }
+  solid_660: { index: 660, walkable: false, elevation: 0 }
+  solid_661: { index: 661, walkable: false, elevation: 0 }
+  ground_662: { index: 662, walkable: true, elevation: 3 }
+  ground_663: { index: 663, walkable: true, elevation: 3 }
+  solid_664: { index: 664, walkable: false, elevation: 0 }
+  solid_665: { index: 665, walkable: false, elevation: 0 }
+  ground_666: { index: 666, walkable: true, elevation: 3 }
+  ground_667: { index: 667, walkable: true, elevation: 3 }
+  ground_668: { index: 668, walkable: true, elevation: 3 }
+  ground_669: { index: 669, walkable: true, elevation: 3 }
+  ground_670: { index: 670, walkable: true, elevation: 3 }
+  ground_671: { index: 671, walkable: true, elevation: 3 }
+  solid_672: { index: 672, walkable: false, elevation: 0 }
+  south_arrow_warp_673: { index: 673, walkable: true, elevation: 3, behavior: south_arrow_warp }
+  south_arrow_warp_674: { index: 674, walkable: false, elevation: 0, behavior: south_arrow_warp }
+  ground_675: { index: 675, walkable: true, elevation: 3 }
+  ground_676: { index: 676, walkable: true, elevation: 3 }
+  ground_677: { index: 677, walkable: true, elevation: 3 }
+  ground_678: { index: 678, walkable: true, elevation: 3 }
+  solid_679: { index: 679, walkable: false, elevation: 0 }
+  solid_680: { index: 680, walkable: false, elevation: 0 }
+  solid_681: { index: 681, walkable: false, elevation: 0 }
+  solid_682: { index: 682, walkable: false, elevation: 0 }
+  solid_683: { index: 683, walkable: false, elevation: 0 }
+  south_arrow_warp_684: { index: 684, walkable: true, elevation: 3, behavior: south_arrow_warp }
+  south_arrow_warp_685: { index: 685, walkable: true, elevation: 3, behavior: south_arrow_warp }
+  solid_686: { index: 686, walkable: false, elevation: 0 }
+  solid_687: { index: 687, walkable: false, elevation: 0 }
+  solid_688: { index: 688, walkable: false, elevation: 0 }
+  solid_689: { index: 689, walkable: false, elevation: 0 }
+  solid_690: { index: 690, walkable: false, elevation: 0 }
+  solid_691: { index: 691, walkable: false, elevation: 0 }
+  solid_692: { index: 692, walkable: false, elevation: 0 }
+  solid_693: { index: 693, walkable: false, elevation: 0 }
+  solid_694: { index: 694, walkable: false, elevation: 0 }
+  solid_695: { index: 695, walkable: false, elevation: 0 }
+  solid_696: { index: 696, walkable: false, elevation: 0 }
+  solid_697: { index: 697, walkable: false, elevation: 0 }
+  solid_698: { index: 698, walkable: false, elevation: 0 }
+  solid_699: { index: 699, walkable: false, elevation: 0 }
+  solid_700: { index: 700, walkable: false, elevation: 0 }
+  solid_701: { index: 701, walkable: false, elevation: 0 }
+  solid_702: { index: 702, walkable: false, elevation: 0 }
+  solid_703: { index: 703, walkable: false, elevation: 0 }
+  solid_704: { index: 704, walkable: false, elevation: 0 }
+  solid_705: { index: 705, walkable: false, elevation: 0 }
+  solid_706: { index: 706, walkable: false, elevation: 0 }
+  solid_707: { index: 707, walkable: false, elevation: 0 }
+  solid_708: { index: 708, walkable: false, elevation: 0 }
+  solid_709: { index: 709, walkable: false, elevation: 0 }
+  solid_710: { index: 710, walkable: false, elevation: 0 }
+  solid_711: { index: 711, walkable: false, elevation: 0 }
+  solid_712: { index: 712, walkable: false, elevation: 0 }
+  ground_713: { index: 713, walkable: true, elevation: 3 }
+  ground_714: { index: 714, walkable: true, elevation: 3 }
+  solid_715: { index: 715, walkable: false, elevation: 0 }
+  ground_716: { index: 716, walkable: true, elevation: 3 }
+  ground_717: { index: 717, walkable: true, elevation: 3 }
+  ground_718: { index: 718, walkable: true, elevation: 3 }
+  solid_719: { index: 719, walkable: false, elevation: 0 }
+  solid_720: { index: 720, walkable: false, elevation: 0 }
+  ground_721: { index: 721, walkable: true, elevation: 3 }
+  ground_722: { index: 722, walkable: true, elevation: 3 }
+  solid_723: { index: 723, walkable: false, elevation: 0 }
+  ground_724: { index: 724, walkable: true, elevation: 3 }
+  ground_725: { index: 725, walkable: true, elevation: 3 }
+  ground_726: { index: 726, walkable: true, elevation: 3 }
+  solid_727: { index: 727, walkable: false, elevation: 0 }
+  solid_728: { index: 728, walkable: false, elevation: 0 }
+  ground_729: { index: 729, walkable: true, elevation: 3 }
+  ground_730: { index: 730, walkable: true, elevation: 3 }
+  solid_731: { index: 731, walkable: false, elevation: 0 }
+  ground_732: { index: 732, walkable: true, elevation: 3 }
+  ground_733: { index: 733, walkable: true, elevation: 3 }
+  ground_734: { index: 734, walkable: true, elevation: 3 }
+  solid_735: { index: 735, walkable: false, elevation: 0 }
+  ground_736: { index: 736, walkable: true, elevation: 3 }
+  ground_737: { index: 737, walkable: true, elevation: 3 }
+  ground_738: { index: 738, walkable: true, elevation: 3 }
+  ground_739: { index: 739, walkable: true, elevation: 3 }
+  ground_740: { index: 740, walkable: true, elevation: 3 }
+  ground_741: { index: 741, walkable: true, elevation: 3 }
+  ground_742: { index: 742, walkable: true, elevation: 3 }
+  ground_743: { index: 743, walkable: true, elevation: 3 }
+  solid_744: { index: 744, walkable: false, elevation: 0 }
+  solid_745: { index: 745, walkable: false, elevation: 0 }
+  solid_746: { index: 746, walkable: false, elevation: 0 }
+  solid_747: { index: 747, walkable: false, elevation: 0 }
+  solid_748: { index: 748, walkable: false, elevation: 0 }
+  solid_749: { index: 749, walkable: false, elevation: 0 }
+  solid_750: { index: 750, walkable: false, elevation: 0 }
+  solid_751: { index: 751, walkable: false, elevation: 0 }
+  solid_752: { index: 752, walkable: false, elevation: 0 }
+  solid_753: { index: 753, walkable: false, elevation: 0 }
+  solid_754: { index: 754, walkable: false, elevation: 0 }
+  solid_755: { index: 755, walkable: false, elevation: 0 }
+  solid_756: { index: 756, walkable: false, elevation: 0 }
+  solid_757: { index: 757, walkable: false, elevation: 0 }
+  solid_758: { index: 758, walkable: false, elevation: 0 }
+  solid_759: { index: 759, walkable: false, elevation: 0 }
+  solid_760: { index: 760, walkable: false, elevation: 0 }
+  solid_761: { index: 761, walkable: false, elevation: 0 }
+  solid_762: { index: 762, walkable: false, elevation: 0 }
+  solid_763: { index: 763, walkable: false, elevation: 0 }
+  solid_764: { index: 764, walkable: false, elevation: 0 }
+  solid_765: { index: 765, walkable: false, elevation: 0 }
+  solid_766: { index: 766, walkable: false, elevation: 0 }
+  solid_767: { index: 767, walkable: false, elevation: 0 }
+  solid_768: { index: 768, walkable: false, elevation: 0 }
+  ground_769: { index: 769, walkable: true, elevation: 3 }
+  ground_770: { index: 770, walkable: true, elevation: 3 }
+  ground_771: { index: 771, walkable: true, elevation: 3 }
+  ground_772: { index: 772, walkable: true, elevation: 3 }
+  ground_773: { index: 773, walkable: true, elevation: 3 }
+  ground_774: { index: 774, walkable: true, elevation: 3 }
+  solid_775: { index: 775, walkable: false, elevation: 0 }
+  solid_776: { index: 776, walkable: false, elevation: 0 }
+  ground_777: { index: 777, walkable: true, elevation: 3 }
+  ground_778: { index: 778, walkable: true, elevation: 3 }
+  ground_779: { index: 779, walkable: true, elevation: 3 }
+  solid_780: { index: 780, walkable: false, elevation: 0 }
+  solid_781: { index: 781, walkable: false, elevation: 0 }
+  ground_782: { index: 782, walkable: true, elevation: 3 }
+  solid_783: { index: 783, walkable: false, elevation: 0 }
+  solid_784: { index: 784, walkable: false, elevation: 0 }
+  solid_785: { index: 785, walkable: false, elevation: 0 }
+  solid_786: { index: 786, walkable: false, elevation: 0 }
+  solid_787: { index: 787, walkable: false, elevation: 0 }
+  solid_788: { index: 788, walkable: false, elevation: 0 }
+  solid_789: { index: 789, walkable: false, elevation: 0 }
+  solid_790: { index: 790, walkable: false, elevation: 0 }
+  solid_791: { index: 791, walkable: false, elevation: 0 }
+  solid_792: { index: 792, walkable: false, elevation: 0 }
+  solid_793: { index: 793, walkable: false, elevation: 0 }
+  solid_794: { index: 794, walkable: false, elevation: 0 }
+  solid_795: { index: 795, walkable: false, elevation: 0 }
+  solid_796: { index: 796, walkable: false, elevation: 0 }
+  solid_797: { index: 797, walkable: false, elevation: 0 }
+  solid_798: { index: 798, walkable: false, elevation: 0 }
+  solid_799: { index: 799, walkable: false, elevation: 0 }
+  solid_800: { index: 800, walkable: false, elevation: 0 }
+  solid_801: { index: 801, walkable: false, elevation: 0 }
+  solid_802: { index: 802, walkable: false, elevation: 0 }
+  solid_803: { index: 803, walkable: false, elevation: 0 }
+  solid_804: { index: 804, walkable: false, elevation: 0 }
+  solid_805: { index: 805, walkable: false, elevation: 0 }
+  solid_806: { index: 806, walkable: false, elevation: 0 }
+  solid_807: { index: 807, walkable: false, elevation: 0 }
+  solid_808: { index: 808, walkable: false, elevation: 0 }
+  solid_809: { index: 809, walkable: false, elevation: 0 }
+  solid_810: { index: 810, walkable: false, elevation: 0 }
+  solid_811: { index: 811, walkable: false, elevation: 0 }
+  solid_812: { index: 812, walkable: false, elevation: 0 }
+  solid_813: { index: 813, walkable: false, elevation: 0 }
+  solid_814: { index: 814, walkable: false, elevation: 0 }
+  solid_815: { index: 815, walkable: false, elevation: 0 }
+  solid_816: { index: 816, walkable: false, elevation: 0 }
+  solid_817: { index: 817, walkable: false, elevation: 0 }
+  solid_818: { index: 818, walkable: false, elevation: 0 }
+  solid_819: { index: 819, walkable: false, elevation: 0 }
+  solid_820: { index: 820, walkable: false, elevation: 0 }
+  solid_821: { index: 821, walkable: false, elevation: 0 }
+  solid_822: { index: 822, walkable: false, elevation: 0 }
+  solid_823: { index: 823, walkable: false, elevation: 0 }
+  solid_824: { index: 824, walkable: false, elevation: 0 }
+  solid_825: { index: 825, walkable: false, elevation: 0 }
+  solid_826: { index: 826, walkable: false, elevation: 0 }
+  solid_827: { index: 827, walkable: false, elevation: 0 }
+  solid_828: { index: 828, walkable: false, elevation: 0 }
+  solid_829: { index: 829, walkable: false, elevation: 0 }
+  solid_830: { index: 830, walkable: false, elevation: 0 }
+  solid_831: { index: 831, walkable: false, elevation: 0 }
+  counter_832: { index: 832, walkable: false, elevation: 0, behavior: counter }
+  solid_833: { index: 833, walkable: false, elevation: 0 }
+  solid_834: { index: 834, walkable: false, elevation: 0 }
+  counter_835: { index: 835, walkable: false, elevation: 0, behavior: counter }
+  solid_836: { index: 836, walkable: false, elevation: 0 }
+  solid_837: { index: 837, walkable: false, elevation: 0 }
+  solid_838: { index: 838, walkable: false, elevation: 0 }
+  strength_button_839: { index: 839, walkable: false, elevation: 0, behavior: strength_button }
+  solid_840: { index: 840, walkable: false, elevation: 0 }
+  counter_841: { index: 841, walkable: false, elevation: 0, behavior: counter }
+  counter_842: { index: 842, walkable: false, elevation: 0, behavior: counter }
+  solid_843: { index: 843, walkable: false, elevation: 0 }
+  solid_844: { index: 844, walkable: false, elevation: 0 }
+  solid_845: { index: 845, walkable: false, elevation: 0 }
+  solid_846: { index: 846, walkable: false, elevation: 0 }
+  solid_847: { index: 847, walkable: false, elevation: 0 }
+  solid_848: { index: 848, walkable: false, elevation: 0 }
+  solid_849: { index: 849, walkable: false, elevation: 0 }
+  solid_850: { index: 850, walkable: false, elevation: 0 }
+  solid_851: { index: 851, walkable: false, elevation: 0 }
+  solid_852: { index: 852, walkable: false, elevation: 0 }
+  solid_853: { index: 853, walkable: false, elevation: 0 }
+  solid_854: { index: 854, walkable: false, elevation: 0 }
+  solid_855: { index: 855, walkable: false, elevation: 0 }
+  solid_856: { index: 856, walkable: false, elevation: 0 }
+  solid_857: { index: 857, walkable: false, elevation: 0 }
+  solid_858: { index: 858, walkable: false, elevation: 0 }
+  solid_859: { index: 859, walkable: false, elevation: 0 }
+  solid_860: { index: 860, walkable: false, elevation: 0 }
+  solid_861: { index: 861, walkable: false, elevation: 0 }
+  solid_862: { index: 862, walkable: false, elevation: 0 }
+  solid_863: { index: 863, walkable: false, elevation: 0 }
+  solid_864: { index: 864, walkable: false, elevation: 0 }
+  solid_865: { index: 865, walkable: false, elevation: 0 }
+  solid_866: { index: 866, walkable: false, elevation: 0 }
+  solid_867: { index: 867, walkable: false, elevation: 0 }
+  solid_868: { index: 868, walkable: false, elevation: 0 }
+  strength_button_869: { index: 869, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_870: { index: 870, walkable: false, elevation: 0, behavior: strength_button }
+  solid_871: { index: 871, walkable: false, elevation: 0 }
+  strength_button_872: { index: 872, walkable: false, elevation: 0, behavior: strength_button }
+  solid_873: { index: 873, walkable: false, elevation: 0 }
+  solid_874: { index: 874, walkable: false, elevation: 0 }
+  strength_button_875: { index: 875, walkable: false, elevation: 0, behavior: strength_button }
+  solid_876: { index: 876, walkable: false, elevation: 0 }
+  strength_button_877: { index: 877, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_878: { index: 878, walkable: false, elevation: 0, behavior: strength_button }
+  solid_879: { index: 879, walkable: false, elevation: 0 }
+  strength_button_880: { index: 880, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_881: { index: 881, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_882: { index: 882, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_883: { index: 883, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_884: { index: 884, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_885: { index: 885, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_886: { index: 886, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_887: { index: 887, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_888: { index: 888, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_889: { index: 889, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_890: { index: 890, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_891: { index: 891, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_892: { index: 892, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_893: { index: 893, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_894: { index: 894, walkable: false, elevation: 0, behavior: strength_button }
+  strength_button_895: { index: 895, walkable: false, elevation: 0, behavior: strength_button }

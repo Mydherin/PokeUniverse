@@ -1,0 +1,13 @@
+id: pokemon_center_2f
+type: indoor
+region: viridian_city
+music: mus_poke_center
+layout: pokemon_center_2f
+warps:
+  - { id: pallet_town_players_house_2f, at: [1, 6], to: pallet_town_players_house_2f, spawn: pokemon_center_2f }
+  - { id: trade_center, at: [9, 1], to: trade_center, spawn: dynamic }
+objects:
+  - { type: npc, id: union_room_attendant, at: [6, 2], sprite: cable_club_receptionist, movement: face_down, script: common.union_room_attendant }
+  - { type: npc, id: wireless_club_attendant, at: [2, 2], sprite: cable_club_receptionist, movement: face_down, script: common.wireless_club_attendant }
+  - { type: npc, id: direct_corner_attendant, at: [10, 2], sprite: cable_club_receptionist, movement: face_down, script: common.direct_corner_attendant }
+  - { type: npc, id: mystery_gift_man, at: [1, 2], sprite: mg_deliveryman, movement: face_down, range: [1, 1], script: cable_club.mystery_gift_man, flag: hide_mg_deliverymen }
