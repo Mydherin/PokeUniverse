@@ -20,6 +20,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	socialv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/auth"
 	"pokeuniverse/mic-core/internal/chat"
@@ -57,12 +58,19 @@ type World interface {
 	Leave(p *world.Player)
 }
 
+// Messenger saves and delivers direct and channel messages (phase-9 D8-D10).
+type Messenger interface {
+	Send(ctx context.Context, me int64, req *socialv1.SendMessage, text string) socialv1.SendFailedReason
+	MarkRead(ctx context.Context, me int64, conv, seq uint64)
+}
+
 // maxInstance bounds the client's instance ID (a UUID).
 const maxInstance = 64
 
 type Handler struct {
 	verifier Verifier
 	world    World
+	messages Messenger
 	upgrader websocket.Upgrader
 	log      *slog.Logger
 
@@ -72,10 +80,11 @@ type Handler struct {
 	wg      sync.WaitGroup
 }
 
-func NewHandler(verifier Verifier, w World, origin string, log *slog.Logger) *Handler {
+func NewHandler(verifier Verifier, w World, messages Messenger, origin string, log *slog.Logger) *Handler {
 	return &Handler{
 		verifier: verifier,
 		world:    w,
+		messages: messages,
 		log:      log,
 		conns:    map[*conn]struct{}{},
 		upgrader: websocket.Upgrader{
@@ -245,6 +254,36 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 			c.player.SendChat(line)
 		} else {
 			c.dropped(stats.ChatInvalid)
+		}
+		return true
+	case *realtimev1.ClientMessage_SendMessage:
+		// One rate budget with zone chat (phase-9 D8). Unlike zone chat, a refusal is answered:
+		// the client marks the line failed, with retry.
+		if c.player == nil {
+			return true
+		}
+		reason := socialv1.SendFailedReason_SEND_FAILED_REASON_UNSPECIFIED
+		if !c.chat.Allow() {
+			c.dropped(stats.ChatRate)
+			reason = socialv1.SendFailedReason_SEND_FAILED_REASON_RATE
+		} else if line, ok := chat.Clean(p.SendMessage.GetText()); !ok {
+			c.dropped(stats.ChatInvalid)
+			reason = socialv1.SendFailedReason_SEND_FAILED_REASON_INVALID
+		} else {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			reason = c.h.messages.Send(ctx, c.principal.AccountID, p.SendMessage, line)
+			cancel()
+		}
+		if reason != socialv1.SendFailedReason_SEND_FAILED_REASON_UNSPECIFIED {
+			c.write(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Social{Social: &socialv1.SocialEvent{
+				Event: &socialv1.SocialEvent_SendFailed{SendFailed: &socialv1.SendFailed{ClientId: p.SendMessage.GetClientId(), Reason: reason}}}}})
+		}
+		return true
+	case *realtimev1.ClientMessage_MarkRead:
+		if c.player != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			c.h.messages.MarkRead(ctx, c.principal.AccountID, p.MarkRead.GetConversation(), p.MarkRead.GetSeq())
+			cancel()
 		}
 		return true
 	}

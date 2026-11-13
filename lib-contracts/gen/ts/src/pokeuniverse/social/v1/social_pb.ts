@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/social/v1/social.proto.
  */
 export const file_pokeuniverse_social_v1_social: GenFile = /*@__PURE__*/
-  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIqkCCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAQgcKBWV2ZW50KpoBCghQcmVzZW5jZRIYChRQUkVTRU5DRV9VTlNQRUNJRklFRBAAEhQKEFBSRVNFTkNFX09GRkxJTkUQARITCg9QUkVTRU5DRV9PTkxJTkUQAhIYChRQUkVTRU5DRV9CVVNZX0JBVFRMRRADEhcKE1BSRVNFTkNFX0JVU1lfVFJBREUQBBIWChJQUkVTRU5DRV9CVVNZX0xJTksQBSqGAQoIUmVsYXRpb24SGAoUUkVMQVRJT05fVU5TUEVDSUZJRUQQABIRCg1SRUxBVElPTl9OT05FEAESEwoPUkVMQVRJT05fRlJJRU5EEAISGQoVUkVMQVRJT05fUkVRVUVTVF9TRU5UEAMSHQoZUkVMQVRJT05fUkVRVUVTVF9SRUNFSVZFRBAEKqgBChNSZXF1ZXN0Q2xvc2VkUmVhc29uEiUKIVJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9VTlNQRUNJRklFRBAAEiIKHlJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBABEiMKH1JFUVVFU1RfQ0xPU0VEX1JFQVNPTl9DQU5DRUxMRUQQAhIhCh1SRVFVRVNUX0NMT1NFRF9SRUFTT05fRFJPUFBFRBADQkNaQXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2Uvc29jaWFsL3YxO3NvY2lhbHYxYgZwcm90bzM", [file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIqQDCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAQgcKBWV2ZW50IooBChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQi5gEKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZSJQChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24iWwoMTWVzc2FnZXNQYWdlEj0KCG1lc3NhZ2VzGAEgAygLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25NZXNzYWdlEgwKBG1vcmUYAiABKAgqmgEKCFByZXNlbmNlEhgKFFBSRVNFTkNFX1VOU1BFQ0lGSUVEEAASFAoQUFJFU0VOQ0VfT0ZGTElORRABEhMKD1BSRVNFTkNFX09OTElORRACEhgKFFBSRVNFTkNFX0JVU1lfQkFUVExFEAMSFwoTUFJFU0VOQ0VfQlVTWV9UUkFERRAEEhYKElBSRVNFTkNFX0JVU1lfTElOSxAFKoYBCghSZWxhdGlvbhIYChRSRUxBVElPTl9VTlNQRUNJRklFRBAAEhEKDVJFTEFUSU9OX05PTkUQARITCg9SRUxBVElPTl9GUklFTkQQAhIZChVSRUxBVElPTl9SRVFVRVNUX1NFTlQQAxIdChlSRUxBVElPTl9SRVFVRVNUX1JFQ0VJVkVEEAQqqAEKE1JlcXVlc3RDbG9zZWRSZWFzb24SJQohUkVRVUVTVF9DTE9TRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASIgoeUkVRVUVTVF9DTE9TRURfUkVBU09OX0RFQ0xJTkVEEAESIwofUkVRVUVTVF9DTE9TRURfUkVBU09OX0NBTkNFTExFRBACEiEKHVJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9EUk9QUEVEEAMqcgoQQ29udmVyc2F0aW9uS2luZBIhCh1DT05WRVJTQVRJT05fS0lORF9VTlNQRUNJRklFRBAAEhwKGENPTlZFUlNBVElPTl9LSU5EX0RJUkVDVBABEh0KGUNPTlZFUlNBVElPTl9LSU5EX0NIQU5ORUwQAiq1AQoQU2VuZEZhaWxlZFJlYXNvbhIiCh5TRU5EX0ZBSUxFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIiCh5TRU5EX0ZBSUxFRF9SRUFTT05fTk9UX0FMTE9XRUQQARIbChdTRU5EX0ZBSUxFRF9SRUFTT05fUkFURRACEh4KGlNFTkRfRkFJTEVEX1JFQVNPTl9JTlZBTElEEAMSHAoYU0VORF9GQUlMRURfUkVBU09OX0VSUk9SEARCQ1pBcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9zb2NpYWwvdjE7c29jaWFsdjFiBnByb3RvMw", [file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * A player as the social panel shows them.
@@ -271,6 +271,22 @@ export type SocialEvent = Message<"pokeuniverse.social.v1.SocialEvent"> & {
      */
     value: PresenceChanged;
     case: "presence";
+  } | {
+    /**
+     * A message in one of the player's conversations, the player's own included (phase-9 D9).
+     *
+     * @generated from field: pokeuniverse.social.v1.ConversationMessage message = 6;
+     */
+    value: ConversationMessage;
+    case: "message";
+  } | {
+    /**
+     * The player's SendMessage wasn't saved; sent only to the sender's connection.
+     *
+     * @generated from field: pokeuniverse.social.v1.SendFailed send_failed = 7;
+     */
+    value: SendFailed;
+    case: "sendFailed";
   } | { case: undefined; value?: undefined };
 };
 
@@ -280,6 +296,245 @@ export type SocialEvent = Message<"pokeuniverse.social.v1.SocialEvent"> & {
  */
 export const SocialEventSchema: GenMessage<SocialEvent> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_social_v1_social, 7);
+
+/**
+ * A saved message (phase-9 D8). seq increases per conversation, with no gaps.
+ *
+ * @generated from message pokeuniverse.social.v1.ConversationMessage
+ */
+export type ConversationMessage = Message<"pokeuniverse.social.v1.ConversationMessage"> & {
+  /**
+   * @generated from field: uint64 conversation = 1;
+   */
+  conversation: bigint;
+
+  /**
+   * @generated from field: uint64 seq = 2;
+   */
+  seq: bigint;
+
+  /**
+   * The sender's account ID.
+   *
+   * @generated from field: uint64 sender = 3;
+   */
+  sender: bigint;
+
+  /**
+   * @generated from field: string text = 4;
+   */
+  text: string;
+
+  /**
+   * Unix milliseconds.
+   *
+   * @generated from field: int64 sent_at = 5;
+   */
+  sentAt: bigint;
+
+  /**
+   * The sender's SendMessage.client_id: set only for the sender, who matches it to its pending line.
+   *
+   * @generated from field: string client_id = 6;
+   */
+  clientId: string;
+
+  /**
+   * Direct conversations: the other member, as the receiver sees it (0 for channels).
+   *
+   * @generated from field: uint64 friend = 7;
+   */
+  friend: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ConversationMessage.
+ * Use `create(ConversationMessageSchema)` to create a new message.
+ */
+export const ConversationMessageSchema: GenMessage<ConversationMessage> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 8);
+
+/**
+ * Client -> server (WebSocket): a line for a conversation. FireRed's charset, 1-64 characters once
+ * trimmed, one rate budget with zone chat (phase-9 D8). Answered by the saved message on the
+ * sender's inbox, or SendFailed.
+ *
+ * @generated from message pokeuniverse.social.v1.SendMessage
+ */
+export type SendMessage = Message<"pokeuniverse.social.v1.SendMessage"> & {
+  /**
+   * The conversation; 0 for a direct one not yet created, named by friend.
+   *
+   * @generated from field: uint64 conversation = 1;
+   */
+  conversation: bigint;
+
+  /**
+   * Direct: the friend's account ID.
+   *
+   * @generated from field: uint64 friend = 2;
+   */
+  friend: bigint;
+
+  /**
+   * @generated from field: string text = 3;
+   */
+  text: string;
+
+  /**
+   * Chosen by the client per line; a retry with the same ID is saved once.
+   *
+   * @generated from field: string client_id = 4;
+   */
+  clientId: string;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.SendMessage.
+ * Use `create(SendMessageSchema)` to create a new message.
+ */
+export const SendMessageSchema: GenMessage<SendMessage> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 9);
+
+/**
+ * @generated from message pokeuniverse.social.v1.SendFailed
+ */
+export type SendFailed = Message<"pokeuniverse.social.v1.SendFailed"> & {
+  /**
+   * @generated from field: string client_id = 1;
+   */
+  clientId: string;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.SendFailedReason reason = 2;
+   */
+  reason: SendFailedReason;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.SendFailed.
+ * Use `create(SendFailedSchema)` to create a new message.
+ */
+export const SendFailedSchema: GenMessage<SendFailed> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 10);
+
+/**
+ * Client -> server (WebSocket): the player has read the conversation up to seq (phase-9 D10).
+ *
+ * @generated from message pokeuniverse.social.v1.MarkRead
+ */
+export type MarkRead = Message<"pokeuniverse.social.v1.MarkRead"> & {
+  /**
+   * @generated from field: uint64 conversation = 1;
+   */
+  conversation: bigint;
+
+  /**
+   * @generated from field: uint64 seq = 2;
+   */
+  seq: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.MarkRead.
+ * Use `create(MarkReadSchema)` to create a new message.
+ */
+export const MarkReadSchema: GenMessage<MarkRead> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 11);
+
+/**
+ * One of the player's conversations, in GET /api/social/conversations.
+ *
+ * @generated from message pokeuniverse.social.v1.Conversation
+ */
+export type Conversation = Message<"pokeuniverse.social.v1.Conversation"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.ConversationKind kind = 2;
+   */
+  kind: ConversationKind;
+
+  /**
+   * Direct: the other member.
+   *
+   * @generated from field: pokeuniverse.social.v1.Friend friend = 3;
+   */
+  friend?: Friend | undefined;
+
+  /**
+   * @generated from field: uint64 last_seq = 4;
+   */
+  lastSeq: bigint;
+
+  /**
+   * @generated from field: uint64 last_read_seq = 5;
+   */
+  lastReadSeq: bigint;
+
+  /**
+   * The last message (unset when none is left).
+   *
+   * @generated from field: pokeuniverse.social.v1.ConversationMessage last = 6;
+   */
+  last?: ConversationMessage | undefined;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.Conversation.
+ * Use `create(ConversationSchema)` to create a new message.
+ */
+export const ConversationSchema: GenMessage<Conversation> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 12);
+
+/**
+ * Response of GET /api/social/conversations, newest activity first.
+ *
+ * @generated from message pokeuniverse.social.v1.ConversationsList
+ */
+export type ConversationsList = Message<"pokeuniverse.social.v1.ConversationsList"> & {
+  /**
+   * @generated from field: repeated pokeuniverse.social.v1.Conversation conversations = 1;
+   */
+  conversations: Conversation[];
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ConversationsList.
+ * Use `create(ConversationsListSchema)` to create a new message.
+ */
+export const ConversationsListSchema: GenMessage<ConversationsList> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 13);
+
+/**
+ * Response of GET /api/social/conversations/{id}/messages: oldest first. With ?before=<seq>, the 50
+ * before it (default: the newest 50); with ?after=<seq>, up to 50 after it.
+ *
+ * @generated from message pokeuniverse.social.v1.MessagesPage
+ */
+export type MessagesPage = Message<"pokeuniverse.social.v1.MessagesPage"> & {
+  /**
+   * @generated from field: repeated pokeuniverse.social.v1.ConversationMessage messages = 1;
+   */
+  messages: ConversationMessage[];
+
+  /**
+   * Older (before) or newer (after) messages remain.
+   *
+   * @generated from field: bool more = 2;
+   */
+  more: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.MessagesPage.
+ * Use `create(MessagesPageSchema)` to create a new message.
+ */
+export const MessagesPageSchema: GenMessage<MessagesPage> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 14);
 
 /**
  * Where a player is (phase-9 D7). Busy players can't be asked to trade, battle or join a room.
@@ -402,4 +657,78 @@ export enum RequestClosedReason {
  */
 export const RequestClosedReasonSchema: GenEnum<RequestClosedReason> = /*@__PURE__*/
   enumDesc(file_pokeuniverse_social_v1_social, 2);
+
+/**
+ * @generated from enum pokeuniverse.social.v1.ConversationKind
+ */
+export enum ConversationKind {
+  /**
+   * @generated from enum value: CONVERSATION_KIND_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * One per friend pair, created on the first message (phase-9 D8).
+   *
+   * @generated from enum value: CONVERSATION_KIND_DIRECT = 1;
+   */
+  DIRECT = 1,
+
+  /**
+   * A private channel (phase-9 M6).
+   *
+   * @generated from enum value: CONVERSATION_KIND_CHANNEL = 2;
+   */
+  CHANNEL = 2,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.ConversationKind.
+ */
+export const ConversationKindSchema: GenEnum<ConversationKind> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 3);
+
+/**
+ * @generated from enum pokeuniverse.social.v1.SendFailedReason
+ */
+export enum SendFailedReason {
+  /**
+   * @generated from enum value: SEND_FAILED_REASON_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Direct messages need a friendship (phase-9 D11); or not a member of the channel.
+   *
+   * @generated from enum value: SEND_FAILED_REASON_NOT_ALLOWED = 1;
+   */
+  NOT_ALLOWED = 1,
+
+  /**
+   * Over the chat rate (phase-8 D17).
+   *
+   * @generated from enum value: SEND_FAILED_REASON_RATE = 2;
+   */
+  RATE = 2,
+
+  /**
+   * Not FireRed's charset, empty or too long.
+   *
+   * @generated from enum value: SEND_FAILED_REASON_INVALID = 3;
+   */
+  INVALID = 3,
+
+  /**
+   * The server couldn't save it; try again.
+   *
+   * @generated from enum value: SEND_FAILED_REASON_ERROR = 4;
+   */
+  ERROR = 4,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.SendFailedReason.
+ */
+export const SendFailedReasonSchema: GenEnum<SendFailedReason> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 4);
 

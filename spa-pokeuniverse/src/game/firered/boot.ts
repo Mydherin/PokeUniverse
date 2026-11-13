@@ -104,9 +104,12 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   void trainer.then(useTrainer);
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
   const social = new SocialState();
-  link.onSocial = (e) => social.apply(e);
   const faces = new Faces((g) => assets.get(g === Gender.GIRL ? "picLeafFront" : "picRedFront"));
   const chat = new ChatWindow(chatSlots, font, assets.charmap, link, gba.input, social, (id) => assets.text(id), faces);
+  link.onSocial = (e) => {
+    social.apply(e);
+    chat.messages.apply(e);
+  };
   let fonts: Record<FontId, Font> | null = null;
   let text: TextPrinters | null = null;
   // The New Game set loads in the background while the intro plays.

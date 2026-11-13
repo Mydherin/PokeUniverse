@@ -98,6 +98,8 @@ const FIELD_BACKDROP = rgb(213 >> 3, 213 >> 3, 172 >> 3);
 
 export function startOverworld(flow: Flow): void {
   const { gba, world, link } = flow;
+  // The own direct messages' name, before the first load (phase-9 M5).
+  flow.chat.messages.ownName = () => flow.trainer?.name ?? "";
   // The screen stays black until the server says where the trainer is and the map is loaded.
   gba.setMain(() => {});
   let overworld: Overworld | null = null;
@@ -107,7 +109,7 @@ export function startOverworld(flow: Flow): void {
   let pendingNaming: BattleEnded | null = null;
   const enter = (snapshot: WorldSnapshot) => {
     pending = snapshot;
-    void flow.social.load();
+    void flow.social.load().then(() => flow.chat.messages.load());
     // A warp's load still running ends first: two world.show can't cross.
     const settled = overworld?.settled;
     overworld?.destroy();
@@ -135,7 +137,8 @@ export function startOverworld(flow: Flow): void {
     snapshot: (s) => {
       flow.playTime.start(s.playTimeSeconds);
       // Every snapshot (entering, a reconnect): the friends list read again (phase-9 M4).
-      if (pending || overworld?.mapId === s.map) void flow.social.load();
+      // And the direct messages: unread counts, the open threads' new lines (phase-9 M5).
+      if (pending || overworld?.mapId === s.map) void flow.social.load().then(() => flow.chat.messages.load());
       if (pending) pending = s;
       else if (overworld?.mapId === s.map) overworld.resume(s);
       else enter(s);

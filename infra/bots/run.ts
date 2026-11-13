@@ -2,7 +2,7 @@
 // over the real WebSocket protocol and walk at FireRed's pace, printing latency and traffic.
 //
 //   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--first 1] [--url http://localhost:8080] [--secret …]
-//     [--verbose] [--idle] [--chat] [--flood] [--say <line> …] [--friend <n>]
+//     [--verbose] [--idle] [--chat] [--flood] [--say <line> …] [--friend <n>] [--dm]
 //
 // Each bot tracks the other players in its zone (phase-8 M2) from its snapshot and `zone_events`;
 // --verbose prints every event the last bot (bot-N) receives: one bot's view, readable; a second
@@ -21,7 +21,10 @@
 //
 // Friends (phase-9 M1): --friend n makes the last bot (bot-N) send a friend request to each of
 // bot-<first> … bot-<first+n-1> over HTTP, and each of them accept it. The verbose bot prints every
-// SocialEvent it receives (requests, accepted, closed, removed, presence).
+// SocialEvent it receives (requests, accepted, closed, removed, presence, messages).
+//
+// Direct messages (phase-9 M5): --dm makes each bot send a random line to one of its friends every
+// 20-60 s (zone chat's pace), over the WebSocket's SendMessage; stats count the messages received.
 //
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
@@ -73,6 +76,7 @@ const { values: args } = parseArgs({
     map2: { type: "string", default: "" },
     hold: { type: "string", default: "30" },
     friend: { type: "string", default: "0" },
+    dm: { type: "boolean", default: false },
   },
 });
 const base = new URL(args.url);
@@ -96,7 +100,7 @@ function loadMap(id: string): ClientMap {
   return m;
 }
 
-const stats = { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, pings: [] as number[] };
+const stats = { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, dm: 0, pings: [] as number[] };
 let stopping = false;
 
 class Bot {
@@ -213,6 +217,7 @@ class Bot {
         console.warn(`bot-${this.n}: in a battle at ${this.x},${this.y}`);
         break;
       case "social":
+        if (msg.value.event.case === "message" && msg.value.event.value.sender !== this.accountId) stats.dm++;
         if (this.verbose) console.log(`bot-${this.n}: social ${JSON.stringify(toJson(SocialEventSchema, msg.value))}`);
         break;
       case "error":
@@ -231,6 +236,26 @@ class Bot {
       next();
     }
     args.say.forEach((text, i) => this.after(SAY_EVERY_MS * (i + 1), () => say(text)));
+    if (args.dm) {
+      const next = () =>
+        this.after(20_000 + Math.random() * 40_000, async () => {
+          const friends = await this.friendIds();
+          if (friends.length > 0) {
+            const clientId = `bot-${this.n}-${Date.now()}-${++this.said}`;
+            this.send({ case: "sendMessage", value: { friend: pick(friends), text: pick(LINES), clientId } });
+          }
+          next();
+        });
+      next();
+    }
+  }
+
+  /** The bot's friends' account IDs, fetched on each send (friends come and go). */
+  private async friendIds(): Promise<bigint[]> {
+    const res = await fetch(new URL("/api/social/friends", base), { headers: { Authorization: `Bearer ${this.token}` } });
+    if (!res.ok) return [];
+    const list = (await res.json()) as { friends?: { id: string }[] };
+    return (list.friends ?? []).map((f) => BigInt(f.id));
   }
 
   /** A new zone (snapshot or warp): the others are exactly those listed. */
@@ -430,10 +455,11 @@ function printStats(bots: Bot[], secs = STATS_EVERY_MS / 1000): void {
       (stats.reconnects ? ` | reconnects ${stats.reconnects}` : "") +
       (stats.battles ? ` | battles ${stats.battles}` : "") +
       (stats.chat ? ` | chat lines ${stats.chat}` : "") +
+      (stats.dm ? ` | direct messages ${stats.dm}` : "") +
       ` | zone: ${(stats.events / secs).toFixed(1)} events/s, ${(stats.zoneFrames / secs / per).toFixed(1)} frames/s per bot` +
       `, others known ${othersKnown(bots)}`,
   );
-  Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, pings: [] });
+  Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, dm: 0, pings: [] });
 }
 
 /** The fewest and most others a connected bot knows: equal once every bot sees the whole zone. */
@@ -559,7 +585,7 @@ async function ramp(): Promise<void> {
     await add(first + 500 + on2, b - on2, map2);
     [on1, on2] = [a, b];
     await sleep(10_000);
-    Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, pings: [] });
+    Object.assign(stats, { steps: 0, corrections: 0, messages: 0, bytes: 0, battles: 0, reconnects: 0, events: 0, zoneFrames: 0, chat: 0, dm: 0, pings: [] });
     const cpu = process.cpuUsage();
     await sleep(hold * 1000);
     const used = process.cpuUsage(cpu);

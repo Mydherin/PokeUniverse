@@ -16,6 +16,8 @@ import type { SocialState } from "../world/social";
 import type { Text } from "../gba/text";
 import type { TextId } from "./manifest";
 import { LineActions, Notice, socialText } from "./social-ui";
+import { DirectMessages } from "../world/messages";
+import { SendFailedReason } from "@pokeuniverse/contracts/social/v1/social";
 import { FriendsView, type Faces } from "./friends-view";
 import type { Friend } from "@pokeuniverse/contracts/social/v1/social";
 
@@ -74,7 +76,18 @@ const SWIPE_CLOSE = 60;
 /** The textarea grows to this many lines, then scrolls (D22). */
 const INPUT_LINES = 3;
 
+/** The notice for a refused direct message (phase-9 M5; the panel's own texts). */
+const REFUSED: Partial<Record<SendFailedReason, string>> = {
+  [SendFailedReason.NOT_ALLOWED]: "Only friends can be sent messages.",
+  [SendFailedReason.RATE]: "Too fast. Tap the red line to send it again.",
+  [SendFailedReason.INVALID]: "Not in the game's font",
+  [SendFailedReason.ERROR]: "Not sent. Tap the red line to send it again.",
+};
+
 function colorsOf(line: ChatLine): [number, number, number] {
+  // A direct message still sending: grey; refused: red, tapped to retry (phase-9 M5).
+  if (line.state === "sending") return [0, 3, 0];
+  if (line.state === "failed") return [0, 8, 9];
   const c = line.own ? OWN_COLOR : 1 + Number(line.id % 3n);
   return [0, c * 2 + 2, c * 2 + 3];
 }
@@ -159,6 +172,15 @@ class LogView {
     const at = Math.max(0, Math.min(1, (y / this.scale - offset - top) / room));
     this.scroll = Math.round(max * (1 - at));
     this.draw();
+    this.onScroll();
+  }
+
+  /** Called after the player scrolls (the older history page, phase-9 D10). */
+  onScroll: () => void = () => {};
+
+  /** Scrolled up to the oldest row. */
+  get atTop(): boolean {
+    return this.rows.length > this.visibleRows && this.scroll >= this.rows.length - this.visibleRows;
   }
 
   /** Fits the canvas in a box of CSS pixels. */
@@ -213,7 +235,8 @@ class LogView {
         row = { line, first: false, glyphs: [] };
         x = textX;
       };
-      line.text.split(" ").forEach((word, i) => {
+      // A refused line is marked × before its text: red is also a player's color (phase-9 M5).
+      (line.state === "failed" ? `× ${line.text}` : line.text).split(" ").forEach((word, i) => {
         const glyphs = encodeText(this.charmap, (i ? " " : "") + word).slice(0, -1);
         const width = glyphs.reduce((n, g) => n + advance(g), 0);
         // A word that doesn't fit goes to the next row; one longer than a row is cut.
@@ -235,6 +258,7 @@ class LogView {
     const max = Math.max(0, this.rows.length - this.visibleRows);
     this.scroll = Math.max(0, Math.min(max, this.scroll + rows));
     this.draw();
+    this.onScroll();
   }
 
   /** The line at a point on the canvas (CSS pixels from its corner) and whether it's on the name. */
@@ -391,6 +415,8 @@ type SheetState = { chatSheet?: boolean; thread?: string; friendMenu?: boolean }
 export class ChatWindow {
   /** The social panel's conversations; the zone's chat is the first (phase-9 M3). */
   readonly conversations = new Conversations();
+  /** Direct messages (phase-9 M5): loaded on every snapshot, sent from a friend's thread. */
+  readonly messages: DirectMessages;
   /** Phase 9 opens the line actions; Phase 8 only keeps the chosen player. */
   onSelect: (id: bigint) => void = () => {};
   /** A row's LEAVE or REMOVE FRIEND (M4, M6 fill it). */
@@ -454,6 +480,9 @@ export class ChatWindow {
     text: (id: TextId) => Text,
     private readonly faces: Faces,
   ) {
+    this.messages = new DirectMessages(this.conversations, social, link);
+    this.messages.arrived = (c, line) => this.arrived(c, line);
+    this.messages.refused = (reason) => this.notice(REFUSED[reason] ?? REFUSED[SendFailedReason.ERROR]!);
     this.actions = new LineActions(social, charmap, text, { message: (id) => this.openWith(id), notice: (t) => this.notice(t) });
     // PC: the panel beside or below the screen; the list and the thread side by side when wide.
     this.panelLog = new LogView(font, charmap, PC_SCALE);
@@ -512,7 +541,12 @@ export class ChatWindow {
     this.pc.back.addEventListener("click", () => this.back());
     this.ticker.addEventListener("click", () => this.open());
     this.button.addEventListener("click", () => this.open());
-    for (const view of [this.panelLog, this.sheetLog]) this.hooks(view);
+    for (const view of [this.panelLog, this.sheetLog]) {
+      this.hooks(view);
+      view.onScroll = () => {
+        if (view.atTop) void this.messages.older(this.conversations.current);
+      };
+    }
     this.hooks(this.tickerLog, false);
     this.panelLog.el.addEventListener("wheel", (e) => {
       e.preventDefault();
@@ -605,10 +639,7 @@ export class ChatWindow {
 
   /** A friend's direct conversation, its thread open (M4; M5 fills it). */
   private openFriend(f: Friend): void {
-    const c = this.conversations.open(`friend:${f.id}`, "direct", f.name);
-    c.title = f.name;
-    c.who = { id: f.id, face: f.face, gender: f.gender };
-    this.choose(c);
+    this.choose(this.messages.conversation(f.id));
   }
 
   /** The friend's menu, if one is open. */
@@ -636,17 +667,19 @@ export class ChatWindow {
 
   /** A line in any conversation: its log, then a notice unless it's on screen (D13, D14). */
   arrived(c: Conversation, line: ChatLine): void {
-    this.conversations.add(c, line);
+    if (!this.conversations.add(c, line)) return;
     if (!this.shownNow || c.muted || line.own || c.log.open) return;
+    // A direct conversation is titled by its sender: the name once.
+    const said = c.kind === "direct" ? `${line.name}: ${line.text}` : `${c.title} · ${line.name}: ${line.text}`;
     if (this.touch.matches) {
       if (c.kind === "direct") navigator.vibrate?.(80);
-      if (!this.sheet.hidden) return this.showHint(`${c.title} · ${line.name}: ${line.text}`);
+      if (!this.sheet.hidden) return this.showHint(said);
       this.ticker.dataset.fade = "";
       window.clearTimeout(this.tickerTimer);
       this.tickerTimer = window.setTimeout(() => (this.ticker.dataset.fade = "true"), TICKER_FADE_MS);
       return;
     }
-    this.notice(`${c.title} · ${line.name}: ${line.text}`, c);
+    this.notice(said, c);
   }
 
   clear(): void {
@@ -758,6 +791,7 @@ export class ChatWindow {
       history.pushState({ chatSheet: true, thread: c.id }, "");
     } else this.isOpen = true;
     this.panelLog.scroll = this.sheetLog.scroll = 0;
+    this.messages.opened(c);
     this.state();
     if (!this.touch.matches) this.focusPanel();
     this.layout();
@@ -1001,9 +1035,11 @@ export class ChatWindow {
   private send(input: Field): void {
     const line = cleanLine(input.value);
     const c = this.conversations.current;
-    // Only the zone is said for now; M5 sends direct messages, M6 room lines.
-    if (!line || c.kind !== "zone" || !this.link.inWorld || !c.log.allowSend()) return;
-    this.link.sendChat(line);
+    // One rate budget for every conversation (phase-9 D8): the zone log's. Room lines: M6.
+    // A direct line written offline shows as sending and goes on reconnect; zone lines need the world.
+    if (!line || c.kind === "room" || (c.kind === "zone" && !this.link.inWorld) || !this.conversations.zone.log.allowSend()) return;
+    if (c.kind === "direct") this.messages.send(c, line);
+    else this.link.sendChat(line);
     input.value = "";
     if (input === this.sheetInput) this.edited(false);
   }
@@ -1156,7 +1192,9 @@ export class ChatWindow {
       window.clearTimeout(press.timer);
       const r = view.el.getBoundingClientRect();
       const hit = !press.moved ? view.hit(e.clientX - r.left, e.clientY - r.top) : null;
-      if (hit?.name) choose(hit.line);
+      // A refused own line: tapped, it's sent again (phase-9 M5).
+      if (hit?.line.state === "failed") this.messages.retry(this.conversations.current, hit.line);
+      else if (hit?.name) choose(hit.line);
       press = null;
     };
     view.el.addEventListener("pointerup", end);

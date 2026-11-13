@@ -136,7 +136,8 @@ func run(log *slog.Logger) error {
 		return fmt.Errorf("nats: %w", err)
 	}
 	log.Info("world loaded", "maps", len(worldMaps), "replica", zones.Replica())
-	ws := realtime.NewHandler(tokens, game, cfg.Origin(), log)
+	ws := realtime.NewHandler(tokens, game, friends, cfg.Origin(), log)
+	go friends.PruneLoop(ctx)
 
 	mux := http.NewServeMux()
 	(&health.Checker{Postgres: pool, Redis: rdb, NATS: nc}).Register(mux)

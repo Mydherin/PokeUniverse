@@ -82,6 +82,10 @@ export interface WorldLink {
   interact(walkInto: boolean): void;
   /** A line for the zone's chat; it shows once it comes back in ZoneEvents (phase-8 D13). */
   sendChat(text: string): void;
+  /** A direct (friend) or room (conversation) message; answered by its saved copy on the inbox, or SendFailed (phase-9 D8). */
+  sendMessage(conversation: bigint, friend: bigint, text: string, clientId: string): void;
+  /** The player read the conversation up to seq (phase-9 D10). */
+  markRead(conversation: bigint, seq: number): void;
   scriptDone(script: number): void;
   /** The running script reached its TrainerBattle step: answered with BattleStarted (or BattleEnded). */
   scriptBattle(script: number): void;
@@ -221,6 +225,14 @@ export class Connection implements WorldLink {
 
   sendChat(text: string): void {
     if (this.inWorld) this.send({ case: "sendChat", value: { text } });
+  }
+
+  sendMessage(conversation: bigint, friend: bigint, text: string, clientId: string): void {
+    if (this.inWorld) this.send({ case: "sendMessage", value: { conversation, friend: conversation ? 0n : friend, text, clientId } });
+  }
+
+  markRead(conversation: bigint, seq: number): void {
+    if (this.inWorld) this.send({ case: "markRead", value: { conversation, seq: BigInt(seq) } });
   }
 
   scriptDone(script: number): void {

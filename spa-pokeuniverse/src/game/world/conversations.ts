@@ -7,13 +7,22 @@ import { ChatLog, type ChatLine } from "./chat";
 
 export type ConversationKind = "zone" | "direct" | "room";
 
+/** A saved conversation's history kept in memory: the pages loaded, up to the server's 1,000 (phase-9 D10). */
+const KEPT = 1000;
+
 export class Conversation {
-  readonly log = new ChatLog();
+  readonly log: ChatLog;
   muted = false;
   /** When its last line came, to order the list. */
   last = 0;
   /** A direct conversation's player: their face (phase-9 D6, M4). */
   who: { id: bigint; face: number; gender: Gender } | null = null;
+  /** The server's conversation ID, once it has one (the first message makes a direct one, phase-9 D8). */
+  serverId = 0n;
+  /** Older history: unknown until the first page is read, then whether the server has more. */
+  more: boolean | undefined = undefined;
+  /** The newest seq marked read on the server. */
+  readSent = 0;
 
   constructor(
     readonly id: string,
@@ -21,7 +30,9 @@ export class Conversation {
     public title: string,
     /** The face shown on its row (a friend's, M4); null: the kind's own. */
     public face: string | null = null,
-  ) {}
+  ) {
+    this.log = new ChatLog(kind === "zone" ? undefined : KEPT);
+  }
 
   get lastLine(): ChatLine | undefined {
     return this.log.lines.at(-1);
@@ -79,13 +90,16 @@ export class Conversations {
     this.changed();
   }
 
-  add(c: Conversation, line: ChatLine): void {
-    c.last = performance.now();
+  /** A new line; false when the log already had it (phase-9 D10's dedupe). */
+  add(c: Conversation, line: ChatLine): boolean {
+    if (!c.log.add(line)) return false;
+    c.last = Date.now();
     if (!c.muted) {
       this.recent.push({ conversation: c, line });
       if (this.recent.length > RECENT) this.recent.splice(0, this.recent.length - RECENT);
     }
-    c.log.add(line);
+    this.changed();
+    return true;
   }
 
   /** A new map or a reconnect: the zone's lines go (phase-8 D13). */

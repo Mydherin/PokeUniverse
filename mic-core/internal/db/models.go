@@ -33,6 +33,22 @@ type BattleOutcome struct {
 	CreatedAt time.Time
 }
 
+type Conversation struct {
+	ID        int64
+	Kind      string
+	PairA     pgtype.Int8
+	PairB     pgtype.Int8
+	LastSeq   int64
+	LastAt    time.Time
+	CreatedAt time.Time
+}
+
+type ConversationMember struct {
+	Conversation int64
+	Player       int64
+	LastReadSeq  int64
+}
+
 type FriendRequest struct {
 	FromID    int64
 	ToID      int64
@@ -43,6 +59,15 @@ type Friendship struct {
 	A     int64
 	B     int64
 	Since time.Time
+}
+
+type Message struct {
+	ConversationID int64
+	Seq            int64
+	Sender         int64
+	Text           string
+	ClientID       string
+	SentAt         time.Time
 }
 
 type RefreshToken struct {

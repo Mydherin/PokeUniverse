@@ -36,6 +36,12 @@ export interface ChatLine {
   readonly name: string;
   readonly text: string;
   readonly own: boolean;
+  /** A saved message's place in its conversation (direct and room lines, phase-9 D8); none for zone lines. */
+  seq?: number;
+  /** The own line's SendMessage.client_id, until its saved copy replaces it. */
+  readonly clientId?: string;
+  /** An own line not saved yet: sending, or refused and waiting for a retry (phase-9 M5). */
+  state?: "sending" | "failed";
 }
 
 /** The send rule (D17): one line per 2 s, bursts of 4, as mic-core's limiter per connection. */
@@ -44,6 +50,9 @@ const BURST = 4;
 
 export class ChatLog {
   readonly lines: ChatLine[] = [];
+  /** Lines kept: the zone's 50 (D13); a saved conversation keeps what it has loaded. */
+  constructor(private readonly max = MAX_LINES) {}
+
   /** Lines that came while the chat was closed. */
   unread = 0;
   /** The chat window is open (the PC input or the phone sheet). */
@@ -58,10 +67,66 @@ export class ChatLog {
     return () => this.listeners.delete(fn);
   }
 
-  add(line: ChatLine): void {
-    this.lines.push(line);
-    if (this.lines.length > MAX_LINES) this.lines.splice(0, this.lines.length - MAX_LINES);
-    if (!this.open) this.unread++;
+  /**
+   * Adds a line; false when it was already there. A saved line (seq) goes in seq order and once:
+   * its own pending copy (same clientId) is replaced in place, a second copy (a reconnect's
+   * refetch) is dropped (phase-9 D10). Pending lines stay last.
+   */
+  add(line: ChatLine): boolean {
+    if (line.seq !== undefined) {
+      if (line.clientId !== undefined) {
+        const i = this.lines.findIndex((l) => l.seq === undefined && l.clientId === line.clientId);
+        if (i >= 0) {
+          this.lines.splice(i, 1);
+          this.place(line);
+          this.changed();
+          return false;
+        }
+      }
+      if (this.lines.some((l) => l.seq === line.seq)) return false;
+      this.place(line);
+    } else this.lines.push(line);
+    if (this.lines.length > this.max) this.lines.splice(0, this.lines.length - this.max);
+    if (!this.open && !line.own) this.unread++;
+    this.changed();
+    return true;
+  }
+
+  /** A saved line before the pending ones, after every lower seq. */
+  private place(line: ChatLine): void {
+    let i = this.lines.length;
+    while (i > 0 && (this.lines[i - 1].seq === undefined || this.lines[i - 1].seq! > line.seq!)) i--;
+    this.lines.splice(i, 0, line);
+  }
+
+  /** An older page of history, oldest first (phase-9 D10): put before the rest, nothing unread. */
+  prepend(lines: ChatLine[]): void {
+    const first = this.lines.find((l) => l.seq !== undefined)?.seq ?? Infinity;
+    const older = lines.filter((l) => l.seq !== undefined && l.seq < first);
+    if (!older.length) return;
+    this.lines.unshift(...older);
+    this.changed();
+  }
+
+  /** The first saved line's seq (the next older page ends before it). */
+  get firstSeq(): number | undefined {
+    return this.lines.find((l) => l.seq !== undefined)?.seq;
+  }
+
+  /** The newest saved line's seq. */
+  get lastSeq(): number {
+    for (let i = this.lines.length - 1; i >= 0; i--) if (this.lines[i].seq !== undefined) return this.lines[i].seq!;
+    return 0;
+  }
+
+  /** The server's unread count for this conversation (phase-9 D10). */
+  setUnread(n: number): void {
+    this.unread = this.open ? 0 : Math.max(0, n);
+    this.changed();
+  }
+
+  /** A pending line's state changed (phase-9 M5). */
+  touched(): void {
     this.changed();
   }
 

@@ -198,6 +198,116 @@ func (RequestClosedReason) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{2}
 }
 
+type ConversationKind int32
+
+const (
+	ConversationKind_CONVERSATION_KIND_UNSPECIFIED ConversationKind = 0
+	// One per friend pair, created on the first message (phase-9 D8).
+	ConversationKind_CONVERSATION_KIND_DIRECT ConversationKind = 1
+	// A private channel (phase-9 M6).
+	ConversationKind_CONVERSATION_KIND_CHANNEL ConversationKind = 2
+)
+
+// Enum value maps for ConversationKind.
+var (
+	ConversationKind_name = map[int32]string{
+		0: "CONVERSATION_KIND_UNSPECIFIED",
+		1: "CONVERSATION_KIND_DIRECT",
+		2: "CONVERSATION_KIND_CHANNEL",
+	}
+	ConversationKind_value = map[string]int32{
+		"CONVERSATION_KIND_UNSPECIFIED": 0,
+		"CONVERSATION_KIND_DIRECT":      1,
+		"CONVERSATION_KIND_CHANNEL":     2,
+	}
+)
+
+func (x ConversationKind) Enum() *ConversationKind {
+	p := new(ConversationKind)
+	*p = x
+	return p
+}
+
+func (x ConversationKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ConversationKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[3].Descriptor()
+}
+
+func (ConversationKind) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[3]
+}
+
+func (x ConversationKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ConversationKind.Descriptor instead.
+func (ConversationKind) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{3}
+}
+
+type SendFailedReason int32
+
+const (
+	SendFailedReason_SEND_FAILED_REASON_UNSPECIFIED SendFailedReason = 0
+	// Direct messages need a friendship (phase-9 D11); or not a member of the channel.
+	SendFailedReason_SEND_FAILED_REASON_NOT_ALLOWED SendFailedReason = 1
+	// Over the chat rate (phase-8 D17).
+	SendFailedReason_SEND_FAILED_REASON_RATE SendFailedReason = 2
+	// Not FireRed's charset, empty or too long.
+	SendFailedReason_SEND_FAILED_REASON_INVALID SendFailedReason = 3
+	// The server couldn't save it; try again.
+	SendFailedReason_SEND_FAILED_REASON_ERROR SendFailedReason = 4
+)
+
+// Enum value maps for SendFailedReason.
+var (
+	SendFailedReason_name = map[int32]string{
+		0: "SEND_FAILED_REASON_UNSPECIFIED",
+		1: "SEND_FAILED_REASON_NOT_ALLOWED",
+		2: "SEND_FAILED_REASON_RATE",
+		3: "SEND_FAILED_REASON_INVALID",
+		4: "SEND_FAILED_REASON_ERROR",
+	}
+	SendFailedReason_value = map[string]int32{
+		"SEND_FAILED_REASON_UNSPECIFIED": 0,
+		"SEND_FAILED_REASON_NOT_ALLOWED": 1,
+		"SEND_FAILED_REASON_RATE":        2,
+		"SEND_FAILED_REASON_INVALID":     3,
+		"SEND_FAILED_REASON_ERROR":       4,
+	}
+)
+
+func (x SendFailedReason) Enum() *SendFailedReason {
+	p := new(SendFailedReason)
+	*p = x
+	return p
+}
+
+func (x SendFailedReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SendFailedReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[4].Descriptor()
+}
+
+func (SendFailedReason) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[4]
+}
+
+func (x SendFailedReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SendFailedReason.Descriptor instead.
+func (SendFailedReason) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{4}
+}
+
 // A player as the social panel shows them.
 type Friend struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -653,6 +763,8 @@ type SocialEvent struct {
 	//	*SocialEvent_RequestClosed
 	//	*SocialEvent_FriendRemoved
 	//	*SocialEvent_Presence
+	//	*SocialEvent_Message
+	//	*SocialEvent_SendFailed
 	Event         isSocialEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -740,6 +852,24 @@ func (x *SocialEvent) GetPresence() *PresenceChanged {
 	return nil
 }
 
+func (x *SocialEvent) GetMessage() *ConversationMessage {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_Message); ok {
+			return x.Message
+		}
+	}
+	return nil
+}
+
+func (x *SocialEvent) GetSendFailed() *SendFailed {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_SendFailed); ok {
+			return x.SendFailed
+		}
+	}
+	return nil
+}
+
 type isSocialEvent_Event interface {
 	isSocialEvent_Event()
 }
@@ -768,6 +898,16 @@ type SocialEvent_Presence struct {
 	Presence *PresenceChanged `protobuf:"bytes,5,opt,name=presence,proto3,oneof"`
 }
 
+type SocialEvent_Message struct {
+	// A message in one of the player's conversations, the player's own included (phase-9 D9).
+	Message *ConversationMessage `protobuf:"bytes,6,opt,name=message,proto3,oneof"`
+}
+
+type SocialEvent_SendFailed struct {
+	// The player's SendMessage wasn't saved; sent only to the sender's connection.
+	SendFailed *SendFailed `protobuf:"bytes,7,opt,name=send_failed,json=sendFailed,proto3,oneof"`
+}
+
 func (*SocialEvent_RequestReceived) isSocialEvent_Event() {}
 
 func (*SocialEvent_FriendAdded) isSocialEvent_Event() {}
@@ -777,6 +917,473 @@ func (*SocialEvent_RequestClosed) isSocialEvent_Event() {}
 func (*SocialEvent_FriendRemoved) isSocialEvent_Event() {}
 
 func (*SocialEvent_Presence) isSocialEvent_Event() {}
+
+func (*SocialEvent_Message) isSocialEvent_Event() {}
+
+func (*SocialEvent_SendFailed) isSocialEvent_Event() {}
+
+// A saved message (phase-9 D8). seq increases per conversation, with no gaps.
+type ConversationMessage struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Conversation uint64                 `protobuf:"varint,1,opt,name=conversation,proto3" json:"conversation,omitempty"`
+	Seq          uint64                 `protobuf:"varint,2,opt,name=seq,proto3" json:"seq,omitempty"`
+	// The sender's account ID.
+	Sender uint64 `protobuf:"varint,3,opt,name=sender,proto3" json:"sender,omitempty"`
+	Text   string `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
+	// Unix milliseconds.
+	SentAt int64 `protobuf:"varint,5,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	// The sender's SendMessage.client_id: set only for the sender, who matches it to its pending line.
+	ClientId string `protobuf:"bytes,6,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// Direct conversations: the other member, as the receiver sees it (0 for channels).
+	Friend        uint64 `protobuf:"varint,7,opt,name=friend,proto3" json:"friend,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConversationMessage) Reset() {
+	*x = ConversationMessage{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConversationMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConversationMessage) ProtoMessage() {}
+
+func (x *ConversationMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConversationMessage.ProtoReflect.Descriptor instead.
+func (*ConversationMessage) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ConversationMessage) GetConversation() uint64 {
+	if x != nil {
+		return x.Conversation
+	}
+	return 0
+}
+
+func (x *ConversationMessage) GetSeq() uint64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *ConversationMessage) GetSender() uint64 {
+	if x != nil {
+		return x.Sender
+	}
+	return 0
+}
+
+func (x *ConversationMessage) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *ConversationMessage) GetSentAt() int64 {
+	if x != nil {
+		return x.SentAt
+	}
+	return 0
+}
+
+func (x *ConversationMessage) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *ConversationMessage) GetFriend() uint64 {
+	if x != nil {
+		return x.Friend
+	}
+	return 0
+}
+
+// Client -> server (WebSocket): a line for a conversation. FireRed's charset, 1-64 characters once
+// trimmed, one rate budget with zone chat (phase-9 D8). Answered by the saved message on the
+// sender's inbox, or SendFailed.
+type SendMessage struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The conversation; 0 for a direct one not yet created, named by friend.
+	Conversation uint64 `protobuf:"varint,1,opt,name=conversation,proto3" json:"conversation,omitempty"`
+	// Direct: the friend's account ID.
+	Friend uint64 `protobuf:"varint,2,opt,name=friend,proto3" json:"friend,omitempty"`
+	Text   string `protobuf:"bytes,3,opt,name=text,proto3" json:"text,omitempty"`
+	// Chosen by the client per line; a retry with the same ID is saved once.
+	ClientId      string `protobuf:"bytes,4,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendMessage) Reset() {
+	*x = SendMessage{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendMessage) ProtoMessage() {}
+
+func (x *SendMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendMessage.ProtoReflect.Descriptor instead.
+func (*SendMessage) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SendMessage) GetConversation() uint64 {
+	if x != nil {
+		return x.Conversation
+	}
+	return 0
+}
+
+func (x *SendMessage) GetFriend() uint64 {
+	if x != nil {
+		return x.Friend
+	}
+	return 0
+}
+
+func (x *SendMessage) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *SendMessage) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+type SendFailed struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClientId      string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	Reason        SendFailedReason       `protobuf:"varint,2,opt,name=reason,proto3,enum=pokeuniverse.social.v1.SendFailedReason" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendFailed) Reset() {
+	*x = SendFailed{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendFailed) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendFailed) ProtoMessage() {}
+
+func (x *SendFailed) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendFailed.ProtoReflect.Descriptor instead.
+func (*SendFailed) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SendFailed) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *SendFailed) GetReason() SendFailedReason {
+	if x != nil {
+		return x.Reason
+	}
+	return SendFailedReason_SEND_FAILED_REASON_UNSPECIFIED
+}
+
+// Client -> server (WebSocket): the player has read the conversation up to seq (phase-9 D10).
+type MarkRead struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Conversation  uint64                 `protobuf:"varint,1,opt,name=conversation,proto3" json:"conversation,omitempty"`
+	Seq           uint64                 `protobuf:"varint,2,opt,name=seq,proto3" json:"seq,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkRead) Reset() {
+	*x = MarkRead{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkRead) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkRead) ProtoMessage() {}
+
+func (x *MarkRead) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkRead.ProtoReflect.Descriptor instead.
+func (*MarkRead) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *MarkRead) GetConversation() uint64 {
+	if x != nil {
+		return x.Conversation
+	}
+	return 0
+}
+
+func (x *MarkRead) GetSeq() uint64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+// One of the player's conversations, in GET /api/social/conversations.
+type Conversation struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Kind  ConversationKind       `protobuf:"varint,2,opt,name=kind,proto3,enum=pokeuniverse.social.v1.ConversationKind" json:"kind,omitempty"`
+	// Direct: the other member.
+	Friend      *Friend `protobuf:"bytes,3,opt,name=friend,proto3" json:"friend,omitempty"`
+	LastSeq     uint64  `protobuf:"varint,4,opt,name=last_seq,json=lastSeq,proto3" json:"last_seq,omitempty"`
+	LastReadSeq uint64  `protobuf:"varint,5,opt,name=last_read_seq,json=lastReadSeq,proto3" json:"last_read_seq,omitempty"`
+	// The last message (unset when none is left).
+	Last          *ConversationMessage `protobuf:"bytes,6,opt,name=last,proto3" json:"last,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Conversation) Reset() {
+	*x = Conversation{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Conversation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Conversation) ProtoMessage() {}
+
+func (x *Conversation) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Conversation.ProtoReflect.Descriptor instead.
+func (*Conversation) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Conversation) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Conversation) GetKind() ConversationKind {
+	if x != nil {
+		return x.Kind
+	}
+	return ConversationKind_CONVERSATION_KIND_UNSPECIFIED
+}
+
+func (x *Conversation) GetFriend() *Friend {
+	if x != nil {
+		return x.Friend
+	}
+	return nil
+}
+
+func (x *Conversation) GetLastSeq() uint64 {
+	if x != nil {
+		return x.LastSeq
+	}
+	return 0
+}
+
+func (x *Conversation) GetLastReadSeq() uint64 {
+	if x != nil {
+		return x.LastReadSeq
+	}
+	return 0
+}
+
+func (x *Conversation) GetLast() *ConversationMessage {
+	if x != nil {
+		return x.Last
+	}
+	return nil
+}
+
+// Response of GET /api/social/conversations, newest activity first.
+type ConversationsList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Conversations []*Conversation        `protobuf:"bytes,1,rep,name=conversations,proto3" json:"conversations,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConversationsList) Reset() {
+	*x = ConversationsList{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConversationsList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConversationsList) ProtoMessage() {}
+
+func (x *ConversationsList) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConversationsList.ProtoReflect.Descriptor instead.
+func (*ConversationsList) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ConversationsList) GetConversations() []*Conversation {
+	if x != nil {
+		return x.Conversations
+	}
+	return nil
+}
+
+// Response of GET /api/social/conversations/{id}/messages: oldest first. With ?before=<seq>, the 50
+// before it (default: the newest 50); with ?after=<seq>, up to 50 after it.
+type MessagesPage struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Messages []*ConversationMessage `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	// Older (before) or newer (after) messages remain.
+	More          bool `protobuf:"varint,2,opt,name=more,proto3" json:"more,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MessagesPage) Reset() {
+	*x = MessagesPage{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessagesPage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessagesPage) ProtoMessage() {}
+
+func (x *MessagesPage) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessagesPage.ProtoReflect.Descriptor instead.
+func (*MessagesPage) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *MessagesPage) GetMessages() []*ConversationMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *MessagesPage) GetMore() bool {
+	if x != nil {
+		return x.More
+	}
+	return false
+}
 
 var File_pokeuniverse_social_v1_social_proto protoreflect.FileDescriptor
 
@@ -809,14 +1416,49 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x0fPresenceChanged\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12<\n" +
 	"\bpresence\x18\x02 \x01(\x0e2 .pokeuniverse.social.v1.PresenceR\bpresence\x12\x1b\n" +
-	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\xef\x02\n" +
+	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\xff\x03\n" +
 	"\vSocialEvent\x12R\n" +
 	"\x10request_received\x18\x01 \x01(\v2%.pokeuniverse.social.v1.FriendRequestH\x00R\x0frequestReceived\x12C\n" +
 	"\ffriend_added\x18\x02 \x01(\v2\x1e.pokeuniverse.social.v1.FriendH\x00R\vfriendAdded\x12N\n" +
 	"\x0erequest_closed\x18\x03 \x01(\v2%.pokeuniverse.social.v1.RequestClosedH\x00R\rrequestClosed\x12'\n" +
 	"\x0efriend_removed\x18\x04 \x01(\x04H\x00R\rfriendRemoved\x12E\n" +
-	"\bpresence\x18\x05 \x01(\v2'.pokeuniverse.social.v1.PresenceChangedH\x00R\bpresenceB\a\n" +
-	"\x05event*\x9a\x01\n" +
+	"\bpresence\x18\x05 \x01(\v2'.pokeuniverse.social.v1.PresenceChangedH\x00R\bpresence\x12G\n" +
+	"\amessage\x18\x06 \x01(\v2+.pokeuniverse.social.v1.ConversationMessageH\x00R\amessage\x12E\n" +
+	"\vsend_failed\x18\a \x01(\v2\".pokeuniverse.social.v1.SendFailedH\x00R\n" +
+	"sendFailedB\a\n" +
+	"\x05event\"\xc5\x01\n" +
+	"\x13ConversationMessage\x12\"\n" +
+	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x10\n" +
+	"\x03seq\x18\x02 \x01(\x04R\x03seq\x12\x16\n" +
+	"\x06sender\x18\x03 \x01(\x04R\x06sender\x12\x12\n" +
+	"\x04text\x18\x04 \x01(\tR\x04text\x12\x17\n" +
+	"\asent_at\x18\x05 \x01(\x03R\x06sentAt\x12\x1b\n" +
+	"\tclient_id\x18\x06 \x01(\tR\bclientId\x12\x16\n" +
+	"\x06friend\x18\a \x01(\x04R\x06friend\"z\n" +
+	"\vSendMessage\x12\"\n" +
+	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x16\n" +
+	"\x06friend\x18\x02 \x01(\x04R\x06friend\x12\x12\n" +
+	"\x04text\x18\x03 \x01(\tR\x04text\x12\x1b\n" +
+	"\tclient_id\x18\x04 \x01(\tR\bclientId\"k\n" +
+	"\n" +
+	"SendFailed\x12\x1b\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12@\n" +
+	"\x06reason\x18\x02 \x01(\x0e2(.pokeuniverse.social.v1.SendFailedReasonR\x06reason\"@\n" +
+	"\bMarkRead\x12\"\n" +
+	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x10\n" +
+	"\x03seq\x18\x02 \x01(\x04R\x03seq\"\x94\x02\n" +
+	"\fConversation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12<\n" +
+	"\x04kind\x18\x02 \x01(\x0e2(.pokeuniverse.social.v1.ConversationKindR\x04kind\x126\n" +
+	"\x06friend\x18\x03 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06friend\x12\x19\n" +
+	"\blast_seq\x18\x04 \x01(\x04R\alastSeq\x12\"\n" +
+	"\rlast_read_seq\x18\x05 \x01(\x04R\vlastReadSeq\x12?\n" +
+	"\x04last\x18\x06 \x01(\v2+.pokeuniverse.social.v1.ConversationMessageR\x04last\"_\n" +
+	"\x11ConversationsList\x12J\n" +
+	"\rconversations\x18\x01 \x03(\v2$.pokeuniverse.social.v1.ConversationR\rconversations\"k\n" +
+	"\fMessagesPage\x12G\n" +
+	"\bmessages\x18\x01 \x03(\v2+.pokeuniverse.social.v1.ConversationMessageR\bmessages\x12\x12\n" +
+	"\x04more\x18\x02 \x01(\bR\x04more*\x9a\x01\n" +
 	"\bPresence\x12\x18\n" +
 	"\x14PRESENCE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10PRESENCE_OFFLINE\x10\x01\x12\x13\n" +
@@ -834,7 +1476,17 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"!REQUEST_CLOSED_REASON_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eREQUEST_CLOSED_REASON_DECLINED\x10\x01\x12#\n" +
 	"\x1fREQUEST_CLOSED_REASON_CANCELLED\x10\x02\x12!\n" +
-	"\x1dREQUEST_CLOSED_REASON_DROPPED\x10\x03BCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1b\x06proto3"
+	"\x1dREQUEST_CLOSED_REASON_DROPPED\x10\x03*r\n" +
+	"\x10ConversationKind\x12!\n" +
+	"\x1dCONVERSATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18CONVERSATION_KIND_DIRECT\x10\x01\x12\x1d\n" +
+	"\x19CONVERSATION_KIND_CHANNEL\x10\x02*\xb5\x01\n" +
+	"\x10SendFailedReason\x12\"\n" +
+	"\x1eSEND_FAILED_REASON_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eSEND_FAILED_REASON_NOT_ALLOWED\x10\x01\x12\x1b\n" +
+	"\x17SEND_FAILED_REASON_RATE\x10\x02\x12\x1e\n" +
+	"\x1aSEND_FAILED_REASON_INVALID\x10\x03\x12\x1c\n" +
+	"\x18SEND_FAILED_REASON_ERROR\x10\x04BCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1b\x06proto3"
 
 var (
 	file_pokeuniverse_social_v1_social_proto_rawDescOnce sync.Once
@@ -848,42 +1500,59 @@ func file_pokeuniverse_social_v1_social_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_social_v1_social_proto_rawDescData
 }
 
-var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(Presence)(0),                   // 0: pokeuniverse.social.v1.Presence
 	(Relation)(0),                   // 1: pokeuniverse.social.v1.Relation
 	(RequestClosedReason)(0),        // 2: pokeuniverse.social.v1.RequestClosedReason
-	(*Friend)(nil),                  // 3: pokeuniverse.social.v1.Friend
-	(*FriendRequest)(nil),           // 4: pokeuniverse.social.v1.FriendRequest
-	(*FriendsList)(nil),             // 5: pokeuniverse.social.v1.FriendsList
-	(*SendFriendRequest)(nil),       // 6: pokeuniverse.social.v1.SendFriendRequest
-	(*SendFriendRequestResult)(nil), // 7: pokeuniverse.social.v1.SendFriendRequestResult
-	(*RequestClosed)(nil),           // 8: pokeuniverse.social.v1.RequestClosed
-	(*PresenceChanged)(nil),         // 9: pokeuniverse.social.v1.PresenceChanged
-	(*SocialEvent)(nil),             // 10: pokeuniverse.social.v1.SocialEvent
-	(v1.Gender)(0),                  // 11: pokeuniverse.trainer.v1.Gender
+	(ConversationKind)(0),           // 3: pokeuniverse.social.v1.ConversationKind
+	(SendFailedReason)(0),           // 4: pokeuniverse.social.v1.SendFailedReason
+	(*Friend)(nil),                  // 5: pokeuniverse.social.v1.Friend
+	(*FriendRequest)(nil),           // 6: pokeuniverse.social.v1.FriendRequest
+	(*FriendsList)(nil),             // 7: pokeuniverse.social.v1.FriendsList
+	(*SendFriendRequest)(nil),       // 8: pokeuniverse.social.v1.SendFriendRequest
+	(*SendFriendRequestResult)(nil), // 9: pokeuniverse.social.v1.SendFriendRequestResult
+	(*RequestClosed)(nil),           // 10: pokeuniverse.social.v1.RequestClosed
+	(*PresenceChanged)(nil),         // 11: pokeuniverse.social.v1.PresenceChanged
+	(*SocialEvent)(nil),             // 12: pokeuniverse.social.v1.SocialEvent
+	(*ConversationMessage)(nil),     // 13: pokeuniverse.social.v1.ConversationMessage
+	(*SendMessage)(nil),             // 14: pokeuniverse.social.v1.SendMessage
+	(*SendFailed)(nil),              // 15: pokeuniverse.social.v1.SendFailed
+	(*MarkRead)(nil),                // 16: pokeuniverse.social.v1.MarkRead
+	(*Conversation)(nil),            // 17: pokeuniverse.social.v1.Conversation
+	(*ConversationsList)(nil),       // 18: pokeuniverse.social.v1.ConversationsList
+	(*MessagesPage)(nil),            // 19: pokeuniverse.social.v1.MessagesPage
+	(v1.Gender)(0),                  // 20: pokeuniverse.trainer.v1.Gender
 }
 var file_pokeuniverse_social_v1_social_proto_depIdxs = []int32{
-	11, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	20, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
 	0,  // 1: pokeuniverse.social.v1.Friend.presence:type_name -> pokeuniverse.social.v1.Presence
-	3,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
-	3,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
-	4,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
-	4,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
-	4,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
-	3,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
+	5,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
+	5,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
+	6,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
+	6,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
+	6,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
+	5,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
 	2,  // 8: pokeuniverse.social.v1.RequestClosed.reason:type_name -> pokeuniverse.social.v1.RequestClosedReason
 	0,  // 9: pokeuniverse.social.v1.PresenceChanged.presence:type_name -> pokeuniverse.social.v1.Presence
-	4,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
-	3,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
-	8,  // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
-	9,  // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	6,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
+	5,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
+	10, // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
+	11, // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
+	13, // 14: pokeuniverse.social.v1.SocialEvent.message:type_name -> pokeuniverse.social.v1.ConversationMessage
+	15, // 15: pokeuniverse.social.v1.SocialEvent.send_failed:type_name -> pokeuniverse.social.v1.SendFailed
+	4,  // 16: pokeuniverse.social.v1.SendFailed.reason:type_name -> pokeuniverse.social.v1.SendFailedReason
+	3,  // 17: pokeuniverse.social.v1.Conversation.kind:type_name -> pokeuniverse.social.v1.ConversationKind
+	5,  // 18: pokeuniverse.social.v1.Conversation.friend:type_name -> pokeuniverse.social.v1.Friend
+	13, // 19: pokeuniverse.social.v1.Conversation.last:type_name -> pokeuniverse.social.v1.ConversationMessage
+	17, // 20: pokeuniverse.social.v1.ConversationsList.conversations:type_name -> pokeuniverse.social.v1.Conversation
+	13, // 21: pokeuniverse.social.v1.MessagesPage.messages:type_name -> pokeuniverse.social.v1.ConversationMessage
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_social_v1_social_proto_init() }
@@ -901,14 +1570,16 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		(*SocialEvent_RequestClosed)(nil),
 		(*SocialEvent_FriendRemoved)(nil),
 		(*SocialEvent_Presence)(nil),
+		(*SocialEvent_Message)(nil),
+		(*SocialEvent_SendFailed)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_social_v1_social_proto_rawDesc), len(file_pokeuniverse_social_v1_social_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   8,
+			NumEnums:      5,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -105,5 +105,93 @@ message SocialEvent {
     // the other one isn't told (phase-9 D3).
     uint64 friend_removed = 4;
     PresenceChanged presence = 5;
+    // A message in one of the player's conversations, the player's own included (phase-9 D9).
+    ConversationMessage message = 6;
+    // The player's SendMessage wasn't saved; sent only to the sender's connection.
+    SendFailed send_failed = 7;
   }
+}
+
+enum ConversationKind {
+  CONVERSATION_KIND_UNSPECIFIED = 0;
+  // One per friend pair, created on the first message (phase-9 D8).
+  CONVERSATION_KIND_DIRECT = 1;
+  // A private channel (phase-9 M6).
+  CONVERSATION_KIND_CHANNEL = 2;
+}
+
+// A saved message (phase-9 D8). seq increases per conversation, with no gaps.
+message ConversationMessage {
+  uint64 conversation = 1;
+  uint64 seq = 2;
+  // The sender's account ID.
+  uint64 sender = 3;
+  string text = 4;
+  // Unix milliseconds.
+  int64 sent_at = 5;
+  // The sender's SendMessage.client_id: set only for the sender, who matches it to its pending line.
+  string client_id = 6;
+  // Direct conversations: the other member, as the receiver sees it (0 for channels).
+  uint64 friend = 7;
+}
+
+// Client -> server (WebSocket): a line for a conversation. FireRed's charset, 1-64 characters once
+// trimmed, one rate budget with zone chat (phase-9 D8). Answered by the saved message on the
+// sender's inbox, or SendFailed.
+message SendMessage {
+  // The conversation; 0 for a direct one not yet created, named by friend.
+  uint64 conversation = 1;
+  // Direct: the friend's account ID.
+  uint64 friend = 2;
+  string text = 3;
+  // Chosen by the client per line; a retry with the same ID is saved once.
+  string client_id = 4;
+}
+
+enum SendFailedReason {
+  SEND_FAILED_REASON_UNSPECIFIED = 0;
+  // Direct messages need a friendship (phase-9 D11); or not a member of the channel.
+  SEND_FAILED_REASON_NOT_ALLOWED = 1;
+  // Over the chat rate (phase-8 D17).
+  SEND_FAILED_REASON_RATE = 2;
+  // Not FireRed's charset, empty or too long.
+  SEND_FAILED_REASON_INVALID = 3;
+  // The server couldn't save it; try again.
+  SEND_FAILED_REASON_ERROR = 4;
+}
+
+message SendFailed {
+  string client_id = 1;
+  SendFailedReason reason = 2;
+}
+
+// Client -> server (WebSocket): the player has read the conversation up to seq (phase-9 D10).
+message MarkRead {
+  uint64 conversation = 1;
+  uint64 seq = 2;
+}
+
+// One of the player's conversations, in GET /api/social/conversations.
+message Conversation {
+  uint64 id = 1;
+  ConversationKind kind = 2;
+  // Direct: the other member.
+  Friend friend = 3;
+  uint64 last_seq = 4;
+  uint64 last_read_seq = 5;
+  // The last message (unset when none is left).
+  ConversationMessage last = 6;
+}
+
+// Response of GET /api/social/conversations, newest activity first.
+message ConversationsList {
+  repeated Conversation conversations = 1;
+}
+
+// Response of GET /api/social/conversations/{id}/messages: oldest first. With ?before=<seq>, the 50
+// before it (default: the newest 50); with ?after=<seq>, up to 50 after it.
+message MessagesPage {
+  repeated ConversationMessage messages = 1;
+  // Older (before) or newer (after) messages remain.
+  bool more = 2;
 }
