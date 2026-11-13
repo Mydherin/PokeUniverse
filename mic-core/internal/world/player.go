@@ -36,6 +36,8 @@ type Player struct {
 	// The client page (one per load): a reconnect from the same page keeps its open PC.
 	instance string
 	zone     *zone
+	// Closes the player's social inbox on this replica (phase-9 D9).
+	closeInbox func()
 	// When its play time was last counted (Unix nanoseconds); swapped by keep-alive and Leave.
 	counted atomic.Int64
 

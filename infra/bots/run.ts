@@ -2,7 +2,7 @@
 // over the real WebSocket protocol and walk at FireRed's pace, printing latency and traffic.
 //
 //   node infra/bots/bots.ts --count 5 --map pallet_town_players_house_2f [--first 1] [--url http://localhost:8080] [--secret …]
-//     [--verbose] [--idle] [--chat] [--flood] [--say <line> …]
+//     [--verbose] [--idle] [--chat] [--flood] [--say <line> …] [--friend <n>]
 //
 // Each bot tracks the other players in its zone (phase-8 M2) from its snapshot and `zone_events`;
 // --verbose prints every event the last bot (bot-N) receives: one bot's view, readable; a second
@@ -19,6 +19,10 @@
 // Each step settles 10 s, measures --hold seconds (default 30), then prints the bots' stats, each
 // replica's zone stats (GET /api/dev/stats) and `docker stats`. --map2's bots are bot-<first+500> on.
 //
+// Friends (phase-9 M1): --friend n makes the last bot (bot-N) send a friend request to each of
+// bot-<first> … bot-<first+n-1> over HTTP, and each of them accept it. The verbose bot prints every
+// SocialEvent it receives (requests, accepted, closed, removed, presence).
+//
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
 
@@ -29,6 +33,7 @@ import { create, fromBinary, fromJson, toBinary, toJson, type MessageInitShape }
 import { ReplicaStatsSchema, SpawnBotsSchema, SpawnedBotsSchema, type ReplicaStats, type SpawnedBot } from "../../lib-contracts/gen/ts/src/pokeuniverse/dev/v1/bots_pb.ts";
 import { ClientMapSchema, Direction, TileBehavior, type ClientMap } from "../../lib-contracts/gen/ts/src/pokeuniverse/map/v1/map_pb.ts";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "../../lib-contracts/gen/ts/src/pokeuniverse/realtime/v1/realtime_pb.ts";
+import { SocialEventSchema } from "../../lib-contracts/gen/ts/src/pokeuniverse/social/v1/social_pb.ts";
 import type { OtherPlayer, ZoneEvent } from "../../lib-contracts/gen/ts/src/pokeuniverse/world/v1/world_pb.ts";
 import { behaviorAt, elevationAt, warpAt } from "../../spa-pokeuniverse/src/game/world/map.ts";
 import { checkStep, Collision, DELTAS, elevationAfter } from "../../spa-pokeuniverse/src/game/world/rules.ts";
@@ -67,6 +72,7 @@ const { values: args } = parseArgs({
     ramp: { type: "boolean", default: false },
     map2: { type: "string", default: "" },
     hold: { type: "string", default: "30" },
+    friend: { type: "string", default: "0" },
   },
 });
 const base = new URL(args.url);
@@ -113,6 +119,8 @@ class Bot {
   /** The other players in the zone, by account ID. */
   readonly others = new Map<bigint, OtherPlayer>();
   connected = false;
+  /** The bot's account ID (from the spawn), for the friend routes. */
+  accountId = 0n;
   private get verbose(): boolean {
     return args.verbose && this.n === first + count - 1;
   }
@@ -203,6 +211,9 @@ class Bot {
         // Bots stay off the test grass; a battle here is a bug to look at.
         stats.battles++;
         console.warn(`bot-${this.n}: in a battle at ${this.x},${this.y}`);
+        break;
+      case "social":
+        if (this.verbose) console.log(`bot-${this.n}: social ${JSON.stringify(toJson(SocialEventSchema, msg.value))}`);
         break;
       case "error":
         if (msg.value.code !== ErrorCode.TOKEN_EXPIRED) console.warn(`bot-${this.n}: error ${ErrorCode[msg.value.code]}`);
@@ -468,11 +479,37 @@ async function add(from: number, n: number, map: string): Promise<void> {
     const spawned = await spawn(false, from + i, k, map);
     for (const s of spawned) {
       const b = new Bot(s.n, s.accessToken);
+      b.accountId = s.accountId;
       byN.set(s.n, b);
       b.connect();
     }
     scheduleRenewal(spawned, byN, from + i, k);
   }
+}
+
+/** A friend route as bot b (phase-9 M1); prints a failure. */
+async function social(b: Bot, method: string, path: string, body?: unknown): Promise<boolean> {
+  const res = await fetch(new URL(path, base), {
+    method,
+    headers: { Authorization: `Bearer ${b.token}`, "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) console.warn(`bot-${b.n}: ${method} ${path}: ${res.status} ${(await res.text()).trim()}`);
+  return res.ok;
+}
+
+/** --friend n: the last bot asks bot-<first> … bot-<first+n-1>, and each accepts. */
+async function befriend(n: number): Promise<void> {
+  const last = byN.get(first + count - 1);
+  if (!last) return;
+  let made = 0;
+  for (let k = first; k < first + n && k < first + count - 1; k++) {
+    const b = byN.get(k);
+    if (!b) continue;
+    if (!(await social(last, "POST", "/api/social/friends/requests", { id: String(b.accountId) }))) continue;
+    if (await social(b, "POST", `/api/social/friends/requests/${last.accountId}/accept`)) made++;
+  }
+  console.log(`bot-${last.n}: ${made} friends made`);
 }
 
 /** Every replica's stats: the load balancer picks one per request, so ask until both answered. */
@@ -539,6 +576,7 @@ if (args.ramp) {
   void ramp();
 } else {
   await add(first, count, args.map);
+  if (Number(args.friend) > 0) setTimeout(() => void befriend(Number(args.friend)), 2000);
   console.log(`${count} bots on ${args.map} (${base.origin}); stats every ${STATS_EVERY_MS / 1000} s, Ctrl-C to stop`);
   statsTimer = setInterval(() => printStats([...byN.values()]), STATS_EVERY_MS);
 }

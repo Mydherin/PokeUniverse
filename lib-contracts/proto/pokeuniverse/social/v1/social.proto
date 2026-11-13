@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+// Social payloads (phase-9): the friends lists, sent as Protocol Buffers JSON over the HTTPS API,
+// and the live changes, sent on the WebSocket (ServerMessage.social) and between mic-core replicas
+// on each online player's NATS inbox, social.player.<id> (phase-9 D9).
+package pokeuniverse.social.v1;
+
+import "pokeuniverse/trainer/v1/trainer.proto";
+
+option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1";
+
+// Where a player is (phase-9 D7). Busy players can't be asked to trade, battle or join a room.
+enum Presence {
+  PRESENCE_UNSPECIFIED = 0;
+  PRESENCE_OFFLINE = 1;
+  PRESENCE_ONLINE = 2;
+  PRESENCE_BUSY_BATTLE = 3;
+  PRESENCE_BUSY_TRADE = 4;
+  PRESENCE_BUSY_LINK = 5;
+}
+
+// A player as the social panel shows them.
+message Friend {
+  // The account ID (the same ID as OtherPlayer.id in the world).
+  uint64 id = 1;
+  string name = 2;
+  pokeuniverse.trainer.v1.Gender gender = 3;
+  // 0: the default face by gender; otherwise a stored face, /faces/<face>.png (phase-9 D6).
+  uint32 face = 4;
+  Presence presence = 5;
+  // When OFFLINE: when they were last online, Unix seconds (0 = never seen).
+  int64 last_seen = 6;
+}
+
+// A pending friend request: from the player in an incoming list, to them in an outgoing one.
+message FriendRequest {
+  Friend player = 1;
+  // When it was sent, Unix seconds.
+  int64 sent_at = 2;
+}
+
+// Response of GET /api/social/friends.
+message FriendsList {
+  repeated Friend friends = 1;
+  repeated FriendRequest incoming = 2;
+  repeated FriendRequest outgoing = 3;
+}
+
+// Body of POST /api/social/friends/requests.
+message SendFriendRequest {
+  uint64 id = 1;
+}
+
+// Response of POST /api/social/friends/requests: a pending request, or a friendship when the
+// other player had already asked (phase-9 D3).
+message SendFriendRequestResult {
+  oneof result {
+    FriendRequest request = 1;
+    Friend friend = 2;
+  }
+}
+
+enum RequestClosedReason {
+  REQUEST_CLOSED_REASON_UNSPECIFIED = 0;
+  // The receiver declined it.
+  REQUEST_CLOSED_REASON_DECLINED = 1;
+  // The sender cancelled it.
+  REQUEST_CLOSED_REASON_CANCELLED = 2;
+  // The receiver had 50 newer requests (phase-9 D3).
+  REQUEST_CLOSED_REASON_DROPPED = 3;
+}
+
+// A request between the player and `id` is gone without a friendship.
+message RequestClosed {
+  uint64 id = 1;
+  RequestClosedReason reason = 2;
+}
+
+message PresenceChanged {
+  uint64 id = 1;
+  Presence presence = 2;
+  int64 last_seen = 3;
+}
+
+// A live social change for one player.
+message SocialEvent {
+  oneof event {
+    // Someone asked to be friends.
+    FriendRequest request_received = 1;
+    // A request was accepted (either way): now friends.
+    Friend friend_added = 2;
+    RequestClosed request_closed = 3;
+    // A friendship ended. Sent only to the player who removed it (their other replicas' view);
+    // the other one isn't told (phase-9 D3).
+    uint64 friend_removed = 4;
+    PresenceChanged presence = 5;
+  }
+}

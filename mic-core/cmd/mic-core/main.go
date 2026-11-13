@@ -30,6 +30,7 @@ import (
 	"pokeuniverse/mic-core/internal/ratelimit"
 	"pokeuniverse/mic-core/internal/realtime"
 	"pokeuniverse/mic-core/internal/sessionbus"
+	"pokeuniverse/mic-core/internal/social"
 	"pokeuniverse/mic-core/internal/store"
 	"pokeuniverse/mic-core/internal/trainer"
 	"pokeuniverse/mic-core/internal/world"
@@ -126,7 +127,8 @@ func run(log *slog.Logger) error {
 	go positions.CopyLoop(ctx, positionCopyInterval)
 	bus := sessionbus.New(nc, log)
 	zones := zonebus.New(nc, log)
-	game, err := world.New(worldMaps, positions, bus, zones, pool, battlesClient, battle.NewStore(rdb), log)
+	friends := social.New(pool, rdb, nc, log)
+	game, err := world.New(worldMaps, positions, bus, zones, friends, pool, battlesClient, battle.NewStore(rdb), log)
 	if err != nil {
 		return err
 	}
@@ -142,6 +144,7 @@ func run(log *slog.Logger) error {
 	authHandler.Register(mux, limit)
 	(&admin.Handler{Tokens: tokens}).Register(mux, limit)
 	(&trainer.Handler{Tokens: tokens, Pool: pool, Live: positions, Log: log}).Register(mux, limit)
+	(&social.Handler{Tokens: tokens, Social: friends, Log: log}).Register(mux, limit)
 	(&bots.Handler{Secret: cfg.BotsSecret, Stats: game.Stats, Tokens: tokens, Pool: pool, Live: positions, Maps: worldMaps, Log: log}).Register(mux, limit)
 	mux.Handle("GET /ws", ws)
 

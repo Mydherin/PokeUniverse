@@ -84,6 +84,9 @@ const (
 )
 
 func sessionKey(id int64) string { return fmt.Sprintf("player:%d:session", id) }
+
+// SessionKey is the key that exists while the player is online (phase-9 D7 reads it for presence).
+func SessionKey(id int64) string { return sessionKey(id) }
 func posKey(id int64) string     { return fmt.Sprintf("player:%d:pos", id) }
 
 // claimScript: KEYS session, pos; ARGV instance, conn, takeOver, ttl ms, gen, map, x, y, facing,
@@ -302,17 +305,17 @@ func (s *Store) ZoneMembers(ctx context.Context, zone string) ([][]byte, error) 
 	return out, nil
 }
 
-// Release ends o's session, adds its last play time and copies the player's state to
+// Release ends o's session (whether it did: false when another connection took it over), adds its last play time and copies the player's state to
 // PostgreSQL. Nothing happens when another connection owns the player by now.
-func (s *Store) Release(ctx context.Context, o Owner) error {
+func (s *Store) Release(ctx context.Context, o Owner) (bool, error) {
 	accountID := o.AccountID
 	res, err := releaseScript.Run(ctx, s.rdb, []string{sessionKey(accountID), posKey(accountID), movedKey},
 		o.Played.Milliseconds(), MaxPlayed.Milliseconds(), accountID, o.Conn).Slice()
 	if errors.Is(err, redis.Nil) {
-		return nil
+		return false, nil // Another connection plays the player now (a take-over).
 	}
 	if err != nil {
-		return fmt.Errorf("release position: %w", err)
+		return false, fmt.Errorf("release position: %w", err)
 	}
 	fields := make([]string, len(res))
 	for i, v := range res {
@@ -320,14 +323,14 @@ func (s *Store) Release(ctx context.Context, o Owner) error {
 	}
 	p, ok := parse(fields)
 	if !ok {
-		return nil
+		return true, nil
 	}
 	if err := s.copy(ctx, accountID, p); err != nil {
 		// The periodic copy retries it.
 		s.rdb.SAdd(ctx, movedKey, accountID)
-		return err
+		return true, err
 	}
-	return nil
+	return true, nil
 }
 
 // Location is the player's live position and play time in save gen, if Redis has them.

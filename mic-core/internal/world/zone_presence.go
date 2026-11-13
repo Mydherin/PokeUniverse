@@ -103,6 +103,7 @@ func (z *zone) showChanges(p *Player) bool {
 	if in := p.battle != nil; in != p.shownBattle {
 		changed = true
 		p.shownBattle = in
+		z.w.social.SetPresence(p.accountID, presence(in)) // Friends see it too (phase-9 D7).
 		z.emit(p, &worldv1.ZoneEvent{Event: &worldv1.ZoneEvent_Battle{Battle: &worldv1.PlayerBattle{Id: uint64(p.accountID), InBattle: in}}})
 	}
 	return changed

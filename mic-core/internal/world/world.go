@@ -17,6 +17,8 @@ import (
 
 	itemv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/item/v1"
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
+	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	socialv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/battle"
@@ -54,6 +56,22 @@ type ZoneBus interface {
 	Subscribe(mapID string, phase uint32, handle func(*worldv1.ZoneBus)) (unsubscribe func(), err error)
 }
 
+// Social reaches the player's friends (phase-9 M1, package social): Open subscribes the player's
+// inbox on this replica (before the session is claimed, so nothing is lost) and returns its close;
+// SetPresence pushes what the player is doing to their online friends, throttled, never blocking.
+type Social interface {
+	Open(accountID int64, deliver func(*socialv1.SocialEvent)) (func(), error)
+	SetPresence(accountID int64, p socialv1.Presence)
+}
+
+// presence is what the player shows to friends: busy in a battle, or online (phase-9 D7).
+func presence(inBattle bool) socialv1.Presence {
+	if inBattle {
+		return socialv1.Presence_PRESENCE_BUSY_BATTLE
+	}
+	return socialv1.Presence_PRESENCE_ONLINE
+}
+
 // keepAliveEvery renews this replica's sessions well within live.SessionTTL.
 const keepAliveEvery = live.SessionTTL / 3
 
@@ -65,6 +83,7 @@ type World struct {
 	live    *live.Store
 	bus     Bus
 	zoneBus ZoneBus
+	social  Social
 	pool    *pgxpool.Pool
 	battles *battles.Client
 	active  *battle.Store
@@ -82,11 +101,11 @@ type World struct {
 	zoneStats map[ZoneKey]*devv1.ZoneStats // Each zone's last window (zone_stats.go).
 }
 
-func New(maps Maps, store *live.Store, bus Bus, zoneBus ZoneBus, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
+func New(maps Maps, store *live.Store, bus Bus, zoneBus ZoneBus, social Social, pool *pgxpool.Pool, b *battles.Client, active *battle.Store, log *slog.Logger) (*World, error) {
 	if maps[Start.Map] == nil {
 		return nil, fmt.Errorf("world: start map %s is missing: run make maps", Start.Map)
 	}
-	w := &World{maps: maps, live: store, bus: bus, zoneBus: zoneBus, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
+	w := &World{maps: maps, live: store, bus: bus, zoneBus: zoneBus, social: social, pool: pool, battles: b, active: active, log: log, stop: make(chan struct{}),
 		zones: map[ZoneKey]*zone{}, players: map[int64]*Player{}, openPCs: map[int64]openPC{}, zoneStats: map[ZoneKey]*devv1.ZoneStats{}}
 	go w.keepAlive()
 	return w, nil
@@ -127,15 +146,22 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 			items.Bag.Remove(itemv1.Item(id), 1)
 		}
 	}
+	closeInbox, err := w.social.Open(accountID, func(ev *socialv1.SocialEvent) {
+		sink.Send(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Social{Social: ev}})
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("join: %w", err)
+	}
 	pos, previous, err := w.live.Claim(ctx, accountID, s, takeOver, saved)
 	if err != nil {
+		closeInbox()
 		return nil, nil, err
 	}
 	m, at, facing := w.place(pos)
 
 	p := &Player{accountID: accountID, conn: s.Conn, instance: s.Instance, gen: saved.Gen, sink: sink,
 		pos: at, facing: facing, elevation: m.Elevation(at), canRun: m.AllowRunning && hasRunningShoes, items: items, party: party, pokedex: pokedex.Load(row),
-		gender: gender, name: row.Name, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle, friendshipSteps: int(row.FriendshipSteps),
+		closeInbox: closeInbox, gender: gender, name: row.Name, trainerID: uint32(row.TrainerID), money: int(row.Money), battle: inBattle, friendshipSteps: int(row.FriendshipSteps),
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
@@ -143,6 +169,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	w.mu.Lock()
 	if w.closed {
 		w.mu.Unlock()
+		closeInbox()
 		return nil, nil, errors.New("join: shutting down")
 	}
 	old := w.players[accountID]
@@ -157,6 +184,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 	if previous != "" && (old == nil || old.conn != previous) {
 		w.bus.SessionTaken(accountID, previous) // Played from another replica.
 	}
+	w.social.SetPresence(accountID, presence(inBattle != nil))
 	var follower *worldv1.Follower
 	var others []*worldv1.OtherPlayer
 	z.call(func() {
@@ -260,8 +288,13 @@ func (w *World) Leave(p *Player) {
 	w.mu.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := w.live.Release(ctx, p.owner(time.Now())); err != nil {
+	p.closeInbox()
+	released, err := w.live.Release(ctx, p.owner(time.Now()))
+	if err != nil {
 		w.log.Error("release player", "account_id", p.accountID, "err", err)
+	}
+	if released {
+		w.social.SetPresence(p.accountID, socialv1.Presence_PRESENCE_OFFLINE) // Not after a take-over: still online.
 	}
 }
 

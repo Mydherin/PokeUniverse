@@ -33,6 +33,18 @@ type BattleOutcome struct {
 	CreatedAt time.Time
 }
 
+type FriendRequest struct {
+	FromID    int64
+	ToID      int64
+	CreatedAt time.Time
+}
+
+type Friendship struct {
+	A     int64
+	B     int64
+	Since time.Time
+}
+
 type RefreshToken struct {
 	ID        int64
 	AccountID int64
@@ -79,6 +91,8 @@ type Trainer struct {
 	CurrentBox      int16
 	NamingBox       pgtype.Int2
 	NamingSlot      pgtype.Int2
+	Face            int64
+	LastSeenAt      *time.Time
 }
 
 type TrainerBox struct {

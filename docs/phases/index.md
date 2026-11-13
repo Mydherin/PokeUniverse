@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) planned (15 milestones), not started. **Updated:** 2026-11-12.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) in progress: 1/15 ✅ (M1), next M2. **Updated:** 2026-11-13.
 
 ## Milestones of Phases With Folders
 
@@ -12,7 +12,7 @@ Current state of **every phase** of the project and everything still open, in on
 | [6 Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones) | 10 / 10 ✅ | |
 | [7 Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones) | 8 / 8 ✅ | |
 | [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 7 / 9 (M7, M9 🧪: real phones) | [M7 phone cases](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here), [M9 case 6](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) |
-| [9 Social](phase-9-social/phase-9-social.md#milestones) | 0 / 15 | [M1 Friends: server](phase-9-social/milestones/m01-friends-server.md) |
+| [9 Social](phase-9-social/phase-9-social.md#milestones) | 1 / 15 | [M2 Acting on a player](phase-9-social/milestones/m02-player-actions.md) |
 
 ## Phases
 
@@ -29,7 +29,7 @@ Current state of **every phase** of the project and everything still open, in on
 | 6 | [Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md) | ✅ | Moved: O6-O8 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you ([milestones](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones)) |
 | 7 | [Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) | ✅ | Moved: O9, O10, O11, O12 | Wild battles and catching work, on a test grass patch ([milestones](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones)) |
 | 8 | [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md) | 🧪 real phones left | Moved: O13, O14, O15, O16 | Many players move together smoothly, with chat ([milestones](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones)) |
-| 9 | [Social](phase-9-social/phase-9-social.md) | ⬜ planned | O14; moved: O17, O19-O21 | Friends, direct messages and private channels; trade and battle each other (single, double, 4-player multi) in the Pokémon Center 2F ([milestones](phase-9-social/phase-9-social.md#milestones)) |
+| 9 | [Social](phase-9-social/phase-9-social.md) | 🚧 in progress | O14; moved: O17, O19-O21 | Friends, direct messages and private channels; trade and battle each other (single, double, 4-player multi) in the Pokémon Center 2F ([milestones](phase-9-social/phase-9-social.md#milestones)) |
 | 10 | [Pallet Town](phase-10-pallet-town.md) | ⬜ | O1, O6, O9, O12, O13 | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
 | 11 | [Pallet Town Art Upgrade](phase-11-pallet-town-art.md) | ⬜ | | Pallet Town with awesome public art, same game |
 | 12 | [World Content](phase-12-world-content.md) | ⬜ | O2, O8, O10, O11, O15, O20, O21 | All of Kanto playable start to end |
