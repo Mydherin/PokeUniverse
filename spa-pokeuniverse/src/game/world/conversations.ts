@@ -2,6 +2,7 @@
 // pinned first, then direct messages and rooms (M5, M6) by their last line. Each has its own log;
 // a muted one (this session only) counts no unread and sends no notice.
 
+import type { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { ChatLog, type ChatLine } from "./chat";
 
 export type ConversationKind = "zone" | "direct" | "room";
@@ -11,6 +12,8 @@ export class Conversation {
   muted = false;
   /** When its last line came, to order the list. */
   last = 0;
+  /** A direct conversation's player: their face (phase-9 D6, M4). */
+  who: { id: bigint; face: number; gender: Gender } | null = null;
 
   constructor(
     readonly id: string,

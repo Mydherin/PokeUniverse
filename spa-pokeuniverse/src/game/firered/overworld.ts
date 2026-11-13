@@ -134,6 +134,8 @@ export function startOverworld(flow: Flow): void {
   link.enter({
     snapshot: (s) => {
       flow.playTime.start(s.playTimeSeconds);
+      // Every snapshot (entering, a reconnect): the friends list read again (phase-9 M4).
+      if (pending || overworld?.mapId === s.map) void flow.social.load();
       if (pending) pending = s;
       else if (overworld?.mapId === s.map) overworld.resume(s);
       else enter(s);

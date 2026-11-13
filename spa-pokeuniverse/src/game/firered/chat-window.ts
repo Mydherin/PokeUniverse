@@ -16,6 +16,8 @@ import type { SocialState } from "../world/social";
 import type { Text } from "../gba/text";
 import type { TextId } from "./manifest";
 import { LineActions, Notice, socialText } from "./social-ui";
+import { FriendsView, type Faces } from "./friends-view";
+import type { Friend } from "@pokeuniverse/contracts/social/v1/social";
 
 /** Palette indexes drawn on the logs. */
 const BG = 1;
@@ -374,13 +376,17 @@ interface Panes {
   tabs: HTMLElement;
   friendsBadge: HTMLElement;
   list: HTMLElement;
-  friends: HTMLElement;
+  friends: FriendsView;
   body: HTMLElement;
   back: HTMLButtonElement;
   title: HTMLElement;
+  /** A direct conversation's face beside its title. */
+  face: HTMLCanvasElement;
+  /** "Say hello" in an empty direct conversation (M5 fills them). */
+  empty: HTMLElement;
 }
 
-type SheetState = { chatSheet?: boolean; thread?: string } | null;
+type SheetState = { chatSheet?: boolean; thread?: string; friendMenu?: boolean } | null;
 
 export class ChatWindow {
   /** The social panel's conversations; the zone's chat is the first (phase-9 M3). */
@@ -388,7 +394,9 @@ export class ChatWindow {
   /** Phase 9 opens the line actions; Phase 8 only keeps the chosen player. */
   onSelect: (id: bigint) => void = () => {};
   /** A row's LEAVE or REMOVE FRIEND (M4, M6 fill it). */
-  onConversationAction: (c: Conversation, action: "leave" | "remove") => void = () => {};
+  onConversationAction: (c: Conversation, action: "leave" | "remove") => void = (c, action) => {
+    if (action === "remove" && c.who) void this.social.remove(c.who.id);
+  };
   private shownNow = false;
   /** PC: the input is open; phones: the sheet is. */
   private isOpen = false;
@@ -433,6 +441,8 @@ export class ChatWindow {
   private rowMenu: HTMLElement | null = null;
   private readonly rowEls = new Map<HTMLElement, Map<string, HTMLElement>>();
   private readonly offSocial: (() => void)[];
+  /** Runs once the back the friend's menu took is done (phones, D14). */
+  private afterPop: (() => void) | null = null;
 
   constructor(
     private readonly slots: ChatSlots,
@@ -442,6 +452,7 @@ export class ChatWindow {
     private readonly input: Input,
     private readonly social: SocialState,
     text: (id: TextId) => Text,
+    private readonly faces: Faces,
   ) {
     this.actions = new LineActions(social, charmap, text, { message: (id) => this.openWith(id), notice: (t) => this.notice(t) });
     // PC: the panel beside or below the screen; the list and the thread side by side when wide.
@@ -453,12 +464,12 @@ export class ChatWindow {
     const panelThread = h(
       "div",
       { class: "social-thread" },
-      h("div", { class: "social-thread-head" }, this.pc.back, this.pc.title),
-      h("div", { class: "chat-log-box" }, this.panelLog.el),
+      h("div", { class: "social-thread-head" }, this.pc.back, this.pc.face, this.pc.title),
+      h("div", { class: "chat-log-box" }, this.panelLog.el, this.pc.empty),
       this.panelCompose,
       this.panelHint,
     );
-    this.pc.body.append(this.pc.list, this.pc.friends, panelThread);
+    this.pc.body.append(this.pc.list, this.pc.friends.el, panelThread);
     this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, this.pc.tabs, this.panelNotice.el, this.pc.body);
     this.panelNotice.el.addEventListener("click", () => {
       if (this.toastFor) this.choose(this.toastFor);
@@ -478,8 +489,9 @@ export class ChatWindow {
     this.counter = h("span", { class: "chat-counter" });
     this.phone = this.panes();
     this.sheetThread = h("div", { class: "social-thread" }, this.sheetLogBox, h("div", { class: "chat-compose" }, this.sheetInput, sendButton), h("div", { class: "chat-status" }, this.hint, this.counter));
-    this.phone.body.append(this.phone.list, this.phone.friends, this.sheetThread);
-    this.sheetHead = h("div", { class: "chat-sheet-head" }, this.phone.back, this.phone.title, this.phone.tabs, close);
+    this.sheetLogBox.append(this.phone.empty);
+    this.phone.body.append(this.phone.list, this.phone.friends.el, this.sheetThread);
+    this.sheetHead = h("div", { class: "chat-sheet-head" }, this.phone.back, this.phone.face, this.phone.title, this.phone.tabs, close);
     this.sheet = h("section", { class: "chat-sheet", "aria-label": "Chat", hidden: true }, this.sheetHead, this.phone.body);
     // Typing: the own player stops and nothing stays held (ui.md#mobile-keyboard).
     this.sheetInput.addEventListener("focus", () => {
@@ -538,12 +550,25 @@ export class ChatWindow {
     };
     const tabs = h("div", { class: "chat-chips social-tabs", role: "tablist" }, tab("chats", "CHATS"), tab("friends", "FRIENDS", friendsBadge));
     const list = h("div", { class: "social-list", role: "listbox", "aria-label": "Conversations" });
-    const friends = h("div", { class: "social-friends" }, h("p", { class: "social-empty" }, "Your friends show here."));
+    const friends = new FriendsView(this.social, this.faces, {
+      message: (f) => this.openFriend(f),
+      notice: (t) => this.notice(t),
+      menuOpened: () => {
+        if (this.touch.matches && !this.sheet.hidden) history.pushState({ ...(history.state as object), friendMenu: true }, "");
+      },
+      menuClosed: (then) => {
+        if (!(history.state as SheetState)?.friendMenu) return then?.();
+        this.afterPop = then ?? null;
+        history.back();
+      },
+    });
     const body = h("div", { class: "social-body" });
     const back = h("button", { type: "button", class: "social-back", "aria-label": "Back" }, "‹") as HTMLButtonElement;
     const title = h("span", { class: "social-title" });
+    const face = h("canvas", { class: "social-face social-thread-face", width: "32", height: "32", "aria-hidden": "true", hidden: true });
+    const empty = h("p", { class: "social-empty social-say-hello", hidden: true });
     this.rows(list);
-    return { tabs, friendsBadge, list, friends, body, back, title };
+    return { tabs, friendsBadge, list, friends, body, back, title, face, empty };
   }
 
   /** Whether the player is on the field (not in a battle or a full-screen menu); none: not in the world. */
@@ -571,9 +596,24 @@ export class ChatWindow {
     }
   }
 
-  /** MESSAGE on a player: their conversation (M5); until then the chat opens. */
-  openWith(_id: bigint): void {
-    this.open();
+  /** MESSAGE on a player: a friend's conversation (empty until M5); anyone else, the chat opens. */
+  openWith(id: bigint): void {
+    const f = this.social.friends.get(id);
+    if (f) this.openFriend(f);
+    else this.open();
+  }
+
+  /** A friend's direct conversation, its thread open (M4; M5 fills it). */
+  private openFriend(f: Friend): void {
+    const c = this.conversations.open(`friend:${f.id}`, "direct", f.name);
+    c.title = f.name;
+    c.who = { id: f.id, face: f.face, gender: f.gender };
+    this.choose(c);
+  }
+
+  /** The friend's menu, if one is open. */
+  private get friendMenu(): FriendsView | undefined {
+    return [this.pc.friends, this.phone.friends].find((v) => v.menuOpen);
   }
 
   /** A social notice: a toast at the panel's top on PC, a ticker line on phones (D13, D14), in the sheet's status while it's open. */
@@ -648,6 +688,12 @@ export class ChatWindow {
   private readonly onPopState = () => {
     if (this.sheet.hidden) return;
     const s = history.state as SheetState;
+    // The back gesture on a friend's menu closes only the menu.
+    const menu = this.friendMenu;
+    if (menu && !s?.friendMenu) return menu.dropMenu();
+    const after = this.afterPop;
+    this.afterPop = null;
+    if (after) return after();
     if (!s?.chatSheet) return this.close(true);
     const c = s.thread ? this.conversations.get(s.thread) : undefined;
     if (c) this.conversations.current = c;
@@ -666,7 +712,7 @@ export class ChatWindow {
     }
     const t = e.target;
     if (e.altKey || e.repeat || (t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable))) return;
-    if (e.key === "Escape" && (this.isOpen || this.rowMenu)) {
+    if (e.key === "Escape" && (this.isOpen || this.rowMenu || this.friendMenu)) {
       e.preventDefault();
       this.escape();
     } else if (e.code === "KeyT" && (!this.isOpen || this.view === "list")) {
@@ -746,6 +792,8 @@ export class ChatWindow {
   /** PC's Esc: a row's menu, then back to the list on one pane, then closed (D13). */
   private escape(): void {
     if (this.rowMenu) return this.closeRowMenu();
+    const menu = this.friendMenu;
+    if (menu) return menu.closeMenu();
     if (!this.touch.matches && !this.twoPanes && this.view === "thread" && this.isOpen) return this.back();
     this.close();
   }
@@ -765,12 +813,14 @@ export class ChatWindow {
   /** `fromHistory`: the back gesture already popped the sheet's entries. */
   private close(fromHistory = false): void {
     this.closeRowMenu();
+    for (const v of [this.pc.friends, this.phone.friends]) v.dropMenu();
+    this.afterPop = null;
     if (!this.isOpen) return;
     this.isOpen = false;
     if (!fromHistory && !this.sheet.hidden) {
       const s = history.state as SheetState;
-      if (s?.thread) history.go(-2);
-      else if (s?.chatSheet) history.back();
+      const depth = s?.chatSheet ? 1 + (s.thread ? 1 : 0) + (s.friendMenu ? 1 : 0) : 0;
+      if (depth) history.go(-depth);
     }
     this.sheet.style.transform = "";
     this.panelInput.blur();
@@ -796,6 +846,8 @@ export class ChatWindow {
     this.sheet.dataset.tab = this.tab;
     for (const p of [this.pc, this.phone]) {
       p.title.textContent = current.title;
+      p.face.hidden = !current.who;
+      if (current.who) this.faces.draw(p.face, current.who.face, current.who.gender);
       for (const t of p.tabs.children) t.setAttribute("aria-selected", String((t as HTMLElement).dataset.tab === this.tab));
     }
     const threadShown = touch ? this.isOpen && this.view === "thread" : this.inWorld && (this.twoPanes || this.view === "thread");
@@ -818,6 +870,9 @@ export class ChatWindow {
       p.friendsBadge.hidden = unseen === 0;
       p.friendsBadge.textContent = unseen > 99 ? "99+" : String(unseen);
       this.rows(p.list);
+      p.friends.render();
+      p.empty.hidden = !(cs.current.kind === "direct" && lines.length === 0);
+      p.empty.textContent = `No messages yet. Say hello to ${cs.current.title}!`;
     }
     for (const v of [this.panelLog, this.sheetLog]) {
       v.layout(lines);
@@ -855,7 +910,12 @@ export class ChatWindow {
       const n = c.unread;
       el.setAttribute("aria-selected", String(c === current));
       el.dataset.muted = c.muted ? "true" : "";
-      face.textContent = c.face ?? c.title.slice(0, 1);
+      if (c.who) {
+        // A friend's conversation: their face (D6).
+        let canvas = face as HTMLElement;
+        if (!(canvas instanceof HTMLCanvasElement)) face.replaceWith((canvas = this.faces.view(c.who.face, c.who.gender)));
+        else this.faces.draw(canvas, c.who.face, c.who.gender);
+      } else face.textContent = c.face ?? c.title.slice(0, 1);
       title.textContent = c.title + (c.muted ? " (muted)" : "");
       line.textContent = last ? `${last.name}: ${last.text}` : "No messages yet";
       badge.hidden = n === 0;
@@ -933,6 +993,8 @@ export class ChatWindow {
 
   private readonly onOutside = (e: PointerEvent) => {
     if (this.rowMenu && !this.rowMenu.contains(e.target as Node)) this.closeRowMenu();
+    const menu = this.friendMenu;
+    if (menu && !menu.contains(e.target as Node)) menu.closeMenu();
   };
 
   /** Enter: the line goes to mic-core and shows when it comes back; over the rate nothing happens. */

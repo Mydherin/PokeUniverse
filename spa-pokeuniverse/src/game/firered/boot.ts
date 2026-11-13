@@ -22,6 +22,8 @@ const TEXT_MUSIC: Record<number, SoundId> = { 322: "mus_caught" };
 import { startNewGame } from "./new-game";
 import { textScrollSpeed, validOptions, type Options } from "./options";
 import { ChatWindow, type ChatSlots } from "./chat-window";
+import { Faces } from "./friends-view";
+import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { SocialState } from "../world/social";
 import { startOverworld } from "./overworld";
 import { PlayTime } from "./play-time";
@@ -103,7 +105,8 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
   const social = new SocialState();
   link.onSocial = (e) => social.apply(e);
-  const chat = new ChatWindow(chatSlots, font, assets.charmap, link, gba.input, social, (id) => assets.text(id));
+  const faces = new Faces((g) => assets.get(g === Gender.GIRL ? "picLeafFront" : "picRedFront"));
+  const chat = new ChatWindow(chatSlots, font, assets.charmap, link, gba.input, social, (id) => assets.text(id), faces);
   let fonts: Record<FontId, Font> | null = null;
   let text: TextPrinters | null = null;
   // The New Game set loads in the background while the intro plays.

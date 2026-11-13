@@ -4,6 +4,7 @@
 
 import { create, fromJson, toJson } from "@bufbuild/protobuf";
 import {
+  FriendSchema,
   FriendsListSchema,
   Relation,
   SendFriendRequestResultSchema,
@@ -83,6 +84,45 @@ export class SocialState {
     } catch (e) {
       return e instanceof ApiError && e.status === 409 ? "already" : "failed";
     }
+  }
+
+  /** ACCEPT on an incoming request: now friends (D3). */
+  async accept(id: bigint): Promise<boolean> {
+    try {
+      const res = await api(`/api/social/friends/requests/${id}/accept`, { method: "POST" });
+      const friend = fromJson(FriendSchema, await res.json(), { ignoreUnknownFields: true });
+      this.dropIncoming(id);
+      this.friends.set(id, friend);
+      this.changed();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** DECLINE an incoming request, CANCEL an outgoing one, REMOVE a friend: gone on both sides (D3). */
+  async decline(id: bigint): Promise<boolean> {
+    return this.drop(`/api/social/friends/requests/${id}/decline`, "POST", () => this.dropIncoming(id));
+  }
+
+  async cancel(id: bigint): Promise<boolean> {
+    return this.drop(`/api/social/friends/requests/${id}`, "DELETE", () => this.outgoing.delete(id));
+  }
+
+  async remove(id: bigint): Promise<boolean> {
+    return this.drop(`/api/social/friends/${id}`, "DELETE", () => this.friends.delete(id));
+  }
+
+  private async drop(path: string, method: string, done: () => void): Promise<boolean> {
+    try {
+      await api(path, { method });
+    } catch (e) {
+      // Already gone (the other side acted first): the row goes all the same.
+      if (!(e instanceof ApiError && e.status === 404)) return false;
+    }
+    done();
+    this.changed();
+    return true;
   }
 
   apply(e: SocialEvent): void {
