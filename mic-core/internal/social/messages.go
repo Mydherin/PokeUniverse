@@ -28,8 +28,11 @@ func kindOf(k string) socialv1.ConversationKind {
 	return socialv1.ConversationKind_CONVERSATION_KIND_DIRECT
 }
 
-// other is the direct conversation's other member, as me sees it.
+// other is the direct conversation's other member, as me sees it (0 for a channel).
 func other(a, b, me int64) int64 {
+	if a == 0 {
+		return 0
+	}
 	if a == me {
 		return b
 	}
@@ -64,25 +67,39 @@ func (s *Service) Send(ctx context.Context, me int64, req *socialv1.SendMessage,
 			s.log.Error("get conversation", "err", err)
 			return socialv1.SendFailedReason_SEND_FAILED_REASON_ERROR
 		}
-		if c.Kind != "direct" {
-			return socialv1.SendFailedReason_SEND_FAILED_REASON_NOT_ALLOWED // Channels: M6.
+		conv = c.ID
+		if c.Kind == "channel" {
+			// A channel takes any member's line (D16); the list is read now, so a member who
+			// just left is not sent it.
+			if ok, err := q.IsConversationMember(ctx, db.IsConversationMemberParams{Conversation: conv, Player: me}); err != nil {
+				s.log.Error("channel member", "err", err)
+				return socialv1.SendFailedReason_SEND_FAILED_REASON_ERROR
+			} else if !ok {
+				return socialv1.SendFailedReason_SEND_FAILED_REASON_NOT_ALLOWED
+			}
+			if members, err = q.ListConversationMembers(ctx, conv); err != nil {
+				s.log.Error("channel members", "err", err)
+				return socialv1.SendFailedReason_SEND_FAILED_REASON_ERROR
+			}
+			break
 		}
 		a, b = c.PairA.Int64, c.PairB.Int64
 		if a != me && b != me {
 			return socialv1.SendFailedReason_SEND_FAILED_REASON_NOT_ALLOWED
 		}
-		conv = c.ID
 	default:
 		return socialv1.SendFailedReason_SEND_FAILED_REASON_INVALID
 	}
-	// Direct messages need a friendship (D11); the history stays readable without one.
-	if ok, err := q.AreFriends(ctx, db.AreFriendsParams{A: a, B: b}); err != nil {
-		s.log.Error("check friendship", "err", err)
-		return socialv1.SendFailedReason_SEND_FAILED_REASON_ERROR
-	} else if !ok {
-		return socialv1.SendFailedReason_SEND_FAILED_REASON_NOT_ALLOWED
+	if members == nil {
+		// Direct messages need a friendship (D11); the history stays readable without one.
+		if ok, err := q.AreFriends(ctx, db.AreFriendsParams{A: a, B: b}); err != nil {
+			s.log.Error("check friendship", "err", err)
+			return socialv1.SendFailedReason_SEND_FAILED_REASON_ERROR
+		} else if !ok {
+			return socialv1.SendFailedReason_SEND_FAILED_REASON_NOT_ALLOWED
+		}
+		members = []int64{a, b}
 	}
-	members = []int64{a, b}
 	if conv == 0 {
 		id, err := q.EnsureDirectConversation(ctx, db.EnsureDirectConversationParams{A: a, B: b})
 		if err != nil {
@@ -98,7 +115,11 @@ func (s *Service) Send(ctx context.Context, me int64, req *socialv1.SendMessage,
 		conv = id
 	}
 
-	msg := &socialv1.ConversationMessage{Conversation: uint64(conv), Sender: uint64(me), Text: text}
+	var name string
+	if t, err := q.GetSocialTrainer(ctx, me); err == nil {
+		name = t.Name
+	}
+	msg := &socialv1.ConversationMessage{Conversation: uint64(conv), Sender: uint64(me), Text: text, SenderName: name}
 	saved, err := q.InsertMessage(ctx, db.InsertMessageParams{ConversationID: conv, Sender: me, Text: text, ClientID: clientID})
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -122,7 +143,7 @@ func (s *Service) Send(ctx context.Context, me int64, req *socialv1.SendMessage,
 	s.log.Info("message", "trainer", me, "conversation", conv, "seq", saved.Seq, "text", text)
 	for _, m := range members {
 		out := &socialv1.ConversationMessage{Conversation: msg.Conversation, Seq: msg.Seq, Sender: msg.Sender,
-			Text: msg.Text, SentAt: msg.SentAt, Friend: uint64(other(a, b, m))}
+			Text: msg.Text, SentAt: msg.SentAt, Friend: uint64(other(a, b, m)), SenderName: name}
 		if m == me {
 			out.ClientId = clientID
 		}
@@ -171,6 +192,9 @@ func (h *Handler) conversations(w http.ResponseWriter, r *http.Request) {
 	res := &socialv1.ConversationsList{}
 	for _, c := range rows {
 		out := &socialv1.Conversation{Id: uint64(c.ID), Kind: kindOf(c.Kind), LastSeq: uint64(c.LastSeq), LastReadSeq: uint64(c.LastReadSeq)}
+		if c.Kind == "channel" {
+			out.Channel = &socialv1.Channel{Id: uint64(c.ID), Name: c.ChannelName, Owner: uint64(c.ChannelOwner), Members: uint32(c.Members)}
+		}
 		var peer int64
 		if c.Kind == "direct" {
 			peer = other(c.PairA.Int64, c.PairB.Int64, me)
@@ -183,9 +207,13 @@ func (h *Handler) conversations(w http.ResponseWriter, r *http.Request) {
 		}
 		if c.LastSender != 0 {
 			out.Last = &socialv1.ConversationMessage{Conversation: uint64(c.ID), Seq: uint64(c.LastSeq),
-				Sender: uint64(c.LastSender), Text: c.LastText, SentAt: c.LastAt.UnixMilli(), Friend: uint64(peer)}
+				Sender: uint64(c.LastSender), Text: c.LastText, SentAt: c.LastAt.UnixMilli(), Friend: uint64(peer), SenderName: c.LastSenderName}
 		}
 		res.Conversations = append(res.Conversations, out)
+	}
+	if res.Invites, err = h.Social.channelInvites(ctx, q, me); err != nil {
+		h.fail(w, "list channel invites", err)
+		return
 	}
 	httpx.WriteProtoJSON(w, http.StatusOK, res)
 }
@@ -228,9 +256,9 @@ func (h *Handler) messages(w http.ResponseWriter, r *http.Request) {
 		return n, err == nil && n >= 0
 	}
 	res := &socialv1.MessagesPage{}
-	add := func(seq, sender int64, text string, at time.Time) {
+	add := func(seq, sender int64, text string, at time.Time, name string) {
 		res.Messages = append(res.Messages, &socialv1.ConversationMessage{Conversation: uint64(conv), Seq: uint64(seq),
-			Sender: uint64(sender), Text: text, SentAt: at.UnixMilli(), Friend: uint64(peer)})
+			Sender: uint64(sender), Text: text, SentAt: at.UnixMilli(), Friend: uint64(peer), SenderName: name})
 	}
 	if after, ok := num("after"); ok {
 		rows, err := q.ListMessagesAfter(ctx, db.ListMessagesAfterParams{ConversationID: conv, After: after, N: pageSize + 1})
@@ -240,7 +268,7 @@ func (h *Handler) messages(w http.ResponseWriter, r *http.Request) {
 		}
 		res.More = len(rows) > pageSize
 		for _, m := range rows[:min(len(rows), pageSize)] {
-			add(m.Seq, m.Sender, m.Text, m.SentAt)
+			add(m.Seq, m.Sender, m.Text, m.SentAt, m.SenderName)
 		}
 	} else {
 		before, ok := num("before")
@@ -255,7 +283,7 @@ func (h *Handler) messages(w http.ResponseWriter, r *http.Request) {
 		res.More = len(rows) > pageSize
 		rows = rows[:min(len(rows), pageSize)]
 		for i := len(rows) - 1; i >= 0; i-- {
-			add(rows[i].Seq, rows[i].Sender, rows[i].Text, rows[i].SentAt)
+			add(rows[i].Seq, rows[i].Sender, rows[i].Text, rows[i].SentAt, rows[i].SenderName)
 		}
 	}
 	httpx.WriteProtoJSON(w, http.StatusOK, res)

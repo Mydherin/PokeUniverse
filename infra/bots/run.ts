@@ -26,6 +26,10 @@
 // Direct messages (phase-9 M5): --dm makes each bot send a random line to one of its friends every
 // 20-60 s (zone chat's pace), over the WebSocket's SendMessage; stats count the messages received.
 //
+// Channels (phase-9 M6): --channel <name> (with --friend n) makes the last bot create that channel
+// once its friends are made, invite each friend and each accept; --flood then floods the channel
+// (over SendMessage, the one rate budget) instead of the zone.
+//
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
 
@@ -77,6 +81,7 @@ const { values: args } = parseArgs({
     hold: { type: "string", default: "30" },
     friend: { type: "string", default: "0" },
     dm: { type: "boolean", default: false },
+    channel: { type: "string", default: "" },
   },
 });
 const base = new URL(args.url);
@@ -230,7 +235,12 @@ class Bot {
   /** --chat, --flood and --say, from each (re)connect. */
   private startChat(): void {
     const say = (text: string) => this.send({ case: "sendChat", value: { text } });
-    if (args.flood) this.every(FLOOD_EVERY_MS, () => say(`FLOOD ${++this.said}`));
+    if (args.flood)
+      this.every(FLOOD_EVERY_MS, () => {
+        const text = `FLOOD ${++this.said}`;
+        if (!args.channel) return say(text);
+        if (channelId) this.send({ case: "sendMessage", value: { conversation: channelId, text, clientId: `bot-${this.n}-${Date.now()}-${this.said}` } });
+      });
     if (args.chat) {
       const next = () => this.after(20_000 + Math.random() * 40_000, () => (say(pick(LINES)), next()));
       next();
@@ -536,6 +546,29 @@ async function befriend(n: number): Promise<void> {
     if (await social(b, "POST", `/api/social/friends/requests/${last.accountId}/accept`)) made++;
   }
   console.log(`bot-${last.n}: ${made} friends made`);
+  if (args.channel) await makeChannel(last, n);
+}
+
+/** --channel: the channel the bots flood, once made. */
+let channelId = 0n;
+
+async function makeChannel(owner: Bot, n: number): Promise<void> {
+  const res = await fetch(new URL("/api/social/channels", base), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${owner.token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ name: args.channel }),
+  });
+  if (!res.ok) return console.warn(`bot-${owner.n}: create channel: ${res.status} ${(await res.text()).trim()}`);
+  const id = BigInt(((await res.json()) as { id: string }).id);
+  let joined = 1;
+  for (let k = first; k < first + n && k < first + count - 1; k++) {
+    const b = byN.get(k);
+    if (!b) continue;
+    if (!(await social(owner, "POST", `/api/social/channels/${id}/invites`, { id: String(b.accountId) }))) continue;
+    if (await social(b, "POST", `/api/social/channels/${id}/accept`)) joined++;
+  }
+  channelId = id;
+  console.log(`bot-${owner.n}: channel ${args.channel} (${id}) has ${joined} members`);
 }
 
 /** Every replica's stats: the load balancer picks one per request, so ask until both answered. */

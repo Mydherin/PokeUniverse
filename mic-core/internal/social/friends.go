@@ -48,6 +48,7 @@ func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
 	mux.Handle("DELETE /api/social/friends/{id}", user("friends-change", 120, h.remove))
 	mux.Handle("GET /api/social/conversations", user("conversations", 120, h.conversations))
 	mux.Handle("GET /api/social/conversations/{id}/messages", user("conversations", 120, h.messages))
+	h.registerChannels(mux, user)
 }
 
 // errStatus is a failed change's HTTP answer.

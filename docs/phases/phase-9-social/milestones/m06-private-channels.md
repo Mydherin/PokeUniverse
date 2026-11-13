@@ -4,7 +4,27 @@ Part of [Phase 9](../phase-9-social.md). Decisions: [context.md](context.md#mess
 
 ## Resume Here
 
-Not started. Needs M5 (same tables and thread).
+🚧 **Code done, Manual Test partly played (2026-11-13).** Cases 1-3 pass (headless, PC 1600×720). Not committed (the orchestrator commits). Builds: Go build+vet pass (docker, Phase 8 M4's command), `tsc --noEmit` passes; mic-core (migration 21 applied) and spa rebuilt and running, one replica.
+
+**Next step:** play cases 4-9 with the driver, fix what fails, then remove the `TEMP-PLAYIT` hook (end of `frame()` in `spa-pokeuniverse/src/game/firered/overworld.ts`, after `this.draw()`), rebuild the spa (`docker compose up -d --build spa-pokeuniverse`), add the one-line `docs/ui.md` Social Panel note (channels: invites first on CHATS, NEW CHANNEL last, MEMBERS over the thread; plus M5's sending/failed line look), mark ✅ here, in the phase file and `docs/phases/index.md`, and update AGENTS.md's **Now** line.
+- Case 4: owner removes one (members view, right-click / long-press a member → YES), another `POST .../leave`; check the gone one's notice ("You were removed from KANTO.") and row disappear, the others' notice and member count.
+- Case 5: owner LEAVE (YES); the next by `joined_at` (then account ID) shows ★ OWNER.
+- Case 6: RENAME (OK) → every member's row and title; DELETE (YES) → "KANTO was deleted." and the row goes for all.
+- Case 7: `node infra/bots/bots.ts --count 50 --first 451 --map pallet_town_players_house_1f --idle --friend 49 --channel FLOOD --flood --verbose` (owner bot-500, 49 friends join → 50 members); check `select count(*) from messages` grows and the rate limiter refuses the excess (`send_failed` RATE in verbose output). Invite tab 1 first if a page should watch it (the channel is full at 50: invite before the bots join, or run 48 friends).
+- Case 8: close all pages, reopen: channel row and history back (`load()` reads `conversations`).
+- Case 9: phone 390×844 with touch (M3's `phone.mjs` way, `fakekb.js`): MEMBERS button in the sheet head, back gesture closes the members view (history entry `members: true`).
+
+**Testing:** driver in the shared notes folder `m6-headless/` (copy to your scratchpad; `two.mjs` there points at this session's scratchpad for `fakekb.js` and shots: fix the paths). `m6lib.mjs`: `createChannel`, `members`, `act(p, "invite"|"rename"|"leave"|"delete"|"close"|"yes"|"cancel")`, `pick` (invite a friend by name), `openRoom`, `sayIn`, `roomLines`, `rows`, `membersText`, `notice`, `clean` (every player leaves all channels and declines invites; run first). `c123.mjs` = cases 1-3 (A=bot-901, B=bot-902 pages, C=903 by API, D=904 page): `node two.mjs ./c123.mjs`. `api.mjs` = HTTP smoke test of every route (bots 911-913). Needs the TEMP-PLAYIT hook (in place now).
+
+**Built:**
+- Migration `00021_create_channels.sql`: `channels(conversation PK → conversations, name, owner)`, `conversation_members.joined_at`, `channel_invites(channel, player, invited_by, sent_at)`. The owner is `channels.owner` (no role column; D16's `channel_members` is `conversation_members`). Queries `queries/channels.sql`; `ListConversations` adds `channel_name/owner`, `members`, `last_sender_name`; message pages add `sender_name`.
+- Proto (`social.proto`): `Channel`, `ChannelInvite`, `ChannelInviteClosed(+Reason)`, `ChannelMemberChanged`/`ChannelMemberChange`, `ChannelGone`, `ChannelMembers`, `ChannelName`, `ChannelInviteRequest`; `SocialEvent` 8-12 (`channel_invite`, `channel_invite_closed`, `channel_updated`, `channel_member`, `channel_gone`); `Conversation.channel` (7), `ConversationsList.invites` (2), `ConversationMessage.sender_name` (8).
+- Server `mic-core/internal/social/channels.go`: routes `POST /api/social/channels`, `PATCH|DELETE /api/social/channels/{id}`, `GET .../{id}/members` (owner also gets `invited`), `POST .../{id}/invites {id}`, `.../accept`, `.../decline`, `.../leave`, `DELETE .../{id}/members/{player}`. Each change in a tx holding the channel row (`LockChannel` FOR UPDATE; create/accept also `LockSocial(me)`), events sent after commit (`outbox`). Limits: name `chat.Clean` + ≤16 runes, 10 owned, 30 joined, members+invites ≤ 50; 403 not owner, 404, 409, 422. Owner leaving → oldest member; last out deletes. `messages.go` `Send`: a channel takes any member's line (member list read at send), `friend` = 0, `sender_name` set.
+- Client: `game/world/channels.ts` `Channels` (`DirectMessages.channels`): room conversation key `channel:<id>`, `Conversation.channel {owner, members}`, `invites`, `owned`, actions return a notice text or null, `apply` for events 8-12, `gone`/`notice`/`membersChanged` hooks. `messages.ts`: `load()` reads channels and invites and prunes channels gone offline, rooms page/mark read like direct, a channel line's `own` = sender is the session's account. `firered/channel-view.ts` `ChannelView` (members, ★ OWNER, INVITED, INVITE picker, RENAME, LEAVE, DELETE, YES/NO in the bar, owner's hold/right-click → REMOVE). `chat-window.ts`: invites row (ACCEPT/DECLINE) first in CHATS, NEW CHANNEL form last (rows sit at index+1), MEMBERS button and the title open the view, `send()` takes rooms, row menu LEAVE wired, INVITE in the friend's menu and the chat line menu (`inviteTo`, owned channels). CSS block "M6" in `styles/app.css`. Bots `--channel <name>` in `infra/bots/run.ts`.
+
+**Choices:** joining sets `last_read_seq` = the channel's last seq (no unread backlog; history before joining still readable). Panel texts: "NAME invites you to KANTO.", "NAME joined/left KANTO.", "NAME was removed from KANTO.", "You left / You were removed from KANTO.", "KANTO was deleted.", refusals by status in `channels.ts` `REFUSED`.
+
+**Files:** `lib-contracts/proto/pokeuniverse/social/v1/social.proto`; `mic-core/migrations/00021_create_channels.sql`, `queries/{channels.sql (new), messages.sql}`, `internal/social/{channels.go (new), messages.go, friends.go}`; `infra/bots/run.ts`; `spa-pokeuniverse/src/game/world/{channels.ts (new), conversations.ts, messages.ts}`, `game/firered/{channel-view.ts (new), chat-window.ts, social-ui.ts, friends-view.ts, overworld.ts (TEMP-PLAYIT)}`, `src/styles/app.css`.
 
 ## Tasks
 
@@ -19,9 +39,9 @@ Not started. Needs M5 (same tables and thread).
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Create and invite | Create "KANTO", invite bot and tab 2 | Invites arrive; accepted they are members | ⬜ |
-| 2 | Group chat | Three members talk | All see every line in order; non-members see nothing | ⬜ |
-| 3 | Decline | Invitee declines | Not a member, owner can invite again | ⬜ |
+| 1 | Create and invite | Create "KANTO", invite bot and tab 2 | Invites arrive; accepted they are members | ✅ |
+| 2 | Group chat | Three members talk | All see every line in order; non-members see nothing | ✅ |
+| 3 | Decline | Invitee declines | Not a member, owner can invite again | ✅ |
 | 4 | Remove, leave | Owner removes one; another leaves | Lose access live; others see it | ⬜ |
 | 5 | Owner leaves | Owner leaves | Oldest member owns it | ⬜ |
 | 6 | Rename, delete | | All members updated; deleted disappears | ⬜ |

@@ -179,24 +179,33 @@ func (q *Queries) ListConversationMembers(ctx context.Context, conversation int6
 
 const listConversations = `-- name: ListConversations :many
 SELECT c.id, c.kind, c.pair_a, c.pair_b, c.last_seq, c.last_at, m.last_read_seq,
-       COALESCE(l.sender, 0)::bigint AS last_sender, COALESCE(l.text, '')::text AS last_text
+       COALESCE(l.sender, 0)::bigint AS last_sender, COALESCE(l.text, '')::text AS last_text,
+       COALESCE(lt.name, '')::text AS last_sender_name,
+       COALESCE(ch.name, '')::text AS channel_name, COALESCE(ch.owner, 0)::bigint AS channel_owner,
+       (SELECT count(*) FROM conversation_members cm WHERE cm.conversation = c.id)::int AS members
 FROM conversation_members m
 JOIN conversations c ON c.id = m.conversation
+LEFT JOIN channels ch ON ch.conversation = c.id
 LEFT JOIN messages l ON l.conversation_id = c.id AND l.seq = c.last_seq
+LEFT JOIN trainers lt ON lt.account_id = l.sender
 WHERE m.player = $1
 ORDER BY c.last_at DESC
 `
 
 type ListConversationsRow struct {
-	ID          int64
-	Kind        string
-	PairA       pgtype.Int8
-	PairB       pgtype.Int8
-	LastSeq     int64
-	LastAt      time.Time
-	LastReadSeq int64
-	LastSender  int64
-	LastText    string
+	ID             int64
+	Kind           string
+	PairA          pgtype.Int8
+	PairB          pgtype.Int8
+	LastSeq        int64
+	LastAt         time.Time
+	LastReadSeq    int64
+	LastSender     int64
+	LastText       string
+	LastSenderName string
+	ChannelName    string
+	ChannelOwner   int64
+	Members        int32
 }
 
 // The player's conversations with unread counts and the last line (D10).
@@ -219,6 +228,10 @@ func (q *Queries) ListConversations(ctx context.Context, player int64) ([]ListCo
 			&i.LastReadSeq,
 			&i.LastSender,
 			&i.LastText,
+			&i.LastSenderName,
+			&i.ChannelName,
+			&i.ChannelOwner,
+			&i.Members,
 		); err != nil {
 			return nil, err
 		}
@@ -231,9 +244,10 @@ func (q *Queries) ListConversations(ctx context.Context, player int64) ([]ListCo
 }
 
 const listMessagesAfter = `-- name: ListMessagesAfter :many
-SELECT seq, sender, text, sent_at FROM messages
-WHERE conversation_id = $1::bigint AND seq > $2::bigint
-ORDER BY seq LIMIT $3::int
+SELECT m.seq, m.sender, m.text, m.sent_at, COALESCE(t.name, '')::text AS sender_name FROM messages m
+LEFT JOIN trainers t ON t.account_id = m.sender
+WHERE m.conversation_id = $1::bigint AND m.seq > $2::bigint
+ORDER BY m.seq LIMIT $3::int
 `
 
 type ListMessagesAfterParams struct {
@@ -243,10 +257,11 @@ type ListMessagesAfterParams struct {
 }
 
 type ListMessagesAfterRow struct {
-	Seq    int64
-	Sender int64
-	Text   string
-	SentAt time.Time
+	Seq        int64
+	Sender     int64
+	Text       string
+	SentAt     time.Time
+	SenderName string
 }
 
 // What came after seq (a reconnect's refetch), oldest first.
@@ -264,6 +279,7 @@ func (q *Queries) ListMessagesAfter(ctx context.Context, arg ListMessagesAfterPa
 			&i.Sender,
 			&i.Text,
 			&i.SentAt,
+			&i.SenderName,
 		); err != nil {
 			return nil, err
 		}
@@ -276,9 +292,10 @@ func (q *Queries) ListMessagesAfter(ctx context.Context, arg ListMessagesAfterPa
 }
 
 const listMessagesBefore = `-- name: ListMessagesBefore :many
-SELECT seq, sender, text, sent_at FROM messages
-WHERE conversation_id = $1::bigint AND seq < $2::bigint
-ORDER BY seq DESC LIMIT $3::int
+SELECT m.seq, m.sender, m.text, m.sent_at, COALESCE(t.name, '')::text AS sender_name FROM messages m
+LEFT JOIN trainers t ON t.account_id = m.sender
+WHERE m.conversation_id = $1::bigint AND m.seq < $2::bigint
+ORDER BY m.seq DESC LIMIT $3::int
 `
 
 type ListMessagesBeforeParams struct {
@@ -288,10 +305,11 @@ type ListMessagesBeforeParams struct {
 }
 
 type ListMessagesBeforeRow struct {
-	Seq    int64
-	Sender int64
-	Text   string
-	SentAt time.Time
+	Seq        int64
+	Sender     int64
+	Text       string
+	SentAt     time.Time
+	SenderName string
 }
 
 // A page of history, newest first (D10).
@@ -309,6 +327,7 @@ func (q *Queries) ListMessagesBefore(ctx context.Context, arg ListMessagesBefore
 			&i.Sender,
 			&i.Text,
 			&i.SentAt,
+			&i.SenderName,
 		); err != nil {
 			return nil, err
 		}

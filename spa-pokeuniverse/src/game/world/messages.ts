@@ -18,6 +18,7 @@ import type { WorldLink } from "../../realtime/connection";
 import type { ChatLine } from "./chat";
 import type { Conversation, Conversations } from "./conversations";
 import type { SocialState } from "./social";
+import { Channels } from "./channels";
 
 /** A line not confirmed in this long is marked failed (the retry sends it with the same client_id). */
 const SEND_TIMEOUT_MS = 10_000;
@@ -37,12 +38,15 @@ export class DirectMessages {
   /** Lines the server refused: sent again only by a tap. Others that failed (no answer) go again on reconnect. */
   private readonly refusedIds = new Set<string>();
   private loading = new Set<Conversation>();
+  /** Private channels (phase-9 M6): rooms whose lines go through here too. */
+  readonly channels: Channels;
 
   constructor(
     private readonly conversations: Conversations,
     private readonly social: SocialState,
     private readonly link: WorldLink,
   ) {
+    this.channels = new Channels(conversations);
     const check = () => this.markRead();
     window.addEventListener("focus", check);
     document.addEventListener("visibilitychange", check);
@@ -72,11 +76,16 @@ export class DirectMessages {
     } catch {
       return; // Offline: the next snapshot reads it.
     }
+    this.channels.setInvites(list.invites);
+    this.channels.prune(new Set(list.conversations.filter((s) => s.channel).map((s) => s.id)));
     for (const s of list.conversations) {
-      if (s.kind !== ConversationKind.DIRECT || !s.friend) continue;
-      const c = this.conversation(s.friend.id, s.friend.name);
-      c.who = { id: s.friend.id, face: s.friend.face, gender: s.friend.gender };
-      c.title = s.friend.name;
+      let c: Conversation;
+      if (s.kind === ConversationKind.CHANNEL && s.channel) c = this.channels.conversation(s.channel);
+      else if (s.kind === ConversationKind.DIRECT && s.friend) {
+        c = this.conversation(s.friend.id, s.friend.name);
+        c.who = { id: s.friend.id, face: s.friend.face, gender: s.friend.gender };
+        c.title = s.friend.name;
+      } else continue;
       c.serverId = s.id;
       c.readSent = Math.max(c.readSent, Number(s.lastReadSeq));
       if (s.last) c.last = Math.max(c.last, Number(s.last.sentAt));
@@ -100,12 +109,12 @@ export class DirectMessages {
 
   /** The thread was opened: its last page, once. */
   opened(c: Conversation): void {
-    if (c.kind === "direct" && c.more === undefined) void this.older(c);
+    if (c.kind !== "zone" && c.more === undefined) void this.older(c);
   }
 
   /** The page before the first loaded line (D10); the newest page when nothing is loaded. */
   async older(c: Conversation): Promise<void> {
-    if (c.kind !== "direct" || c.more === false || this.loading.has(c)) return;
+    if (c.kind === "zone" || c.more === false || this.loading.has(c)) return;
     if (c.serverId === 0n) {
       c.more = false;
       return;
@@ -149,11 +158,16 @@ export class DirectMessages {
   apply(e: SocialEvent): void {
     if (e.event.case === "message") this.received(e.event.value);
     else if (e.event.case === "sendFailed") this.failed(e.event.value);
+    else this.channels.apply(e);
   }
 
   private received(m: ConversationMessage): void {
-    if (m.friend === 0n) return; // Channels: M6.
-    const c = this.conversation(m.friend);
+    let c: Conversation | undefined;
+    if (m.friend === 0n) {
+      // A channel's line: its conversation is known from the list or its events.
+      c = this.conversations.list.find((x) => x.kind === "room" && x.serverId === m.conversation);
+      if (!c) return void this.load();
+    } else c = this.conversation(m.friend);
     c.serverId = m.conversation;
     if (m.clientId) {
       window.clearTimeout(this.timers.get(m.clientId));
@@ -179,7 +193,7 @@ export class DirectMessages {
 
   /** Sends an own line (already cleaned) to the friend's conversation; it shows as sending. */
   send(c: Conversation, text: string): void {
-    if (!c.who) return;
+    if (!c.who && c.kind !== "room") return;
     const line: ChatLine = { id: 0n, name: this.ownName(), text, own: true, clientId: crypto.randomUUID(), state: "sending" };
     this.conversations.add(c, line);
     this.transmit(c, line);
@@ -206,7 +220,7 @@ export class DirectMessages {
         c.log.touched();
       }, SEND_TIMEOUT_MS),
     );
-    this.link.sendMessage(c.serverId, c.who!.id, line.text, id);
+    this.link.sendMessage(c.serverId, c.who?.id ?? 0n, line.text, id);
   }
 
   private pending(clientId: string): { c: Conversation; line: ChatLine } | null {
@@ -221,7 +235,7 @@ export class DirectMessages {
   private markRead(): void {
     if (document.visibilityState !== "visible" || !document.hasFocus()) return;
     for (const c of this.conversations.list) {
-      if (c.kind !== "direct" || !c.log.open || c.serverId === 0n) continue;
+      if (c.kind === "zone" || !c.log.open || c.serverId === 0n) continue;
       const seq = c.log.lastSeq;
       if (seq > c.readSent) {
         c.readSent = seq;
@@ -231,6 +245,11 @@ export class DirectMessages {
   }
 
   private line(m: ConversationMessage): ChatLine {
+    if (m.friend === 0n) {
+      // A channel's line: anyone's, named by the server.
+      const own = m.sender === this.channels.me;
+      return { id: m.sender, name: own ? this.ownName() : m.senderName, text: m.text, own, seq: Number(m.seq), clientId: m.clientId || undefined };
+    }
     const own = m.sender !== m.friend;
     const name = own ? this.ownName() : (this.social.friends.get(m.friend)?.name ?? this.conversations.get(friendKey(m.friend))?.title ?? "");
     return { id: m.sender, name, text: m.text, own, seq: Number(m.seq), clientId: m.clientId || undefined };

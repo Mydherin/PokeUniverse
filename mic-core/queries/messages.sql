@@ -40,15 +40,17 @@ SELECT seq, text, sent_at FROM messages WHERE conversation_id = $1 AND sender = 
 
 -- name: ListMessagesBefore :many
 -- A page of history, newest first (D10).
-SELECT seq, sender, text, sent_at FROM messages
-WHERE conversation_id = sqlc.arg(conversation_id)::bigint AND seq < sqlc.arg(before)::bigint
-ORDER BY seq DESC LIMIT sqlc.arg(n)::int;
+SELECT m.seq, m.sender, m.text, m.sent_at, COALESCE(t.name, '')::text AS sender_name FROM messages m
+LEFT JOIN trainers t ON t.account_id = m.sender
+WHERE m.conversation_id = sqlc.arg(conversation_id)::bigint AND m.seq < sqlc.arg(before)::bigint
+ORDER BY m.seq DESC LIMIT sqlc.arg(n)::int;
 
 -- name: ListMessagesAfter :many
 -- What came after seq (a reconnect's refetch), oldest first.
-SELECT seq, sender, text, sent_at FROM messages
-WHERE conversation_id = sqlc.arg(conversation_id)::bigint AND seq > sqlc.arg(after)::bigint
-ORDER BY seq LIMIT sqlc.arg(n)::int;
+SELECT m.seq, m.sender, m.text, m.sent_at, COALESCE(t.name, '')::text AS sender_name FROM messages m
+LEFT JOIN trainers t ON t.account_id = m.sender
+WHERE m.conversation_id = sqlc.arg(conversation_id)::bigint AND m.seq > sqlc.arg(after)::bigint
+ORDER BY m.seq LIMIT sqlc.arg(n)::int;
 
 -- name: MarkRead :exec
 UPDATE conversation_members SET last_read_seq = GREATEST(last_read_seq, LEAST(sqlc.arg(seq)::bigint, c.last_seq))
@@ -58,10 +60,15 @@ WHERE c.id = conversation_members.conversation AND conversation = sqlc.arg(conve
 -- name: ListConversations :many
 -- The player's conversations with unread counts and the last line (D10).
 SELECT c.id, c.kind, c.pair_a, c.pair_b, c.last_seq, c.last_at, m.last_read_seq,
-       COALESCE(l.sender, 0)::bigint AS last_sender, COALESCE(l.text, '')::text AS last_text
+       COALESCE(l.sender, 0)::bigint AS last_sender, COALESCE(l.text, '')::text AS last_text,
+       COALESCE(lt.name, '')::text AS last_sender_name,
+       COALESCE(ch.name, '')::text AS channel_name, COALESCE(ch.owner, 0)::bigint AS channel_owner,
+       (SELECT count(*) FROM conversation_members cm WHERE cm.conversation = c.id)::int AS members
 FROM conversation_members m
 JOIN conversations c ON c.id = m.conversation
+LEFT JOIN channels ch ON ch.conversation = c.id
 LEFT JOIN messages l ON l.conversation_id = c.id AND l.seq = c.last_seq
+LEFT JOIN trainers lt ON lt.account_id = l.sender
 WHERE m.player = $1
 ORDER BY c.last_at DESC;
 

@@ -21,6 +21,8 @@ export class Conversation {
   serverId = 0n;
   /** Older history: unknown until the first page is read, then whether the server has more. */
   more: boolean | undefined = undefined;
+  /** A channel's owner and member count (phase-9 M6). */
+  channel: { owner: bigint; members: number } | null = null;
   /** The newest seq marked read on the server. */
   readSent = 0;
 

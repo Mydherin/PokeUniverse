@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/social/v1/social.proto.
  */
 export const file_pokeuniverse_social_v1_social: GenFile = /*@__PURE__*/
-  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIqQDCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAQgcKBWV2ZW50IooBChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQi5gEKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZSJQChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24iWwoMTWVzc2FnZXNQYWdlEj0KCG1lc3NhZ2VzGAEgAygLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25NZXNzYWdlEgwKBG1vcmUYAiABKAgqmgEKCFByZXNlbmNlEhgKFFBSRVNFTkNFX1VOU1BFQ0lGSUVEEAASFAoQUFJFU0VOQ0VfT0ZGTElORRABEhMKD1BSRVNFTkNFX09OTElORRACEhgKFFBSRVNFTkNFX0JVU1lfQkFUVExFEAMSFwoTUFJFU0VOQ0VfQlVTWV9UUkFERRAEEhYKElBSRVNFTkNFX0JVU1lfTElOSxAFKoYBCghSZWxhdGlvbhIYChRSRUxBVElPTl9VTlNQRUNJRklFRBAAEhEKDVJFTEFUSU9OX05PTkUQARITCg9SRUxBVElPTl9GUklFTkQQAhIZChVSRUxBVElPTl9SRVFVRVNUX1NFTlQQAxIdChlSRUxBVElPTl9SRVFVRVNUX1JFQ0VJVkVEEAQqqAEKE1JlcXVlc3RDbG9zZWRSZWFzb24SJQohUkVRVUVTVF9DTE9TRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASIgoeUkVRVUVTVF9DTE9TRURfUkVBU09OX0RFQ0xJTkVEEAESIwofUkVRVUVTVF9DTE9TRURfUkVBU09OX0NBTkNFTExFRBACEiEKHVJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9EUk9QUEVEEAMqcgoQQ29udmVyc2F0aW9uS2luZBIhCh1DT05WRVJTQVRJT05fS0lORF9VTlNQRUNJRklFRBAAEhwKGENPTlZFUlNBVElPTl9LSU5EX0RJUkVDVBABEh0KGUNPTlZFUlNBVElPTl9LSU5EX0NIQU5ORUwQAiq1AQoQU2VuZEZhaWxlZFJlYXNvbhIiCh5TRU5EX0ZBSUxFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIiCh5TRU5EX0ZBSUxFRF9SRUFTT05fTk9UX0FMTE9XRUQQARIbChdTRU5EX0ZBSUxFRF9SRUFTT05fUkFURRACEh4KGlNFTkRfRkFJTEVEX1JFQVNPTl9JTlZBTElEEAMSHAoYU0VORF9GQUlMRURfUkVBU09OX0VSUk9SEARCQ1pBcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9zb2NpYWwvdjE7c29jaWFsdjFiBnByb3RvMw", [file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIvQFCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAEj8KDmNoYW5uZWxfaW52aXRlGAggASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlSAASTAoVY2hhbm5lbF9pbnZpdGVfY2xvc2VkGAkgASgLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkSAASOgoPY2hhbm5lbF91cGRhdGVkGAogASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSAASRgoOY2hhbm5lbF9tZW1iZXIYCyABKAsyLC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNoYW5uZWxNZW1iZXJDaGFuZ2VkSAASOwoMY2hhbm5lbF9nb25lGAwgASgLMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsR29uZUgAQgcKBWV2ZW50Ip8BChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEEhMKC3NlbmRlcl9uYW1lGAggASgJIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQimAIKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZRIwCgdjaGFubmVsGAcgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsIogBChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24SNgoHaW52aXRlcxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbEludml0ZSJbCgxNZXNzYWdlc1BhZ2USPQoIbWVzc2FnZXMYASADKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2USDAoEbW9yZRgCIAEoCCJDCgdDaGFubmVsEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSDQoFb3duZXIYAyABKAQSDwoHbWVtYmVycxgEIAEoDSKAAQoNQ2hhbm5lbEludml0ZRIwCgdjaGFubmVsGAEgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsEiwKBGZyb20YAiABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBIPCgdzZW50X2F0GAMgASgDInkKE0NoYW5uZWxJbnZpdGVDbG9zZWQSDwoHY2hhbm5lbBgBIAEoBBIOCgZwbGF5ZXIYAiABKAQSQQoGcmVhc29uGAMgASgOMjEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uIpQBChRDaGFubmVsTWVtYmVyQ2hhbmdlZBIPCgdjaGFubmVsGAEgASgEEi4KBnBsYXllchgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjsKBmNoYW5nZRgDIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJbCgtDaGFubmVsR29uZRIPCgdjaGFubmVsGAEgASgEEjsKBmNoYW5nZRgCIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJSCg1DaGFubmVsTWVtYmVyEi4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhEKCWpvaW5lZF9hdBgCIAEoAyKrAQoOQ2hhbm5lbE1lbWJlcnMSMAoHY2hhbm5lbBgBIAEoCzIfLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbBI2CgdtZW1iZXJzGAIgAygLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsTWVtYmVyEi8KB2ludml0ZWQYAyADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZCIbCgtDaGFubmVsTmFtZRIMCgRuYW1lGAEgASgJIiIKFENoYW5uZWxJbnZpdGVSZXF1ZXN0EgoKAmlkGAEgASgEKpoBCghQcmVzZW5jZRIYChRQUkVTRU5DRV9VTlNQRUNJRklFRBAAEhQKEFBSRVNFTkNFX09GRkxJTkUQARITCg9QUkVTRU5DRV9PTkxJTkUQAhIYChRQUkVTRU5DRV9CVVNZX0JBVFRMRRADEhcKE1BSRVNFTkNFX0JVU1lfVFJBREUQBBIWChJQUkVTRU5DRV9CVVNZX0xJTksQBSqGAQoIUmVsYXRpb24SGAoUUkVMQVRJT05fVU5TUEVDSUZJRUQQABIRCg1SRUxBVElPTl9OT05FEAESEwoPUkVMQVRJT05fRlJJRU5EEAISGQoVUkVMQVRJT05fUkVRVUVTVF9TRU5UEAMSHQoZUkVMQVRJT05fUkVRVUVTVF9SRUNFSVZFRBAEKqgBChNSZXF1ZXN0Q2xvc2VkUmVhc29uEiUKIVJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9VTlNQRUNJRklFRBAAEiIKHlJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBABEiMKH1JFUVVFU1RfQ0xPU0VEX1JFQVNPTl9DQU5DRUxMRUQQAhIhCh1SRVFVRVNUX0NMT1NFRF9SRUFTT05fRFJPUFBFRBADKnIKEENvbnZlcnNhdGlvbktpbmQSIQodQ09OVkVSU0FUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIcChhDT05WRVJTQVRJT05fS0lORF9ESVJFQ1QQARIdChlDT05WRVJTQVRJT05fS0lORF9DSEFOTkVMEAIqtQEKEFNlbmRGYWlsZWRSZWFzb24SIgoeU0VORF9GQUlMRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASIgoeU0VORF9GQUlMRURfUkVBU09OX05PVF9BTExPV0VEEAESGwoXU0VORF9GQUlMRURfUkVBU09OX1JBVEUQAhIeChpTRU5EX0ZBSUxFRF9SRUFTT05fSU5WQUxJRBADEhwKGFNFTkRfRkFJTEVEX1JFQVNPTl9FUlJPUhAEKskBChlDaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uEiwKKENIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIpCiVDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX0FDQ0VQVEVEEAESKQolQ0hBTk5FTF9JTlZJVEVfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBACEigKJENIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fREVMRVRFRBADKqEBChNDaGFubmVsTWVtYmVyQ2hhbmdlEiUKIUNIQU5ORUxfTUVNQkVSX0NIQU5HRV9VTlNQRUNJRklFRBAAEiAKHENIQU5ORUxfTUVNQkVSX0NIQU5HRV9KT0lORUQQARIeChpDSEFOTkVMX01FTUJFUl9DSEFOR0VfTEVGVBACEiEKHUNIQU5ORUxfTUVNQkVSX0NIQU5HRV9SRU1PVkVEEANCQ1pBcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9zb2NpYWwvdjE7c29jaWFsdjFiBnByb3RvMw", [file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * A player as the social panel shows them.
@@ -287,6 +287,47 @@ export type SocialEvent = Message<"pokeuniverse.social.v1.SocialEvent"> & {
      */
     value: SendFailed;
     case: "sendFailed";
+  } | {
+    /**
+     * Phase-9 M6 (D16): an owner's invite to the receiver.
+     *
+     * @generated from field: pokeuniverse.social.v1.ChannelInvite channel_invite = 8;
+     */
+    value: ChannelInvite;
+    case: "channelInvite";
+  } | {
+    /**
+     * An invite is gone: accepted, declined (told to the owner and the invitee's other tabs) or
+     * the channel deleted.
+     *
+     * @generated from field: pokeuniverse.social.v1.ChannelInviteClosed channel_invite_closed = 9;
+     */
+    value: ChannelInviteClosed;
+    case: "channelInviteClosed";
+  } | {
+    /**
+     * A channel the receiver belongs to changed: name, owner or member count.
+     *
+     * @generated from field: pokeuniverse.social.v1.Channel channel_updated = 10;
+     */
+    value: Channel;
+    case: "channelUpdated";
+  } | {
+    /**
+     * Someone joined, left or was removed from a channel the receiver belongs to.
+     *
+     * @generated from field: pokeuniverse.social.v1.ChannelMemberChanged channel_member = 11;
+     */
+    value: ChannelMemberChanged;
+    case: "channelMember";
+  } | {
+    /**
+     * The receiver is no longer in the channel (left, removed or deleted).
+     *
+     * @generated from field: pokeuniverse.social.v1.ChannelGone channel_gone = 12;
+     */
+    value: ChannelGone;
+    case: "channelGone";
   } | { case: undefined; value?: undefined };
 };
 
@@ -345,6 +386,13 @@ export type ConversationMessage = Message<"pokeuniverse.social.v1.ConversationMe
    * @generated from field: uint64 friend = 7;
    */
   friend: bigint;
+
+  /**
+   * The sender's trainer name (a channel's lines come from players who may not be friends, M6).
+   *
+   * @generated from field: string sender_name = 8;
+   */
+  senderName: string;
 };
 
 /**
@@ -481,6 +529,13 @@ export type Conversation = Message<"pokeuniverse.social.v1.Conversation"> & {
    * @generated from field: pokeuniverse.social.v1.ConversationMessage last = 6;
    */
   last?: ConversationMessage | undefined;
+
+  /**
+   * Set for a channel (phase-9 M6).
+   *
+   * @generated from field: pokeuniverse.social.v1.Channel channel = 7;
+   */
+  channel?: Channel | undefined;
 };
 
 /**
@@ -500,6 +555,13 @@ export type ConversationsList = Message<"pokeuniverse.social.v1.ConversationsLis
    * @generated from field: repeated pokeuniverse.social.v1.Conversation conversations = 1;
    */
   conversations: Conversation[];
+
+  /**
+   * The receiver's pending channel invites (phase-9 M6).
+   *
+   * @generated from field: repeated pokeuniverse.social.v1.ChannelInvite invites = 2;
+   */
+  invites: ChannelInvite[];
 };
 
 /**
@@ -535,6 +597,243 @@ export type MessagesPage = Message<"pokeuniverse.social.v1.MessagesPage"> & {
  */
 export const MessagesPageSchema: GenMessage<MessagesPage> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_social_v1_social, 14);
+
+/**
+ * A private channel (phase-9 D16). id is its conversation's ID.
+ *
+ * @generated from message pokeuniverse.social.v1.Channel
+ */
+export type Channel = Message<"pokeuniverse.social.v1.Channel"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: uint64 owner = 3;
+   */
+  owner: bigint;
+
+  /**
+   * @generated from field: uint32 members = 4;
+   */
+  members: number;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.Channel.
+ * Use `create(ChannelSchema)` to create a new message.
+ */
+export const ChannelSchema: GenMessage<Channel> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 15);
+
+/**
+ * @generated from message pokeuniverse.social.v1.ChannelInvite
+ */
+export type ChannelInvite = Message<"pokeuniverse.social.v1.ChannelInvite"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.Channel channel = 1;
+   */
+  channel?: Channel | undefined;
+
+  /**
+   * Who invited (the owner then).
+   *
+   * @generated from field: pokeuniverse.social.v1.Friend from = 2;
+   */
+  from?: Friend | undefined;
+
+  /**
+   * Unix seconds.
+   *
+   * @generated from field: int64 sent_at = 3;
+   */
+  sentAt: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelInvite.
+ * Use `create(ChannelInviteSchema)` to create a new message.
+ */
+export const ChannelInviteSchema: GenMessage<ChannelInvite> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 16);
+
+/**
+ * @generated from message pokeuniverse.social.v1.ChannelInviteClosed
+ */
+export type ChannelInviteClosed = Message<"pokeuniverse.social.v1.ChannelInviteClosed"> & {
+  /**
+   * @generated from field: uint64 channel = 1;
+   */
+  channel: bigint;
+
+  /**
+   * The invitee.
+   *
+   * @generated from field: uint64 player = 2;
+   */
+  player: bigint;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.ChannelInviteClosedReason reason = 3;
+   */
+  reason: ChannelInviteClosedReason;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelInviteClosed.
+ * Use `create(ChannelInviteClosedSchema)` to create a new message.
+ */
+export const ChannelInviteClosedSchema: GenMessage<ChannelInviteClosed> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 17);
+
+/**
+ * @generated from message pokeuniverse.social.v1.ChannelMemberChanged
+ */
+export type ChannelMemberChanged = Message<"pokeuniverse.social.v1.ChannelMemberChanged"> & {
+  /**
+   * @generated from field: uint64 channel = 1;
+   */
+  channel: bigint;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.Friend player = 2;
+   */
+  player?: Friend | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.ChannelMemberChange change = 3;
+   */
+  change: ChannelMemberChange;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelMemberChanged.
+ * Use `create(ChannelMemberChangedSchema)` to create a new message.
+ */
+export const ChannelMemberChangedSchema: GenMessage<ChannelMemberChanged> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 18);
+
+/**
+ * @generated from message pokeuniverse.social.v1.ChannelGone
+ */
+export type ChannelGone = Message<"pokeuniverse.social.v1.ChannelGone"> & {
+  /**
+   * @generated from field: uint64 channel = 1;
+   */
+  channel: bigint;
+
+  /**
+   * LEFT, REMOVED (by the owner) or, for a deleted channel, UNSPECIFIED.
+   *
+   * @generated from field: pokeuniverse.social.v1.ChannelMemberChange change = 2;
+   */
+  change: ChannelMemberChange;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelGone.
+ * Use `create(ChannelGoneSchema)` to create a new message.
+ */
+export const ChannelGoneSchema: GenMessage<ChannelGone> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 19);
+
+/**
+ * @generated from message pokeuniverse.social.v1.ChannelMember
+ */
+export type ChannelMember = Message<"pokeuniverse.social.v1.ChannelMember"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.Friend player = 1;
+   */
+  player?: Friend | undefined;
+
+  /**
+   * Unix seconds.
+   *
+   * @generated from field: int64 joined_at = 2;
+   */
+  joinedAt: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelMember.
+ * Use `create(ChannelMemberSchema)` to create a new message.
+ */
+export const ChannelMemberSchema: GenMessage<ChannelMember> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 20);
+
+/**
+ * GET /api/social/channels/{id}/members: members (oldest first, the owner is Channel.owner) and,
+ * for the owner, the players invited.
+ *
+ * @generated from message pokeuniverse.social.v1.ChannelMembers
+ */
+export type ChannelMembers = Message<"pokeuniverse.social.v1.ChannelMembers"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.Channel channel = 1;
+   */
+  channel?: Channel | undefined;
+
+  /**
+   * @generated from field: repeated pokeuniverse.social.v1.ChannelMember members = 2;
+   */
+  members: ChannelMember[];
+
+  /**
+   * @generated from field: repeated pokeuniverse.social.v1.Friend invited = 3;
+   */
+  invited: Friend[];
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelMembers.
+ * Use `create(ChannelMembersSchema)` to create a new message.
+ */
+export const ChannelMembersSchema: GenMessage<ChannelMembers> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 21);
+
+/**
+ * POST /api/social/channels (create) and PATCH /api/social/channels/{id} (rename).
+ *
+ * @generated from message pokeuniverse.social.v1.ChannelName
+ */
+export type ChannelName = Message<"pokeuniverse.social.v1.ChannelName"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelName.
+ * Use `create(ChannelNameSchema)` to create a new message.
+ */
+export const ChannelNameSchema: GenMessage<ChannelName> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 22);
+
+/**
+ * POST /api/social/channels/{id}/invites: the friend's account ID.
+ *
+ * @generated from message pokeuniverse.social.v1.ChannelInviteRequest
+ */
+export type ChannelInviteRequest = Message<"pokeuniverse.social.v1.ChannelInviteRequest"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.ChannelInviteRequest.
+ * Use `create(ChannelInviteRequestSchema)` to create a new message.
+ */
+export const ChannelInviteRequestSchema: GenMessage<ChannelInviteRequest> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 23);
 
 /**
  * Where a player is (phase-9 D7). Busy players can't be asked to trade, battle or join a room.
@@ -731,4 +1030,66 @@ export enum SendFailedReason {
  */
 export const SendFailedReasonSchema: GenEnum<SendFailedReason> = /*@__PURE__*/
   enumDesc(file_pokeuniverse_social_v1_social, 4);
+
+/**
+ * @generated from enum pokeuniverse.social.v1.ChannelInviteClosedReason
+ */
+export enum ChannelInviteClosedReason {
+  /**
+   * @generated from enum value: CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CHANNEL_INVITE_CLOSED_REASON_ACCEPTED = 1;
+   */
+  ACCEPTED = 1,
+
+  /**
+   * @generated from enum value: CHANNEL_INVITE_CLOSED_REASON_DECLINED = 2;
+   */
+  DECLINED = 2,
+
+  /**
+   * @generated from enum value: CHANNEL_INVITE_CLOSED_REASON_DELETED = 3;
+   */
+  DELETED = 3,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.ChannelInviteClosedReason.
+ */
+export const ChannelInviteClosedReasonSchema: GenEnum<ChannelInviteClosedReason> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 5);
+
+/**
+ * @generated from enum pokeuniverse.social.v1.ChannelMemberChange
+ */
+export enum ChannelMemberChange {
+  /**
+   * @generated from enum value: CHANNEL_MEMBER_CHANGE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CHANNEL_MEMBER_CHANGE_JOINED = 1;
+   */
+  JOINED = 1,
+
+  /**
+   * @generated from enum value: CHANNEL_MEMBER_CHANGE_LEFT = 2;
+   */
+  LEFT = 2,
+
+  /**
+   * @generated from enum value: CHANNEL_MEMBER_CHANGE_REMOVED = 3;
+   */
+  REMOVED = 3,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.ChannelMemberChange.
+ */
+export const ChannelMemberChangeSchema: GenEnum<ChannelMemberChange> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 6);
 

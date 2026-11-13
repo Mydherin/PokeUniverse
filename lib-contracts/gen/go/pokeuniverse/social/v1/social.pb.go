@@ -308,6 +308,110 @@ func (SendFailedReason) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{4}
 }
 
+type ChannelInviteClosedReason int32
+
+const (
+	ChannelInviteClosedReason_CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED ChannelInviteClosedReason = 0
+	ChannelInviteClosedReason_CHANNEL_INVITE_CLOSED_REASON_ACCEPTED    ChannelInviteClosedReason = 1
+	ChannelInviteClosedReason_CHANNEL_INVITE_CLOSED_REASON_DECLINED    ChannelInviteClosedReason = 2
+	ChannelInviteClosedReason_CHANNEL_INVITE_CLOSED_REASON_DELETED     ChannelInviteClosedReason = 3
+)
+
+// Enum value maps for ChannelInviteClosedReason.
+var (
+	ChannelInviteClosedReason_name = map[int32]string{
+		0: "CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED",
+		1: "CHANNEL_INVITE_CLOSED_REASON_ACCEPTED",
+		2: "CHANNEL_INVITE_CLOSED_REASON_DECLINED",
+		3: "CHANNEL_INVITE_CLOSED_REASON_DELETED",
+	}
+	ChannelInviteClosedReason_value = map[string]int32{
+		"CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED": 0,
+		"CHANNEL_INVITE_CLOSED_REASON_ACCEPTED":    1,
+		"CHANNEL_INVITE_CLOSED_REASON_DECLINED":    2,
+		"CHANNEL_INVITE_CLOSED_REASON_DELETED":     3,
+	}
+)
+
+func (x ChannelInviteClosedReason) Enum() *ChannelInviteClosedReason {
+	p := new(ChannelInviteClosedReason)
+	*p = x
+	return p
+}
+
+func (x ChannelInviteClosedReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ChannelInviteClosedReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[5].Descriptor()
+}
+
+func (ChannelInviteClosedReason) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[5]
+}
+
+func (x ChannelInviteClosedReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ChannelInviteClosedReason.Descriptor instead.
+func (ChannelInviteClosedReason) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{5}
+}
+
+type ChannelMemberChange int32
+
+const (
+	ChannelMemberChange_CHANNEL_MEMBER_CHANGE_UNSPECIFIED ChannelMemberChange = 0
+	ChannelMemberChange_CHANNEL_MEMBER_CHANGE_JOINED      ChannelMemberChange = 1
+	ChannelMemberChange_CHANNEL_MEMBER_CHANGE_LEFT        ChannelMemberChange = 2
+	ChannelMemberChange_CHANNEL_MEMBER_CHANGE_REMOVED     ChannelMemberChange = 3
+)
+
+// Enum value maps for ChannelMemberChange.
+var (
+	ChannelMemberChange_name = map[int32]string{
+		0: "CHANNEL_MEMBER_CHANGE_UNSPECIFIED",
+		1: "CHANNEL_MEMBER_CHANGE_JOINED",
+		2: "CHANNEL_MEMBER_CHANGE_LEFT",
+		3: "CHANNEL_MEMBER_CHANGE_REMOVED",
+	}
+	ChannelMemberChange_value = map[string]int32{
+		"CHANNEL_MEMBER_CHANGE_UNSPECIFIED": 0,
+		"CHANNEL_MEMBER_CHANGE_JOINED":      1,
+		"CHANNEL_MEMBER_CHANGE_LEFT":        2,
+		"CHANNEL_MEMBER_CHANGE_REMOVED":     3,
+	}
+)
+
+func (x ChannelMemberChange) Enum() *ChannelMemberChange {
+	p := new(ChannelMemberChange)
+	*p = x
+	return p
+}
+
+func (x ChannelMemberChange) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ChannelMemberChange) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[6].Descriptor()
+}
+
+func (ChannelMemberChange) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[6]
+}
+
+func (x ChannelMemberChange) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ChannelMemberChange.Descriptor instead.
+func (ChannelMemberChange) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{6}
+}
+
 // A player as the social panel shows them.
 type Friend struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -765,6 +869,11 @@ type SocialEvent struct {
 	//	*SocialEvent_Presence
 	//	*SocialEvent_Message
 	//	*SocialEvent_SendFailed
+	//	*SocialEvent_ChannelInvite
+	//	*SocialEvent_ChannelInviteClosed
+	//	*SocialEvent_ChannelUpdated
+	//	*SocialEvent_ChannelMember
+	//	*SocialEvent_ChannelGone
 	Event         isSocialEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -870,6 +979,51 @@ func (x *SocialEvent) GetSendFailed() *SendFailed {
 	return nil
 }
 
+func (x *SocialEvent) GetChannelInvite() *ChannelInvite {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_ChannelInvite); ok {
+			return x.ChannelInvite
+		}
+	}
+	return nil
+}
+
+func (x *SocialEvent) GetChannelInviteClosed() *ChannelInviteClosed {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_ChannelInviteClosed); ok {
+			return x.ChannelInviteClosed
+		}
+	}
+	return nil
+}
+
+func (x *SocialEvent) GetChannelUpdated() *Channel {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_ChannelUpdated); ok {
+			return x.ChannelUpdated
+		}
+	}
+	return nil
+}
+
+func (x *SocialEvent) GetChannelMember() *ChannelMemberChanged {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_ChannelMember); ok {
+			return x.ChannelMember
+		}
+	}
+	return nil
+}
+
+func (x *SocialEvent) GetChannelGone() *ChannelGone {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_ChannelGone); ok {
+			return x.ChannelGone
+		}
+	}
+	return nil
+}
+
 type isSocialEvent_Event interface {
 	isSocialEvent_Event()
 }
@@ -908,6 +1062,32 @@ type SocialEvent_SendFailed struct {
 	SendFailed *SendFailed `protobuf:"bytes,7,opt,name=send_failed,json=sendFailed,proto3,oneof"`
 }
 
+type SocialEvent_ChannelInvite struct {
+	// Phase-9 M6 (D16): an owner's invite to the receiver.
+	ChannelInvite *ChannelInvite `protobuf:"bytes,8,opt,name=channel_invite,json=channelInvite,proto3,oneof"`
+}
+
+type SocialEvent_ChannelInviteClosed struct {
+	// An invite is gone: accepted, declined (told to the owner and the invitee's other tabs) or
+	// the channel deleted.
+	ChannelInviteClosed *ChannelInviteClosed `protobuf:"bytes,9,opt,name=channel_invite_closed,json=channelInviteClosed,proto3,oneof"`
+}
+
+type SocialEvent_ChannelUpdated struct {
+	// A channel the receiver belongs to changed: name, owner or member count.
+	ChannelUpdated *Channel `protobuf:"bytes,10,opt,name=channel_updated,json=channelUpdated,proto3,oneof"`
+}
+
+type SocialEvent_ChannelMember struct {
+	// Someone joined, left or was removed from a channel the receiver belongs to.
+	ChannelMember *ChannelMemberChanged `protobuf:"bytes,11,opt,name=channel_member,json=channelMember,proto3,oneof"`
+}
+
+type SocialEvent_ChannelGone struct {
+	// The receiver is no longer in the channel (left, removed or deleted).
+	ChannelGone *ChannelGone `protobuf:"bytes,12,opt,name=channel_gone,json=channelGone,proto3,oneof"`
+}
+
 func (*SocialEvent_RequestReceived) isSocialEvent_Event() {}
 
 func (*SocialEvent_FriendAdded) isSocialEvent_Event() {}
@@ -922,6 +1102,16 @@ func (*SocialEvent_Message) isSocialEvent_Event() {}
 
 func (*SocialEvent_SendFailed) isSocialEvent_Event() {}
 
+func (*SocialEvent_ChannelInvite) isSocialEvent_Event() {}
+
+func (*SocialEvent_ChannelInviteClosed) isSocialEvent_Event() {}
+
+func (*SocialEvent_ChannelUpdated) isSocialEvent_Event() {}
+
+func (*SocialEvent_ChannelMember) isSocialEvent_Event() {}
+
+func (*SocialEvent_ChannelGone) isSocialEvent_Event() {}
+
 // A saved message (phase-9 D8). seq increases per conversation, with no gaps.
 type ConversationMessage struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
@@ -935,7 +1125,9 @@ type ConversationMessage struct {
 	// The sender's SendMessage.client_id: set only for the sender, who matches it to its pending line.
 	ClientId string `protobuf:"bytes,6,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// Direct conversations: the other member, as the receiver sees it (0 for channels).
-	Friend        uint64 `protobuf:"varint,7,opt,name=friend,proto3" json:"friend,omitempty"`
+	Friend uint64 `protobuf:"varint,7,opt,name=friend,proto3" json:"friend,omitempty"`
+	// The sender's trainer name (a channel's lines come from players who may not be friends, M6).
+	SenderName    string `protobuf:"bytes,8,opt,name=sender_name,json=senderName,proto3" json:"sender_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1017,6 +1209,13 @@ func (x *ConversationMessage) GetFriend() uint64 {
 		return x.Friend
 	}
 	return 0
+}
+
+func (x *ConversationMessage) GetSenderName() string {
+	if x != nil {
+		return x.SenderName
+	}
+	return ""
 }
 
 // Client -> server (WebSocket): a line for a conversation. FireRed's charset, 1-64 characters once
@@ -1208,7 +1407,9 @@ type Conversation struct {
 	LastSeq     uint64  `protobuf:"varint,4,opt,name=last_seq,json=lastSeq,proto3" json:"last_seq,omitempty"`
 	LastReadSeq uint64  `protobuf:"varint,5,opt,name=last_read_seq,json=lastReadSeq,proto3" json:"last_read_seq,omitempty"`
 	// The last message (unset when none is left).
-	Last          *ConversationMessage `protobuf:"bytes,6,opt,name=last,proto3" json:"last,omitempty"`
+	Last *ConversationMessage `protobuf:"bytes,6,opt,name=last,proto3" json:"last,omitempty"`
+	// Set for a channel (phase-9 M6).
+	Channel       *Channel `protobuf:"bytes,7,opt,name=channel,proto3" json:"channel,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1285,10 +1486,19 @@ func (x *Conversation) GetLast() *ConversationMessage {
 	return nil
 }
 
+func (x *Conversation) GetChannel() *Channel {
+	if x != nil {
+		return x.Channel
+	}
+	return nil
+}
+
 // Response of GET /api/social/conversations, newest activity first.
 type ConversationsList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Conversations []*Conversation        `protobuf:"bytes,1,rep,name=conversations,proto3" json:"conversations,omitempty"`
+	// The receiver's pending channel invites (phase-9 M6).
+	Invites       []*ChannelInvite `protobuf:"bytes,2,rep,name=invites,proto3" json:"invites,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1326,6 +1536,13 @@ func (*ConversationsList) Descriptor() ([]byte, []int) {
 func (x *ConversationsList) GetConversations() []*Conversation {
 	if x != nil {
 		return x.Conversations
+	}
+	return nil
+}
+
+func (x *ConversationsList) GetInvites() []*ChannelInvite {
+	if x != nil {
+		return x.Invites
 	}
 	return nil
 }
@@ -1385,6 +1602,516 @@ func (x *MessagesPage) GetMore() bool {
 	return false
 }
 
+// A private channel (phase-9 D16). id is its conversation's ID.
+type Channel struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Owner         uint64                 `protobuf:"varint,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	Members       uint32                 `protobuf:"varint,4,opt,name=members,proto3" json:"members,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Channel) Reset() {
+	*x = Channel{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Channel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Channel) ProtoMessage() {}
+
+func (x *Channel) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Channel.ProtoReflect.Descriptor instead.
+func (*Channel) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *Channel) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Channel) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Channel) GetOwner() uint64 {
+	if x != nil {
+		return x.Owner
+	}
+	return 0
+}
+
+func (x *Channel) GetMembers() uint32 {
+	if x != nil {
+		return x.Members
+	}
+	return 0
+}
+
+type ChannelInvite struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Channel *Channel               `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	// Who invited (the owner then).
+	From *Friend `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
+	// Unix seconds.
+	SentAt        int64 `protobuf:"varint,3,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelInvite) Reset() {
+	*x = ChannelInvite{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelInvite) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelInvite) ProtoMessage() {}
+
+func (x *ChannelInvite) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelInvite.ProtoReflect.Descriptor instead.
+func (*ChannelInvite) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ChannelInvite) GetChannel() *Channel {
+	if x != nil {
+		return x.Channel
+	}
+	return nil
+}
+
+func (x *ChannelInvite) GetFrom() *Friend {
+	if x != nil {
+		return x.From
+	}
+	return nil
+}
+
+func (x *ChannelInvite) GetSentAt() int64 {
+	if x != nil {
+		return x.SentAt
+	}
+	return 0
+}
+
+type ChannelInviteClosed struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Channel uint64                 `protobuf:"varint,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	// The invitee.
+	Player        uint64                    `protobuf:"varint,2,opt,name=player,proto3" json:"player,omitempty"`
+	Reason        ChannelInviteClosedReason `protobuf:"varint,3,opt,name=reason,proto3,enum=pokeuniverse.social.v1.ChannelInviteClosedReason" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelInviteClosed) Reset() {
+	*x = ChannelInviteClosed{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelInviteClosed) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelInviteClosed) ProtoMessage() {}
+
+func (x *ChannelInviteClosed) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelInviteClosed.ProtoReflect.Descriptor instead.
+func (*ChannelInviteClosed) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ChannelInviteClosed) GetChannel() uint64 {
+	if x != nil {
+		return x.Channel
+	}
+	return 0
+}
+
+func (x *ChannelInviteClosed) GetPlayer() uint64 {
+	if x != nil {
+		return x.Player
+	}
+	return 0
+}
+
+func (x *ChannelInviteClosed) GetReason() ChannelInviteClosedReason {
+	if x != nil {
+		return x.Reason
+	}
+	return ChannelInviteClosedReason_CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED
+}
+
+type ChannelMemberChanged struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       uint64                 `protobuf:"varint,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	Player        *Friend                `protobuf:"bytes,2,opt,name=player,proto3" json:"player,omitempty"`
+	Change        ChannelMemberChange    `protobuf:"varint,3,opt,name=change,proto3,enum=pokeuniverse.social.v1.ChannelMemberChange" json:"change,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelMemberChanged) Reset() {
+	*x = ChannelMemberChanged{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelMemberChanged) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelMemberChanged) ProtoMessage() {}
+
+func (x *ChannelMemberChanged) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelMemberChanged.ProtoReflect.Descriptor instead.
+func (*ChannelMemberChanged) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ChannelMemberChanged) GetChannel() uint64 {
+	if x != nil {
+		return x.Channel
+	}
+	return 0
+}
+
+func (x *ChannelMemberChanged) GetPlayer() *Friend {
+	if x != nil {
+		return x.Player
+	}
+	return nil
+}
+
+func (x *ChannelMemberChanged) GetChange() ChannelMemberChange {
+	if x != nil {
+		return x.Change
+	}
+	return ChannelMemberChange_CHANNEL_MEMBER_CHANGE_UNSPECIFIED
+}
+
+type ChannelGone struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Channel uint64                 `protobuf:"varint,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	// LEFT, REMOVED (by the owner) or, for a deleted channel, UNSPECIFIED.
+	Change        ChannelMemberChange `protobuf:"varint,2,opt,name=change,proto3,enum=pokeuniverse.social.v1.ChannelMemberChange" json:"change,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelGone) Reset() {
+	*x = ChannelGone{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelGone) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelGone) ProtoMessage() {}
+
+func (x *ChannelGone) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelGone.ProtoReflect.Descriptor instead.
+func (*ChannelGone) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ChannelGone) GetChannel() uint64 {
+	if x != nil {
+		return x.Channel
+	}
+	return 0
+}
+
+func (x *ChannelGone) GetChange() ChannelMemberChange {
+	if x != nil {
+		return x.Change
+	}
+	return ChannelMemberChange_CHANNEL_MEMBER_CHANGE_UNSPECIFIED
+}
+
+type ChannelMember struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Player *Friend                `protobuf:"bytes,1,opt,name=player,proto3" json:"player,omitempty"`
+	// Unix seconds.
+	JoinedAt      int64 `protobuf:"varint,2,opt,name=joined_at,json=joinedAt,proto3" json:"joined_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelMember) Reset() {
+	*x = ChannelMember{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelMember) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelMember) ProtoMessage() {}
+
+func (x *ChannelMember) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelMember.ProtoReflect.Descriptor instead.
+func (*ChannelMember) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ChannelMember) GetPlayer() *Friend {
+	if x != nil {
+		return x.Player
+	}
+	return nil
+}
+
+func (x *ChannelMember) GetJoinedAt() int64 {
+	if x != nil {
+		return x.JoinedAt
+	}
+	return 0
+}
+
+// GET /api/social/channels/{id}/members: members (oldest first, the owner is Channel.owner) and,
+// for the owner, the players invited.
+type ChannelMembers struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       *Channel               `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	Members       []*ChannelMember       `protobuf:"bytes,2,rep,name=members,proto3" json:"members,omitempty"`
+	Invited       []*Friend              `protobuf:"bytes,3,rep,name=invited,proto3" json:"invited,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelMembers) Reset() {
+	*x = ChannelMembers{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelMembers) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelMembers) ProtoMessage() {}
+
+func (x *ChannelMembers) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelMembers.ProtoReflect.Descriptor instead.
+func (*ChannelMembers) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ChannelMembers) GetChannel() *Channel {
+	if x != nil {
+		return x.Channel
+	}
+	return nil
+}
+
+func (x *ChannelMembers) GetMembers() []*ChannelMember {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+func (x *ChannelMembers) GetInvited() []*Friend {
+	if x != nil {
+		return x.Invited
+	}
+	return nil
+}
+
+// POST /api/social/channels (create) and PATCH /api/social/channels/{id} (rename).
+type ChannelName struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelName) Reset() {
+	*x = ChannelName{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelName) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelName) ProtoMessage() {}
+
+func (x *ChannelName) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelName.ProtoReflect.Descriptor instead.
+func (*ChannelName) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ChannelName) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// POST /api/social/channels/{id}/invites: the friend's account ID.
+type ChannelInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelInviteRequest) Reset() {
+	*x = ChannelInviteRequest{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelInviteRequest) ProtoMessage() {}
+
+func (x *ChannelInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelInviteRequest.ProtoReflect.Descriptor instead.
+func (*ChannelInviteRequest) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ChannelInviteRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 var File_pokeuniverse_social_v1_social_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
@@ -1416,7 +2143,7 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x0fPresenceChanged\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12<\n" +
 	"\bpresence\x18\x02 \x01(\x0e2 .pokeuniverse.social.v1.PresenceR\bpresence\x12\x1b\n" +
-	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\xff\x03\n" +
+	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\x9f\a\n" +
 	"\vSocialEvent\x12R\n" +
 	"\x10request_received\x18\x01 \x01(\v2%.pokeuniverse.social.v1.FriendRequestH\x00R\x0frequestReceived\x12C\n" +
 	"\ffriend_added\x18\x02 \x01(\v2\x1e.pokeuniverse.social.v1.FriendH\x00R\vfriendAdded\x12N\n" +
@@ -1425,8 +2152,14 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\bpresence\x18\x05 \x01(\v2'.pokeuniverse.social.v1.PresenceChangedH\x00R\bpresence\x12G\n" +
 	"\amessage\x18\x06 \x01(\v2+.pokeuniverse.social.v1.ConversationMessageH\x00R\amessage\x12E\n" +
 	"\vsend_failed\x18\a \x01(\v2\".pokeuniverse.social.v1.SendFailedH\x00R\n" +
-	"sendFailedB\a\n" +
-	"\x05event\"\xc5\x01\n" +
+	"sendFailed\x12N\n" +
+	"\x0echannel_invite\x18\b \x01(\v2%.pokeuniverse.social.v1.ChannelInviteH\x00R\rchannelInvite\x12a\n" +
+	"\x15channel_invite_closed\x18\t \x01(\v2+.pokeuniverse.social.v1.ChannelInviteClosedH\x00R\x13channelInviteClosed\x12J\n" +
+	"\x0fchannel_updated\x18\n" +
+	" \x01(\v2\x1f.pokeuniverse.social.v1.ChannelH\x00R\x0echannelUpdated\x12U\n" +
+	"\x0echannel_member\x18\v \x01(\v2,.pokeuniverse.social.v1.ChannelMemberChangedH\x00R\rchannelMember\x12H\n" +
+	"\fchannel_gone\x18\f \x01(\v2#.pokeuniverse.social.v1.ChannelGoneH\x00R\vchannelGoneB\a\n" +
+	"\x05event\"\xe6\x01\n" +
 	"\x13ConversationMessage\x12\"\n" +
 	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x10\n" +
 	"\x03seq\x18\x02 \x01(\x04R\x03seq\x12\x16\n" +
@@ -1434,7 +2167,9 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x04text\x18\x04 \x01(\tR\x04text\x12\x17\n" +
 	"\asent_at\x18\x05 \x01(\x03R\x06sentAt\x12\x1b\n" +
 	"\tclient_id\x18\x06 \x01(\tR\bclientId\x12\x16\n" +
-	"\x06friend\x18\a \x01(\x04R\x06friend\"z\n" +
+	"\x06friend\x18\a \x01(\x04R\x06friend\x12\x1f\n" +
+	"\vsender_name\x18\b \x01(\tR\n" +
+	"senderName\"z\n" +
 	"\vSendMessage\x12\"\n" +
 	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x16\n" +
 	"\x06friend\x18\x02 \x01(\x04R\x06friend\x12\x12\n" +
@@ -1446,19 +2181,52 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x06reason\x18\x02 \x01(\x0e2(.pokeuniverse.social.v1.SendFailedReasonR\x06reason\"@\n" +
 	"\bMarkRead\x12\"\n" +
 	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x10\n" +
-	"\x03seq\x18\x02 \x01(\x04R\x03seq\"\x94\x02\n" +
+	"\x03seq\x18\x02 \x01(\x04R\x03seq\"\xcf\x02\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12<\n" +
 	"\x04kind\x18\x02 \x01(\x0e2(.pokeuniverse.social.v1.ConversationKindR\x04kind\x126\n" +
 	"\x06friend\x18\x03 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06friend\x12\x19\n" +
 	"\blast_seq\x18\x04 \x01(\x04R\alastSeq\x12\"\n" +
 	"\rlast_read_seq\x18\x05 \x01(\x04R\vlastReadSeq\x12?\n" +
-	"\x04last\x18\x06 \x01(\v2+.pokeuniverse.social.v1.ConversationMessageR\x04last\"_\n" +
+	"\x04last\x18\x06 \x01(\v2+.pokeuniverse.social.v1.ConversationMessageR\x04last\x129\n" +
+	"\achannel\x18\a \x01(\v2\x1f.pokeuniverse.social.v1.ChannelR\achannel\"\xa0\x01\n" +
 	"\x11ConversationsList\x12J\n" +
-	"\rconversations\x18\x01 \x03(\v2$.pokeuniverse.social.v1.ConversationR\rconversations\"k\n" +
+	"\rconversations\x18\x01 \x03(\v2$.pokeuniverse.social.v1.ConversationR\rconversations\x12?\n" +
+	"\ainvites\x18\x02 \x03(\v2%.pokeuniverse.social.v1.ChannelInviteR\ainvites\"k\n" +
 	"\fMessagesPage\x12G\n" +
 	"\bmessages\x18\x01 \x03(\v2+.pokeuniverse.social.v1.ConversationMessageR\bmessages\x12\x12\n" +
-	"\x04more\x18\x02 \x01(\bR\x04more*\x9a\x01\n" +
+	"\x04more\x18\x02 \x01(\bR\x04more\"]\n" +
+	"\aChannel\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05owner\x18\x03 \x01(\x04R\x05owner\x12\x18\n" +
+	"\amembers\x18\x04 \x01(\rR\amembers\"\x97\x01\n" +
+	"\rChannelInvite\x129\n" +
+	"\achannel\x18\x01 \x01(\v2\x1f.pokeuniverse.social.v1.ChannelR\achannel\x122\n" +
+	"\x04from\x18\x02 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x04from\x12\x17\n" +
+	"\asent_at\x18\x03 \x01(\x03R\x06sentAt\"\x92\x01\n" +
+	"\x13ChannelInviteClosed\x12\x18\n" +
+	"\achannel\x18\x01 \x01(\x04R\achannel\x12\x16\n" +
+	"\x06player\x18\x02 \x01(\x04R\x06player\x12I\n" +
+	"\x06reason\x18\x03 \x01(\x0e21.pokeuniverse.social.v1.ChannelInviteClosedReasonR\x06reason\"\xad\x01\n" +
+	"\x14ChannelMemberChanged\x12\x18\n" +
+	"\achannel\x18\x01 \x01(\x04R\achannel\x126\n" +
+	"\x06player\x18\x02 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06player\x12C\n" +
+	"\x06change\x18\x03 \x01(\x0e2+.pokeuniverse.social.v1.ChannelMemberChangeR\x06change\"l\n" +
+	"\vChannelGone\x12\x18\n" +
+	"\achannel\x18\x01 \x01(\x04R\achannel\x12C\n" +
+	"\x06change\x18\x02 \x01(\x0e2+.pokeuniverse.social.v1.ChannelMemberChangeR\x06change\"d\n" +
+	"\rChannelMember\x126\n" +
+	"\x06player\x18\x01 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06player\x12\x1b\n" +
+	"\tjoined_at\x18\x02 \x01(\x03R\bjoinedAt\"\xc6\x01\n" +
+	"\x0eChannelMembers\x129\n" +
+	"\achannel\x18\x01 \x01(\v2\x1f.pokeuniverse.social.v1.ChannelR\achannel\x12?\n" +
+	"\amembers\x18\x02 \x03(\v2%.pokeuniverse.social.v1.ChannelMemberR\amembers\x128\n" +
+	"\ainvited\x18\x03 \x03(\v2\x1e.pokeuniverse.social.v1.FriendR\ainvited\"!\n" +
+	"\vChannelName\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"&\n" +
+	"\x14ChannelInviteRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id*\x9a\x01\n" +
 	"\bPresence\x12\x18\n" +
 	"\x14PRESENCE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10PRESENCE_OFFLINE\x10\x01\x12\x13\n" +
@@ -1486,7 +2254,17 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x1eSEND_FAILED_REASON_NOT_ALLOWED\x10\x01\x12\x1b\n" +
 	"\x17SEND_FAILED_REASON_RATE\x10\x02\x12\x1e\n" +
 	"\x1aSEND_FAILED_REASON_INVALID\x10\x03\x12\x1c\n" +
-	"\x18SEND_FAILED_REASON_ERROR\x10\x04BCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1b\x06proto3"
+	"\x18SEND_FAILED_REASON_ERROR\x10\x04*\xc9\x01\n" +
+	"\x19ChannelInviteClosedReason\x12,\n" +
+	"(CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED\x10\x00\x12)\n" +
+	"%CHANNEL_INVITE_CLOSED_REASON_ACCEPTED\x10\x01\x12)\n" +
+	"%CHANNEL_INVITE_CLOSED_REASON_DECLINED\x10\x02\x12(\n" +
+	"$CHANNEL_INVITE_CLOSED_REASON_DELETED\x10\x03*\xa1\x01\n" +
+	"\x13ChannelMemberChange\x12%\n" +
+	"!CHANNEL_MEMBER_CHANGE_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cCHANNEL_MEMBER_CHANGE_JOINED\x10\x01\x12\x1e\n" +
+	"\x1aCHANNEL_MEMBER_CHANGE_LEFT\x10\x02\x12!\n" +
+	"\x1dCHANNEL_MEMBER_CHANGE_REMOVED\x10\x03BCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1b\x06proto3"
 
 var (
 	file_pokeuniverse_social_v1_social_proto_rawDescOnce sync.Once
@@ -1500,59 +2278,87 @@ func file_pokeuniverse_social_v1_social_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_social_v1_social_proto_rawDescData
 }
 
-var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(Presence)(0),                   // 0: pokeuniverse.social.v1.Presence
 	(Relation)(0),                   // 1: pokeuniverse.social.v1.Relation
 	(RequestClosedReason)(0),        // 2: pokeuniverse.social.v1.RequestClosedReason
 	(ConversationKind)(0),           // 3: pokeuniverse.social.v1.ConversationKind
 	(SendFailedReason)(0),           // 4: pokeuniverse.social.v1.SendFailedReason
-	(*Friend)(nil),                  // 5: pokeuniverse.social.v1.Friend
-	(*FriendRequest)(nil),           // 6: pokeuniverse.social.v1.FriendRequest
-	(*FriendsList)(nil),             // 7: pokeuniverse.social.v1.FriendsList
-	(*SendFriendRequest)(nil),       // 8: pokeuniverse.social.v1.SendFriendRequest
-	(*SendFriendRequestResult)(nil), // 9: pokeuniverse.social.v1.SendFriendRequestResult
-	(*RequestClosed)(nil),           // 10: pokeuniverse.social.v1.RequestClosed
-	(*PresenceChanged)(nil),         // 11: pokeuniverse.social.v1.PresenceChanged
-	(*SocialEvent)(nil),             // 12: pokeuniverse.social.v1.SocialEvent
-	(*ConversationMessage)(nil),     // 13: pokeuniverse.social.v1.ConversationMessage
-	(*SendMessage)(nil),             // 14: pokeuniverse.social.v1.SendMessage
-	(*SendFailed)(nil),              // 15: pokeuniverse.social.v1.SendFailed
-	(*MarkRead)(nil),                // 16: pokeuniverse.social.v1.MarkRead
-	(*Conversation)(nil),            // 17: pokeuniverse.social.v1.Conversation
-	(*ConversationsList)(nil),       // 18: pokeuniverse.social.v1.ConversationsList
-	(*MessagesPage)(nil),            // 19: pokeuniverse.social.v1.MessagesPage
-	(v1.Gender)(0),                  // 20: pokeuniverse.trainer.v1.Gender
+	(ChannelInviteClosedReason)(0),  // 5: pokeuniverse.social.v1.ChannelInviteClosedReason
+	(ChannelMemberChange)(0),        // 6: pokeuniverse.social.v1.ChannelMemberChange
+	(*Friend)(nil),                  // 7: pokeuniverse.social.v1.Friend
+	(*FriendRequest)(nil),           // 8: pokeuniverse.social.v1.FriendRequest
+	(*FriendsList)(nil),             // 9: pokeuniverse.social.v1.FriendsList
+	(*SendFriendRequest)(nil),       // 10: pokeuniverse.social.v1.SendFriendRequest
+	(*SendFriendRequestResult)(nil), // 11: pokeuniverse.social.v1.SendFriendRequestResult
+	(*RequestClosed)(nil),           // 12: pokeuniverse.social.v1.RequestClosed
+	(*PresenceChanged)(nil),         // 13: pokeuniverse.social.v1.PresenceChanged
+	(*SocialEvent)(nil),             // 14: pokeuniverse.social.v1.SocialEvent
+	(*ConversationMessage)(nil),     // 15: pokeuniverse.social.v1.ConversationMessage
+	(*SendMessage)(nil),             // 16: pokeuniverse.social.v1.SendMessage
+	(*SendFailed)(nil),              // 17: pokeuniverse.social.v1.SendFailed
+	(*MarkRead)(nil),                // 18: pokeuniverse.social.v1.MarkRead
+	(*Conversation)(nil),            // 19: pokeuniverse.social.v1.Conversation
+	(*ConversationsList)(nil),       // 20: pokeuniverse.social.v1.ConversationsList
+	(*MessagesPage)(nil),            // 21: pokeuniverse.social.v1.MessagesPage
+	(*Channel)(nil),                 // 22: pokeuniverse.social.v1.Channel
+	(*ChannelInvite)(nil),           // 23: pokeuniverse.social.v1.ChannelInvite
+	(*ChannelInviteClosed)(nil),     // 24: pokeuniverse.social.v1.ChannelInviteClosed
+	(*ChannelMemberChanged)(nil),    // 25: pokeuniverse.social.v1.ChannelMemberChanged
+	(*ChannelGone)(nil),             // 26: pokeuniverse.social.v1.ChannelGone
+	(*ChannelMember)(nil),           // 27: pokeuniverse.social.v1.ChannelMember
+	(*ChannelMembers)(nil),          // 28: pokeuniverse.social.v1.ChannelMembers
+	(*ChannelName)(nil),             // 29: pokeuniverse.social.v1.ChannelName
+	(*ChannelInviteRequest)(nil),    // 30: pokeuniverse.social.v1.ChannelInviteRequest
+	(v1.Gender)(0),                  // 31: pokeuniverse.trainer.v1.Gender
 }
 var file_pokeuniverse_social_v1_social_proto_depIdxs = []int32{
-	20, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	31, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
 	0,  // 1: pokeuniverse.social.v1.Friend.presence:type_name -> pokeuniverse.social.v1.Presence
-	5,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
-	5,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
-	6,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
-	6,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
-	6,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
-	5,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
+	8,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
+	8,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
+	8,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
+	7,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
 	2,  // 8: pokeuniverse.social.v1.RequestClosed.reason:type_name -> pokeuniverse.social.v1.RequestClosedReason
 	0,  // 9: pokeuniverse.social.v1.PresenceChanged.presence:type_name -> pokeuniverse.social.v1.Presence
-	6,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
-	5,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
-	10, // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
-	11, // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
-	13, // 14: pokeuniverse.social.v1.SocialEvent.message:type_name -> pokeuniverse.social.v1.ConversationMessage
-	15, // 15: pokeuniverse.social.v1.SocialEvent.send_failed:type_name -> pokeuniverse.social.v1.SendFailed
-	4,  // 16: pokeuniverse.social.v1.SendFailed.reason:type_name -> pokeuniverse.social.v1.SendFailedReason
-	3,  // 17: pokeuniverse.social.v1.Conversation.kind:type_name -> pokeuniverse.social.v1.ConversationKind
-	5,  // 18: pokeuniverse.social.v1.Conversation.friend:type_name -> pokeuniverse.social.v1.Friend
-	13, // 19: pokeuniverse.social.v1.Conversation.last:type_name -> pokeuniverse.social.v1.ConversationMessage
-	17, // 20: pokeuniverse.social.v1.ConversationsList.conversations:type_name -> pokeuniverse.social.v1.Conversation
-	13, // 21: pokeuniverse.social.v1.MessagesPage.messages:type_name -> pokeuniverse.social.v1.ConversationMessage
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	8,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
+	7,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
+	12, // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
+	13, // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
+	15, // 14: pokeuniverse.social.v1.SocialEvent.message:type_name -> pokeuniverse.social.v1.ConversationMessage
+	17, // 15: pokeuniverse.social.v1.SocialEvent.send_failed:type_name -> pokeuniverse.social.v1.SendFailed
+	23, // 16: pokeuniverse.social.v1.SocialEvent.channel_invite:type_name -> pokeuniverse.social.v1.ChannelInvite
+	24, // 17: pokeuniverse.social.v1.SocialEvent.channel_invite_closed:type_name -> pokeuniverse.social.v1.ChannelInviteClosed
+	22, // 18: pokeuniverse.social.v1.SocialEvent.channel_updated:type_name -> pokeuniverse.social.v1.Channel
+	25, // 19: pokeuniverse.social.v1.SocialEvent.channel_member:type_name -> pokeuniverse.social.v1.ChannelMemberChanged
+	26, // 20: pokeuniverse.social.v1.SocialEvent.channel_gone:type_name -> pokeuniverse.social.v1.ChannelGone
+	4,  // 21: pokeuniverse.social.v1.SendFailed.reason:type_name -> pokeuniverse.social.v1.SendFailedReason
+	3,  // 22: pokeuniverse.social.v1.Conversation.kind:type_name -> pokeuniverse.social.v1.ConversationKind
+	7,  // 23: pokeuniverse.social.v1.Conversation.friend:type_name -> pokeuniverse.social.v1.Friend
+	15, // 24: pokeuniverse.social.v1.Conversation.last:type_name -> pokeuniverse.social.v1.ConversationMessage
+	22, // 25: pokeuniverse.social.v1.Conversation.channel:type_name -> pokeuniverse.social.v1.Channel
+	19, // 26: pokeuniverse.social.v1.ConversationsList.conversations:type_name -> pokeuniverse.social.v1.Conversation
+	23, // 27: pokeuniverse.social.v1.ConversationsList.invites:type_name -> pokeuniverse.social.v1.ChannelInvite
+	15, // 28: pokeuniverse.social.v1.MessagesPage.messages:type_name -> pokeuniverse.social.v1.ConversationMessage
+	22, // 29: pokeuniverse.social.v1.ChannelInvite.channel:type_name -> pokeuniverse.social.v1.Channel
+	7,  // 30: pokeuniverse.social.v1.ChannelInvite.from:type_name -> pokeuniverse.social.v1.Friend
+	5,  // 31: pokeuniverse.social.v1.ChannelInviteClosed.reason:type_name -> pokeuniverse.social.v1.ChannelInviteClosedReason
+	7,  // 32: pokeuniverse.social.v1.ChannelMemberChanged.player:type_name -> pokeuniverse.social.v1.Friend
+	6,  // 33: pokeuniverse.social.v1.ChannelMemberChanged.change:type_name -> pokeuniverse.social.v1.ChannelMemberChange
+	6,  // 34: pokeuniverse.social.v1.ChannelGone.change:type_name -> pokeuniverse.social.v1.ChannelMemberChange
+	7,  // 35: pokeuniverse.social.v1.ChannelMember.player:type_name -> pokeuniverse.social.v1.Friend
+	22, // 36: pokeuniverse.social.v1.ChannelMembers.channel:type_name -> pokeuniverse.social.v1.Channel
+	27, // 37: pokeuniverse.social.v1.ChannelMembers.members:type_name -> pokeuniverse.social.v1.ChannelMember
+	7,  // 38: pokeuniverse.social.v1.ChannelMembers.invited:type_name -> pokeuniverse.social.v1.Friend
+	39, // [39:39] is the sub-list for method output_type
+	39, // [39:39] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_social_v1_social_proto_init() }
@@ -1572,14 +2378,19 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		(*SocialEvent_Presence)(nil),
 		(*SocialEvent_Message)(nil),
 		(*SocialEvent_SendFailed)(nil),
+		(*SocialEvent_ChannelInvite)(nil),
+		(*SocialEvent_ChannelInviteClosed)(nil),
+		(*SocialEvent_ChannelUpdated)(nil),
+		(*SocialEvent_ChannelMember)(nil),
+		(*SocialEvent_ChannelGone)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_social_v1_social_proto_rawDesc), len(file_pokeuniverse_social_v1_social_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   15,
+			NumEnums:      7,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

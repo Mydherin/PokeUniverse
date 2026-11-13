@@ -19,7 +19,8 @@ import { LineActions, Notice, socialText } from "./social-ui";
 import { DirectMessages } from "../world/messages";
 import { SendFailedReason } from "@pokeuniverse/contracts/social/v1/social";
 import { FriendsView, type Faces } from "./friends-view";
-import type { Friend } from "@pokeuniverse/contracts/social/v1/social";
+import { ChannelMemberChange, type Friend } from "@pokeuniverse/contracts/social/v1/social";
+import { ChannelView, channelName, nameField } from "./channel-view";
 
 /** Palette indexes drawn on the logs. */
 const BG = 1;
@@ -408,9 +409,15 @@ interface Panes {
   face: HTMLCanvasElement;
   /** "Say hello" in an empty direct conversation (M5 fills them). */
   empty: HTMLElement;
+  /** A channel's MEMBERS button in the thread's head, and its members view (M6). */
+  members: HTMLButtonElement;
+  channel: ChannelView;
+  /** The CHATS list's invites (first) and NEW CHANNEL (last), M6. */
+  invites: HTMLElement;
+  newChannel: HTMLElement;
 }
 
-type SheetState = { chatSheet?: boolean; thread?: string; friendMenu?: boolean } | null;
+type SheetState = { chatSheet?: boolean; thread?: string; friendMenu?: boolean; members?: boolean } | null;
 
 export class ChatWindow {
   /** The social panel's conversations; the zone's chat is the first (phase-9 M3). */
@@ -422,6 +429,7 @@ export class ChatWindow {
   /** A row's LEAVE or REMOVE FRIEND (M4, M6 fill it). */
   onConversationAction: (c: Conversation, action: "leave" | "remove") => void = (c, action) => {
     if (action === "remove" && c.who) void this.social.remove(c.who.id);
+    if (action === "leave" && c.kind === "room") void this.messages.channels.leave(c).then((r) => r && this.notice(r));
   };
   private shownNow = false;
   /** PC: the input is open; phones: the sheet is. */
@@ -483,7 +491,7 @@ export class ChatWindow {
     this.messages = new DirectMessages(this.conversations, social, link);
     this.messages.arrived = (c, line) => this.arrived(c, line);
     this.messages.refused = (reason) => this.notice(REFUSED[reason] ?? REFUSED[SendFailedReason.ERROR]!);
-    this.actions = new LineActions(social, charmap, text, { message: (id) => this.openWith(id), notice: (t) => this.notice(t) });
+    this.actions = new LineActions(social, charmap, text, { message: (id) => this.openWith(id), notice: (t) => this.notice(t), inviteTo: (id) => this.inviteTo(id) });
     // PC: the panel beside or below the screen; the list and the thread side by side when wide.
     this.panelLog = new LogView(font, charmap, PC_SCALE);
     this.panelInput = composer(() => this.send(this.panelInput), () => this.escape());
@@ -493,10 +501,11 @@ export class ChatWindow {
     const panelThread = h(
       "div",
       { class: "social-thread" },
-      h("div", { class: "social-thread-head" }, this.pc.back, this.pc.face, this.pc.title),
+      h("div", { class: "social-thread-head" }, this.pc.back, this.pc.face, this.pc.title, this.pc.members),
       h("div", { class: "chat-log-box" }, this.panelLog.el, this.pc.empty),
       this.panelCompose,
       this.panelHint,
+      this.pc.channel.el,
     );
     this.pc.body.append(this.pc.list, this.pc.friends.el, panelThread);
     this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, this.pc.tabs, this.panelNotice.el, this.pc.body);
@@ -517,10 +526,10 @@ export class ChatWindow {
     this.hint = h("span", { class: "chat-status-hint", "aria-live": "polite" });
     this.counter = h("span", { class: "chat-counter" });
     this.phone = this.panes();
-    this.sheetThread = h("div", { class: "social-thread" }, this.sheetLogBox, h("div", { class: "chat-compose" }, this.sheetInput, sendButton), h("div", { class: "chat-status" }, this.hint, this.counter));
+    this.sheetThread = h("div", { class: "social-thread" }, this.sheetLogBox, h("div", { class: "chat-compose" }, this.sheetInput, sendButton), h("div", { class: "chat-status" }, this.hint, this.counter), this.phone.channel.el);
     this.sheetLogBox.append(this.phone.empty);
     this.phone.body.append(this.phone.list, this.phone.friends.el, this.sheetThread);
-    this.sheetHead = h("div", { class: "chat-sheet-head" }, this.phone.back, this.phone.face, this.phone.title, this.phone.tabs, close);
+    this.sheetHead = h("div", { class: "chat-sheet-head" }, this.phone.back, this.phone.face, this.phone.title, this.phone.members, this.phone.tabs, close);
     this.sheet = h("section", { class: "chat-sheet", "aria-label": "Chat", hidden: true }, this.sheetHead, this.phone.body);
     // Typing: the own player stops and nothing stays held (ui.md#mobile-keyboard).
     this.sheetInput.addEventListener("focus", () => {
@@ -535,6 +544,23 @@ export class ChatWindow {
     this.swipeBack();
     // Pressing ×, SEND or back keeps the field focused: the keyboard going down first would move them.
     for (const b of [close, sendButton, this.phone.back]) b.addEventListener("pointerdown", (e) => e.preventDefault());
+    for (const p of [this.pc, this.phone]) {
+      p.members.addEventListener("click", () => this.showMembers());
+      p.title.addEventListener("click", () => this.showMembers());
+    }
+    // Channels (M6): their notices, a channel the player is out of, members changing.
+    const channels = this.messages.channels;
+    channels.notice = (t, c) => this.notice(t, c);
+    channels.membersChanged = (c) => {
+      for (const p of [this.pc, this.phone]) if (p.channel.channel === c) void p.channel.refresh();
+    };
+    channels.gone = (c, change) => {
+      if (this.pc.channel.channel === c || this.phone.channel.channel === c) this.hideMembers();
+      if (this.conversations.current === c) this.conversations.current = this.conversations.zone;
+      const why = change === ChannelMemberChange.LEFT ? `You left ${c.title}.` : change === ChannelMemberChange.REMOVED ? `You were removed from ${c.title}.` : `${c.title} was deleted.`;
+      this.notice(why);
+      this.state();
+    };
     close.addEventListener("click", () => this.close());
     sendButton.addEventListener("click", () => this.send(this.sheetInput));
     this.phone.back.addEventListener("click", () => this.back());
@@ -565,6 +591,7 @@ export class ChatWindow {
     this.offChange = this.conversations.onChange(() => this.changed());
     this.offSocial = [
       social.onChange(() => this.changed()),
+      channels.onChange(() => this.changed()),
       social.onRequest((r) => this.notice(socialText(charmap, text, "PU_Text_WantsToBeFriends", r.player?.name ?? ""))),
     ];
     this.observer = new ResizeObserver(() => this.layout());
@@ -595,14 +622,20 @@ export class ChatWindow {
         this.afterPop = then ?? null;
         history.back();
       },
+      inviteTo: (id) => this.inviteTo(id),
     });
     const body = h("div", { class: "social-body" });
     const back = h("button", { type: "button", class: "social-back", "aria-label": "Back" }, "‹") as HTMLButtonElement;
     const title = h("span", { class: "social-title" });
     const face = h("canvas", { class: "social-face social-thread-face", width: "32", height: "32", "aria-hidden": "true", hidden: true });
     const empty = h("p", { class: "social-empty social-say-hello", hidden: true });
+    const members = h("button", { type: "button", class: "social-row-button social-members-open", tabindex: "-1", hidden: true }, "MEMBERS") as HTMLButtonElement;
+    const channel = new ChannelView(this.messages.channels, this.social, this.faces, { notice: (t) => this.notice(t), close: () => this.hideMembers() });
+    const invites = h("div", { class: "social-invites" });
+    const newChannel = this.newChannelForm();
+    list.append(invites, newChannel);
     this.rows(list);
-    return { tabs, friendsBadge, list, friends, body, back, title, face, empty };
+    return { tabs, friendsBadge, list, friends, body, back, title, face, empty, members, channel, invites, newChannel };
   }
 
   /** Whether the player is on the field (not in a battle or a full-screen menu); none: not in the world. */
@@ -724,6 +757,7 @@ export class ChatWindow {
     // The back gesture on a friend's menu closes only the menu.
     const menu = this.friendMenu;
     if (menu && !s?.friendMenu) return menu.dropMenu();
+    if (this.phone.channel.channel && !s?.members) return this.hideMembers(true);
     const after = this.afterPop;
     this.afterPop = null;
     if (after) return after();
@@ -782,6 +816,7 @@ export class ChatWindow {
   private choose(c: Conversation): void {
     if (!this.shownNow) return;
     this.closeRowMenu();
+    this.hideMembers(true);
     this.conversations.current = c;
     this.tab = "chats";
     this.view = "thread";
@@ -828,6 +863,7 @@ export class ChatWindow {
     if (this.rowMenu) return this.closeRowMenu();
     const menu = this.friendMenu;
     if (menu) return menu.closeMenu();
+    if (this.pc.channel.channel) return this.hideMembers();
     if (!this.touch.matches && !this.twoPanes && this.view === "thread" && this.isOpen) return this.back();
     this.close();
   }
@@ -847,13 +883,14 @@ export class ChatWindow {
   /** `fromHistory`: the back gesture already popped the sheet's entries. */
   private close(fromHistory = false): void {
     this.closeRowMenu();
+    for (const p of [this.pc, this.phone]) p.channel.hide();
     for (const v of [this.pc.friends, this.phone.friends]) v.dropMenu();
     this.afterPop = null;
     if (!this.isOpen) return;
     this.isOpen = false;
     if (!fromHistory && !this.sheet.hidden) {
       const s = history.state as SheetState;
-      const depth = s?.chatSheet ? 1 + (s.thread ? 1 : 0) + (s.friendMenu ? 1 : 0) : 0;
+      const depth = s?.chatSheet ? 1 + (s.thread ? 1 : 0) + (s.friendMenu ? 1 : 0) + (s.members ? 1 : 0) : 0;
       if (depth) history.go(-depth);
     }
     this.sheet.style.transform = "";
@@ -880,6 +917,8 @@ export class ChatWindow {
     this.sheet.dataset.tab = this.tab;
     for (const p of [this.pc, this.phone]) {
       p.title.textContent = current.title;
+      p.members.hidden = current.kind !== "room";
+      p.title.dataset.link = current.kind === "room" ? "true" : "";
       p.face.hidden = !current.who;
       if (current.who) this.faces.draw(p.face, current.who.face, current.who.gender);
       for (const t of p.tabs.children) t.setAttribute("aria-selected", String((t as HTMLElement).dataset.tab === this.tab));
@@ -905,7 +944,8 @@ export class ChatWindow {
       p.friendsBadge.textContent = unseen > 99 ? "99+" : String(unseen);
       this.rows(p.list);
       p.friends.render();
-      p.empty.hidden = !(cs.current.kind === "direct" && lines.length === 0);
+      p.empty.hidden = !(cs.current.kind !== "zone" && lines.length === 0);
+      this.inviteRows(p.invites);
       p.empty.textContent = `No messages yet. Say hello to ${cs.current.title}!`;
     }
     for (const v of [this.panelLog, this.sheetLog]) {
@@ -954,7 +994,8 @@ export class ChatWindow {
       line.textContent = last ? `${last.name}: ${last.text}` : "No messages yet";
       badge.hidden = n === 0;
       badge.textContent = n > 99 ? "99+" : String(n);
-      if (list.children[i] !== el) list.insertBefore(el, list.children[i] ?? null);
+      // After the invites (the list's first child), before NEW CHANNEL (its last).
+      if (list.children[i + 1] !== el) list.insertBefore(el, list.children[i + 1] ?? null);
     });
     if (list.dataset.hooked) return;
     list.dataset.hooked = "true";
@@ -1020,6 +1061,99 @@ export class ChatWindow {
     list.parentElement!.append(this.rowMenu);
   }
 
+  /** INVITE from a friend's menus: the channels the player owns (M6). */
+  private inviteTo(id: bigint): { name: string; go: () => void }[] {
+    const channels = this.messages.channels;
+    const name = this.social.friends.get(id)?.name ?? "";
+    return channels.owned.map((c) => ({ name: c.title, go: () => void channels.invite(c, id).then((r) => this.notice(r ?? `Invited ${name} to ${c.title}.`)) }));
+  }
+
+  /** The current channel's members and settings over its thread (M6); phones add a history entry. */
+  private showMembers(): void {
+    const c = this.conversations.current;
+    if (c.kind !== "room") return;
+    const p = this.touch.matches ? this.phone : this.pc;
+    if (p.channel.channel === c) return;
+    p.channel.show(c);
+    if (this.touch.matches) history.pushState({ ...(history.state as object), members: true }, "");
+  }
+
+  /** `dropped`: its history entry is already gone (or never pushed). */
+  private hideMembers(dropped = false): void {
+    const phoneOpen = this.phone.channel.channel !== null;
+    for (const p of [this.pc, this.phone]) p.channel.hide();
+    if (phoneOpen && !dropped && (history.state as SheetState)?.members) history.back();
+  }
+
+  /** NEW CHANNEL at the end of the CHATS list: a name, then the channel's thread (D16). */
+  private newChannelForm(): HTMLElement {
+    const box = h("div", { class: "social-new-channel" });
+    const start = h("button", { type: "button", class: "social-row-button", "data-act": "new-channel", tabindex: "-1" }, "NEW CHANNEL");
+    const closed = () => box.replaceChildren(start);
+    start.addEventListener("click", () => {
+      const input = nameField();
+      const ok = h("button", { type: "button", class: "social-row-button", "data-act": "create", tabindex: "-1" }, "CREATE");
+      const cancel = h("button", { type: "button", class: "social-row-button", "data-act": "cancel", tabindex: "-1" }, "CANCEL");
+      const go = () => {
+        const name = channelName(input);
+        if (!name) return this.notice("Names are 1-16 letters, numbers or marks.");
+        ok.disabled = true;
+        void this.messages.channels.create(name).then((r) => {
+          ok.disabled = false;
+          if (typeof r === "string") return this.notice(r);
+          closed();
+          this.choose(r);
+        });
+      };
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") (e.preventDefault(), go());
+        else if (e.key === "Escape") (e.preventDefault(), e.stopPropagation(), closed());
+      });
+      ok.addEventListener("click", go);
+      cancel.addEventListener("click", closed);
+      box.replaceChildren(h("p", { class: "social-section" }, "CHANNEL NAME"), input, h("div", { class: "social-row-actions" }, ok, cancel));
+      input.focus({ preventScroll: true });
+    });
+    closed();
+    return box;
+  }
+
+  /** The invites at the top of the CHATS list: who, which channel, ACCEPT / DECLINE. */
+  private inviteRows(box: HTMLElement): void {
+    const channels = this.messages.channels;
+    const want = [...channels.invites.values()];
+    const key = want.map((i) => `${i.channel?.id}:${i.channel?.name}`).join(",");
+    if (box.dataset.key === key) return;
+    box.dataset.key = key;
+    box.replaceChildren(
+      ...want.map((inv) => {
+        const id = inv.channel!.id;
+        const b = (label: string, act: string, fn: () => void) => {
+          const el = h("button", { type: "button", class: "social-row-button", "data-act": act, tabindex: "-1" }, label) as HTMLButtonElement;
+          el.addEventListener("click", (e) => (e.stopPropagation(), (el.disabled = true), fn()));
+          return el;
+        };
+        return h(
+          "div",
+          { class: "social-row", "data-kind": "invite", "data-channel": String(id) },
+          h("span", { class: "social-face", "data-kind": "room", "aria-hidden": "true" }, "#"),
+          h("span", { class: "social-row-text" }, h("span", { class: "social-row-title" }, inv.channel!.name), h("span", { class: "social-row-line" }, `${inv.from?.name ?? ""} invites you`)),
+          h(
+            "span",
+            { class: "social-row-actions" },
+            b("ACCEPT", "accept", () =>
+              void channels.accept(id).then((r) => {
+                if (typeof r === "string") return this.notice(r);
+                this.messages.opened(r);
+              }),
+            ),
+            b("DECLINE", "decline", () => void channels.decline(id).then((r) => r && this.notice(r))),
+          ),
+        );
+      }),
+    );
+  }
+
   private closeRowMenu(): void {
     this.rowMenu?.remove();
     this.rowMenu = null;
@@ -1035,10 +1169,10 @@ export class ChatWindow {
   private send(input: Field): void {
     const line = cleanLine(input.value);
     const c = this.conversations.current;
-    // One rate budget for every conversation (phase-9 D8): the zone log's. Room lines: M6.
+    // One rate budget for every conversation (phase-9 D8): the zone log's.
     // A direct line written offline shows as sending and goes on reconnect; zone lines need the world.
-    if (!line || c.kind === "room" || (c.kind === "zone" && !this.link.inWorld) || !this.conversations.zone.log.allowSend()) return;
-    if (c.kind === "direct") this.messages.send(c, line);
+    if (!line || (c.kind === "zone" && !this.link.inWorld) || !this.conversations.zone.log.allowSend()) return;
+    if (c.kind !== "zone") this.messages.send(c, line);
     else this.link.sendChat(line);
     input.value = "";
     if (input === this.sheetInput) this.edited(false);

@@ -109,6 +109,17 @@ message SocialEvent {
     ConversationMessage message = 6;
     // The player's SendMessage wasn't saved; sent only to the sender's connection.
     SendFailed send_failed = 7;
+    // Phase-9 M6 (D16): an owner's invite to the receiver.
+    ChannelInvite channel_invite = 8;
+    // An invite is gone: accepted, declined (told to the owner and the invitee's other tabs) or
+    // the channel deleted.
+    ChannelInviteClosed channel_invite_closed = 9;
+    // A channel the receiver belongs to changed: name, owner or member count.
+    Channel channel_updated = 10;
+    // Someone joined, left or was removed from a channel the receiver belongs to.
+    ChannelMemberChanged channel_member = 11;
+    // The receiver is no longer in the channel (left, removed or deleted).
+    ChannelGone channel_gone = 12;
   }
 }
 
@@ -133,6 +144,8 @@ message ConversationMessage {
   string client_id = 6;
   // Direct conversations: the other member, as the receiver sees it (0 for channels).
   uint64 friend = 7;
+  // The sender's trainer name (a channel's lines come from players who may not be friends, M6).
+  string sender_name = 8;
 }
 
 // Client -> server (WebSocket): a line for a conversation. FireRed's charset, 1-64 characters once
@@ -181,11 +194,15 @@ message Conversation {
   uint64 last_read_seq = 5;
   // The last message (unset when none is left).
   ConversationMessage last = 6;
+  // Set for a channel (phase-9 M6).
+  Channel channel = 7;
 }
 
 // Response of GET /api/social/conversations, newest activity first.
 message ConversationsList {
   repeated Conversation conversations = 1;
+  // The receiver's pending channel invites (phase-9 M6).
+  repeated ChannelInvite invites = 2;
 }
 
 // Response of GET /api/social/conversations/{id}/messages: oldest first. With ?before=<seq>, the 50
@@ -194,4 +211,77 @@ message MessagesPage {
   repeated ConversationMessage messages = 1;
   // Older (before) or newer (after) messages remain.
   bool more = 2;
+}
+
+// A private channel (phase-9 D16). id is its conversation's ID.
+message Channel {
+  uint64 id = 1;
+  string name = 2;
+  uint64 owner = 3;
+  uint32 members = 4;
+}
+
+message ChannelInvite {
+  Channel channel = 1;
+  // Who invited (the owner then).
+  Friend from = 2;
+  // Unix seconds.
+  int64 sent_at = 3;
+}
+
+enum ChannelInviteClosedReason {
+  CHANNEL_INVITE_CLOSED_REASON_UNSPECIFIED = 0;
+  CHANNEL_INVITE_CLOSED_REASON_ACCEPTED = 1;
+  CHANNEL_INVITE_CLOSED_REASON_DECLINED = 2;
+  CHANNEL_INVITE_CLOSED_REASON_DELETED = 3;
+}
+
+message ChannelInviteClosed {
+  uint64 channel = 1;
+  // The invitee.
+  uint64 player = 2;
+  ChannelInviteClosedReason reason = 3;
+}
+
+enum ChannelMemberChange {
+  CHANNEL_MEMBER_CHANGE_UNSPECIFIED = 0;
+  CHANNEL_MEMBER_CHANGE_JOINED = 1;
+  CHANNEL_MEMBER_CHANGE_LEFT = 2;
+  CHANNEL_MEMBER_CHANGE_REMOVED = 3;
+}
+
+message ChannelMemberChanged {
+  uint64 channel = 1;
+  Friend player = 2;
+  ChannelMemberChange change = 3;
+}
+
+message ChannelGone {
+  uint64 channel = 1;
+  // LEFT, REMOVED (by the owner) or, for a deleted channel, UNSPECIFIED.
+  ChannelMemberChange change = 2;
+}
+
+message ChannelMember {
+  Friend player = 1;
+  // Unix seconds.
+  int64 joined_at = 2;
+}
+
+// GET /api/social/channels/{id}/members: members (oldest first, the owner is Channel.owner) and,
+// for the owner, the players invited.
+message ChannelMembers {
+  Channel channel = 1;
+  repeated ChannelMember members = 2;
+  repeated Friend invited = 3;
+}
+
+// POST /api/social/channels (create) and PATCH /api/social/channels/{id} (rename).
+message ChannelName {
+  string name = 1;
+}
+
+// POST /api/social/channels/{id}/invites: the friend's account ID.
+message ChannelInviteRequest {
+  uint64 id = 1;
 }

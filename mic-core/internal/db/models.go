@@ -33,6 +33,19 @@ type BattleOutcome struct {
 	CreatedAt time.Time
 }
 
+type Channel struct {
+	Conversation int64
+	Name         string
+	Owner        int64
+}
+
+type ChannelInvite struct {
+	Channel   int64
+	Player    int64
+	InvitedBy int64
+	SentAt    time.Time
+}
+
 type Conversation struct {
 	ID        int64
 	Kind      string
@@ -47,6 +60,7 @@ type ConversationMember struct {
 	Conversation int64
 	Player       int64
 	LastReadSeq  int64
+	JoinedAt     time.Time
 }
 
 type FriendRequest struct {

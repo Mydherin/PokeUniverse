@@ -251,6 +251,38 @@
   .social-more { min-width: 1.75rem; padding: 0; font-size: 1rem; }
   .social-say-hello { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: rgb(0 82 172); }
   .social-say-hello[hidden] { display: none; }
+  /* M6: private channels. Invites lead the CHATS list, NEW CHANNEL ends it; a channel's members
+     and settings cover its thread. */
+  .social-invites, .social-new-channel { display: flex; flex-direction: column; gap: 0.25rem; }
+  .social-invites:empty { display: none; }
+  .social-row[data-kind="invite"] { flex-wrap: wrap; }
+  .social-row[data-kind="invite"] .social-row-actions { flex-basis: 100%; justify-content: flex-end; }
+  .social-new-channel { margin-top: 0.25rem; }
+  .social-new-channel > .social-row-button { align-self: stretch; }
+  .social-name-input { min-height: 2.25rem; }
+  .social-members-open { margin-left: auto; min-height: 1.75rem; }
+  .social-members-open[hidden] { display: none; }
+  .social-title[data-link="true"] { cursor: pointer; }
+  .social-thread { position: relative; }
+  .social-channel {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.375rem;
+    border-radius: 0.25rem;
+    background: rgb(0 82 172);
+  }
+  .social-channel[hidden] { display: none; }
+  .social-channel-head { display: flex; align-items: center; justify-content: space-between; gap: 0.375rem; }
+  .social-channel-list { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0.25rem; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .social-row[data-owner="true"] .social-row-line { color: rgb(0 82 172); }
+  .social-channel-actions, .social-channel-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+  .social-channel-pick { flex-basis: 100%; max-height: 7rem; overflow-y: auto; }
+  .social-channel-note { flex-basis: 100%; color: rgb(246 246 255); font-family: var(--font-display); font-size: 0.75rem; }
+  .social-channel-actions .social-name-input { flex: 1; min-width: 6rem; }
   .chat-panel[data-panes="two"] .social-list, .chat-panel[data-panes="two"] .social-friends { flex: none; width: 11rem; }
   .chat-panel[data-panes="two"] .social-back { display: none; }
   .chat-panel[data-panes="one"][data-view="list"] .social-thread,

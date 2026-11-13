@@ -27,9 +27,11 @@ export interface LineActionsHooks {
   message(id: bigint): void;
   /** What an action did, shown as a notice. */
   notice(text: string): void;
+  /** INVITE's choices: the channels the player owns, each inviting that friend (M6). */
+  inviteTo(id: bigint): { name: string; go: () => void }[];
 }
 
-/** The menu of a chat line's player: ADD FRIEND or MESSAGE (INVITE with a channel, M6), CANCEL. */
+/** The menu of a chat line's player: ADD FRIEND or MESSAGE and INVITE (a friend, with a channel owned, M6), CANCEL. */
 export class LineActions {
   private el: HTMLElement | null = null;
   private readonly onDown = (e: PointerEvent) => {
@@ -63,6 +65,17 @@ export class LineActions {
       h("button", { type: "button", class: "chat-action", on: { click: () => (this.close(), act()) } }, label);
     const entries: HTMLElement[] = [];
     if (relation === Relation.FRIEND) entries.push(entry(say("PU_Text_Message"), () => this.hooks.message(line.id)));
+    const invites = relation === Relation.FRIEND ? this.hooks.inviteTo(line.id) : [];
+    if (invites.length) {
+      // INVITE: the owned channels in the same box, then CANCEL.
+      const b = h("button", { type: "button", class: "chat-action" }, "INVITE");
+      b.addEventListener("click", () => {
+        const choices = invites.map((i) => entry(i.name, i.go));
+        this.el?.replaceChildren(h("p", { class: "chat-actions-name" }, "INVITE TO"), ...choices, entry(say("gFameCheckerText_Cancel"), () => {}));
+        (choices[0] as HTMLButtonElement).focus({ preventScroll: true });
+      });
+      entries.push(b);
+    }
     else if (relation !== Relation.REQUEST_SENT)
       entries.push(entry(say("PU_Text_AddFriend"), () => void this.social.addFriend(line.id).then((r) => this.hooks.notice(say(RESULT_TEXTS[r])))));
     const note = relation === Relation.REQUEST_SENT ? h("p", { class: "chat-actions-note" }, say("PU_Text_AlreadyRequested")) : null;

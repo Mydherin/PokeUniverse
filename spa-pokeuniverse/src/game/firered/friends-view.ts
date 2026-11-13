@@ -148,6 +148,8 @@ export interface FriendsHooks {
   menuOpened(): void;
   /** It closed by a choice, a tap outside or Esc; `then` runs once the entry is gone. */
   menuClosed(then?: () => void): void;
+  /** INVITE's choices: the channels the player owns (M6). */
+  inviteTo(id: bigint): { name: string; go: () => void }[];
 }
 
 type Kind = "in" | "out" | "friend";
@@ -311,6 +313,17 @@ export class FriendsView {
     const show = (...children: HTMLElement[]) => menu.replaceChildren(h("span", { class: "chat-actions-name" }, f.name), ...children);
     show(
       item("MESSAGE", () => this.closeMenu(() => this.hooks.message(f))),
+      ...(this.hooks.inviteTo(f.id).length
+        ? [
+            item("INVITE", () =>
+              show(
+                h("span", { class: "chat-actions-note" }, "Invite to which channel?"),
+                ...this.hooks.inviteTo(f.id).map((i) => item(i.name, () => this.closeMenu(i.go))),
+                item("CANCEL", () => this.closeMenu()),
+              ),
+            ),
+          ]
+        : []),
       item("REMOVE", () =>
         show(
           h("span", { class: "chat-actions-note" }, `Remove ${f.name} from your friends?`),
