@@ -75,6 +75,7 @@ Documentation must always reflect the current state of the project.
 
 - **No automated tests in the repository:** no unit, integration or end-to-end test suites.
 - **Every milestone ends with its Manual Test played in game** by the session that builds it ([how](docs/phases/README.md#how-a-phase-is-tracked)): 🧪 until every case passes, a failed case fixed and re-tested in the same session. Don't commit anything a test leaves behind.
+- **Manual Tests are end to end in the built-in browser:** played like a player through the game UI (clicks, taps, keys), one tab per player when needed, screenshots looked at; APIs, bots and hooks only set up, read or stand in for extra players ([rule](docs/phases/README.md#how-a-phase-is-tracked)).
 
 ### Git
 
