@@ -10,7 +10,8 @@ import { KeyboardTracker } from "../../ui/keyboard";
 import type { Input } from "../gba/input";
 import { fitScreen } from "../screen";
 import { encodeText, type Charmap, type Font } from "../gba/text";
-import { ChatLog, cleanLine, filterInput, MAX_LENGTH, type ChatLine } from "../world/chat";
+import { cleanLine, filterInput, MAX_LENGTH, type ChatLine } from "../world/chat";
+import { Conversations, type Conversation } from "../world/conversations";
 import type { SocialState } from "../world/social";
 import type { Text } from "../gba/text";
 import type { TextId } from "./manifest";
@@ -349,16 +350,6 @@ function composer(send: () => void, close: () => void, multiline = false, onEdit
   return input;
 }
 
-/** The chip row: Zone, and FRIENDS with the incoming requests' badge (phase-9 M2; M3 makes them tabs). */
-function chips(badge: HTMLElement): HTMLElement {
-  return h(
-    "div",
-    { class: "chat-chips", role: "tablist" },
-    h("span", { class: "chat-chip", role: "tab", "aria-selected": "true" }, "Zone"),
-    h("span", { class: "chat-chip chat-chip-friends", role: "tab", "aria-selected": "false" }, "FRIENDS", badge),
-  );
-}
-
 /** Where the chat goes: the game's layout, its screen cell and the touch controls' right group. */
 export interface ChatSlots {
   layout: HTMLElement;
@@ -367,25 +358,61 @@ export interface ChatSlots {
 
 /** The sheet's layout while the keyboard is up (D22). */
 type Compose = "portrait" | "landscape" | null;
+type Tab = "chats" | "friends";
+/** One pane: the list (or FRIENDS) or a thread (phase-9 D13, D14). */
+type View = "list" | "thread";
+
+/** The panel shows two panes from this width in CSS pixels (phase-9 D13). */
+const TWO_PANES = 480;
+/** A swipe right this far from the thread's left area goes back (phase-9 D14). */
+const SWIPE_BACK = 60;
+/** The screen's edge is the browser's back gesture; the thread's starts after it. */
+const EDGE = 24;
+
+/** The panel's or the sheet's parts that both build the same way. */
+interface Panes {
+  tabs: HTMLElement;
+  friendsBadge: HTMLElement;
+  list: HTMLElement;
+  friends: HTMLElement;
+  body: HTMLElement;
+  back: HTMLButtonElement;
+  title: HTMLElement;
+}
+
+type SheetState = { chatSheet?: boolean; thread?: string } | null;
 
 export class ChatWindow {
-  readonly log = new ChatLog();
+  /** The social panel's conversations; the zone's chat is the first (phase-9 M3). */
+  readonly conversations = new Conversations();
   /** Phase 9 opens the line actions; Phase 8 only keeps the chosen player. */
   onSelect: (id: bigint) => void = () => {};
+  /** A row's LEAVE or REMOVE FRIEND (M4, M6 fill it). */
+  onConversationAction: (c: Conversation, action: "leave" | "remove") => void = () => {};
   private shownNow = false;
+  /** PC: the input is open; phones: the sheet is. */
+  private isOpen = false;
+  private tab: Tab = "chats";
+  private view: View = "thread";
+  private twoPanes = false;
   private readonly touch = window.matchMedia("(pointer: coarse)");
   private readonly panel: HTMLElement;
+  private readonly pc: Panes;
   private readonly panelLog: LogView;
   private readonly panelInput: Field;
   private readonly panelCompose: HTMLElement;
   private readonly panelHint: HTMLElement;
   private inWorld = false;
   private readonly ticker: HTMLElement;
+  private readonly tickerLabel: HTMLElement;
   private readonly tickerLog: LogView;
   private tickerTimer: number | undefined;
   private readonly button: HTMLButtonElement;
   private readonly badge: HTMLElement;
   private readonly sheet: HTMLElement;
+  private readonly phone: Panes;
+  private readonly sheetHead: HTMLElement;
+  private readonly sheetThread: HTMLElement;
   private readonly sheetLog: LogView;
   private readonly sheetInput: Field;
   private readonly sheetLogBox: HTMLElement;
@@ -399,9 +426,12 @@ export class ChatWindow {
   private readonly observer: ResizeObserver;
   private readonly offChange: () => void;
   private readonly actions: LineActions;
-  private readonly friendsBadges = [h("span", { class: "chip-badge", hidden: true }), h("span", { class: "chip-badge", hidden: true })];
   private readonly panelNotice = new Notice();
   private readonly tickerNotice = new Notice();
+  /** The conversation the PC toast opens. */
+  private toastFor: Conversation | null = null;
+  private rowMenu: HTMLElement | null = null;
+  private readonly rowEls = new Map<HTMLElement, Map<string, HTMLElement>>();
   private readonly offSocial: (() => void)[];
 
   constructor(
@@ -414,15 +444,29 @@ export class ChatWindow {
     text: (id: TextId) => Text,
   ) {
     this.actions = new LineActions(social, charmap, text, { message: (id) => this.openWith(id), notice: (t) => this.notice(t) });
-    // PC: the panel beside or below the screen.
+    // PC: the panel beside or below the screen; the list and the thread side by side when wide.
     this.panelLog = new LogView(font, charmap, PC_SCALE);
-    this.panelInput = composer(() => this.send(this.panelInput), () => this.close());
+    this.panelInput = composer(() => this.send(this.panelInput), () => this.escape());
     this.panelCompose = h("div", { class: "chat-compose", hidden: true }, this.panelInput);
     this.panelHint = h("p", { class: "chat-hint" }, "T to chat");
-    this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, chips(this.friendsBadges[0]), this.panelNotice.el, h("div", { class: "chat-log-box" }, this.panelLog.el), this.panelCompose, this.panelHint);
+    this.pc = this.panes();
+    const panelThread = h(
+      "div",
+      { class: "social-thread" },
+      h("div", { class: "social-thread-head" }, this.pc.back, this.pc.title),
+      h("div", { class: "chat-log-box" }, this.panelLog.el),
+      this.panelCompose,
+      this.panelHint,
+    );
+    this.pc.body.append(this.pc.list, this.pc.friends, panelThread);
+    this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, this.pc.tabs, this.panelNotice.el, this.pc.body);
+    this.panelNotice.el.addEventListener("click", () => {
+      if (this.toastFor) this.choose(this.toastFor);
+    });
     // Touch: the ticker, the button and the sheet.
     this.tickerLog = new LogView(font, charmap, PHONE_SCALE, TICKER_ROWS);
-    this.ticker = h("button", { type: "button", class: "chat-ticker", "aria-label": "Open chat", tabindex: "-1", "data-fade": "true" }, h("div", { class: "chat-log-box" }, this.tickerNotice.el, this.tickerLog.el));
+    this.tickerLabel = h("span", { class: "chat-ticker-label" });
+    this.ticker = h("button", { type: "button", class: "chat-ticker", "aria-label": "Open chat", tabindex: "-1", "data-fade": "true" }, h("div", { class: "chat-log-box" }, this.tickerLabel, this.tickerNotice.el, this.tickerLog.el));
     this.badge = h("span", { class: "chat-badge", hidden: true });
     this.button = h("button", { type: "button", class: "chat-button", "aria-label": "Chat", tabindex: "-1" }, bubble(), this.badge) as HTMLButtonElement;
     this.sheetLog = new LogView(font, charmap, PHONE_SCALE);
@@ -432,14 +476,11 @@ export class ChatWindow {
     this.sheetLogBox = h("div", { class: "chat-log-box" }, this.sheetLog.el);
     this.hint = h("span", { class: "chat-status-hint", "aria-live": "polite" });
     this.counter = h("span", { class: "chat-counter" });
-    this.sheet = h(
-      "section",
-      { class: "chat-sheet", "aria-label": "Chat", hidden: true },
-      h("div", { class: "chat-sheet-head" }, chips(this.friendsBadges[1]), close),
-      this.sheetLogBox,
-      h("div", { class: "chat-compose" }, this.sheetInput, sendButton),
-      h("div", { class: "chat-status" }, this.hint, this.counter),
-    );
+    this.phone = this.panes();
+    this.sheetThread = h("div", { class: "social-thread" }, this.sheetLogBox, h("div", { class: "chat-compose" }, this.sheetInput, sendButton), h("div", { class: "chat-status" }, this.hint, this.counter));
+    this.phone.body.append(this.phone.list, this.phone.friends, this.sheetThread);
+    this.sheetHead = h("div", { class: "chat-sheet-head" }, this.phone.back, this.phone.title, this.phone.tabs, close);
+    this.sheet = h("section", { class: "chat-sheet", "aria-label": "Chat", hidden: true }, this.sheetHead, this.phone.body);
     // Typing: the own player stops and nothing stays held (ui.md#mobile-keyboard).
     this.sheetInput.addEventListener("focus", () => {
       this.input.suspend(true);
@@ -449,14 +490,16 @@ export class ChatWindow {
       this.input.suspend(false);
       this.keyboard.refresh();
     });
-    this.swipe();
-    // Pressing × or SEND keeps the field focused: the keyboard going down first would move them.
-    close.addEventListener("pointerdown", (e) => e.preventDefault());
+    this.swipeDown();
+    this.swipeBack();
+    // Pressing ×, SEND or back keeps the field focused: the keyboard going down first would move them.
+    for (const b of [close, sendButton, this.phone.back]) b.addEventListener("pointerdown", (e) => e.preventDefault());
     close.addEventListener("click", () => this.close());
-    sendButton.addEventListener("pointerdown", (e) => e.preventDefault());
     sendButton.addEventListener("click", () => this.send(this.sheetInput));
-    this.ticker.addEventListener("click", () => this.open(""));
-    this.button.addEventListener("click", () => this.open(""));
+    this.phone.back.addEventListener("click", () => this.back());
+    this.pc.back.addEventListener("click", () => this.back());
+    this.ticker.addEventListener("click", () => this.open());
+    this.button.addEventListener("click", () => this.open());
     for (const view of [this.panelLog, this.sheetLog]) this.hooks(view);
     this.hooks(this.tickerLog, false);
     this.panelLog.el.addEventListener("wheel", (e) => {
@@ -469,18 +512,38 @@ export class ChatWindow {
     slots.right.insertBefore(this.button, start);
     window.addEventListener("keydown", this.onKey);
     window.addEventListener("popstate", this.onPopState);
+    window.addEventListener("pointerdown", this.onOutside, true);
     this.keyboard = new KeyboardTracker(slots.layout);
     this.offKeyboard = this.keyboard.onChange(() => this.layout());
     this.portrait.addEventListener("change", this.onPointerChange);
-    this.offChange = this.log.onChange(() => this.changed());
+    this.offChange = this.conversations.onChange(() => this.changed());
     this.offSocial = [
-      social.onChange(() => this.socialChanged()),
+      social.onChange(() => this.changed()),
       social.onRequest((r) => this.notice(socialText(charmap, text, "PU_Text_WantsToBeFriends", r.player?.name ?? ""))),
     ];
     this.observer = new ResizeObserver(() => this.layout());
     this.observer.observe(slots.layout);
     this.touch.addEventListener("change", this.onPointerChange);
+    this.state();
     this.layout();
+  }
+
+  /** The tabs, the list, the FRIENDS pane (M4 fills it) and the thread's back and title. */
+  private panes(): Panes {
+    const friendsBadge = h("span", { class: "chip-badge", hidden: true });
+    const tab = (id: Tab, label: string, ...extra: HTMLElement[]) => {
+      const b = h("button", { type: "button", class: `chat-chip social-tab`, role: "tab", "data-tab": id, tabindex: "-1" }, label, ...extra);
+      b.addEventListener("click", () => this.setTab(id));
+      return b;
+    };
+    const tabs = h("div", { class: "chat-chips social-tabs", role: "tablist" }, tab("chats", "CHATS"), tab("friends", "FRIENDS", friendsBadge));
+    const list = h("div", { class: "social-list", role: "listbox", "aria-label": "Conversations" });
+    const friends = h("div", { class: "social-friends" }, h("p", { class: "social-empty" }, "Your friends show here."));
+    const body = h("div", { class: "social-body" });
+    const back = h("button", { type: "button", class: "social-back", "aria-label": "Back" }, "‹") as HTMLButtonElement;
+    const title = h("span", { class: "social-title" });
+    this.rows(list);
+    return { tabs, friendsBadge, list, friends, body, back, title };
   }
 
   /** Whether the player is on the field (not in a battle or a full-screen menu); none: not in the world. */
@@ -501,6 +564,7 @@ export class ChatWindow {
     this.shownNow = shown;
     if (!shown) this.close();
     this.slots.layout.dataset.chatShown = shown ? "true" : "";
+    this.state();
     if (shown) {
       this.changed();
       this.layout();
@@ -509,37 +573,44 @@ export class ChatWindow {
 
   /** MESSAGE on a player: their conversation (M5); until then the chat opens. */
   openWith(_id: bigint): void {
-    this.open("");
+    this.open();
   }
 
   /** A social notice: a toast at the panel's top on PC, a ticker line on phones (D13, D14), in the sheet's status while it's open. */
-  notice(text: string): void {
-    if (!this.touch.matches) return this.panelNotice.show(text);
+  notice(text: string, from: Conversation | null = null): void {
+    if (!this.touch.matches) {
+      this.toastFor = from;
+      this.panelNotice.el.dataset.link = from ? "true" : "";
+      return this.panelNotice.show(text);
+    }
     if (!this.sheet.hidden) return this.showHint(text);
     this.tickerNotice.show(text, () => (this.ticker.dataset.fade = "true"));
     this.ticker.dataset.fade = "";
     window.clearTimeout(this.tickerTimer);
   }
 
-  private socialChanged(): void {
-    const n = this.social.unseen;
-    for (const b of this.friendsBadges) {
-      b.hidden = n === 0;
-      b.textContent = n > 99 ? "99+" : String(n);
-    }
-  }
-
   /** A line came back from the zone. */
   add(line: ChatLine): void {
-    this.log.add(line);
-    if (!this.shownNow) return;
-    this.ticker.dataset.fade = "";
-    window.clearTimeout(this.tickerTimer);
-    this.tickerTimer = window.setTimeout(() => (this.ticker.dataset.fade = "true"), TICKER_FADE_MS);
+    this.arrived(this.conversations.zone, line);
+  }
+
+  /** A line in any conversation: its log, then a notice unless it's on screen (D13, D14). */
+  arrived(c: Conversation, line: ChatLine): void {
+    this.conversations.add(c, line);
+    if (!this.shownNow || c.muted || line.own || c.log.open) return;
+    if (this.touch.matches) {
+      if (c.kind === "direct") navigator.vibrate?.(80);
+      if (!this.sheet.hidden) return this.showHint(`${c.title} · ${line.name}: ${line.text}`);
+      this.ticker.dataset.fade = "";
+      window.clearTimeout(this.tickerTimer);
+      this.tickerTimer = window.setTimeout(() => (this.ticker.dataset.fade = "true"), TICKER_FADE_MS);
+      return;
+    }
+    this.notice(`${c.title} · ${line.name}: ${line.text}`, c);
   }
 
   clear(): void {
-    this.log.clear();
+    this.conversations.clearZone();
     for (const v of [this.panelLog, this.sheetLog, this.tickerLog]) v.scroll = 0;
     this.ticker.dataset.fade = "true";
   }
@@ -547,6 +618,7 @@ export class ChatWindow {
   destroy(): void {
     window.removeEventListener("keydown", this.onKey);
     window.removeEventListener("popstate", this.onPopState);
+    window.removeEventListener("pointerdown", this.onOutside, true);
     this.touch.removeEventListener("change", this.onPointerChange);
     this.portrait.removeEventListener("change", this.onPointerChange);
     this.offKeyboard();
@@ -558,6 +630,7 @@ export class ChatWindow {
     this.offChange();
     for (const off of this.offSocial) off();
     this.actions.close();
+    this.closeRowMenu();
     this.panelNotice.destroy();
     this.tickerNotice.destroy();
     this.panel.remove();
@@ -566,62 +639,308 @@ export class ChatWindow {
     this.button.remove();
   }
 
-  private readonly onPointerChange = () => this.layout();
+  private readonly onPointerChange = () => {
+    this.state();
+    this.layout();
+  };
 
-  /** The system back gesture closes the sheet (D23); the entry is already gone. */
+  /** The system back gesture: a thread back to the list, the list closes the sheet (D14); the entry is already gone. */
   private readonly onPopState = () => {
-    if (this.log.open && !this.sheet.hidden) this.close(true);
+    if (this.sheet.hidden) return;
+    const s = history.state as SheetState;
+    if (!s?.chatSheet) return this.close(true);
+    const c = s.thread ? this.conversations.get(s.thread) : undefined;
+    if (c) this.conversations.current = c;
+    this.sheetInput.blur();
+    this.view = c ? "thread" : "list";
+    this.state();
+    this.layout();
   };
 
-  /** PC: T opens the input (D15); / is kept for chat commands and does nothing yet. */
+  /** PC: T opens the last conversation (D13); Esc goes back, then closes; Alt+↑/↓ switches. */
   private readonly onKey = (e: KeyboardEvent) => {
-    if (!this.shownNow || this.touch.matches || this.log.open || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
-    const t = e.target;
-    if (t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-    if (e.code === "KeyT") {
+    if (!this.shownNow || this.touch.matches || e.ctrlKey || e.metaKey) return;
+    if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
       e.preventDefault();
-      this.open("");
+      return this.step(e.key === "ArrowUp" ? -1 : 1);
+    }
+    const t = e.target;
+    if (e.altKey || e.repeat || (t instanceof HTMLElement && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable))) return;
+    if (e.key === "Escape" && (this.isOpen || this.rowMenu)) {
+      e.preventDefault();
+      this.escape();
+    } else if (e.code === "KeyT" && (!this.isOpen || this.view === "list")) {
+      e.preventDefault();
+      this.open();
     }
   };
 
-  private open(text: string): void {
+  /** PC: opens the current thread with the input; phones: the sheet on the list (D14). */
+  private open(): void {
     if (!this.shownNow) return;
-    const touch = this.touch.matches;
-    const input = touch ? this.sheetInput : this.panelInput;
-    if (touch) {
+    this.closeRowMenu();
+    if (this.touch.matches) {
       this.sheet.hidden = false;
+      this.view = "list";
       // A history entry on the same path: the back gesture closes the sheet, not the page.
-      if (!(history.state as { chatSheet?: boolean } | null)?.chatSheet) history.pushState({ chatSheet: true }, "");
-    } else {
-      this.panelCompose.hidden = false;
-      this.panelHint.hidden = true;
-    }
-    this.log.setOpen(true);
-    input.value = text;
-    input.focus();
-    input.setSelectionRange(text.length, text.length);
-    this.edited(false);
+      if (!(history.state as SheetState)?.chatSheet) history.pushState({ chatSheet: true }, "");
+    } else this.view = "thread";
+    this.isOpen = true;
+    this.state();
+    // After state(): a field in a hidden pane can't take the focus.
+    if (!this.touch.matches) this.focusPanel();
     this.layout();
   }
 
-  /** `fromHistory`: the back gesture already popped the sheet's entry. */
+  private focusPanel(): void {
+    this.panelCompose.hidden = false;
+    this.panelHint.hidden = true;
+    this.panelInput.focus();
+    this.panelInput.setSelectionRange(this.panelInput.value.length, this.panelInput.value.length);
+  }
+
+  /** A conversation chosen on the list or the toast: its thread (D13; on phones a history entry, D14). */
+  private choose(c: Conversation): void {
+    if (!this.shownNow) return;
+    this.closeRowMenu();
+    this.conversations.current = c;
+    this.tab = "chats";
+    this.view = "thread";
+    if (this.touch.matches) {
+      if (this.sheet.hidden) this.open();
+      this.view = "thread";
+      history.pushState({ chatSheet: true, thread: c.id }, "");
+    } else this.isOpen = true;
+    this.panelLog.scroll = this.sheetLog.scroll = 0;
+    this.state();
+    if (!this.touch.matches) this.focusPanel();
+    this.layout();
+  }
+
+  /** Alt+↑/↓: the conversation above or below on the list. */
+  private step(by: number): void {
+    const list = this.conversations.list;
+    const i = list.indexOf(this.conversations.current);
+    const next = list[Math.max(0, Math.min(list.length - 1, i + by))];
+    if (next === this.conversations.current && this.view === "thread") return;
+    if (this.isOpen) return this.choose(next);
+    this.conversations.current = next;
+    this.state();
+  }
+
+  /** The thread's back: the list (phones pop their entry). */
+  private back(): void {
+    if (this.touch.matches) {
+      if ((history.state as SheetState)?.thread) history.back();
+      return;
+    }
+    this.view = "list";
+    this.isOpen = true;
+    this.panelInput.blur();
+    this.panelCompose.hidden = true;
+    this.panelHint.hidden = true;
+    this.state();
+    this.layout();
+  }
+
+  /** PC's Esc: a row's menu, then back to the list on one pane, then closed (D13). */
+  private escape(): void {
+    if (this.rowMenu) return this.closeRowMenu();
+    if (!this.touch.matches && !this.twoPanes && this.view === "thread" && this.isOpen) return this.back();
+    this.close();
+  }
+
+  private setTab(tab: Tab): void {
+    this.tab = tab;
+    if (!this.touch.matches && !this.twoPanes) {
+      this.view = "list";
+      this.isOpen = true;
+      this.panelCompose.hidden = true;
+      this.panelHint.hidden = true;
+    }
+    this.state();
+    this.layout();
+  }
+
+  /** `fromHistory`: the back gesture already popped the sheet's entries. */
   private close(fromHistory = false): void {
-    if (!this.log.open) return;
-    if (!fromHistory && !this.sheet.hidden && (history.state as { chatSheet?: boolean } | null)?.chatSheet) history.back();
+    this.closeRowMenu();
+    if (!this.isOpen) return;
+    this.isOpen = false;
+    if (!fromHistory && !this.sheet.hidden) {
+      const s = history.state as SheetState;
+      if (s?.thread) history.go(-2);
+      else if (s?.chatSheet) history.back();
+    }
     this.sheet.style.transform = "";
     this.panelInput.blur();
     this.sheetInput.blur();
     this.panelCompose.hidden = true;
     this.panelHint.hidden = false;
     this.sheet.hidden = true;
-    this.log.setOpen(false);
+    // PC closed: the current thread stays beside the game, as Phase 8's log.
+    this.view = this.touch.matches ? "list" : "thread";
+    this.tab = "chats";
+    this.state();
     this.layout();
   }
+
+  /** The panes shown, the tabs and which logs count unread, from the state. */
+  private state(): void {
+    const touch = this.touch.matches;
+    const current = this.conversations.current;
+    this.panel.dataset.panes = this.twoPanes ? "two" : "one";
+    this.panel.dataset.view = this.view;
+    this.panel.dataset.tab = this.tab;
+    this.sheet.dataset.view = this.view;
+    this.sheet.dataset.tab = this.tab;
+    for (const p of [this.pc, this.phone]) {
+      p.title.textContent = current.title;
+      for (const t of p.tabs.children) t.setAttribute("aria-selected", String((t as HTMLElement).dataset.tab === this.tab));
+    }
+    const threadShown = touch ? this.isOpen && this.view === "thread" : this.inWorld && (this.twoPanes || this.view === "thread");
+    for (const c of this.conversations.list) {
+      const open = this.shownNow && threadShown && c === current;
+      if (c.log.open !== open) c.log.setOpen(open);
+    }
+    this.changed();
+  }
+
+  /** Lines, rows and badges changed. */
+  private changed(): void {
+    const { conversations: cs } = this;
+    const lines = cs.current.log.lines;
+    const unseen = this.social.unseen;
+    const total = cs.unread + unseen;
+    this.badge.hidden = total === 0;
+    this.badge.textContent = total > 99 ? "99+" : String(total);
+    for (const p of [this.pc, this.phone]) {
+      p.friendsBadge.hidden = unseen === 0;
+      p.friendsBadge.textContent = unseen > 99 ? "99+" : String(unseen);
+      this.rows(p.list);
+    }
+    for (const v of [this.panelLog, this.sheetLog]) {
+      v.layout(lines);
+      v.draw();
+    }
+    this.tickerLog.layout(cs.recent.map((r) => r.line));
+    this.tickerLog.draw();
+    this.tickerLabel.textContent = cs.recent.at(-1)?.conversation.title ?? "";
+  }
+
+  /** The conversation rows: face, name, last line, unread badge (D13). */
+  private rows(list: HTMLElement): void {
+    if (!this.conversations || !this.rowEls) return;
+    const current = this.conversations.current;
+    // Rows are kept and updated in place: a press on one survives the lines coming in.
+    let els = this.rowEls.get(list);
+    if (!els) this.rowEls.set(list, (els = new Map()));
+    const list_ = this.conversations.list;
+    for (const [id, el] of els) if (!this.conversations.get(id)) (el.remove(), els.delete(id));
+    list_.forEach((c, i) => {
+      let el = els.get(c.id);
+      if (!el) {
+        el = h(
+          "button",
+          { type: "button", class: "social-row", role: "option", tabindex: "-1", "data-id": c.id },
+          h("span", { class: "social-face", "data-kind": c.kind, "aria-hidden": "true" }),
+          h("span", { class: "social-row-text" }, h("span", { class: "social-row-title" }), h("span", { class: "social-row-line" })),
+          h("span", { class: "chip-badge" }),
+        );
+        els.set(c.id, el);
+      }
+      const [face, text, badge] = el.children as unknown as HTMLElement[];
+      const [title, line] = text.children as unknown as HTMLElement[];
+      const last = c.lastLine;
+      const n = c.unread;
+      el.setAttribute("aria-selected", String(c === current));
+      el.dataset.muted = c.muted ? "true" : "";
+      face.textContent = c.face ?? c.title.slice(0, 1);
+      title.textContent = c.title + (c.muted ? " (muted)" : "");
+      line.textContent = last ? `${last.name}: ${last.text}` : "No messages yet";
+      badge.hidden = n === 0;
+      badge.textContent = n > 99 ? "99+" : String(n);
+      if (list.children[i] !== el) list.insertBefore(el, list.children[i] ?? null);
+    });
+    if (list.dataset.hooked) return;
+    list.dataset.hooked = "true";
+    // Tap a row: its thread; long-press (or right-click): its menu (D14).
+    let press: { id: number; x: number; y: number; timer: number; fired: boolean } | null = null;
+    const rowAt = (e: Event) => (e.target as HTMLElement).closest<HTMLElement>(".social-row");
+    list.addEventListener("pointerdown", (e) => {
+      const row = rowAt(e);
+      if (!row || e.button !== 0) return;
+      const timer = window.setTimeout(() => {
+        if (!press) return;
+        press.fired = true;
+        this.openRowMenu(row.dataset.id!, list);
+      }, LONG_PRESS_MS);
+      press = { id: e.pointerId, x: e.clientX, y: e.clientY, timer, fired: false };
+    });
+    list.addEventListener("pointermove", (e) => {
+      if (press?.id === e.pointerId && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 8) {
+        window.clearTimeout(press.timer);
+        press = null;
+      }
+    });
+    const cancel = () => {
+      if (press) window.clearTimeout(press.timer);
+    };
+    list.addEventListener("pointerup", cancel);
+    list.addEventListener("pointercancel", () => {
+      cancel();
+      press = null;
+    });
+    list.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const row = rowAt(e);
+      if (row && !press?.fired) this.openRowMenu(row.dataset.id!, list);
+    });
+    list.addEventListener("click", (e) => {
+      const fired = press?.fired;
+      press = null;
+      const row = rowAt(e);
+      const c = row && this.conversations.get(row.dataset.id!);
+      if (c && !fired) this.choose(c);
+    });
+  }
+
+  /** A row's menu: MUTE (this session), LEAVE for rooms, REMOVE FRIEND for friends (D14). */
+  private openRowMenu(id: string, list: HTMLElement): void {
+    const c = this.conversations.get(id);
+    if (!c) return;
+    this.closeRowMenu();
+    const item = (label: string, act: () => void) => {
+      const b = h("button", { type: "button", class: "chat-action", role: "menuitem" }, label);
+      b.addEventListener("click", () => {
+        this.closeRowMenu();
+        act();
+      });
+      return b;
+    };
+    const items = [item(c.muted ? "UNMUTE" : "MUTE", () => this.conversations.setMuted(c, !c.muted))];
+    if (c.kind === "room") items.push(item("LEAVE", () => this.onConversationAction(c, "leave")));
+    if (c.kind === "direct") items.push(item("REMOVE FRIEND", () => this.onConversationAction(c, "remove")));
+    items.push(item("CANCEL", () => {}));
+    this.rowMenu = h("div", { class: "chat-actions social-row-menu", role: "menu" }, h("span", { class: "chat-actions-name" }, c.title), ...items);
+    list.parentElement!.append(this.rowMenu);
+  }
+
+  private closeRowMenu(): void {
+    this.rowMenu?.remove();
+    this.rowMenu = null;
+  }
+
+  private readonly onOutside = (e: PointerEvent) => {
+    if (this.rowMenu && !this.rowMenu.contains(e.target as Node)) this.closeRowMenu();
+  };
 
   /** Enter: the line goes to mic-core and shows when it comes back; over the rate nothing happens. */
   private send(input: Field): void {
     const line = cleanLine(input.value);
-    if (!line || !this.link.inWorld || !this.log.allowSend()) return;
+    const c = this.conversations.current;
+    // Only the zone is said for now; M5 sends direct messages, M6 room lines.
+    if (!line || c.kind !== "zone" || !this.link.inWorld || !c.log.allowSend()) return;
     this.link.sendChat(line);
     input.value = "";
     if (input === this.sheetInput) this.edited(false);
@@ -649,18 +968,17 @@ export class ChatWindow {
     if (field.style.height !== before && this.compose) this.layout();
   }
 
-  /** A swipe down on the sheet (not the log, which scrolls, nor the field) closes it (D23). */
-  private swipe(): void {
+  /** A swipe down on the sheet's header closes it (D14). */
+  private swipeDown(): void {
     let start: { id: number; y: number } | null = null;
     let dy = 0;
-    this.sheet.addEventListener("pointerdown", (e) => {
-      const t = e.target as HTMLElement;
-      if (t === this.sheetLog.el || t.closest("textarea, button")) return;
+    this.sheetHead.addEventListener("pointerdown", (e) => {
+      if ((e.target as HTMLElement).closest("button")) return;
       start = { id: e.pointerId, y: e.clientY };
       dy = 0;
-      this.sheet.setPointerCapture(e.pointerId);
+      this.sheetHead.setPointerCapture(e.pointerId);
     });
-    this.sheet.addEventListener("pointermove", (e) => {
+    this.sheetHead.addEventListener("pointermove", (e) => {
       if (start?.id !== e.pointerId) return;
       dy = Math.max(0, e.clientY - start.y);
       this.sheet.style.transform = dy ? `translateY(${dy}px)` : "";
@@ -671,11 +989,55 @@ export class ChatWindow {
       this.sheet.style.transform = "";
       if (dy >= SWIPE_CLOSE) this.close();
     };
-    this.sheet.addEventListener("pointerup", end);
-    this.sheet.addEventListener("pointercancel", (e) => {
+    this.sheetHead.addEventListener("pointerup", end);
+    this.sheetHead.addEventListener("pointercancel", (e) => {
       dy = 0;
       end(e);
     });
+  }
+
+  /** A swipe right from the thread's left half (not the screen's edge, the browser's) goes back (D14). */
+  private swipeBack(): void {
+    let start: { id: number; x: number; y: number } | null = null;
+    let dx = 0;
+    this.sheetThread.addEventListener(
+      "pointerdown",
+      (e) => {
+        const r = this.sheetThread.getBoundingClientRect();
+        if (this.view !== "thread" || (e.target as HTMLElement).closest("textarea, button")) return;
+        if (e.clientX < EDGE || e.clientX > r.left + r.width / 2) return;
+        start = { id: e.pointerId, x: e.clientX, y: e.clientY };
+        dx = 0;
+      },
+      true,
+    );
+    this.sheetThread.addEventListener(
+      "pointermove",
+      (e) => {
+        if (start?.id !== e.pointerId) return;
+        const x = e.clientX - start.x;
+        // Up and down is the log's scroll: a vertical drag isn't a swipe.
+        if (!dx && Math.abs(e.clientY - start.y) > Math.abs(x) && Math.abs(e.clientY - start.y) > 8) {
+          start = null;
+          return;
+        }
+        dx = Math.max(0, x);
+        this.sheetThread.style.transform = dx > 8 ? `translateX(${dx}px)` : "";
+      },
+      true,
+    );
+    const end = (e: PointerEvent) => {
+      if (start?.id !== e.pointerId) return;
+      start = null;
+      this.sheetThread.style.transform = "";
+      if (dx >= SWIPE_BACK) this.back();
+      dx = 0;
+    };
+    this.sheetThread.addEventListener("pointerup", end, true);
+    this.sheetThread.addEventListener("pointercancel", (e) => {
+      dx = 0;
+      end(e);
+    }, true);
   }
 
   /** Long-press a line or tap its name: that player is chosen (D24). */
@@ -743,15 +1105,6 @@ export class ChatWindow {
     });
   }
 
-  private changed(): void {
-    const { lines, unread } = this.log;
-    this.badge.hidden = unread === 0;
-    this.badge.textContent = unread > 99 ? "99+" : String(unread);
-    for (const v of [this.panelLog, this.sheetLog, this.tickerLog]) {
-      v.layout(lines);
-      v.draw();
-    }
-  }
 
   /**
    * PC: the panel goes beside the screen when that leaves the screen as big as below it,
@@ -780,9 +1133,11 @@ export class ChatWindow {
       layout.dataset.chat = "side";
       const size = Math.max(PANEL_WIDTH * s, Math.min(W - 240 * side, PANEL_WIDTH * s * 1.6));
       layout.style.setProperty("--chat-size", `${Math.floor(size)}px`);
+      this.panes2(size >= TWO_PANES);
     } else {
       layout.dataset.chat = "below";
       layout.style.setProperty("--chat-size", `${Math.floor(Math.max(PANEL_HEIGHT * s, H - 160 * below))}px`);
+      this.panes2(W >= TWO_PANES);
     }
     this.fit(this.panelLog, this.panelLog.el.parentElement!);
   }
@@ -822,11 +1177,18 @@ export class ChatWindow {
     }
   }
 
+  /** Two panes from 480 CSS px (D13); narrower, one with a back button. */
+  private panes2(two: boolean): void {
+    if (two === this.twoPanes) return;
+    this.twoPanes = two;
+    this.state();
+  }
+
   /** The log fills its box once the grid has placed it. */
   private fit(view: LogView, box: HTMLElement): void {
     requestAnimationFrame(() => {
       view.resize(box.clientWidth, box.clientHeight);
-      view.layout(this.log.lines);
+      view.layout(view === this.tickerLog ? this.conversations.recent.map((r) => r.line) : this.conversations.current.log.lines);
       view.draw();
     });
   }

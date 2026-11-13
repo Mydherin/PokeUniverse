@@ -69,6 +69,16 @@ Applies to the **web app** (login, sections, menus) and the **in-game UI** (HUD,
 - Browsers play sound only after a user gesture. Coming from the **Play** button counts, so the intro starts at once.
 - Opening `/play` directly (reload, link, installed PWA) shows a black screen with **"Tap or press any key to start"**; that first tap or key unlocks audio and starts the game, and isn't also a game button.
 
+## Social Panel
+
+Phase 8's chat grown into the social panel ([Phase 9](phases/phase-9-social/milestones/context.md#social-panel-uiux) D12-D14); code `spa-pokeuniverse/src/game/firered/chat-window.ts`, conversations `src/game/world/conversations.ts`.
+
+- **Tabs** CHATS and FRIENDS (requests badge). **List:** Zone pinned first, then by last line; row = face, name, last line, unread badge. **Thread:** the conversation's log (Union Room chat style) and the compose bar.
+- **PC:** beside or below the game, the game sized first (the panel's width is what the game leaves, so two panes show only on windows wider than about 16:9). Two panes (list | thread) when the panel is ≥ 480 px, else one pane with a back button. Closed, it shows the current thread ("T to chat"). Keys: `T` opens the last conversation, `Esc` back then close, `Alt+↑/↓` switch, `Enter` send. A line to a conversation not on screen: toast at the panel top (click opens it).
+- **Phones:** the button (badge: unread lines plus friend requests) and ticker (lines of every unmuted conversation, labeled) stay; tapping opens the sheet on the list; a row pushes the thread (history entry: system back and the back arrow pop it); swipe right from the thread's left half (not the screen edge) goes back; swipe down on the header closes. The thread doesn't focus the field by itself.
+- **Long-press (or right-click) a row:** MUTE / UNMUTE (this session), LEAVE (rooms), REMOVE FRIEND (friends).
+- **No page moves:** lists `overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y`; the sheet `touch-action: none`.
+
 ## Mobile Keyboard
 
 When the on-screen keyboard opens (chat, search). Names are entered on FireRed's own naming screen (letter grid), not with the device keyboard, so nothing changes there. The game is played mostly on phones (Chrome on Android, Safari on iOS, browser and PWA): every screen that types follows this one pattern (user 2026-11-10; first used by chat, [Phase 8](phases/phase-8-multiplayer-world/milestones/context.md#decisions) D21-D24).

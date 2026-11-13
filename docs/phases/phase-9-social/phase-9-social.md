@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress.** M1 and [M2](milestones/m02-player-actions.md) ✅ (2026-11-13). Next: [M3](milestones/m03-social-shell.md) (social panel shell). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
+**In progress.** M1, M2 and [M3](milestones/m03-social-shell.md) ✅ (2026-11-13). Next: [M4](milestones/m04-friends-list.md) (friends list); M3's Resume Here lists the conversation API M4-M6 use. The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
 
 Carried in: O14 (from Phase 8, rewritten: parties became private channels and the trainer card moved out, D1, D2).
 
@@ -16,7 +16,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · 🧪 code do
 |---|---|---|---|---|
 | M1 | [Friends: server](milestones/m01-friends-server.md) | ✅ | | Tables, contracts, HTTP list/request/accept/decline/remove, presence (online, busy, offline), per-player NATS inbox `social.player.<id>`, face ID, limits, bots |
 | M2 | [Acting on a player](milestones/m02-player-actions.md) | ✅ | M1 | A facing a player → FireRed-style menu (ADD FRIEND / MESSAGE / CANCEL); the chat line-actions menu (D24) filled; request notices |
-| M3 | [Social panel shell](milestones/m03-social-shell.md) | ⬜ | | The chat becomes the social panel: CHATS and FRIENDS tabs, conversation list ↔ thread, desktop two-pane, phone sheet with back/swipe gestures, unread badges, toasts; Zone is the first conversation |
+| M3 | [Social panel shell](milestones/m03-social-shell.md) | ✅ | | The chat becomes the social panel: CHATS and FRIENDS tabs, conversation list ↔ thread, desktop two-pane, phone sheet with back/swipe gestures, unread badges, toasts; Zone is the first conversation |
 | M4 | [Friends list](milestones/m04-friends-list.md) | ⬜ | M1, M3 | FRIENDS tab: requests in/out, friends with face, name, status, last seen; tap → message; remove |
 | M5 | [Direct messages](milestones/m05-direct-messages.md) | ⬜ | M1, M3 | One conversation per friend pair: saved before shown, history paged, read markers, unread counts, across replicas |
 | M6 | [Private channels](milestones/m06-private-channels.md) | ⬜ | M5 | Create, name, invite friends, accept or decline, leave, owner removes, renames, deletes; up to 50 members; same thread view |
