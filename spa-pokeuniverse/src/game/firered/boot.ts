@@ -22,6 +22,7 @@ const TEXT_MUSIC: Record<number, SoundId> = { 322: "mus_caught" };
 import { startNewGame } from "./new-game";
 import { textScrollSpeed, validOptions, type Options } from "./options";
 import { ChatWindow, type ChatSlots } from "./chat-window";
+import { SocialState } from "../world/social";
 import { startOverworld } from "./overworld";
 import { PlayTime } from "./play-time";
 import { startTitle } from "./title";
@@ -100,7 +101,9 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
   useTrainer(null);
   void trainer.then(useTrainer);
   const font = new Font(assets.get("font").image!, assets.fontWidths.normal, 16, 14, 14, 1, 0);
-  const chat = new ChatWindow(chatSlots, font, assets.charmap, link, gba.input);
+  const social = new SocialState();
+  link.onSocial = (e) => social.apply(e);
+  const chat = new ChatWindow(chatSlots, font, assets.charmap, link, gba.input, social, (id) => assets.text(id));
   let fonts: Record<FontId, Font> | null = null;
   let text: TextPrinters | null = null;
   // The New Game set loads in the background while the intro plays.
@@ -148,6 +151,7 @@ export function startFireRed(gba: Gba, assets: Assets, world: WorldView, link: W
     world,
     link,
     chat,
+    social,
     font,
     get fonts() {
       return fonts!;

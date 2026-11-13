@@ -145,5 +145,8 @@
   "gText_ItemEffect_SpDef",
   "gText_UseOnWhichPokemon",
   "gText_BoostPp",
-  "gText_CantUseHere", "gText_NothingToCut", "gText_CantSurfHere", "gText_NotEnoughHp", "gText_CantBeUsedOnPkmn"
+  "gText_CantUseHere", "gText_NothingToCut", "gText_CantSurfHere", "gText_NotEnoughHp", "gText_CantBeUsedOnPkmn",
+  "Text_TrainerTooBusyToNotice",
+  "PU_Text_AddFriend", "PU_Text_Message", "PU_Text_Invite", "PU_Text_SentFriendRequest", "PU_Text_NowFriends",
+  "PU_Text_AlreadyRequested", "PU_Text_FriendRequestFailed", "PU_Text_WantsToBeFriends"
 ]

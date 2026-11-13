@@ -1,5 +1,6 @@
 // What every FireRed screen gets: the machine, the art, and the way to the other screens.
 
+import type { SocialState } from "../world/social";
 import type { Gender, TrainerSummary } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { WorldLink } from "../../realtime/connection";
 import type { Gba } from "../gba/gba";
@@ -26,6 +27,8 @@ export interface Flow {
   readonly link: WorldLink;
   /** The zone's chat beside the screen: shown on the field, fed with the zone's lines. */
   readonly chat: ChatWindow;
+  /** The player's friends and requests (phase-9), kept live. */
+  readonly social: SocialState;
   /** FONT_NORMAL, ready from boot. */
   readonly font: Font;
   /** Every font, and the text printers; ready once `newGameReady` resolved. */

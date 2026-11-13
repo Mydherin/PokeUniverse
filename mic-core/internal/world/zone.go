@@ -241,6 +241,9 @@ func (z *zone) interact(p *Player, walkInto bool) {
 		return
 	}
 	reply := &worldv1.Script{}
+	if !p.busy() && !walkInto && z.playerMenu(p) {
+		return
+	}
 	if !p.busy() {
 		if steps, npc := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
 			p.lastScript++
@@ -249,6 +252,51 @@ func (z *zone) interact(p *Player, walkInto bool) {
 		}
 	}
 	p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Script{Script: reply}})
+}
+
+// playerMenu answers A facing another player (phase-9 D4), wherever their replica: false when no
+// one stands there. A busy one is too busy to notice (FireRed's Text_TrainerTooBusyToNotice);
+// otherwise the menu comes once what they are to the player is read, the player held meanwhile.
+func (z *zone) playerMenu(p *Player) bool {
+	at := p.pos.Step(p.facing)
+	var other *worldv1.OtherPlayer
+	for _, o := range z.others(p) {
+		if int(o.X) == at.X && int(o.Y) == at.Y {
+			other = o
+			break
+		}
+	}
+	if other == nil {
+		return false
+	}
+	p.lastScript++
+	p.script = p.lastScript
+	id := p.script
+	if other.InBattle {
+		p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Script{Script: &worldv1.Script{Id: id, Steps: []*worldv1.ScriptStep{
+			{Action: &worldv1.ScriptStep_Message{Message: &worldv1.Message{Text: "trainer_too_busy"}}},
+		}}}})
+		return true
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		rel, err := z.w.social.Relation(ctx, p.accountID, int64(other.Id))
+		z.do(func() {
+			if _, ok := z.players[p]; !ok || p.script != id {
+				return
+			}
+			script := &worldv1.Script{Id: id}
+			if err != nil {
+				z.w.log.Error("read relation", "account", p.accountID, "other", other.Id, "err", err)
+				p.script = 0
+			} else {
+				script.Steps = []*worldv1.ScriptStep{{Action: &worldv1.ScriptStep_PlayerMenu{PlayerMenu: &worldv1.PlayerMenu{Id: other.Id, Name: other.Name, Relation: rel}}}}
+			}
+			p.queue(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Script{Script: script}})
+		})
+	}()
+	return true
 }
 
 // withPlayer fills in what a script's steps show of the player: what their PC stores (which

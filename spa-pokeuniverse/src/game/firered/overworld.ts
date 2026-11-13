@@ -42,6 +42,7 @@ import { PokedexState } from "../world/pokedex";
 import { behaviorAt, loadMap, TILE } from "../world/map";
 import { DELTAS } from "../world/rules";
 import { FieldMessage, fieldYesNo } from "./field-message";
+import { PlayerMenuRun } from "./player-menu";
 import { MENU_NOTHING_CHOSEN, type YesNoMenu } from "./menu";
 import { NpcSprite } from "./npc-sprite";
 import type { Flow } from "./flow";
@@ -106,6 +107,7 @@ export function startOverworld(flow: Flow): void {
   let pendingNaming: BattleEnded | null = null;
   const enter = (snapshot: WorldSnapshot) => {
     pending = snapshot;
+    void flow.social.load();
     // A warp's load still running ends first: two world.show can't cross.
     const settled = overworld?.settled;
     overworld?.destroy();
@@ -221,6 +223,8 @@ interface Running {
   yesNo: YesNoMenu | null;
   /** A trainerBattle or wildBattle step was sent: waiting for the battle to end. */
   battling: boolean;
+  /** The menu on another player of a playerMenu step (phase-9 D4), while it is open. */
+  playerMenu: PlayerMenuRun | null;
 }
 
 /** A warp under way, from the moment the player leaves until the next map is placed. */
@@ -935,7 +939,7 @@ class Overworld {
       return;
     }
     if (!s.steps.length) return;
-    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false };
+    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null };
     // A trainer's script: the battle's art and sounds load while they talk.
     if (s.steps.some((step) => step.action.case === "trainerBattle" || step.action.case === "wildBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
@@ -1166,6 +1170,13 @@ class Overworld {
         s.index++;
         continue;
       }
+      if (step.action.case === "playerMenu") {
+        s.playerMenu ??= new PlayerMenuRun(this.flow, this.message, step.action.value);
+        if (!s.playerMenu.update()) return;
+        s.playerMenu = null;
+        s.index++;
+        continue;
+      }
       if (step.action.case === "yesNo") {
         const yes = this.runYesNo(s);
         if (yes === null) return;
@@ -1226,6 +1237,7 @@ class Overworld {
   }
 
   private endScript(done: boolean): void {
+    this.script?.playerMenu?.close();
     if (this.script && done) this.flow.link.scriptDone(this.script.id);
     this.script = null;
     // Sweet Scent's battle didn't start: the field comes back from its red.

@@ -85,6 +85,64 @@ func (Presence) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{0}
 }
 
+// What the player is to another one (phase-9 M2's menu shows what fits).
+type Relation int32
+
+const (
+	Relation_RELATION_UNSPECIFIED Relation = 0
+	Relation_RELATION_NONE        Relation = 1
+	Relation_RELATION_FRIEND      Relation = 2
+	// The player asked them; still pending.
+	Relation_RELATION_REQUEST_SENT Relation = 3
+	// They asked the player; ADD FRIEND accepts it (phase-9 D3).
+	Relation_RELATION_REQUEST_RECEIVED Relation = 4
+)
+
+// Enum value maps for Relation.
+var (
+	Relation_name = map[int32]string{
+		0: "RELATION_UNSPECIFIED",
+		1: "RELATION_NONE",
+		2: "RELATION_FRIEND",
+		3: "RELATION_REQUEST_SENT",
+		4: "RELATION_REQUEST_RECEIVED",
+	}
+	Relation_value = map[string]int32{
+		"RELATION_UNSPECIFIED":      0,
+		"RELATION_NONE":             1,
+		"RELATION_FRIEND":           2,
+		"RELATION_REQUEST_SENT":     3,
+		"RELATION_REQUEST_RECEIVED": 4,
+	}
+)
+
+func (x Relation) Enum() *Relation {
+	p := new(Relation)
+	*p = x
+	return p
+}
+
+func (x Relation) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Relation) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[1].Descriptor()
+}
+
+func (Relation) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[1]
+}
+
+func (x Relation) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Relation.Descriptor instead.
+func (Relation) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{1}
+}
+
 type RequestClosedReason int32
 
 const (
@@ -124,11 +182,11 @@ func (x RequestClosedReason) String() string {
 }
 
 func (RequestClosedReason) Descriptor() protoreflect.EnumDescriptor {
-	return file_pokeuniverse_social_v1_social_proto_enumTypes[1].Descriptor()
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[2].Descriptor()
 }
 
 func (RequestClosedReason) Type() protoreflect.EnumType {
-	return &file_pokeuniverse_social_v1_social_proto_enumTypes[1]
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[2]
 }
 
 func (x RequestClosedReason) Number() protoreflect.EnumNumber {
@@ -137,7 +195,7 @@ func (x RequestClosedReason) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RequestClosedReason.Descriptor instead.
 func (RequestClosedReason) EnumDescriptor() ([]byte, []int) {
-	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{1}
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{2}
 }
 
 // A player as the social panel shows them.
@@ -765,7 +823,13 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x0fPRESENCE_ONLINE\x10\x02\x12\x18\n" +
 	"\x14PRESENCE_BUSY_BATTLE\x10\x03\x12\x17\n" +
 	"\x13PRESENCE_BUSY_TRADE\x10\x04\x12\x16\n" +
-	"\x12PRESENCE_BUSY_LINK\x10\x05*\xa8\x01\n" +
+	"\x12PRESENCE_BUSY_LINK\x10\x05*\x86\x01\n" +
+	"\bRelation\x12\x18\n" +
+	"\x14RELATION_UNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rRELATION_NONE\x10\x01\x12\x13\n" +
+	"\x0fRELATION_FRIEND\x10\x02\x12\x19\n" +
+	"\x15RELATION_REQUEST_SENT\x10\x03\x12\x1d\n" +
+	"\x19RELATION_REQUEST_RECEIVED\x10\x04*\xa8\x01\n" +
 	"\x13RequestClosedReason\x12%\n" +
 	"!REQUEST_CLOSED_REASON_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eREQUEST_CLOSED_REASON_DECLINED\x10\x01\x12#\n" +
@@ -784,36 +848,37 @@ func file_pokeuniverse_social_v1_social_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_social_v1_social_proto_rawDescData
 }
 
-var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(Presence)(0),                   // 0: pokeuniverse.social.v1.Presence
-	(RequestClosedReason)(0),        // 1: pokeuniverse.social.v1.RequestClosedReason
-	(*Friend)(nil),                  // 2: pokeuniverse.social.v1.Friend
-	(*FriendRequest)(nil),           // 3: pokeuniverse.social.v1.FriendRequest
-	(*FriendsList)(nil),             // 4: pokeuniverse.social.v1.FriendsList
-	(*SendFriendRequest)(nil),       // 5: pokeuniverse.social.v1.SendFriendRequest
-	(*SendFriendRequestResult)(nil), // 6: pokeuniverse.social.v1.SendFriendRequestResult
-	(*RequestClosed)(nil),           // 7: pokeuniverse.social.v1.RequestClosed
-	(*PresenceChanged)(nil),         // 8: pokeuniverse.social.v1.PresenceChanged
-	(*SocialEvent)(nil),             // 9: pokeuniverse.social.v1.SocialEvent
-	(v1.Gender)(0),                  // 10: pokeuniverse.trainer.v1.Gender
+	(Relation)(0),                   // 1: pokeuniverse.social.v1.Relation
+	(RequestClosedReason)(0),        // 2: pokeuniverse.social.v1.RequestClosedReason
+	(*Friend)(nil),                  // 3: pokeuniverse.social.v1.Friend
+	(*FriendRequest)(nil),           // 4: pokeuniverse.social.v1.FriendRequest
+	(*FriendsList)(nil),             // 5: pokeuniverse.social.v1.FriendsList
+	(*SendFriendRequest)(nil),       // 6: pokeuniverse.social.v1.SendFriendRequest
+	(*SendFriendRequestResult)(nil), // 7: pokeuniverse.social.v1.SendFriendRequestResult
+	(*RequestClosed)(nil),           // 8: pokeuniverse.social.v1.RequestClosed
+	(*PresenceChanged)(nil),         // 9: pokeuniverse.social.v1.PresenceChanged
+	(*SocialEvent)(nil),             // 10: pokeuniverse.social.v1.SocialEvent
+	(v1.Gender)(0),                  // 11: pokeuniverse.trainer.v1.Gender
 }
 var file_pokeuniverse_social_v1_social_proto_depIdxs = []int32{
-	10, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	11, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
 	0,  // 1: pokeuniverse.social.v1.Friend.presence:type_name -> pokeuniverse.social.v1.Presence
-	2,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
-	2,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
-	3,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
-	3,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
-	3,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
-	2,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
-	1,  // 8: pokeuniverse.social.v1.RequestClosed.reason:type_name -> pokeuniverse.social.v1.RequestClosedReason
+	3,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
+	3,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
+	4,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
+	4,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
+	4,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
+	3,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
+	2,  // 8: pokeuniverse.social.v1.RequestClosed.reason:type_name -> pokeuniverse.social.v1.RequestClosedReason
 	0,  // 9: pokeuniverse.social.v1.PresenceChanged.presence:type_name -> pokeuniverse.social.v1.Presence
-	3,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
-	2,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
-	7,  // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
-	8,  // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
+	4,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
+	3,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
+	8,  // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
+	9,  // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
 	14, // [14:14] is the sub-list for method output_type
 	14, // [14:14] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
@@ -842,7 +907,7 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_social_v1_social_proto_rawDesc), len(file_pokeuniverse_social_v1_social_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,

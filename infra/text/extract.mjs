@@ -43,6 +43,18 @@ for (const [label, [id, breakAt]] of Object.entries(GEN4_BATTLE_STRINGS)) {
   if (!m) throw new Error(`${id}: not in the expansion`);
   found.set(label, () => [...encode(breakAt ? m[1].replace(` ${breakAt}`, `\\n${breakAt}`) : m[1], label), 0xff]);
 }
+// Our own strings (the MMO's, FireRed has none: phase-9 M2 on), in FireRed's charset and style.
+const OUR_STRINGS = {
+  PU_Text_AddFriend: "ADD FRIEND",
+  PU_Text_Message: "MESSAGE",
+  PU_Text_Invite: "INVITE",
+  PU_Text_SentFriendRequest: "Sent a friend request to\\n{STR_VAR_1}.",
+  PU_Text_NowFriends: "You and {STR_VAR_1} are\\nnow friends!",
+  PU_Text_AlreadyRequested: "You already sent {STR_VAR_1}\\na friend request.",
+  PU_Text_FriendRequestFailed: "The friend request couldn't\\nbe sent.",
+  PU_Text_WantsToBeFriends: "{STR_VAR_1} wants to be friends.",
+};
+for (const [label, text] of Object.entries(OUR_STRINGS)) found.set(label, () => [...encode(text, label), 0xff]);
 // Assembly: gName:: then .string lines; "$" ends the string. Shared texts, each map's texts and
 // the few defined with the event scripts.
 const asmFiles = [
@@ -51,6 +63,7 @@ const asmFiles = [
   "data/event_scripts.s",
   "data/scripts/repel.inc",
   "data/scripts/field_moves.inc",
+  "data/scripts/cable_club.inc",
 ];
 for (const file of asmFiles) {
   let label = null;

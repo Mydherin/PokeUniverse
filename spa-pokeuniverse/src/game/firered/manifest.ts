@@ -529,6 +529,7 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "pallet_town_players_house_2f.played_with_nes": "PalletTown_PlayersHouse_2F_Text_PlayedWithNES",
   "pallet_town_players_house_2f.press_lr_for_help": "PalletTown_PlayersHouse_2F_Text_PressLRForHelp",
   "common.player_booted_up_pc": "Text_PlayerBootedUpPC",
+  trainer_too_busy: "Text_TrainerTooBusyToNotice",
   "common.repel_wore_off": "Text_RepelWoreOff",
   "common.sweet_scent_nothing": "Text_LooksLikeNothingHere",
   "pallet_town_players_house_1f.mom": "PalletTown_PlayersHouse_1F_Text_AllBoysLeaveOakLookingForYou",

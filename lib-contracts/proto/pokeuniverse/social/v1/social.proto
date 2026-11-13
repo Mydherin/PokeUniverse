@@ -19,6 +19,17 @@ enum Presence {
   PRESENCE_BUSY_LINK = 5;
 }
 
+// What the player is to another one (phase-9 M2's menu shows what fits).
+enum Relation {
+  RELATION_UNSPECIFIED = 0;
+  RELATION_NONE = 1;
+  RELATION_FRIEND = 2;
+  // The player asked them; still pending.
+  RELATION_REQUEST_SENT = 3;
+  // They asked the player; ADD FRIEND accepts it (phase-9 D3).
+  RELATION_REQUEST_RECEIVED = 4;
+}
+
 // A player as the social panel shows them.
 message Friend {
   // The account ID (the same ID as OtherPlayer.id in the world).

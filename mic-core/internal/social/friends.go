@@ -392,3 +392,20 @@ func (h *Handler) remove(w http.ResponseWriter, r *http.Request) {
 	h.Social.publish(me, &socialv1.SocialEvent{Event: &socialv1.SocialEvent_FriendRemoved{FriendRemoved: uint64(other)}})
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// Relation is what `other` is to `me`: a friend, a pending request either way, or nothing
+// (phase-9 M2: the menu on A facing a player).
+func (s *Service) Relation(ctx context.Context, me, other int64) (socialv1.Relation, error) {
+	q := db.New(s.pool)
+	a, b := pair(me, other)
+	if yes, err := q.AreFriends(ctx, db.AreFriendsParams{A: a, B: b}); err != nil || yes {
+		return socialv1.Relation_RELATION_FRIEND, err
+	}
+	if yes, err := q.RequestExists(ctx, db.RequestExistsParams{FromID: me, ToID: other}); err != nil || yes {
+		return socialv1.Relation_RELATION_REQUEST_SENT, err
+	}
+	if yes, err := q.RequestExists(ctx, db.RequestExistsParams{FromID: other, ToID: me}); err != nil || yes {
+		return socialv1.Relation_RELATION_REQUEST_RECEIVED, err
+	}
+	return socialv1.Relation_RELATION_NONE, nil
+}

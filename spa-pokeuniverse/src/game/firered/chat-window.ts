@@ -11,6 +11,10 @@ import type { Input } from "../gba/input";
 import { fitScreen } from "../screen";
 import { encodeText, type Charmap, type Font } from "../gba/text";
 import { ChatLog, cleanLine, filterInput, MAX_LENGTH, type ChatLine } from "../world/chat";
+import type { SocialState } from "../world/social";
+import type { Text } from "../gba/text";
+import type { TextId } from "./manifest";
+import { LineActions, Notice, socialText } from "./social-ui";
 
 /** Palette indexes drawn on the logs. */
 const BG = 1;
@@ -345,8 +349,14 @@ function composer(send: () => void, close: () => void, multiline = false, onEdit
   return input;
 }
 
-function chips(): HTMLElement {
-  return h("div", { class: "chat-chips", role: "tablist" }, h("span", { class: "chat-chip", role: "tab", "aria-selected": "true" }, "Zone"));
+/** The chip row: Zone, and FRIENDS with the incoming requests' badge (phase-9 M2; M3 makes them tabs). */
+function chips(badge: HTMLElement): HTMLElement {
+  return h(
+    "div",
+    { class: "chat-chips", role: "tablist" },
+    h("span", { class: "chat-chip", role: "tab", "aria-selected": "true" }, "Zone"),
+    h("span", { class: "chat-chip chat-chip-friends", role: "tab", "aria-selected": "false" }, "FRIENDS", badge),
+  );
 }
 
 /** Where the chat goes: the game's layout, its screen cell and the touch controls' right group. */
@@ -388,6 +398,11 @@ export class ChatWindow {
   private compose: Compose = null;
   private readonly observer: ResizeObserver;
   private readonly offChange: () => void;
+  private readonly actions: LineActions;
+  private readonly friendsBadges = [h("span", { class: "chip-badge", hidden: true }), h("span", { class: "chip-badge", hidden: true })];
+  private readonly panelNotice = new Notice();
+  private readonly tickerNotice = new Notice();
+  private readonly offSocial: (() => void)[];
 
   constructor(
     private readonly slots: ChatSlots,
@@ -395,16 +410,19 @@ export class ChatWindow {
     charmap: Charmap,
     private readonly link: WorldLink,
     private readonly input: Input,
+    private readonly social: SocialState,
+    text: (id: TextId) => Text,
   ) {
+    this.actions = new LineActions(social, charmap, text, { message: (id) => this.openWith(id), notice: (t) => this.notice(t) });
     // PC: the panel beside or below the screen.
     this.panelLog = new LogView(font, charmap, PC_SCALE);
     this.panelInput = composer(() => this.send(this.panelInput), () => this.close());
     this.panelCompose = h("div", { class: "chat-compose", hidden: true }, this.panelInput);
     this.panelHint = h("p", { class: "chat-hint" }, "T to chat");
-    this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, chips(), h("div", { class: "chat-log-box" }, this.panelLog.el), this.panelCompose, this.panelHint);
+    this.panel = h("section", { class: "chat-panel", "aria-label": "Chat", hidden: true }, chips(this.friendsBadges[0]), this.panelNotice.el, h("div", { class: "chat-log-box" }, this.panelLog.el), this.panelCompose, this.panelHint);
     // Touch: the ticker, the button and the sheet.
     this.tickerLog = new LogView(font, charmap, PHONE_SCALE, TICKER_ROWS);
-    this.ticker = h("button", { type: "button", class: "chat-ticker", "aria-label": "Open chat", tabindex: "-1", "data-fade": "true" }, h("div", { class: "chat-log-box" }, this.tickerLog.el));
+    this.ticker = h("button", { type: "button", class: "chat-ticker", "aria-label": "Open chat", tabindex: "-1", "data-fade": "true" }, h("div", { class: "chat-log-box" }, this.tickerNotice.el, this.tickerLog.el));
     this.badge = h("span", { class: "chat-badge", hidden: true });
     this.button = h("button", { type: "button", class: "chat-button", "aria-label": "Chat", tabindex: "-1" }, bubble(), this.badge) as HTMLButtonElement;
     this.sheetLog = new LogView(font, charmap, PHONE_SCALE);
@@ -417,7 +435,7 @@ export class ChatWindow {
     this.sheet = h(
       "section",
       { class: "chat-sheet", "aria-label": "Chat", hidden: true },
-      h("div", { class: "chat-sheet-head" }, chips(), close),
+      h("div", { class: "chat-sheet-head" }, chips(this.friendsBadges[1]), close),
       this.sheetLogBox,
       h("div", { class: "chat-compose" }, this.sheetInput, sendButton),
       h("div", { class: "chat-status" }, this.hint, this.counter),
@@ -455,6 +473,10 @@ export class ChatWindow {
     this.offKeyboard = this.keyboard.onChange(() => this.layout());
     this.portrait.addEventListener("change", this.onPointerChange);
     this.offChange = this.log.onChange(() => this.changed());
+    this.offSocial = [
+      social.onChange(() => this.socialChanged()),
+      social.onRequest((r) => this.notice(socialText(charmap, text, "PU_Text_WantsToBeFriends", r.player?.name ?? ""))),
+    ];
     this.observer = new ResizeObserver(() => this.layout());
     this.observer.observe(slots.layout);
     this.touch.addEventListener("change", this.onPointerChange);
@@ -485,6 +507,28 @@ export class ChatWindow {
     }
   }
 
+  /** MESSAGE on a player: their conversation (M5); until then the chat opens. */
+  openWith(_id: bigint): void {
+    this.open("");
+  }
+
+  /** A social notice: a toast at the panel's top on PC, a ticker line on phones (D13, D14), in the sheet's status while it's open. */
+  notice(text: string): void {
+    if (!this.touch.matches) return this.panelNotice.show(text);
+    if (!this.sheet.hidden) return this.showHint(text);
+    this.tickerNotice.show(text, () => (this.ticker.dataset.fade = "true"));
+    this.ticker.dataset.fade = "";
+    window.clearTimeout(this.tickerTimer);
+  }
+
+  private socialChanged(): void {
+    const n = this.social.unseen;
+    for (const b of this.friendsBadges) {
+      b.hidden = n === 0;
+      b.textContent = n > 99 ? "99+" : String(n);
+    }
+  }
+
   /** A line came back from the zone. */
   add(line: ChatLine): void {
     this.log.add(line);
@@ -512,6 +556,10 @@ export class ChatWindow {
     window.clearTimeout(this.tickerTimer);
     this.observer.disconnect();
     this.offChange();
+    for (const off of this.offSocial) off();
+    this.actions.close();
+    this.panelNotice.destroy();
+    this.tickerNotice.destroy();
     this.panel.remove();
     this.ticker.remove();
     this.sheet.remove();
@@ -579,16 +627,18 @@ export class ChatWindow {
     if (input === this.sheetInput) this.edited(false);
   }
 
+  private showHint(text: string, ms = HINT_MS): void {
+    this.hint.textContent = text;
+    window.clearTimeout(this.hintTimer);
+    this.hintTimer = window.setTimeout(() => (this.hint.textContent = ""), ms);
+  }
+
   /** The sheet's field changed: its height (1-3 lines), the counter, the hint (D22). */
   private edited(dropped: boolean): void {
     const field = this.sheetInput;
     const n = [...field.value].length;
     this.counter.textContent = n >= COUNTER_FROM ? `${n}/${MAX_LENGTH}` : "";
-    if (dropped) {
-      this.hint.textContent = "Not in the game's font";
-      window.clearTimeout(this.hintTimer);
-      this.hintTimer = window.setTimeout(() => (this.hint.textContent = ""), HINT_MS);
-    }
+    if (dropped) this.showHint("Not in the game's font");
     const before = field.style.height;
     field.style.height = "auto";
     const style = getComputedStyle(field);
@@ -636,6 +686,7 @@ export class ChatWindow {
       view.el.dataset.selected = String(line.id);
       view.draw();
       this.onSelect(line.id);
+      this.actions.open(line, view.el.parentElement!);
     };
     let drag: number | null = null;
     view.el.addEventListener("pointerdown", (e) => {

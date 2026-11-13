@@ -17,6 +17,7 @@ import type { BoxAction } from "./box-action";
 import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
+import type { SocialEvent } from "@pokeuniverse/contracts/social/v1/social";
 import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 
@@ -67,6 +68,8 @@ export interface WorldEvents {
 
 /** The world over the connection, as the game uses it. */
 export interface WorldLink {
+  /** A live social change (phase-9 D9): friend requests, friends, presence. */
+  onSocial: (e: SocialEvent) => void;
   /** Enters the world now and after every reconnect, until `leave`. */
   enter(events: WorldEvents): void;
   leave(): void;
@@ -138,6 +141,7 @@ export class Connection implements WorldLink {
   private retryTimer: number | undefined;
   private stopped = false;
   private world: WorldEvents | null = null;
+  onSocial: (e: SocialEvent) => void = () => {};
   private entered = false;
   private welcomed = false;
   /** The next world entry comes from the game, not a reconnect: it takes the trainer over. */
@@ -382,6 +386,9 @@ export class Connection implements WorldLink {
         break;
       case "battleEnded":
         this.world?.battleEnded(msg.payload.value);
+        break;
+      case "social":
+        this.onSocial(msg.payload.value);
         break;
       case "error":
         if (msg.payload.value.code === ErrorCode.NO_TRAINER) this.world?.noTrainer();

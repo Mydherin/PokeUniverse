@@ -62,6 +62,7 @@ type ZoneBus interface {
 type Social interface {
 	Open(accountID int64, deliver func(*socialv1.SocialEvent)) (func(), error)
 	SetPresence(accountID int64, p socialv1.Presence)
+	Relation(ctx context.Context, me, other int64) (socialv1.Relation, error)
 }
 
 // presence is what the player shows to friends: busy in a battle, or online (phase-9 D7).
