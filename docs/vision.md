@@ -10,7 +10,7 @@ PokeUniverse is a **browser-based Pokémon MMO**: a Gen 3-style game with Pokém
 ## MVP
 
 - **All of Kanto**, playable from the first town to the Champion.
-- **Includes social features:** chat, trading and PvP battles.
+- **Includes social features:** zone chat, friends, direct messages and private channels (no parties), trading and PvP battles (single, double, 4-player multi) in the Pokémon Center 2F as FireRed's link features.
 - Plan: [phases/](phases/README.md).
 
 ## Experience

@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). Phase 9 not started. **Updated:** 2026-11-11.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) planned (15 milestones), not started. **Updated:** 2026-11-12.
 
 ## Milestones of Phases With Folders
 
@@ -12,6 +12,7 @@ Current state of **every phase** of the project and everything still open, in on
 | [6 Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones) | 10 / 10 ✅ | |
 | [7 Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones) | 8 / 8 ✅ | |
 | [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 7 / 9 (M7, M9 🧪: real phones) | [M7 phone cases](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here), [M9 case 6](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) |
+| [9 Social](phase-9-social/phase-9-social.md#milestones) | 0 / 15 | [M1 Friends: server](phase-9-social/milestones/m01-friends-server.md) |
 
 ## Phases
 
@@ -28,13 +29,11 @@ Current state of **every phase** of the project and everything still open, in on
 | 6 | [Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md) | ✅ | Moved: O6-O8 | Items and TMs work on Pokémon; manage your team and boxes; lead Pokémon follows you ([milestones](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones)) |
 | 7 | [Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md) | ✅ | Moved: O9, O10, O11, O12 | Wild battles and catching work, on a test grass patch ([milestones](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones)) |
 | 8 | [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md) | 🧪 real phones left | Moved: O13, O14, O15, O16 | Many players move together smoothly, with chat ([milestones](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones)) |
-| 9 | [Social](phase-9-social.md) | ⬜ | O14 | Players use the social menus, trade and battle each other |
-| O15 | Players across a map border: connected maps' players drawn together (D4) | 8 | 12 | [Phase 8 M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#follow-ups-later-phases), [Phase 12](phase-12-world-content.md) |
-| O16 | Chat word filter, muting and reporting (D14) | 8 | 13 | [Phase 8 M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#follow-ups-later-phases), [Phase 13](phase-13-polish-launch.md) |
+| 9 | [Social](phase-9-social/phase-9-social.md) | ⬜ planned | O14; moved: O17, O19-O21 | Friends, direct messages and private channels; trade and battle each other (single, double, 4-player multi) in the Pokémon Center 2F ([milestones](phase-9-social/phase-9-social.md#milestones)) |
 | 10 | [Pallet Town](phase-10-pallet-town.md) | ⬜ | O1, O6, O9, O12, O13 | All of Pallet Town and its events, up to choosing a starter and the first rival battle |
 | 11 | [Pallet Town Art Upgrade](phase-11-pallet-town-art.md) | ⬜ | | Pallet Town with awesome public art, same game |
-| 12 | [World Content](phase-12-world-content.md) | ⬜ | O2, O8, O10, O11 | All of Kanto playable start to end |
-| 13 | [Polish and Launch](phase-13-polish-launch.md) | ⬜ | | Game is public and stable |
+| 12 | [World Content](phase-12-world-content.md) | ⬜ | O2, O8, O10, O11, O15, O20, O21 | All of Kanto playable start to end |
+| 13 | [Polish and Launch](phase-13-polish-launch.md) | ⬜ | O16, O17, O19 | Game is public and stable |
 
 ## Open Items
 
@@ -52,4 +51,10 @@ Everything a phase left open, reopened or handed to another phase. An item leave
 | O11 | Field moves' cut-in of the Pokémon (`CreateFieldEffectShowMon`), Sweet Scent's included | 7 | 12 | [Phase 7 M3](phase-7-wild-battles-catching/milestones/m03-encounters.md) |
 | O12 | SUMMARY shows "Met in Somewhere" in the house (no map section name); look at the naming screen's Pokémon icon fix | 7 | 10 | [Phase 7 M8](phase-7-wild-battles-catching/milestones/m08-phase-check.md#follow-ups-later-phases) |
 | O13 | Story flags' personal layer (flag-filtered objects and collisions), map phase flags, private scene phases (zone key is map + phase from Phase 8) | 8 | 10 | [Phase 8 D19, D20](phase-8-multiplayer-world/milestones/context.md#decisions), [Phase 10](phase-10-pallet-town.md) |
-| O14 | Trainer card on A facing a player; friends list, private chat per friend, party group chat, add or invite from a zone chat line; chat channel chips and line-actions menu (D24) | 8 | 9 | [Phase 9](phase-9-social.md) |
+| O14 | Friends (requests, list with faces and status), direct messages, private channels, acting on a player (A facing them, chat line actions), social panel; parties dropped, trainer card moved to O17 (user 2026-11-12) | 8 | 9 | [Phase 9](phase-9-social/phase-9-social.md) M1-M6 |
+| O15 | Players across a map border: connected maps' players drawn together (D4) | 8 | 12 | [Phase 8 M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#follow-ups-later-phases), [Phase 12](phase-12-world-content.md) |
+| O16 | Chat word filter, muting, blocking a player (requests and messages) and reporting (D14; Phase 9 Q3) | 8 | 13 | [Phase 8 M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#follow-ups-later-phases), [Phase 13](phase-13-polish-launch.md) |
+| O17 | Another player's trainer card (A facing them, Colosseum seats) and link battle records | 9 | 13 | [Phase 9 D2](phase-9-social/milestones/context.md#scope), [Phase 13](phase-13-polish-launch.md) |
+| O19 | Push notifications for messages while the game is closed (PWA web push) | 9 | 13 | [Phase 9](phase-9-social/phase-9-social.md#scope), [Phase 13](phase-13-polish-launch.md) |
+| O20 | Pokémon Center 2F moves to Viridian's Pokémon Center (stairs from 1F, the room's door removed); attendants' Pokédex check | 9 | 12 | [Phase 9 D15, D17](phase-9-social/milestones/context.md#pokémon-center-2f), [Phase 12](phase-12-world-content.md) |
+| O21 | Traded Pokémon obey by badges (Gen 4 level caps) | 9 | 12 | [Phase 9 D24](phase-9-social/milestones/context.md#trading), [Phase 12](phase-12-world-content.md) |

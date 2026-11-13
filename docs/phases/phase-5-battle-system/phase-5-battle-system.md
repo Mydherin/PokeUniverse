@@ -30,7 +30,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · ✅ done · 
 | M13 | [Options, doubles, polish](milestones/m13-options-doubles-polish.md) | ✅ | SHIFT, doubles, double prize, partner animations, field texts, multi-hit replay; played |
 | M14 | [Battle check](milestones/m14-battle-check.md) | ✅ | Manual full check; real phone's frame rate left for the user |
 
-**Built in other phases:** following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 6](../phase-6-pokemon-party/phase-6-pokemon-party.md)), wild battles and catching ([Phase 7](../phase-7-wild-battles-catching/phase-7-wild-battles-catching.md)), PvP ([Phase 9](../phase-9-social.md)), the rival battle in Oak's lab ([Phase 10](../phase-10-pallet-town.md)).
+**Built in other phases:** following Pokémon, Bill's PC boxes, TM/HM teaching, items used on a Pokémon outside battle and Exp. Share ([Phase 6](../phase-6-pokemon-party/phase-6-pokemon-party.md)), wild battles and catching ([Phase 7](../phase-7-wild-battles-catching/phase-7-wild-battles-catching.md)), PvP ([Phase 9](../phase-9-social/phase-9-social.md)), the rival battle in Oak's lab ([Phase 10](../phase-10-pallet-town.md)).
 
 ## Done When
 
