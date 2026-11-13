@@ -2,7 +2,7 @@
 
 Current state of **every phase** of the project and everything still open, in one place. Details stay in each phase's file; this page only says where each phase stands and where leftovers went. The plan's principles and how a phase is tracked: [README.md](README.md).
 
-**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) in progress: 1/15 ✅ (M1), M2 🧪 (cases 5-8 left). **Updated:** 2026-11-13.
+**Current:** Phase 8, [Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md), done except the real-phone cases: 7/9 milestones ✅ (M1-M6, M8); [M7](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here) 🧪 (cases 9-10 and 11's naming screen) and [M9](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) 🧪 (case 6) wait on the user's iPhone and Android; what to play on each: [Phase 8 Resume Here](phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here). [Phase 9](phase-9-social/phase-9-social.md#resume-here) in progress: 2/15 ✅ (M1, M2), next M3. **Updated:** 2026-11-13.
 
 ## Milestones of Phases With Folders
 
@@ -12,7 +12,7 @@ Current state of **every phase** of the project and everything still open, in on
 | [6 Pokémon and Party](phase-6-pokemon-party/phase-6-pokemon-party.md#milestones) | 10 / 10 ✅ | |
 | [7 Wild Battles and Catching](phase-7-wild-battles-catching/phase-7-wild-battles-catching.md#milestones) | 8 / 8 ✅ | |
 | [8 Multiplayer World](phase-8-multiplayer-world/phase-8-multiplayer-world.md#milestones) | 7 / 9 (M7, M9 🧪: real phones) | [M7 phone cases](phase-8-multiplayer-world/milestones/m07-mobile-compose.md#resume-here), [M9 case 6](phase-8-multiplayer-world/milestones/m09-phase-check.md#resume-here) |
-| [9 Social](phase-9-social/phase-9-social.md#milestones) | 1 / 15 | [M2 Acting on a player](phase-9-social/milestones/m02-player-actions.md) |
+| [9 Social](phase-9-social/phase-9-social.md#milestones) | 2 / 15 | [M3 Social panel shell](phase-9-social/milestones/m03-social-shell.md) |
 
 ## Phases
 

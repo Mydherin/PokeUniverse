@@ -182,9 +182,10 @@
     font-family: var(--font-display);
     font-size: 0.875rem;
   }
-  .chat-ticker .social-notice { align-self: center; }
+  .chat-ticker .social-notice { align-self: center; flex: 1; }
   .chat-log-box { position: relative; }
-  .chat-ticker .chat-log-box:has(.social-notice:not([hidden])) .chat-log { display: none; }
+  /* !important: the canvas's `block` utility outranks this layer. */
+  .chat-ticker .chat-log-box:has(.social-notice:not([hidden])) .chat-log { display: none !important; }
   .chat-actions {
     position: absolute;
     left: 50%;
