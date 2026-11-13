@@ -43,8 +43,8 @@ const json = (body: string): RequestInit => ({ headers: { "Content-Type": "appli
 export class Channels {
   /** Pending invites to the player, by channel ID. */
   readonly invites = new Map<bigint, ChannelInvite>();
-  /** The player is out of a channel (left, removed, deleted): its conversation is gone. */
-  gone: (c: Conversation, change: ChannelMemberChange) => void = () => {};
+  /** The player is out of a channel (left, removed, deleted): its conversation is gone. No change: found gone on a reload (no notice). */
+  gone: (c: Conversation, change?: ChannelMemberChange) => void = () => {};
   /** A notice for the panel (an invite came, someone joined or left). */
   notice: (text: string, c: Conversation | null) => void = () => {};
   /** Members changed: an open members view reads them again. */
@@ -80,7 +80,11 @@ export class Channels {
 
   /** The channels the list no longer has (left or deleted while offline). */
   prune(kept: Set<bigint>): void {
-    for (const c of this.conversations.list) if (c.kind === "room" && !kept.has(c.serverId)) this.conversations.remove(c.id);
+    for (const c of this.conversations.list)
+      if (c.kind === "room" && !kept.has(c.serverId)) {
+        this.conversations.remove(c.id);
+        this.gone(c);
+      }
   }
 
   apply(e: SocialEvent): void {

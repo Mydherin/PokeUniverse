@@ -558,7 +558,7 @@ export class ChatWindow {
       if (this.pc.channel.channel === c || this.phone.channel.channel === c) this.hideMembers();
       if (this.conversations.current === c) this.conversations.current = this.conversations.zone;
       const why = change === ChannelMemberChange.LEFT ? `You left ${c.title}.` : change === ChannelMemberChange.REMOVED ? `You were removed from ${c.title}.` : `${c.title} was deleted.`;
-      this.notice(why);
+      if (change !== undefined) this.notice(why);
       this.state();
     };
     close.addEventListener("click", () => this.close());

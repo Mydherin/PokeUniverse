@@ -297,6 +297,8 @@
   .chat-sheet[data-tab="friends"] .social-list,
   .chat-sheet[data-view="list"] .social-back,
   .chat-sheet[data-view="list"] .social-title,
+  .chat-sheet[data-view="list"] .social-members-open,
+  .chat-panel[data-panes="one"][data-view="list"] .social-members-open,
   .chat-sheet[data-view="thread"] .social-tabs { display: none; }
   .chat-ticker-label:empty { display: none; }
   .chat-ticker-label {

@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress.** M1-M5 ✅ (2026-11-13). [M6](milestones/m06-private-channels.md#resume-here) 🚧: code done, cases 1-3 passed headless only; next: play cases 1-9 in the built-in browser pane (user rule 2026-11-14; its Resume Here has the pane setup), then drop the `TEMP-PLAYIT` hook (its Resume Here has the steps and driver). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
+**In progress.** M1-M6 ✅ (M6 2026-11-14, every case played in the built-in browser pane). Next: [M7](milestones/m07-pokemon-center-2f.md) (Pokémon Center 2F); the pane setup for Manual Tests is in [M6's Resume Here](milestones/m06-private-channels.md#resume-here). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
 
 Carried in: O14 (from Phase 8, rewritten: parties became private channels and the trainer card moved out, D1, D2).
 
@@ -19,7 +19,7 @@ Order = dependencies. Marks: ⬜ not started · 🚧 in progress · 🧪 code do
 | M3 | [Social panel shell](milestones/m03-social-shell.md) | ✅ | | The chat becomes the social panel: CHATS and FRIENDS tabs, conversation list ↔ thread, desktop two-pane, phone sheet with back/swipe gestures, unread badges, toasts; Zone is the first conversation |
 | M4 | [Friends list](milestones/m04-friends-list.md) | ✅ | M1, M3 | FRIENDS tab: requests in/out, friends with face, name, status, last seen; tap → message; remove |
 | M5 | [Direct messages](milestones/m05-direct-messages.md) | ✅ | M1, M3 | One conversation per friend pair: saved before shown, history paged, read markers, unread counts, across replicas |
-| M6 | [Private channels](milestones/m06-private-channels.md) | 🚧 | M5 | Create, name, invite friends, accept or decline, leave, owner removes, renames, deletes; up to 50 members; same thread view |
+| M6 | [Private channels](milestones/m06-private-channels.md) | ✅ | M5 | Create, name, invite friends, accept or decline, leave, owner removes, renames, deletes; up to 50 members; same thread view |
 | M7 | [Pokémon Center 2F](milestones/m07-pokemon-center-2f.md) | ⬜ | | The 2F map, a door in the player's room to it, its three attendants as FireRed's (Wireless Club, Union Room with the MMO joke, Direct Corner menus), the save exchange |
 | M8 | [Link rooms](milestones/m08-link-rooms.md) | ⬜ | M7, M1 | BECOME LEADER / JOIN GROUP with FireRed's leader and member screens; open rooms per 2F zone; two players walk into a private Trade Center or Colosseum (own zone phase); leaving ends the link |
 | M9 | [Trade: menu and transaction](milestones/m09-trade-menu.md) | ⬜ | M8 | Trade Center seats, FireRed's trade menu with both parties, SUMMARY, choose, cancel, "Is this trade okay?", FireRed's trade rules, the swap in one transaction |

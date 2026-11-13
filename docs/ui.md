@@ -77,6 +77,8 @@ Phase 8's chat grown into the social panel ([Phase 9](phases/phase-9-social/mile
 - **PC:** beside or below the game, the game sized first (the panel's width is what the game leaves, so two panes show only on windows wider than about 16:9). Two panes (list | thread) when the panel is ≥ 480 px, else one pane with a back button. Closed, it shows the current thread ("T to chat"). Keys: `T` opens the last conversation, `Esc` back then close, `Alt+↑/↓` switch, `Enter` send. A line to a conversation not on screen: toast at the panel top (click opens it).
 - **Phones:** the button (badge: unread lines plus friend requests) and ticker (lines of every unmuted conversation, labeled) stay; tapping opens the sheet on the list; a row pushes the thread (history entry: system back and the back arrow pop it); swipe right from the thread's left half (not the screen edge) goes back; swipe down on the header closes. The thread doesn't focus the field by itself.
 - **Long-press (or right-click) a row:** MUTE / UNMUTE (this session), LEAVE (rooms), REMOVE FRIEND (friends).
+- **Direct and channel lines:** grey while sending; refused shows `× text` in red, tap to retry.
+- **Channels (Phase 9 M6):** invites lead CHATS (ACCEPT / DECLINE), NEW CHANNEL ends it (name field, FireRed charset); a channel thread's head has MEMBERS (also the title), which opens the members view over the thread (★ OWNER, INVITED for the owner; owner: INVITE, RENAME, LEAVE, DELETE, long-press / right-click a member → REMOVE; YES/NO in the bar); on phones a history entry (back closes it); MEMBERS shows only in a thread.
 - **No page moves:** lists `overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y`; the sheet `touch-action: none`.
 
 ## Mobile Keyboard

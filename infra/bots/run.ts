@@ -525,11 +525,18 @@ async function add(from: number, n: number, map: string): Promise<void> {
 
 /** A friend route as bot b (phase-9 M1); prints a failure. */
 async function social(b: Bot, method: string, path: string, body?: unknown): Promise<boolean> {
-  const res = await fetch(new URL(path, base), {
-    method,
-    headers: { Authorization: `Bearer ${b.token}`, "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let res: Response;
+  // The per-IP rate limit answers 429 (every bot shares one IP): wait its Retry-After and try again.
+  for (let tries = 0; ; tries++) {
+    res = await fetch(new URL(path, base), {
+      method,
+      headers: { Authorization: `Bearer ${b.token}`, "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    if (res.status !== 429 || tries === 5) break;
+    await res.text();
+    await new Promise((r) => setTimeout(r, 1000 * Number(res.headers.get("Retry-After") ?? 1)));
+  }
   if (!res.ok) console.warn(`bot-${b.n}: ${method} ${path}: ${res.status} ${(await res.text()).trim()}`);
   return res.ok;
 }
