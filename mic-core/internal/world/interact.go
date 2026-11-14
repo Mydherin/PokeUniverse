@@ -126,7 +126,12 @@ var tileScripts = map[mapv1.TileBehavior]tileScript{
 // signpost tiles. Nil when nothing answers. Some NPCs' scripts read the party (partyScripts).
 func Interaction(m *Map, p Point, d mapv1.Direction, walkInto bool, party pokemon.Party) (Script, string) {
 	at := p.Step(d)
-	if o := m.NpcAt(at); o != nil && !walkInto {
+	o := m.NpcAt(at)
+	if o == nil && m.Behavior(at) == mapv1.TileBehavior_TILE_BEHAVIOR_COUNTER {
+		// An NPC on the other side of a counter (GetInteractedObjectEventScript).
+		o = m.NpcAt(at.Step(d))
+	}
+	if o != nil && !walkInto {
 		if build := partyScripts[o.GetNpc().GetScript()]; build != nil {
 			return build(party), o.Id
 		}

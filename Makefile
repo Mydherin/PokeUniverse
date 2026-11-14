@@ -23,6 +23,7 @@ FIRERED_GFX_FILES := door_anims/cable_club.png weather/fog_horizontal.png fonts/
 	object_events/pics/people/red_normal.png object_events/pics/people/green_normal.png object_events/palettes/player.pal \
 	object_events/pics/people/red_surf_run.png object_events/pics/people/green_surf_run.png \
 	object_events/pics/people/cooltrainer_m.png object_events/pics/people/mom.png object_events/palettes/npc_blue.pal \
+	object_events/pics/people/cable_club_receptionist.png object_events/pics/people/union_room_receptionist.png object_events/palettes/npc_white.pal \
 	field_effects/pics/tall_grass.png field_effects/palettes/general_1.pal \
 	help_system/msg_window.png trainer_card/tiles.png trainer_card/front.bin trainer_card/back.bin trainer_card/bg.bin \
 	trainer_card/blue.pal trainer_card/female_bg.pal trainers/front_pics/red_front_pic.png trainers/front_pics/leaf_front_pic.png \

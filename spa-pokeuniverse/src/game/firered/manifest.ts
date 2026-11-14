@@ -147,6 +147,9 @@ const NEW_GAME_GRAPHICS = {
   owCooltrainerM: { png: "object_events/pics/people/cooltrainer_m.png" },
   owMom: { png: "object_events/pics/people/mom.png" },
   owNpcBluePal: { pal: "object_events/palettes/npc_blue.pal" },
+  owCableClubReceptionist: { png: "object_events/pics/people/cable_club_receptionist.png" },
+  owUnionRoomReceptionist: { png: "object_events/pics/people/union_room_receptionist.png" },
+  owNpcWhitePal: { pal: "object_events/palettes/npc_white.pal" },
   // Field effects (tall-grass.ts): the grass over the feet in tall grass, and its palette
   fxTallGrass: { png: "field_effects/pics/tall_grass.png" },
   fxGeneral1Pal: { pal: "field_effects/palettes/general_1.pal" },

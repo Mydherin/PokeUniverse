@@ -12,6 +12,8 @@ import { characterSheet } from "./player-sprite";
 const SPRITES: Record<string, { pic: GraphicId; palette: GraphicId }> = {
   cooltrainer_m: { pic: "owCooltrainerM", palette: "owNpcBluePal" },
   mom: { pic: "owMom", palette: "owNpcBluePal" },
+  cable_club_receptionist: { pic: "owCableClubReceptionist", palette: "owNpcWhitePal" },
+  union_room_receptionist: { pic: "owUnionRoomReceptionist", palette: "owNpcWhitePal" },
 };
 
 /** Standing frames: south, north, west; east is west flipped. */
