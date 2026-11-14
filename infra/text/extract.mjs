@@ -53,6 +53,8 @@ const OUR_STRINGS = {
   PU_Text_AlreadyRequested: "You already sent {STR_VAR_1}\\na friend request.",
   PU_Text_FriendRequestFailed: "The friend request couldn't\\nbe sent.",
   PU_Text_WantsToBeFriends: "{STR_VAR_1} wants to be friends.",
+  // The Union Room attendant's YES (phase-9 D17): the whole world is already a Union Room.
+  PU_Text_UnionRoomJoke: "Oh, but you're already in it!\\pThis whole world is a UNION ROOM.\\nEveryone you see is linked!",
 };
 for (const [label, text] of Object.entries(OUR_STRINGS)) found.set(label, () => [...encode(text, label), 0xff]);
 // Assembly: gName:: then .string lines; "$" ends the string. Shared texts, each map's texts and

@@ -1,6 +1,8 @@
 package world
 
 import (
+	"pokeuniverse/mic-core/internal/pokemon"
+
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 )
@@ -121,10 +123,13 @@ var tileScripts = map[mapv1.TileBehavior]tileScript{
 // Interaction is what the player at p facing d checks with A, in FireRed's order: an NPC on
 // the faced tile (it turns to the player: the NPC's ID is returned), a sign there, then the
 // faced tile's behavior. walkInto is walking up to a signpost, which only reads signs on
-// signpost tiles. Nil when nothing answers.
-func Interaction(m *Map, p Point, d mapv1.Direction, walkInto bool) (Script, string) {
+// signpost tiles. Nil when nothing answers. Some NPCs' scripts read the party (partyScripts).
+func Interaction(m *Map, p Point, d mapv1.Direction, walkInto bool, party pokemon.Party) (Script, string) {
 	at := p.Step(d)
 	if o := m.NpcAt(at); o != nil && !walkInto {
+		if build := partyScripts[o.GetNpc().GetScript()]; build != nil {
+			return build(party), o.Id
+		}
 		if script := npcScripts[m.ID+"."+o.GetNpc().GetScript()]; len(script) > 0 {
 			return script, o.Id
 		}

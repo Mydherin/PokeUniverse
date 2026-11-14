@@ -148,5 +148,6 @@
   "gText_CantUseHere", "gText_NothingToCut", "gText_CantSurfHere", "gText_NotEnoughHp", "gText_CantBeUsedOnPkmn",
   "Text_TrainerTooBusyToNotice",
   "PU_Text_AddFriend", "PU_Text_Message", "PU_Text_Invite", "PU_Text_SentFriendRequest", "PU_Text_NowFriends",
-  "PU_Text_AlreadyRequested", "PU_Text_FriendRequestFailed", "PU_Text_WantsToBeFriends"
+  "PU_Text_AlreadyRequested", "PU_Text_FriendRequestFailed", "PU_Text_WantsToBeFriends",
+  "CableClub_Text_AskAboutLinking", "CableClub_Text_ExplainWirelessClub", "CableClub_Text_HopeYouEnjoyWirelessSystem", "CableClub_Text_WelcomeUnionRoomEnter", "CableClub_Text_UnionRoomInfo", "PU_Text_UnionRoomJoke", "CableClub_Text_PleaseVisitAgain", "CableClub_Text_WelcomeWhichDirectCornerRoom", "CableClub_Text_TradePokemon", "CableClub_Text_NeedTwoMonsToTrade", "CableClub_Text_PlayWhichBattleMode", "CableClub_Text_NeedTwoMonsForDoubleBattle", "CableClub_Text_ExplainBattleModes", "CableClub_Text_ChooseGroupLeaderOfTwo", "CableClub_Text_ChooseGroupLeaderOfFour", "gText_Yes", "gText_No", "gText_Info", "gText_TradeCenter", "gText_Colosseum_2", "gText_SingleBattle", "gText_DoubleBattle", "gText_MultiBattle", "gText_JoinGroup", "gText_BecomeLeader"
 ]

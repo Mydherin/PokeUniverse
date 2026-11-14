@@ -23,7 +23,7 @@ import { Gender as MonGender } from "@pokeuniverse/contracts/pokemon/v1/pokemon"
 import { ItemOutcome, ItemResultSchema, type BagChanged, type ItemResult } from "@pokeuniverse/contracts/item/v1/bag";
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
 import type { ClientMap } from "@pokeuniverse/contracts/map/v1/map";
-import { Direction } from "@pokeuniverse/contracts/map/v1/map";
+import { Direction, TileBehavior } from "@pokeuniverse/contracts/map/v1/map";
 import { ButtonMode, type Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
@@ -55,6 +55,9 @@ import { getSession } from "../../auth/session";
 import { OtherPlayerSprite } from "./other-player-sprite";
 import { SaveDialog } from "./save-dialog";
 import { ArrivingStairs, LeavingStairs } from "./stair-warp";
+import { isMultichoice, ScriptMultichoice } from "./script-multichoice";
+import { ArrivingDoor, ArrivingEscalator, Door, LeavingDoor, LeavingEscalator } from "./door-warp";
+import { isEscalator } from "../world/avatar";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
 import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-messages";
 import { startItemPc, type ItemPcHost } from "./item-pc";
@@ -230,16 +233,25 @@ interface Running {
   battling: boolean;
   /** The menu on another player of a playerMenu step (phase-9 D4), while it is open. */
   playerMenu: PlayerMenuRun | null;
+  /** A multichoice step's menu, while it is open. */
+  multichoice: ScriptMultichoice | null;
+  /** An askSave step's dialog, while it runs. */
+  saving: SaveDialog | null;
 }
 
 /** A warp under way, from the moment the player leaves until the next map is placed. */
 interface Warp {
   /** The sprite leaving; none when the warp was cancelled and mic-core's answer came after all. */
-  stairs: LeavingStairs | null;
+  leaving: Animation | null;
   /** mic-core's answer. */
   arrival: Warped | null;
   /** The next map is loading, on the black screen. */
   loading: boolean;
+}
+
+/** A warp's animation, one frame at a time; true once done (stair-warp.ts, door-warp.ts). */
+interface Animation {
+  update(): boolean;
 }
 
 /** Where an NPC turns to face the player who faces it (faceplayer). */
@@ -268,7 +280,8 @@ class Overworld {
   private npcs!: NpcSprite[];
   private readonly gender: Gender;
   private warp: Warp | null = null;
-  private arriving: ArrivingStairs | null = null;
+  private arriving: Animation | null = null;
+  private doors: Door[] = [];
   private destroyed = false;
   private message!: FieldMessage;
   /** The battle the trainer is in (its ID): the player can't move until it ends. */
@@ -352,7 +365,7 @@ class Overworld {
         else if (hidden) this.tallGrass.enter("follower", x, y, true);
       },
       turn: (d) => link.turn(d),
-      warp: (d, x, y) => this.leaveByStairs(d, x, y),
+      warp: (d, x, y) => this.leaveByWarp(d, x, y),
       interact: (walkInto) => link.interact(walkInto),
       openMenu: () => this.openMenu(false),
       useRegistered: () => this.useRegistered(),
@@ -363,6 +376,7 @@ class Overworld {
     this.followerSprite = new FollowerSprite(world, flow.assets);
     this.npcs = map.npcs.map((n) => new NpcSprite(world, flow.assets, n));
     this.tallGrass = new TallGrass(world, flow.assets, map);
+    this.doors = Door.onMap(world, flow.assets, map);
     this.regrass();
     const self = getSession()?.account.id ?? 0n;
     // A new map: its chat starts empty (D13).
@@ -879,14 +893,20 @@ class Overworld {
       return;
     }
     this.flow.gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
-    this.warp = { stairs: null, arrival: w, loading: false };
+    this.warp = { leaving: null, arrival: w, loading: false };
   }
 
-  /** The stairs, predicted: the sprite starts leaving at once. */
-  private leaveByStairs(d: Direction, x: number, y: number): void {
-    const { flow, avatar, sprite } = this;
+  /** A stair, door or escalator warp, predicted: the sprite starts leaving at once. */
+  private leaveByWarp(d: Direction, x: number, y: number): void {
+    const { flow, avatar, sprite, map } = this;
     flow.link.useWarp(d, x, y);
-    this.warp = { stairs: new LeavingStairs(flow, avatar, sprite, behaviorAt(this.map, x, y)), arrival: null, loading: false };
+    const here = behaviorAt(map, x, y);
+    let leaving: Animation;
+    if (isEscalator(here)) leaving = new LeavingEscalator(flow, sprite, here);
+    else if (d === Direction.NORTH && behaviorAt(map, x, y - 1) === TileBehavior.WARP_DOOR)
+      leaving = new LeavingDoor(flow, avatar, sprite, this.doors.find((door) => door.x === x && door.y === y - 1));
+    else leaving = new LeavingStairs(flow, avatar, sprite, here);
+    this.warp = { leaving, arrival: null, loading: false };
   }
 
   /** mic-core refused, or the connection came back without the warp: the player stays here. */
@@ -896,6 +916,8 @@ class Overworld {
     this.nextZone = [];
     this.sprite.offsetX = this.sprite.offsetY = 0;
     this.sprite.forceOver = false;
+    this.sprite.visible = true;
+    for (const door of this.doors) if (door.running) door.close();
     const { palettes } = this.flow.gba;
     if (!palettes.fadeActive && palettes.fadeY === 0) return;
     palettes.stopFade();
@@ -918,7 +940,11 @@ class Overworld {
         // The same song keeps playing (TryFadeOutOldMapMusic).
         if (map.music && map.music !== previousMusic) flow.gba.sound.playBgm(map.music);
         this.enter(false);
-        this.arriving = new ArrivingStairs(flow, this.avatar, this.sprite, behaviorAt(map, to.x, to.y));
+        const at = behaviorAt(map, to.x, to.y);
+        if (isEscalator(at)) this.arriving = new ArrivingEscalator(flow, this.avatar, this.sprite, at);
+        else if (at === TileBehavior.WARP_DOOR)
+          this.arriving = new ArrivingDoor(flow, this.avatar, this.sprite, this.doors.find((door) => door.x === to.x && door.y === to.y));
+        else this.arriving = new ArrivingStairs(flow, this.avatar, this.sprite, at);
       },
       () => {
         if (!this.destroyed) this.leave();
@@ -931,7 +957,7 @@ class Overworld {
     if (this.arriving?.update()) this.arriving = null;
     const w = this.warp;
     if (!w) return;
-    const black = w.stairs ? w.stairs.update() : !this.flow.gba.palettes.fadeActive;
+    const black = w.leaving ? w.leaving.update() : !this.flow.gba.palettes.fadeActive;
     if (black && w.arrival) this.travel(w, w.arrival);
   }
 
@@ -944,7 +970,7 @@ class Overworld {
       return;
     }
     if (!s.steps.length) return;
-    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null };
+    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null, multichoice: null, saving: null };
     // A trainer's script: the battle's art and sounds load while they talk.
     if (s.steps.some((step) => step.action.case === "trainerBattle" || step.action.case === "wildBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
@@ -963,6 +989,8 @@ class Overworld {
     this.followerSprite.destroy();
     this.others.clear();
     this.tallGrass.destroy();
+    for (const door of this.doors) door.destroy();
+    this.doors = [];
     for (const npc of this.npcs) npc.destroy();
   }
 
@@ -1107,6 +1135,7 @@ class Overworld {
     this.followerSprite.update(this.follower, this.avatar.overTiles);
     this.tallGrass.overFade = this.sprite.overFade;
     this.tallGrass.update();
+    for (const door of this.doors) door.update();
     this.flow.world.setCamera(this.avatar.pixelX - PLAYER_X, this.avatar.pixelY - PLAYER_Y);
   }
 
@@ -1182,6 +1211,35 @@ class Overworld {
         s.index++;
         continue;
       }
+      if (step.action.case === "jump") {
+        s.index = step.action.value;
+        continue;
+      }
+      if (step.action.case === "end") return this.endScript(true);
+      if (step.action.case === "multichoice") {
+        const { menu, to } = step.action.value;
+        let chosen: number | null;
+        if (isMultichoice(menu)) {
+          s.multichoice ??= new ScriptMultichoice(this.flow, menu);
+          chosen = s.multichoice.update();
+          if (chosen !== null) s.multichoice = null;
+        } else {
+          const yes = this.runYesNo(s);
+          chosen = yes === null ? null : yes ? 0 : 1;
+        }
+        if (chosen === null) return;
+        s.index = to[Math.min(chosen, to.length - 1)];
+        continue;
+      }
+      // EventScript_AskSaveGame: SAVE's dialog, nothing saved (D17).
+      if (step.action.case === "askSave") {
+        s.saving ??= new SaveDialog(this.flow, this.message, { playerName: this.playerName, region: this.map.region, pokedex: this.pokedex });
+        const outcome = s.saving.update();
+        if (outcome === null) return;
+        s.saving = null;
+        s.index = outcome === "saved" ? s.index + 1 : step.action.value;
+        continue;
+      }
       if (step.action.case === "yesNo") {
         const yes = this.runYesNo(s);
         if (yes === null) return;
@@ -1221,13 +1279,23 @@ class Overworld {
       }
       if (this.message.printing) return;
       // A question (msgbox MSGBOX_YESNO): the YES/NO menu opens as soon as it's printed.
-      const asks = s.steps[s.index + 1]?.action.case === "yesNo";
+      const asks = ["yesNo", "multichoice"].includes(this.nextStep(s, s.index + 1)?.action.case ?? "");
       if (!asks && !this.flow.gba.input.isPressed(Button.A | Button.B)) return;
       s.waiting = false;
       s.index++;
       // Pressed this frame: the player doesn't also act on it.
       this.flow.gba.input.pressed &= ~(Button.A | Button.B);
     }
+  }
+
+  /** The step the script runs at `index`, past its jumps. */
+  private nextStep(s: Running, index: number): ScriptStep | undefined {
+    for (let n = 0; n < s.steps.length; n++) {
+      const step = s.steps[index];
+      if (step?.action.case !== "jump") return step;
+      index = step.action.value;
+    }
+    return undefined;
   }
 
   /** The YES/NO menu over the message: true YES, false NO (or B), null while it waits. */
@@ -1243,6 +1311,7 @@ class Overworld {
 
   private endScript(done: boolean): void {
     this.script?.playerMenu?.close();
+    this.script?.multichoice?.close();
     if (this.script && done) this.flow.link.scriptDone(this.script.id);
     this.script = null;
     // Sweet Scent's battle didn't start: the field comes back from its red.

@@ -40,7 +40,7 @@ export interface AvatarInput {
 export interface AvatarLink {
   move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
   turn(direction: Direction): void;
-  /** Going the way of the stair warp the player stands on. */
+  /** Taking a warp: the stair warp stood on going its way, the door in front going north, or the escalator just stepped on. */
   warp(direction: Direction, x: number, y: number): void;
   interact(walkInto: boolean): void;
   /** START, standing still between steps: the START menu opens. */
@@ -122,6 +122,12 @@ export class Avatar {
       this.running = Running.Still;
       return;
     }
+    // TryStartWarpEventScript: a step onto an escalator takes its warp.
+    if (arrived && isEscalator(behaviorAt(this.map, this.x, this.y)) && warpAt(this.map, this.x, this.y)) {
+      this.running = Running.Still;
+      this.link.warp(this.facing, this.x, this.y);
+      return;
+    }
     if (arrived && this.walkIntoSignpost(input.direction)) return;
     if (input.check) {
       this.waiting = true;
@@ -157,6 +163,18 @@ export class Avatar {
     else this.start("walkInPlace", WALK_FRAMES);
   }
 
+  /** A scripted walk of one step (a door's or an escalator's arrival), sent as a step. */
+  forceWalk(d: Direction): void {
+    this.facing = d;
+    this.link.move(++this.step >>> 0, d, false, this.x, this.y);
+    const [dx, dy] = DELTAS[d];
+    this.elevation = elevationAfter(this.map, this.elevation, this.x, this.y, this.x + dx, this.y + dy);
+    if (this.elevation !== 0 && this.elevation !== 15) this.layerElevation = this.elevation;
+    this.x += dx;
+    this.y += dy;
+    this.start("walk", WALK_FRAMES);
+  }
+
   /** CheckMovementInputNotOnBike and what follows it. */
   private decide({ direction: d, run }: AvatarInput): void {
     if (d === Direction.UNSPECIFIED) {
@@ -170,6 +188,12 @@ export class Avatar {
       return;
     }
     this.running = Running.Moving;
+    // TryDoorWarp: going north into a door takes its warp.
+    if (d === Direction.NORTH && behaviorAt(this.map, this.x, this.y - 1) === TileBehavior.WARP_DOOR && warpAt(this.map, this.x, this.y - 1)) {
+      this.running = Running.Still;
+      this.link.warp(d, this.x, this.y);
+      return;
+    }
     switch (checkStep(this.map, this.x, this.y, this.elevation, d)) {
       case Collision.StairWarp:
         if (d === this.facing && warpAt(this.map, this.x, this.y)) {
@@ -218,4 +242,8 @@ export class Avatar {
     // The walk animation alternates feet; a bump plays it whole and ends where it began.
     if (kind !== "bump") this.foot ^= 1;
   }
+}
+
+export function isEscalator(b: TileBehavior): boolean {
+  return b === TileBehavior.UP_ESCALATOR || b === TileBehavior.DOWN_ESCALATOR;
 }

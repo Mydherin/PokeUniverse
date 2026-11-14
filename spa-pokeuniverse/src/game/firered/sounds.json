@@ -194,5 +194,8 @@
   "se_m_whirlpool": { "song": "se_m_whirlpool" },
   "se_m_wing_attack": { "song": "se_m_wing_attack" },
   "se_m_yawn": { "song": "se_m_yawn" },
-  "se_shiny": { "song": "se_shiny" }
+  "se_shiny": { "song": "se_shiny" },
+  "mus_poke_center": { "song": "mus_poke_center" },
+  "se_sliding_door": { "song": "se_sliding_door" },
+  "se_escalator": { "song": "se_escalator" }
 }

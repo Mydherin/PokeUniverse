@@ -4,7 +4,7 @@
 
 ## Resume Here
 
-**In progress.** M1-M6 ✅ (M6 2026-11-14, every case played in the built-in browser pane). [M7](milestones/m07-pokemon-center-2f.md#resume-here) (Pokémon Center 2F) in progress: maps, the room's door and server warps done; next the client's door and escalator warps, then the attendants; the pane setup for Manual Tests is in [M6's Resume Here](milestones/m06-private-channels.md#resume-here). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
+**In progress.** M1-M6 ✅ (M6 2026-11-14, every case played in the built-in browser pane). [M7](milestones/m07-pokemon-center-2f.md#resume-here) (Pokémon Center 2F) in progress: all code written (maps, door, server and client warps, the three attendants with branching scripts, the save exchange); next rebuild the stack and play cases 1-8; the pane setup for Manual Tests is in [M6's Resume Here](milestones/m06-private-channels.md#resume-here). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context.md](milestones/context.md) sections it names.
 
 Carried in: O14 (from Phase 8, rewritten: parties became private channels and the trainer card moved out, D1, D2).
 

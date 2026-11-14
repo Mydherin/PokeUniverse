@@ -245,7 +245,7 @@ func (z *zone) interact(p *Player, walkInto bool) {
 		return
 	}
 	if !p.busy() {
-		if steps, npc := Interaction(z.m, p.pos, p.facing, walkInto); len(steps) > 0 {
+		if steps, npc := Interaction(z.m, p.pos, p.facing, walkInto, p.party); len(steps) > 0 {
 			p.lastScript++
 			p.script = p.lastScript
 			reply.Id, reply.Steps, reply.Npc = p.script, z.withPlayer(p, steps), npc

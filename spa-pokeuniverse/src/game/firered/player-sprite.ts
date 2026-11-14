@@ -133,6 +133,8 @@ export class PlayerSprite {
   forceOver = false;
   /** Left out of the field's fade (Sweet Scent's, which skips the player's palette). */
   overFade = false;
+  /** Hidden, e.g. behind a door it went through (SetPlayerVisibility). */
+  visible = true;
   private readonly view: CharacterView;
 
   constructor(world: WorldView, assets: Assets, gender: Gender) {
@@ -145,6 +147,7 @@ export class PlayerSprite {
     this.view.setFrame(frameOf(avatar.facing, avatar.action), avatar.facing === Direction.EAST);
     this.view.setOverTiles(this.forceOver || avatar.overTiles);
     this.view.setOverFade(this.overFade);
+    this.view.setVisible(this.visible);
   }
 
   destroy(): void {

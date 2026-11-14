@@ -256,7 +256,25 @@ message ScriptStep {
     // A facing another player (phase-9 D4): their name and FireRed's multichoice of what the
     // player can do; the script goes on once it closes.
     PlayerMenu player_menu = 10;
+    // FireRed's multichoice (or YES/NO box) over the last message; the script jumps to the step the
+    // choice names (phase-9 M7, the Cable Club attendants).
+    Multichoice multichoice = 11;
+    // The script goes on at this step (goto).
+    uint32 jump = 12;
+    // FireRed's save dialog before a link (Field_AskSaveTheGame, phase-9 D17), nothing saved: saved
+    // goes on, cancelled jumps to this step.
+    uint32 ask_save = 13;
+    // The script ends here (true).
+    bool end = 14;
   }
+}
+
+// A menu of choices; `to` holds the step each choice jumps to, in the menu's order, then B's.
+message Multichoice {
+  // The menu, by FireRed's list: "yes_no" (the YES/NO box), "yes_no_info", "trade_colosseum_2",
+  // "single_double_multi_info_exit", "join_or_lead".
+  string menu = 1;
+  repeated uint32 to = 2;
 }
 
 // The player A faced: who, and what they are to the player (phase-9 D4).

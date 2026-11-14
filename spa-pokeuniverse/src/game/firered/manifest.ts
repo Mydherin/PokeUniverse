@@ -150,6 +150,8 @@ const NEW_GAME_GRAPHICS = {
   // Field effects (tall-grass.ts): the grass over the feet in tall grass, and its palette
   fxTallGrass: { png: "field_effects/pics/tall_grass.png" },
   fxGeneral1Pal: { pal: "field_effects/palettes/general_1.pal" },
+  // The Cable Club door (door-warp.ts): its opening frames and palette (its tileset's)
+  doorCableClub: { png: "door_anims/cable_club.png", pal: "door_anims/cable_club.pal" },
   owGreenRun: { png: "object_events/pics/people/green_surf_run.png" },
   signpostFrame: { png: "text_window/signpost.png" },
   textWindowPal1: { pal: "text_window/stdpal_1.pal" },
@@ -459,6 +461,9 @@ export const NEW_GAME_SOUNDS = [
   "se_ball_tray_enter",
   "se_save",
   "se_exit",
+  // Door and escalator warps (door-warp.ts)
+  "se_sliding_door",
+  "se_escalator",
 ] as const;
 /** The battle's music and sounds, loaded with the battle set. */
 export const BATTLE_SOUNDS = [
@@ -562,6 +567,22 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "flavor.neatly_lined_up_tools": "Text_NeatlyLinedUpTools",
   "flavor.pokemart_sign": "Text_PokemartSign",
   "flavor.pokecenter_sign": "Text_PokecenterSign",
+  // The Pokémon Center 2F attendants (phase-9 M7, mic-core cable_club.go)
+  "cable_club.ask_about_linking": "CableClub_Text_AskAboutLinking",
+  "cable_club.explain_wireless_club": "CableClub_Text_ExplainWirelessClub",
+  "cable_club.hope_you_enjoy_wireless_system": "CableClub_Text_HopeYouEnjoyWirelessSystem",
+  "cable_club.welcome_union_room_enter": "CableClub_Text_WelcomeUnionRoomEnter",
+  "cable_club.union_room_info": "CableClub_Text_UnionRoomInfo",
+  "cable_club.union_room_joke": "PU_Text_UnionRoomJoke",
+  "cable_club.please_visit_again": "CableClub_Text_PleaseVisitAgain",
+  "cable_club.welcome_which_direct_corner_room": "CableClub_Text_WelcomeWhichDirectCornerRoom",
+  "cable_club.trade_pokemon": "CableClub_Text_TradePokemon",
+  "cable_club.need_two_mons_to_trade": "CableClub_Text_NeedTwoMonsToTrade",
+  "cable_club.play_which_battle_mode": "CableClub_Text_PlayWhichBattleMode",
+  "cable_club.need_two_mons_for_double_battle": "CableClub_Text_NeedTwoMonsForDoubleBattle",
+  "cable_club.explain_battle_modes": "CableClub_Text_ExplainBattleModes",
+  "cable_club.choose_group_leader_of_two": "CableClub_Text_ChooseGroupLeaderOfTwo",
+  "cable_club.choose_group_leader_of_four": "CableClub_Text_ChooseGroupLeaderOfFour",
 };
 
 export interface Graphic {
