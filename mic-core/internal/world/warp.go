@@ -64,6 +64,7 @@ func (z *zone) leaveByWarp(p *Player, m *worldv1.UseWarp, at time.Time) (*Map, P
 		z.correct(p, 0)
 		return nil, Point{}
 	}
+	z.linkGone(p, false)
 	z.remove(p)
 	return to, spot
 }

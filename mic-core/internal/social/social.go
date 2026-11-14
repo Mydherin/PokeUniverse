@@ -112,6 +112,11 @@ func (s *Service) publish(to int64, ev *socialv1.SocialEvent) {
 	}
 }
 
+// Link sends a link room event to the player's inbox (phase-9 M8).
+func (s *Service) Link(to int64, ev *socialv1.LinkEvent) {
+	s.publish(to, &socialv1.SocialEvent{Event: &socialv1.SocialEvent_Link{Link: ev}})
+}
+
 // SetPresence records what the player is doing now and pushes it to their online friends, at
 // most once per presenceEvery: a change inside that time is pushed when it ends, and only the
 // latest one. ONLINE also clears busy, OFFLINE saves the last seen time. It never blocks.

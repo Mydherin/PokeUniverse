@@ -164,6 +164,10 @@ message ZoneEvent {
     PlayerFollower follower = 5;
     PlayerBattle battle = 6;
     ChatMessage chat = 7;
+    // A leader opened a link room in the zone (phase-9 D19); shown on the member screen.
+    pokeuniverse.social.v1.LinkRoom link_room_opened = 8;
+    // A leader's room closed (the leader's ID).
+    uint64 link_room_closed = 9;
   }
 }
 
@@ -266,7 +270,16 @@ message ScriptStep {
     uint32 ask_save = 13;
     // The script ends here (true).
     bool end = 14;
+    // The leader or member screen (phase-9 D18): cancelled goes on with the next step; a link
+    // ends the script and walks into the room.
+    LinkRoomStep link_room = 15;
   }
+}
+
+message LinkRoomStep {
+  pokeuniverse.social.v1.LinkActivity activity = 1;
+  // BECOME LEADER (true) or JOIN GROUP.
+  bool lead = 2;
 }
 
 // A menu of choices; `to` holds the step each choice jumps to, in the menu's order, then B's.

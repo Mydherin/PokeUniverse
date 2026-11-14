@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -62,6 +63,8 @@ type ZoneBus interface {
 type Social interface {
 	Open(accountID int64, deliver func(*socialv1.SocialEvent)) (func(), error)
 	SetPresence(accountID int64, p socialv1.Presence)
+	// Link sends a link room event to the player's inbox, wherever they're online (phase-9 M8).
+	Link(to int64, ev *socialv1.LinkEvent)
 	Relation(ctx context.Context, me, other int64) (socialv1.Relation, error)
 }
 
@@ -147,7 +150,16 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 			items.Bag.Remove(itemv1.Item(id), 1)
 		}
 	}
+	var joined atomic.Pointer[Player]
 	closeInbox, err := w.social.Open(accountID, func(ev *socialv1.SocialEvent) {
+		if l := ev.GetLink(); l != nil {
+			// Link events go through the player's zone, which forwards what's for the client.
+			if p := joined.Load(); p != nil {
+				z := p.zone
+				z.do(func() { z.onLink(p, l) })
+			}
+			return
+		}
 		sink.Send(&realtimev1.ServerMessage{Payload: &realtimev1.ServerMessage_Social{Social: ev}})
 	})
 	if err != nil {
@@ -166,6 +178,7 @@ func (w *World) Join(ctx context.Context, accountID int64, s live.Session, takeO
 		// Saved on the first tick, which also fixes a location that no longer exists.
 		dirty: true}
 	p.counted.Store(time.Now().UnixNano())
+	joined.Store(p)
 
 	w.mu.Lock()
 	if w.closed {
@@ -255,6 +268,12 @@ func (w *World) loadParty(ctx context.Context, accountID int64, row db.GetTraine
 // place checks a saved position against the maps: an unknown map or a tile outside it means Start.
 func (w *World) place(pos live.Position) (*Map, Point, mapv1.Direction) {
 	at := Point{pos.X, pos.Y}
+	// A link room ended with the connection: back in front of the counter (phase-9 D20).
+	if isLinkRoomMap(pos.Map) {
+		if m := w.maps[linkCenter.Map]; m != nil {
+			return m, linkCenter.Back, mapv1.Direction_DIRECTION_SOUTH
+		}
+	}
 	if m := w.maps[pos.Map]; m != nil && m.In(at) && ValidDirection(pos.Facing) {
 		return m, at, pos.Facing
 	}
@@ -275,6 +294,7 @@ func (w *World) Leave(p *Player) {
 			p.zone.abandonBattle(p)
 		}
 		pc, keptPC = p.leftPC(time.Now())
+		p.zone.linkGone(p, true)
 		p.zone.remove(p)
 		p.zone.saveFriendshipSteps(p)
 		p.zone.saveTrainer(p, item.Changed{State: true}, false) // Repel's steps (phase-7 D8).

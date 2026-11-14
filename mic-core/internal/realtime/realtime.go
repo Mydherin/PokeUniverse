@@ -279,6 +279,11 @@ func (c *conn) handle(msg *realtimev1.ClientMessage, at time.Time) bool {
 				Event: &socialv1.SocialEvent_SendFailed{SendFailed: &socialv1.SendFailed{ClientId: p.SendMessage.GetClientId(), Reason: reason}}}}})
 		}
 		return true
+	case *realtimev1.ClientMessage_Link:
+		if c.player != nil && p.Link != nil {
+			c.player.Link(p.Link)
+		}
+		return true
 	case *realtimev1.ClientMessage_MarkRead:
 		if c.player != nil {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

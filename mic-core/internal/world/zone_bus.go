@@ -215,6 +215,10 @@ func zoneEventID(ev *worldv1.ZoneEvent) uint64 {
 		return e.Battle.GetId()
 	case *worldv1.ZoneEvent_Chat:
 		return e.Chat.GetId()
+	case *worldv1.ZoneEvent_LinkRoomOpened:
+		return e.LinkRoomOpened.GetLeader().GetId()
+	case *worldv1.ZoneEvent_LinkRoomClosed:
+		return e.LinkRoomClosed
 	}
 	return 0
 }

@@ -120,6 +120,8 @@ message SocialEvent {
     ChannelMemberChanged channel_member = 11;
     // The receiver is no longer in the channel (left, removed or deleted).
     ChannelGone channel_gone = 12;
+    // Phase-9 M8: the link rooms.
+    LinkEvent link = 13;
   }
 }
 
@@ -284,4 +286,105 @@ message ChannelName {
 // POST /api/social/channels/{id}/invites: the friend's account ID.
 message ChannelInviteRequest {
   uint64 id = 1;
+}
+
+// Phase-9 M8 (D18-D20): link rooms in a Pokémon Center 2F.
+
+// What a link room is for (FireRed's Direct Corner choices).
+enum LinkActivity {
+  LINK_ACTIVITY_UNSPECIFIED = 0;
+  LINK_ACTIVITY_TRADE = 1;
+  LINK_ACTIVITY_SINGLE_BATTLE = 2;
+  LINK_ACTIVITY_DOUBLE_BATTLE = 3;
+  LINK_ACTIVITY_MULTI_BATTLE = 4;
+}
+
+// An open room: its leader and what it's for (Redis linkrooms:<map>:<phase>, D19).
+message LinkRoom {
+  Friend leader = 1;
+  LinkActivity activity = 2;
+  // Unix milliseconds.
+  int64 opened_at = 3;
+}
+
+// Client -> server: the leader and member screens and the room (ClientMessage.link).
+message LinkIntent {
+  oneof intent {
+    // BECOME LEADER: the room opens in the player's 2F zone.
+    LinkActivity open = 1;
+    // The leader cancels (B): the room closes.
+    bool close = 2;
+    // JOIN GROUP: the rooms in range, answered with LinkEvent.rooms; then live zone events.
+    LinkActivity browse = 3;
+    // The member asks this leader to join.
+    uint64 join = 4;
+    // The member stops waiting for the leader's answer (B).
+    bool cancel_join = 5;
+    // The leader answers the member who asked.
+    AnswerJoin answer = 6;
+    // The player walked through the door after LinkStart: warp into the room.
+    bool enter = 7;
+    // The player leaves the room (TradeCenter_ConfirmLeaveRoom YES): the link ends for both.
+    bool leave = 8;
+  }
+}
+
+message AnswerJoin {
+  uint64 member = 1;
+  bool accept = 2;
+}
+
+// Server -> client (and replica to replica on the player's inbox): SocialEvent.link.
+message LinkEvent {
+  oneof event {
+    // The rooms in range, friends first, then by time opened.
+    LinkRooms rooms = 1;
+    // To the leader: a member asks to join.
+    LinkMember join_asked = 2;
+    // To the member: the leader's answer (or the room was gone).
+    JoinAnswered join_answered = 3;
+    // To both: accepted, walk in.
+    LinkStart start = 4;
+    // To both: the link ended; the player is back in front of the counter.
+    bool ended = 5;
+    // To the leader: the member who asked stopped waiting.
+    uint64 join_cancelled = 6;
+    // Replica to replica only: the partner left or dropped; end the link here too.
+    uint64 partner_left = 7;
+  }
+}
+
+message LinkRooms {
+  repeated LinkRoom rooms = 1;
+}
+
+message LinkMember {
+  Friend member = 1;
+  LinkActivity activity = 2;
+}
+
+enum JoinRefusal {
+  JOIN_REFUSAL_UNSPECIFIED = 0;
+  // The leader said NO (gText_UR_OfferDeclined1).
+  JOIN_REFUSAL_DECLINED = 1;
+  // The room is gone or busy with another member.
+  JOIN_REFUSAL_GONE = 2;
+  // The room is for another activity (CableClub_Text_DifferentSelections).
+  JOIN_REFUSAL_DIFFERENT = 3;
+}
+
+message JoinAnswered {
+  uint64 leader = 1;
+  bool accepted = 2;
+  JoinRefusal refusal = 3;
+}
+
+message LinkStart {
+  // The room's ID: the room map's private zone phase (D20).
+  uint32 room = 1;
+  // trade_center or battle_colosseum_2p.
+  string map = 2;
+  bool leader = 3;
+  Friend partner = 4;
+  LinkActivity activity = 5;
 }

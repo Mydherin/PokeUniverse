@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/social/v1/social.proto.
  */
 export const file_pokeuniverse_social_v1_social: GenFile = /*@__PURE__*/
-  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIvQFCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAEj8KDmNoYW5uZWxfaW52aXRlGAggASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlSAASTAoVY2hhbm5lbF9pbnZpdGVfY2xvc2VkGAkgASgLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkSAASOgoPY2hhbm5lbF91cGRhdGVkGAogASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSAASRgoOY2hhbm5lbF9tZW1iZXIYCyABKAsyLC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNoYW5uZWxNZW1iZXJDaGFuZ2VkSAASOwoMY2hhbm5lbF9nb25lGAwgASgLMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsR29uZUgAQgcKBWV2ZW50Ip8BChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEEhMKC3NlbmRlcl9uYW1lGAggASgJIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQimAIKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZRIwCgdjaGFubmVsGAcgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsIogBChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24SNgoHaW52aXRlcxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbEludml0ZSJbCgxNZXNzYWdlc1BhZ2USPQoIbWVzc2FnZXMYASADKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2USDAoEbW9yZRgCIAEoCCJDCgdDaGFubmVsEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSDQoFb3duZXIYAyABKAQSDwoHbWVtYmVycxgEIAEoDSKAAQoNQ2hhbm5lbEludml0ZRIwCgdjaGFubmVsGAEgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsEiwKBGZyb20YAiABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBIPCgdzZW50X2F0GAMgASgDInkKE0NoYW5uZWxJbnZpdGVDbG9zZWQSDwoHY2hhbm5lbBgBIAEoBBIOCgZwbGF5ZXIYAiABKAQSQQoGcmVhc29uGAMgASgOMjEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uIpQBChRDaGFubmVsTWVtYmVyQ2hhbmdlZBIPCgdjaGFubmVsGAEgASgEEi4KBnBsYXllchgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjsKBmNoYW5nZRgDIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJbCgtDaGFubmVsR29uZRIPCgdjaGFubmVsGAEgASgEEjsKBmNoYW5nZRgCIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJSCg1DaGFubmVsTWVtYmVyEi4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhEKCWpvaW5lZF9hdBgCIAEoAyKrAQoOQ2hhbm5lbE1lbWJlcnMSMAoHY2hhbm5lbBgBIAEoCzIfLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbBI2CgdtZW1iZXJzGAIgAygLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsTWVtYmVyEi8KB2ludml0ZWQYAyADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZCIbCgtDaGFubmVsTmFtZRIMCgRuYW1lGAEgASgJIiIKFENoYW5uZWxJbnZpdGVSZXF1ZXN0EgoKAmlkGAEgASgEKpoBCghQcmVzZW5jZRIYChRQUkVTRU5DRV9VTlNQRUNJRklFRBAAEhQKEFBSRVNFTkNFX09GRkxJTkUQARITCg9QUkVTRU5DRV9PTkxJTkUQAhIYChRQUkVTRU5DRV9CVVNZX0JBVFRMRRADEhcKE1BSRVNFTkNFX0JVU1lfVFJBREUQBBIWChJQUkVTRU5DRV9CVVNZX0xJTksQBSqGAQoIUmVsYXRpb24SGAoUUkVMQVRJT05fVU5TUEVDSUZJRUQQABIRCg1SRUxBVElPTl9OT05FEAESEwoPUkVMQVRJT05fRlJJRU5EEAISGQoVUkVMQVRJT05fUkVRVUVTVF9TRU5UEAMSHQoZUkVMQVRJT05fUkVRVUVTVF9SRUNFSVZFRBAEKqgBChNSZXF1ZXN0Q2xvc2VkUmVhc29uEiUKIVJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9VTlNQRUNJRklFRBAAEiIKHlJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBABEiMKH1JFUVVFU1RfQ0xPU0VEX1JFQVNPTl9DQU5DRUxMRUQQAhIhCh1SRVFVRVNUX0NMT1NFRF9SRUFTT05fRFJPUFBFRBADKnIKEENvbnZlcnNhdGlvbktpbmQSIQodQ09OVkVSU0FUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIcChhDT05WRVJTQVRJT05fS0lORF9ESVJFQ1QQARIdChlDT05WRVJTQVRJT05fS0lORF9DSEFOTkVMEAIqtQEKEFNlbmRGYWlsZWRSZWFzb24SIgoeU0VORF9GQUlMRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASIgoeU0VORF9GQUlMRURfUkVBU09OX05PVF9BTExPV0VEEAESGwoXU0VORF9GQUlMRURfUkVBU09OX1JBVEUQAhIeChpTRU5EX0ZBSUxFRF9SRUFTT05fSU5WQUxJRBADEhwKGFNFTkRfRkFJTEVEX1JFQVNPTl9FUlJPUhAEKskBChlDaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uEiwKKENIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIpCiVDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX0FDQ0VQVEVEEAESKQolQ0hBTk5FTF9JTlZJVEVfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBACEigKJENIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fREVMRVRFRBADKqEBChNDaGFubmVsTWVtYmVyQ2hhbmdlEiUKIUNIQU5ORUxfTUVNQkVSX0NIQU5HRV9VTlNQRUNJRklFRBAAEiAKHENIQU5ORUxfTUVNQkVSX0NIQU5HRV9KT0lORUQQARIeChpDSEFOTkVMX01FTUJFUl9DSEFOR0VfTEVGVBACEiEKHUNIQU5ORUxfTUVNQkVSX0NIQU5HRV9SRU1PVkVEEANCQ1pBcG9rZXVuaXZlcnNlL2xpYi1jb250cmFjdHMvZ2VuL2dvL3Bva2V1bml2ZXJzZS9zb2NpYWwvdjE7c29jaWFsdjFiBnByb3RvMw", [file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIqcGCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAEj8KDmNoYW5uZWxfaW52aXRlGAggASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlSAASTAoVY2hhbm5lbF9pbnZpdGVfY2xvc2VkGAkgASgLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkSAASOgoPY2hhbm5lbF91cGRhdGVkGAogASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSAASRgoOY2hhbm5lbF9tZW1iZXIYCyABKAsyLC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNoYW5uZWxNZW1iZXJDaGFuZ2VkSAASOwoMY2hhbm5lbF9nb25lGAwgASgLMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsR29uZUgAEjEKBGxpbmsYDSABKAsyIS5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtFdmVudEgAQgcKBWV2ZW50Ip8BChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEEhMKC3NlbmRlcl9uYW1lGAggASgJIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQimAIKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZRIwCgdjaGFubmVsGAcgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsIogBChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24SNgoHaW52aXRlcxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbEludml0ZSJbCgxNZXNzYWdlc1BhZ2USPQoIbWVzc2FnZXMYASADKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2USDAoEbW9yZRgCIAEoCCJDCgdDaGFubmVsEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSDQoFb3duZXIYAyABKAQSDwoHbWVtYmVycxgEIAEoDSKAAQoNQ2hhbm5lbEludml0ZRIwCgdjaGFubmVsGAEgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsEiwKBGZyb20YAiABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBIPCgdzZW50X2F0GAMgASgDInkKE0NoYW5uZWxJbnZpdGVDbG9zZWQSDwoHY2hhbm5lbBgBIAEoBBIOCgZwbGF5ZXIYAiABKAQSQQoGcmVhc29uGAMgASgOMjEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uIpQBChRDaGFubmVsTWVtYmVyQ2hhbmdlZBIPCgdjaGFubmVsGAEgASgEEi4KBnBsYXllchgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjsKBmNoYW5nZRgDIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJbCgtDaGFubmVsR29uZRIPCgdjaGFubmVsGAEgASgEEjsKBmNoYW5nZRgCIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJSCg1DaGFubmVsTWVtYmVyEi4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhEKCWpvaW5lZF9hdBgCIAEoAyKrAQoOQ2hhbm5lbE1lbWJlcnMSMAoHY2hhbm5lbBgBIAEoCzIfLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbBI2CgdtZW1iZXJzGAIgAygLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsTWVtYmVyEi8KB2ludml0ZWQYAyADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZCIbCgtDaGFubmVsTmFtZRIMCgRuYW1lGAEgASgJIiIKFENoYW5uZWxJbnZpdGVSZXF1ZXN0EgoKAmlkGAEgASgEIoUBCghMaW5rUm9vbRIuCgZsZWFkZXIYASABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI2CghhY3Rpdml0eRgCIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5EhEKCW9wZW5lZF9hdBgDIAEoAyKUAgoKTGlua0ludGVudBI0CgRvcGVuGAEgASgOMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rQWN0aXZpdHlIABIPCgVjbG9zZRgCIAEoCEgAEjYKBmJyb3dzZRgDIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5SAASDgoEam9pbhgEIAEoBEgAEhUKC2NhbmNlbF9qb2luGAUgASgISAASNAoGYW5zd2VyGAYgASgLMiIucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5BbnN3ZXJKb2luSAASDwoFZW50ZXIYByABKAhIABIPCgVsZWF2ZRgIIAEoCEgAQggKBmludGVudCIsCgpBbnN3ZXJKb2luEg4KBm1lbWJlchgBIAEoBBIOCgZhY2NlcHQYAiABKAgiuAIKCUxpbmtFdmVudBIyCgVyb29tcxgBIAEoCzIhLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua1Jvb21zSAASOAoKam9pbl9hc2tlZBgCIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua01lbWJlckgAEj0KDWpvaW5fYW5zd2VyZWQYAyABKAsyJC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkpvaW5BbnN3ZXJlZEgAEjIKBXN0YXJ0GAQgASgLMiEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rU3RhcnRIABIPCgVlbmRlZBgFIAEoCEgAEhgKDmpvaW5fY2FuY2VsbGVkGAYgASgESAASFgoMcGFydG5lcl9sZWZ0GAcgASgESABCBwoFZXZlbnQiPAoJTGlua1Jvb21zEi8KBXJvb21zGAEgAygLMiAucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rUm9vbSJ0CgpMaW5rTWVtYmVyEi4KBm1lbWJlchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjYKCGFjdGl2aXR5GAIgASgOMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rQWN0aXZpdHkiZgoMSm9pbkFuc3dlcmVkEg4KBmxlYWRlchgBIAEoBBIQCghhY2NlcHRlZBgCIAEoCBI0CgdyZWZ1c2FsGAMgASgOMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Kb2luUmVmdXNhbCKfAQoJTGlua1N0YXJ0EgwKBHJvb20YASABKA0SCwoDbWFwGAIgASgJEg4KBmxlYWRlchgDIAEoCBIvCgdwYXJ0bmVyGAQgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmQSNgoIYWN0aXZpdHkYBSABKA4yJC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtBY3Rpdml0eSqaAQoIUHJlc2VuY2USGAoUUFJFU0VOQ0VfVU5TUEVDSUZJRUQQABIUChBQUkVTRU5DRV9PRkZMSU5FEAESEwoPUFJFU0VOQ0VfT05MSU5FEAISGAoUUFJFU0VOQ0VfQlVTWV9CQVRUTEUQAxIXChNQUkVTRU5DRV9CVVNZX1RSQURFEAQSFgoSUFJFU0VOQ0VfQlVTWV9MSU5LEAUqhgEKCFJlbGF0aW9uEhgKFFJFTEFUSU9OX1VOU1BFQ0lGSUVEEAASEQoNUkVMQVRJT05fTk9ORRABEhMKD1JFTEFUSU9OX0ZSSUVORBACEhkKFVJFTEFUSU9OX1JFUVVFU1RfU0VOVBADEh0KGVJFTEFUSU9OX1JFUVVFU1RfUkVDRUlWRUQQBCqoAQoTUmVxdWVzdENsb3NlZFJlYXNvbhIlCiFSRVFVRVNUX0NMT1NFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIiCh5SRVFVRVNUX0NMT1NFRF9SRUFTT05fREVDTElORUQQARIjCh9SRVFVRVNUX0NMT1NFRF9SRUFTT05fQ0FOQ0VMTEVEEAISIQodUkVRVUVTVF9DTE9TRURfUkVBU09OX0RST1BQRUQQAypyChBDb252ZXJzYXRpb25LaW5kEiEKHUNPTlZFUlNBVElPTl9LSU5EX1VOU1BFQ0lGSUVEEAASHAoYQ09OVkVSU0FUSU9OX0tJTkRfRElSRUNUEAESHQoZQ09OVkVSU0FUSU9OX0tJTkRfQ0hBTk5FTBACKrUBChBTZW5kRmFpbGVkUmVhc29uEiIKHlNFTkRfRkFJTEVEX1JFQVNPTl9VTlNQRUNJRklFRBAAEiIKHlNFTkRfRkFJTEVEX1JFQVNPTl9OT1RfQUxMT1dFRBABEhsKF1NFTkRfRkFJTEVEX1JFQVNPTl9SQVRFEAISHgoaU0VORF9GQUlMRURfUkVBU09OX0lOVkFMSUQQAxIcChhTRU5EX0ZBSUxFRF9SRUFTT05fRVJST1IQBCrJAQoZQ2hhbm5lbEludml0ZUNsb3NlZFJlYXNvbhIsCihDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASKQolQ0hBTk5FTF9JTlZJVEVfQ0xPU0VEX1JFQVNPTl9BQ0NFUFRFRBABEikKJUNIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fREVDTElORUQQAhIoCiRDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX0RFTEVURUQQAyqhAQoTQ2hhbm5lbE1lbWJlckNoYW5nZRIlCiFDSEFOTkVMX01FTUJFUl9DSEFOR0VfVU5TUEVDSUZJRUQQABIgChxDSEFOTkVMX01FTUJFUl9DSEFOR0VfSk9JTkVEEAESHgoaQ0hBTk5FTF9NRU1CRVJfQ0hBTkdFX0xFRlQQAhIhCh1DSEFOTkVMX01FTUJFUl9DSEFOR0VfUkVNT1ZFRBADKqgBCgxMaW5rQWN0aXZpdHkSHQoZTElOS19BQ1RJVklUWV9VTlNQRUNJRklFRBAAEhcKE0xJTktfQUNUSVZJVFlfVFJBREUQARIfChtMSU5LX0FDVElWSVRZX1NJTkdMRV9CQVRUTEUQAhIfChtMSU5LX0FDVElWSVRZX0RPVUJMRV9CQVRUTEUQAxIeChpMSU5LX0FDVElWSVRZX01VTFRJX0JBVFRMRRAEKnkKC0pvaW5SZWZ1c2FsEhwKGEpPSU5fUkVGVVNBTF9VTlNQRUNJRklFRBAAEhkKFUpPSU5fUkVGVVNBTF9ERUNMSU5FRBABEhUKEUpPSU5fUkVGVVNBTF9HT05FEAISGgoWSk9JTl9SRUZVU0FMX0RJRkZFUkVOVBADQkNaQXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2Uvc29jaWFsL3YxO3NvY2lhbHYxYgZwcm90bzM", [file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * A player as the social panel shows them.
@@ -328,6 +328,14 @@ export type SocialEvent = Message<"pokeuniverse.social.v1.SocialEvent"> & {
      */
     value: ChannelGone;
     case: "channelGone";
+  } | {
+    /**
+     * Phase-9 M8: the link rooms.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkEvent link = 13;
+     */
+    value: LinkEvent;
+    case: "link";
   } | { case: undefined; value?: undefined };
 };
 
@@ -836,6 +844,324 @@ export const ChannelInviteRequestSchema: GenMessage<ChannelInviteRequest> = /*@_
   messageDesc(file_pokeuniverse_social_v1_social, 23);
 
 /**
+ * An open room: its leader and what it's for (Redis linkrooms:<map>:<phase>, D19).
+ *
+ * @generated from message pokeuniverse.social.v1.LinkRoom
+ */
+export type LinkRoom = Message<"pokeuniverse.social.v1.LinkRoom"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.Friend leader = 1;
+   */
+  leader?: Friend | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.LinkActivity activity = 2;
+   */
+  activity: LinkActivity;
+
+  /**
+   * Unix milliseconds.
+   *
+   * @generated from field: int64 opened_at = 3;
+   */
+  openedAt: bigint;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.LinkRoom.
+ * Use `create(LinkRoomSchema)` to create a new message.
+ */
+export const LinkRoomSchema: GenMessage<LinkRoom> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 24);
+
+/**
+ * Client -> server: the leader and member screens and the room (ClientMessage.link).
+ *
+ * @generated from message pokeuniverse.social.v1.LinkIntent
+ */
+export type LinkIntent = Message<"pokeuniverse.social.v1.LinkIntent"> & {
+  /**
+   * @generated from oneof pokeuniverse.social.v1.LinkIntent.intent
+   */
+  intent: {
+    /**
+     * BECOME LEADER: the room opens in the player's 2F zone.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkActivity open = 1;
+     */
+    value: LinkActivity;
+    case: "open";
+  } | {
+    /**
+     * The leader cancels (B): the room closes.
+     *
+     * @generated from field: bool close = 2;
+     */
+    value: boolean;
+    case: "close";
+  } | {
+    /**
+     * JOIN GROUP: the rooms in range, answered with LinkEvent.rooms; then live zone events.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkActivity browse = 3;
+     */
+    value: LinkActivity;
+    case: "browse";
+  } | {
+    /**
+     * The member asks this leader to join.
+     *
+     * @generated from field: uint64 join = 4;
+     */
+    value: bigint;
+    case: "join";
+  } | {
+    /**
+     * The member stops waiting for the leader's answer (B).
+     *
+     * @generated from field: bool cancel_join = 5;
+     */
+    value: boolean;
+    case: "cancelJoin";
+  } | {
+    /**
+     * The leader answers the member who asked.
+     *
+     * @generated from field: pokeuniverse.social.v1.AnswerJoin answer = 6;
+     */
+    value: AnswerJoin;
+    case: "answer";
+  } | {
+    /**
+     * The player walked through the door after LinkStart: warp into the room.
+     *
+     * @generated from field: bool enter = 7;
+     */
+    value: boolean;
+    case: "enter";
+  } | {
+    /**
+     * The player leaves the room (TradeCenter_ConfirmLeaveRoom YES): the link ends for both.
+     *
+     * @generated from field: bool leave = 8;
+     */
+    value: boolean;
+    case: "leave";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.LinkIntent.
+ * Use `create(LinkIntentSchema)` to create a new message.
+ */
+export const LinkIntentSchema: GenMessage<LinkIntent> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 25);
+
+/**
+ * @generated from message pokeuniverse.social.v1.AnswerJoin
+ */
+export type AnswerJoin = Message<"pokeuniverse.social.v1.AnswerJoin"> & {
+  /**
+   * @generated from field: uint64 member = 1;
+   */
+  member: bigint;
+
+  /**
+   * @generated from field: bool accept = 2;
+   */
+  accept: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.AnswerJoin.
+ * Use `create(AnswerJoinSchema)` to create a new message.
+ */
+export const AnswerJoinSchema: GenMessage<AnswerJoin> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 26);
+
+/**
+ * Server -> client (and replica to replica on the player's inbox): SocialEvent.link.
+ *
+ * @generated from message pokeuniverse.social.v1.LinkEvent
+ */
+export type LinkEvent = Message<"pokeuniverse.social.v1.LinkEvent"> & {
+  /**
+   * @generated from oneof pokeuniverse.social.v1.LinkEvent.event
+   */
+  event: {
+    /**
+     * The rooms in range, friends first, then by time opened.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkRooms rooms = 1;
+     */
+    value: LinkRooms;
+    case: "rooms";
+  } | {
+    /**
+     * To the leader: a member asks to join.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkMember join_asked = 2;
+     */
+    value: LinkMember;
+    case: "joinAsked";
+  } | {
+    /**
+     * To the member: the leader's answer (or the room was gone).
+     *
+     * @generated from field: pokeuniverse.social.v1.JoinAnswered join_answered = 3;
+     */
+    value: JoinAnswered;
+    case: "joinAnswered";
+  } | {
+    /**
+     * To both: accepted, walk in.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkStart start = 4;
+     */
+    value: LinkStart;
+    case: "start";
+  } | {
+    /**
+     * To both: the link ended; the player is back in front of the counter.
+     *
+     * @generated from field: bool ended = 5;
+     */
+    value: boolean;
+    case: "ended";
+  } | {
+    /**
+     * To the leader: the member who asked stopped waiting.
+     *
+     * @generated from field: uint64 join_cancelled = 6;
+     */
+    value: bigint;
+    case: "joinCancelled";
+  } | {
+    /**
+     * Replica to replica only: the partner left or dropped; end the link here too.
+     *
+     * @generated from field: uint64 partner_left = 7;
+     */
+    value: bigint;
+    case: "partnerLeft";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.LinkEvent.
+ * Use `create(LinkEventSchema)` to create a new message.
+ */
+export const LinkEventSchema: GenMessage<LinkEvent> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 27);
+
+/**
+ * @generated from message pokeuniverse.social.v1.LinkRooms
+ */
+export type LinkRooms = Message<"pokeuniverse.social.v1.LinkRooms"> & {
+  /**
+   * @generated from field: repeated pokeuniverse.social.v1.LinkRoom rooms = 1;
+   */
+  rooms: LinkRoom[];
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.LinkRooms.
+ * Use `create(LinkRoomsSchema)` to create a new message.
+ */
+export const LinkRoomsSchema: GenMessage<LinkRooms> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 28);
+
+/**
+ * @generated from message pokeuniverse.social.v1.LinkMember
+ */
+export type LinkMember = Message<"pokeuniverse.social.v1.LinkMember"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.Friend member = 1;
+   */
+  member?: Friend | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.LinkActivity activity = 2;
+   */
+  activity: LinkActivity;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.LinkMember.
+ * Use `create(LinkMemberSchema)` to create a new message.
+ */
+export const LinkMemberSchema: GenMessage<LinkMember> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 29);
+
+/**
+ * @generated from message pokeuniverse.social.v1.JoinAnswered
+ */
+export type JoinAnswered = Message<"pokeuniverse.social.v1.JoinAnswered"> & {
+  /**
+   * @generated from field: uint64 leader = 1;
+   */
+  leader: bigint;
+
+  /**
+   * @generated from field: bool accepted = 2;
+   */
+  accepted: boolean;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.JoinRefusal refusal = 3;
+   */
+  refusal: JoinRefusal;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.JoinAnswered.
+ * Use `create(JoinAnsweredSchema)` to create a new message.
+ */
+export const JoinAnsweredSchema: GenMessage<JoinAnswered> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 30);
+
+/**
+ * @generated from message pokeuniverse.social.v1.LinkStart
+ */
+export type LinkStart = Message<"pokeuniverse.social.v1.LinkStart"> & {
+  /**
+   * The room's ID: the room map's private zone phase (D20).
+   *
+   * @generated from field: uint32 room = 1;
+   */
+  room: number;
+
+  /**
+   * trade_center or battle_colosseum_2p.
+   *
+   * @generated from field: string map = 2;
+   */
+  map: string;
+
+  /**
+   * @generated from field: bool leader = 3;
+   */
+  leader: boolean;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.Friend partner = 4;
+   */
+  partner?: Friend | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.LinkActivity activity = 5;
+   */
+  activity: LinkActivity;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.LinkStart.
+ * Use `create(LinkStartSchema)` to create a new message.
+ */
+export const LinkStartSchema: GenMessage<LinkStart> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 31);
+
+/**
  * Where a player is (phase-9 D7). Busy players can't be asked to trade, battle or join a room.
  *
  * @generated from enum pokeuniverse.social.v1.Presence
@@ -1092,4 +1418,79 @@ export enum ChannelMemberChange {
  */
 export const ChannelMemberChangeSchema: GenEnum<ChannelMemberChange> = /*@__PURE__*/
   enumDesc(file_pokeuniverse_social_v1_social, 6);
+
+/**
+ * What a link room is for (FireRed's Direct Corner choices).
+ *
+ * @generated from enum pokeuniverse.social.v1.LinkActivity
+ */
+export enum LinkActivity {
+  /**
+   * @generated from enum value: LINK_ACTIVITY_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: LINK_ACTIVITY_TRADE = 1;
+   */
+  TRADE = 1,
+
+  /**
+   * @generated from enum value: LINK_ACTIVITY_SINGLE_BATTLE = 2;
+   */
+  SINGLE_BATTLE = 2,
+
+  /**
+   * @generated from enum value: LINK_ACTIVITY_DOUBLE_BATTLE = 3;
+   */
+  DOUBLE_BATTLE = 3,
+
+  /**
+   * @generated from enum value: LINK_ACTIVITY_MULTI_BATTLE = 4;
+   */
+  MULTI_BATTLE = 4,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.LinkActivity.
+ */
+export const LinkActivitySchema: GenEnum<LinkActivity> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 7);
+
+/**
+ * @generated from enum pokeuniverse.social.v1.JoinRefusal
+ */
+export enum JoinRefusal {
+  /**
+   * @generated from enum value: JOIN_REFUSAL_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The leader said NO (gText_UR_OfferDeclined1).
+   *
+   * @generated from enum value: JOIN_REFUSAL_DECLINED = 1;
+   */
+  DECLINED = 1,
+
+  /**
+   * The room is gone or busy with another member.
+   *
+   * @generated from enum value: JOIN_REFUSAL_GONE = 2;
+   */
+  GONE = 2,
+
+  /**
+   * The room is for another activity (CableClub_Text_DifferentSelections).
+   *
+   * @generated from enum value: JOIN_REFUSAL_DIFFERENT = 3;
+   */
+  DIFFERENT = 3,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.JoinRefusal.
+ */
+export const JoinRefusalSchema: GenEnum<JoinRefusal> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 8);
 

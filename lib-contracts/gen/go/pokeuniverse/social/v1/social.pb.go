@@ -412,6 +412,117 @@ func (ChannelMemberChange) EnumDescriptor() ([]byte, []int) {
 	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{6}
 }
 
+// What a link room is for (FireRed's Direct Corner choices).
+type LinkActivity int32
+
+const (
+	LinkActivity_LINK_ACTIVITY_UNSPECIFIED   LinkActivity = 0
+	LinkActivity_LINK_ACTIVITY_TRADE         LinkActivity = 1
+	LinkActivity_LINK_ACTIVITY_SINGLE_BATTLE LinkActivity = 2
+	LinkActivity_LINK_ACTIVITY_DOUBLE_BATTLE LinkActivity = 3
+	LinkActivity_LINK_ACTIVITY_MULTI_BATTLE  LinkActivity = 4
+)
+
+// Enum value maps for LinkActivity.
+var (
+	LinkActivity_name = map[int32]string{
+		0: "LINK_ACTIVITY_UNSPECIFIED",
+		1: "LINK_ACTIVITY_TRADE",
+		2: "LINK_ACTIVITY_SINGLE_BATTLE",
+		3: "LINK_ACTIVITY_DOUBLE_BATTLE",
+		4: "LINK_ACTIVITY_MULTI_BATTLE",
+	}
+	LinkActivity_value = map[string]int32{
+		"LINK_ACTIVITY_UNSPECIFIED":   0,
+		"LINK_ACTIVITY_TRADE":         1,
+		"LINK_ACTIVITY_SINGLE_BATTLE": 2,
+		"LINK_ACTIVITY_DOUBLE_BATTLE": 3,
+		"LINK_ACTIVITY_MULTI_BATTLE":  4,
+	}
+)
+
+func (x LinkActivity) Enum() *LinkActivity {
+	p := new(LinkActivity)
+	*p = x
+	return p
+}
+
+func (x LinkActivity) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LinkActivity) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[7].Descriptor()
+}
+
+func (LinkActivity) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[7]
+}
+
+func (x LinkActivity) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LinkActivity.Descriptor instead.
+func (LinkActivity) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{7}
+}
+
+type JoinRefusal int32
+
+const (
+	JoinRefusal_JOIN_REFUSAL_UNSPECIFIED JoinRefusal = 0
+	// The leader said NO (gText_UR_OfferDeclined1).
+	JoinRefusal_JOIN_REFUSAL_DECLINED JoinRefusal = 1
+	// The room is gone or busy with another member.
+	JoinRefusal_JOIN_REFUSAL_GONE JoinRefusal = 2
+	// The room is for another activity (CableClub_Text_DifferentSelections).
+	JoinRefusal_JOIN_REFUSAL_DIFFERENT JoinRefusal = 3
+)
+
+// Enum value maps for JoinRefusal.
+var (
+	JoinRefusal_name = map[int32]string{
+		0: "JOIN_REFUSAL_UNSPECIFIED",
+		1: "JOIN_REFUSAL_DECLINED",
+		2: "JOIN_REFUSAL_GONE",
+		3: "JOIN_REFUSAL_DIFFERENT",
+	}
+	JoinRefusal_value = map[string]int32{
+		"JOIN_REFUSAL_UNSPECIFIED": 0,
+		"JOIN_REFUSAL_DECLINED":    1,
+		"JOIN_REFUSAL_GONE":        2,
+		"JOIN_REFUSAL_DIFFERENT":   3,
+	}
+)
+
+func (x JoinRefusal) Enum() *JoinRefusal {
+	p := new(JoinRefusal)
+	*p = x
+	return p
+}
+
+func (x JoinRefusal) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (JoinRefusal) Descriptor() protoreflect.EnumDescriptor {
+	return file_pokeuniverse_social_v1_social_proto_enumTypes[8].Descriptor()
+}
+
+func (JoinRefusal) Type() protoreflect.EnumType {
+	return &file_pokeuniverse_social_v1_social_proto_enumTypes[8]
+}
+
+func (x JoinRefusal) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use JoinRefusal.Descriptor instead.
+func (JoinRefusal) EnumDescriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{8}
+}
+
 // A player as the social panel shows them.
 type Friend struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -874,6 +985,7 @@ type SocialEvent struct {
 	//	*SocialEvent_ChannelUpdated
 	//	*SocialEvent_ChannelMember
 	//	*SocialEvent_ChannelGone
+	//	*SocialEvent_Link
 	Event         isSocialEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1024,6 +1136,15 @@ func (x *SocialEvent) GetChannelGone() *ChannelGone {
 	return nil
 }
 
+func (x *SocialEvent) GetLink() *LinkEvent {
+	if x != nil {
+		if x, ok := x.Event.(*SocialEvent_Link); ok {
+			return x.Link
+		}
+	}
+	return nil
+}
+
 type isSocialEvent_Event interface {
 	isSocialEvent_Event()
 }
@@ -1088,6 +1209,11 @@ type SocialEvent_ChannelGone struct {
 	ChannelGone *ChannelGone `protobuf:"bytes,12,opt,name=channel_gone,json=channelGone,proto3,oneof"`
 }
 
+type SocialEvent_Link struct {
+	// Phase-9 M8: the link rooms.
+	Link *LinkEvent `protobuf:"bytes,13,opt,name=link,proto3,oneof"`
+}
+
 func (*SocialEvent_RequestReceived) isSocialEvent_Event() {}
 
 func (*SocialEvent_FriendAdded) isSocialEvent_Event() {}
@@ -1111,6 +1237,8 @@ func (*SocialEvent_ChannelUpdated) isSocialEvent_Event() {}
 func (*SocialEvent_ChannelMember) isSocialEvent_Event() {}
 
 func (*SocialEvent_ChannelGone) isSocialEvent_Event() {}
+
+func (*SocialEvent_Link) isSocialEvent_Event() {}
 
 // A saved message (phase-9 D8). seq increases per conversation, with no gaps.
 type ConversationMessage struct {
@@ -2112,6 +2240,711 @@ func (x *ChannelInviteRequest) GetId() uint64 {
 	return 0
 }
 
+// An open room: its leader and what it's for (Redis linkrooms:<map>:<phase>, D19).
+type LinkRoom struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Leader   *Friend                `protobuf:"bytes,1,opt,name=leader,proto3" json:"leader,omitempty"`
+	Activity LinkActivity           `protobuf:"varint,2,opt,name=activity,proto3,enum=pokeuniverse.social.v1.LinkActivity" json:"activity,omitempty"`
+	// Unix milliseconds.
+	OpenedAt      int64 `protobuf:"varint,3,opt,name=opened_at,json=openedAt,proto3" json:"opened_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkRoom) Reset() {
+	*x = LinkRoom{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkRoom) ProtoMessage() {}
+
+func (x *LinkRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkRoom.ProtoReflect.Descriptor instead.
+func (*LinkRoom) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *LinkRoom) GetLeader() *Friend {
+	if x != nil {
+		return x.Leader
+	}
+	return nil
+}
+
+func (x *LinkRoom) GetActivity() LinkActivity {
+	if x != nil {
+		return x.Activity
+	}
+	return LinkActivity_LINK_ACTIVITY_UNSPECIFIED
+}
+
+func (x *LinkRoom) GetOpenedAt() int64 {
+	if x != nil {
+		return x.OpenedAt
+	}
+	return 0
+}
+
+// Client -> server: the leader and member screens and the room (ClientMessage.link).
+type LinkIntent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Intent:
+	//
+	//	*LinkIntent_Open
+	//	*LinkIntent_Close
+	//	*LinkIntent_Browse
+	//	*LinkIntent_Join
+	//	*LinkIntent_CancelJoin
+	//	*LinkIntent_Answer
+	//	*LinkIntent_Enter
+	//	*LinkIntent_Leave
+	Intent        isLinkIntent_Intent `protobuf_oneof:"intent"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkIntent) Reset() {
+	*x = LinkIntent{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkIntent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkIntent) ProtoMessage() {}
+
+func (x *LinkIntent) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkIntent.ProtoReflect.Descriptor instead.
+func (*LinkIntent) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *LinkIntent) GetIntent() isLinkIntent_Intent {
+	if x != nil {
+		return x.Intent
+	}
+	return nil
+}
+
+func (x *LinkIntent) GetOpen() LinkActivity {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Open); ok {
+			return x.Open
+		}
+	}
+	return LinkActivity_LINK_ACTIVITY_UNSPECIFIED
+}
+
+func (x *LinkIntent) GetClose() bool {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Close); ok {
+			return x.Close
+		}
+	}
+	return false
+}
+
+func (x *LinkIntent) GetBrowse() LinkActivity {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Browse); ok {
+			return x.Browse
+		}
+	}
+	return LinkActivity_LINK_ACTIVITY_UNSPECIFIED
+}
+
+func (x *LinkIntent) GetJoin() uint64 {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Join); ok {
+			return x.Join
+		}
+	}
+	return 0
+}
+
+func (x *LinkIntent) GetCancelJoin() bool {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_CancelJoin); ok {
+			return x.CancelJoin
+		}
+	}
+	return false
+}
+
+func (x *LinkIntent) GetAnswer() *AnswerJoin {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Answer); ok {
+			return x.Answer
+		}
+	}
+	return nil
+}
+
+func (x *LinkIntent) GetEnter() bool {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Enter); ok {
+			return x.Enter
+		}
+	}
+	return false
+}
+
+func (x *LinkIntent) GetLeave() bool {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_Leave); ok {
+			return x.Leave
+		}
+	}
+	return false
+}
+
+type isLinkIntent_Intent interface {
+	isLinkIntent_Intent()
+}
+
+type LinkIntent_Open struct {
+	// BECOME LEADER: the room opens in the player's 2F zone.
+	Open LinkActivity `protobuf:"varint,1,opt,name=open,proto3,enum=pokeuniverse.social.v1.LinkActivity,oneof"`
+}
+
+type LinkIntent_Close struct {
+	// The leader cancels (B): the room closes.
+	Close bool `protobuf:"varint,2,opt,name=close,proto3,oneof"`
+}
+
+type LinkIntent_Browse struct {
+	// JOIN GROUP: the rooms in range, answered with LinkEvent.rooms; then live zone events.
+	Browse LinkActivity `protobuf:"varint,3,opt,name=browse,proto3,enum=pokeuniverse.social.v1.LinkActivity,oneof"`
+}
+
+type LinkIntent_Join struct {
+	// The member asks this leader to join.
+	Join uint64 `protobuf:"varint,4,opt,name=join,proto3,oneof"`
+}
+
+type LinkIntent_CancelJoin struct {
+	// The member stops waiting for the leader's answer (B).
+	CancelJoin bool `protobuf:"varint,5,opt,name=cancel_join,json=cancelJoin,proto3,oneof"`
+}
+
+type LinkIntent_Answer struct {
+	// The leader answers the member who asked.
+	Answer *AnswerJoin `protobuf:"bytes,6,opt,name=answer,proto3,oneof"`
+}
+
+type LinkIntent_Enter struct {
+	// The player walked through the door after LinkStart: warp into the room.
+	Enter bool `protobuf:"varint,7,opt,name=enter,proto3,oneof"`
+}
+
+type LinkIntent_Leave struct {
+	// The player leaves the room (TradeCenter_ConfirmLeaveRoom YES): the link ends for both.
+	Leave bool `protobuf:"varint,8,opt,name=leave,proto3,oneof"`
+}
+
+func (*LinkIntent_Open) isLinkIntent_Intent() {}
+
+func (*LinkIntent_Close) isLinkIntent_Intent() {}
+
+func (*LinkIntent_Browse) isLinkIntent_Intent() {}
+
+func (*LinkIntent_Join) isLinkIntent_Intent() {}
+
+func (*LinkIntent_CancelJoin) isLinkIntent_Intent() {}
+
+func (*LinkIntent_Answer) isLinkIntent_Intent() {}
+
+func (*LinkIntent_Enter) isLinkIntent_Intent() {}
+
+func (*LinkIntent_Leave) isLinkIntent_Intent() {}
+
+type AnswerJoin struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Member        uint64                 `protobuf:"varint,1,opt,name=member,proto3" json:"member,omitempty"`
+	Accept        bool                   `protobuf:"varint,2,opt,name=accept,proto3" json:"accept,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnswerJoin) Reset() {
+	*x = AnswerJoin{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnswerJoin) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnswerJoin) ProtoMessage() {}
+
+func (x *AnswerJoin) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnswerJoin.ProtoReflect.Descriptor instead.
+func (*AnswerJoin) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *AnswerJoin) GetMember() uint64 {
+	if x != nil {
+		return x.Member
+	}
+	return 0
+}
+
+func (x *AnswerJoin) GetAccept() bool {
+	if x != nil {
+		return x.Accept
+	}
+	return false
+}
+
+// Server -> client (and replica to replica on the player's inbox): SocialEvent.link.
+type LinkEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Event:
+	//
+	//	*LinkEvent_Rooms
+	//	*LinkEvent_JoinAsked
+	//	*LinkEvent_JoinAnswered
+	//	*LinkEvent_Start
+	//	*LinkEvent_Ended
+	//	*LinkEvent_JoinCancelled
+	//	*LinkEvent_PartnerLeft
+	Event         isLinkEvent_Event `protobuf_oneof:"event"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkEvent) Reset() {
+	*x = LinkEvent{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkEvent) ProtoMessage() {}
+
+func (x *LinkEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkEvent.ProtoReflect.Descriptor instead.
+func (*LinkEvent) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *LinkEvent) GetEvent() isLinkEvent_Event {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
+func (x *LinkEvent) GetRooms() *LinkRooms {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_Rooms); ok {
+			return x.Rooms
+		}
+	}
+	return nil
+}
+
+func (x *LinkEvent) GetJoinAsked() *LinkMember {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_JoinAsked); ok {
+			return x.JoinAsked
+		}
+	}
+	return nil
+}
+
+func (x *LinkEvent) GetJoinAnswered() *JoinAnswered {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_JoinAnswered); ok {
+			return x.JoinAnswered
+		}
+	}
+	return nil
+}
+
+func (x *LinkEvent) GetStart() *LinkStart {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_Start); ok {
+			return x.Start
+		}
+	}
+	return nil
+}
+
+func (x *LinkEvent) GetEnded() bool {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_Ended); ok {
+			return x.Ended
+		}
+	}
+	return false
+}
+
+func (x *LinkEvent) GetJoinCancelled() uint64 {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_JoinCancelled); ok {
+			return x.JoinCancelled
+		}
+	}
+	return 0
+}
+
+func (x *LinkEvent) GetPartnerLeft() uint64 {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_PartnerLeft); ok {
+			return x.PartnerLeft
+		}
+	}
+	return 0
+}
+
+type isLinkEvent_Event interface {
+	isLinkEvent_Event()
+}
+
+type LinkEvent_Rooms struct {
+	// The rooms in range, friends first, then by time opened.
+	Rooms *LinkRooms `protobuf:"bytes,1,opt,name=rooms,proto3,oneof"`
+}
+
+type LinkEvent_JoinAsked struct {
+	// To the leader: a member asks to join.
+	JoinAsked *LinkMember `protobuf:"bytes,2,opt,name=join_asked,json=joinAsked,proto3,oneof"`
+}
+
+type LinkEvent_JoinAnswered struct {
+	// To the member: the leader's answer (or the room was gone).
+	JoinAnswered *JoinAnswered `protobuf:"bytes,3,opt,name=join_answered,json=joinAnswered,proto3,oneof"`
+}
+
+type LinkEvent_Start struct {
+	// To both: accepted, walk in.
+	Start *LinkStart `protobuf:"bytes,4,opt,name=start,proto3,oneof"`
+}
+
+type LinkEvent_Ended struct {
+	// To both: the link ended; the player is back in front of the counter.
+	Ended bool `protobuf:"varint,5,opt,name=ended,proto3,oneof"`
+}
+
+type LinkEvent_JoinCancelled struct {
+	// To the leader: the member who asked stopped waiting.
+	JoinCancelled uint64 `protobuf:"varint,6,opt,name=join_cancelled,json=joinCancelled,proto3,oneof"`
+}
+
+type LinkEvent_PartnerLeft struct {
+	// Replica to replica only: the partner left or dropped; end the link here too.
+	PartnerLeft uint64 `protobuf:"varint,7,opt,name=partner_left,json=partnerLeft,proto3,oneof"`
+}
+
+func (*LinkEvent_Rooms) isLinkEvent_Event() {}
+
+func (*LinkEvent_JoinAsked) isLinkEvent_Event() {}
+
+func (*LinkEvent_JoinAnswered) isLinkEvent_Event() {}
+
+func (*LinkEvent_Start) isLinkEvent_Event() {}
+
+func (*LinkEvent_Ended) isLinkEvent_Event() {}
+
+func (*LinkEvent_JoinCancelled) isLinkEvent_Event() {}
+
+func (*LinkEvent_PartnerLeft) isLinkEvent_Event() {}
+
+type LinkRooms struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rooms         []*LinkRoom            `protobuf:"bytes,1,rep,name=rooms,proto3" json:"rooms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkRooms) Reset() {
+	*x = LinkRooms{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkRooms) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkRooms) ProtoMessage() {}
+
+func (x *LinkRooms) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkRooms.ProtoReflect.Descriptor instead.
+func (*LinkRooms) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *LinkRooms) GetRooms() []*LinkRoom {
+	if x != nil {
+		return x.Rooms
+	}
+	return nil
+}
+
+type LinkMember struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Member        *Friend                `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	Activity      LinkActivity           `protobuf:"varint,2,opt,name=activity,proto3,enum=pokeuniverse.social.v1.LinkActivity" json:"activity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkMember) Reset() {
+	*x = LinkMember{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkMember) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkMember) ProtoMessage() {}
+
+func (x *LinkMember) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkMember.ProtoReflect.Descriptor instead.
+func (*LinkMember) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *LinkMember) GetMember() *Friend {
+	if x != nil {
+		return x.Member
+	}
+	return nil
+}
+
+func (x *LinkMember) GetActivity() LinkActivity {
+	if x != nil {
+		return x.Activity
+	}
+	return LinkActivity_LINK_ACTIVITY_UNSPECIFIED
+}
+
+type JoinAnswered struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Leader        uint64                 `protobuf:"varint,1,opt,name=leader,proto3" json:"leader,omitempty"`
+	Accepted      bool                   `protobuf:"varint,2,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	Refusal       JoinRefusal            `protobuf:"varint,3,opt,name=refusal,proto3,enum=pokeuniverse.social.v1.JoinRefusal" json:"refusal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JoinAnswered) Reset() {
+	*x = JoinAnswered{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinAnswered) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinAnswered) ProtoMessage() {}
+
+func (x *JoinAnswered) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinAnswered.ProtoReflect.Descriptor instead.
+func (*JoinAnswered) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *JoinAnswered) GetLeader() uint64 {
+	if x != nil {
+		return x.Leader
+	}
+	return 0
+}
+
+func (x *JoinAnswered) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
+}
+
+func (x *JoinAnswered) GetRefusal() JoinRefusal {
+	if x != nil {
+		return x.Refusal
+	}
+	return JoinRefusal_JOIN_REFUSAL_UNSPECIFIED
+}
+
+type LinkStart struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The room's ID: the room map's private zone phase (D20).
+	Room uint32 `protobuf:"varint,1,opt,name=room,proto3" json:"room,omitempty"`
+	// trade_center or battle_colosseum_2p.
+	Map           string       `protobuf:"bytes,2,opt,name=map,proto3" json:"map,omitempty"`
+	Leader        bool         `protobuf:"varint,3,opt,name=leader,proto3" json:"leader,omitempty"`
+	Partner       *Friend      `protobuf:"bytes,4,opt,name=partner,proto3" json:"partner,omitempty"`
+	Activity      LinkActivity `protobuf:"varint,5,opt,name=activity,proto3,enum=pokeuniverse.social.v1.LinkActivity" json:"activity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkStart) Reset() {
+	*x = LinkStart{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkStart) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkStart) ProtoMessage() {}
+
+func (x *LinkStart) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkStart.ProtoReflect.Descriptor instead.
+func (*LinkStart) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *LinkStart) GetRoom() uint32 {
+	if x != nil {
+		return x.Room
+	}
+	return 0
+}
+
+func (x *LinkStart) GetMap() string {
+	if x != nil {
+		return x.Map
+	}
+	return ""
+}
+
+func (x *LinkStart) GetLeader() bool {
+	if x != nil {
+		return x.Leader
+	}
+	return false
+}
+
+func (x *LinkStart) GetPartner() *Friend {
+	if x != nil {
+		return x.Partner
+	}
+	return nil
+}
+
+func (x *LinkStart) GetActivity() LinkActivity {
+	if x != nil {
+		return x.Activity
+	}
+	return LinkActivity_LINK_ACTIVITY_UNSPECIFIED
+}
+
 var File_pokeuniverse_social_v1_social_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
@@ -2143,7 +2976,7 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x0fPresenceChanged\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12<\n" +
 	"\bpresence\x18\x02 \x01(\x0e2 .pokeuniverse.social.v1.PresenceR\bpresence\x12\x1b\n" +
-	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\x9f\a\n" +
+	"\tlast_seen\x18\x03 \x01(\x03R\blastSeen\"\xd8\a\n" +
 	"\vSocialEvent\x12R\n" +
 	"\x10request_received\x18\x01 \x01(\v2%.pokeuniverse.social.v1.FriendRequestH\x00R\x0frequestReceived\x12C\n" +
 	"\ffriend_added\x18\x02 \x01(\v2\x1e.pokeuniverse.social.v1.FriendH\x00R\vfriendAdded\x12N\n" +
@@ -2158,7 +2991,8 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x0fchannel_updated\x18\n" +
 	" \x01(\v2\x1f.pokeuniverse.social.v1.ChannelH\x00R\x0echannelUpdated\x12U\n" +
 	"\x0echannel_member\x18\v \x01(\v2,.pokeuniverse.social.v1.ChannelMemberChangedH\x00R\rchannelMember\x12H\n" +
-	"\fchannel_gone\x18\f \x01(\v2#.pokeuniverse.social.v1.ChannelGoneH\x00R\vchannelGoneB\a\n" +
+	"\fchannel_gone\x18\f \x01(\v2#.pokeuniverse.social.v1.ChannelGoneH\x00R\vchannelGone\x127\n" +
+	"\x04link\x18\r \x01(\v2!.pokeuniverse.social.v1.LinkEventH\x00R\x04linkB\a\n" +
 	"\x05event\"\xe6\x01\n" +
 	"\x13ConversationMessage\x12\"\n" +
 	"\fconversation\x18\x01 \x01(\x04R\fconversation\x12\x10\n" +
@@ -2226,7 +3060,53 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\vChannelName\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"&\n" +
 	"\x14ChannelInviteRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id*\x9a\x01\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\"\xa1\x01\n" +
+	"\bLinkRoom\x126\n" +
+	"\x06leader\x18\x01 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06leader\x12@\n" +
+	"\bactivity\x18\x02 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityR\bactivity\x12\x1b\n" +
+	"\topened_at\x18\x03 \x01(\x03R\bopenedAt\"\xd1\x02\n" +
+	"\n" +
+	"LinkIntent\x12:\n" +
+	"\x04open\x18\x01 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityH\x00R\x04open\x12\x16\n" +
+	"\x05close\x18\x02 \x01(\bH\x00R\x05close\x12>\n" +
+	"\x06browse\x18\x03 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityH\x00R\x06browse\x12\x14\n" +
+	"\x04join\x18\x04 \x01(\x04H\x00R\x04join\x12!\n" +
+	"\vcancel_join\x18\x05 \x01(\bH\x00R\n" +
+	"cancelJoin\x12<\n" +
+	"\x06answer\x18\x06 \x01(\v2\".pokeuniverse.social.v1.AnswerJoinH\x00R\x06answer\x12\x16\n" +
+	"\x05enter\x18\a \x01(\bH\x00R\x05enter\x12\x16\n" +
+	"\x05leave\x18\b \x01(\bH\x00R\x05leaveB\b\n" +
+	"\x06intent\"<\n" +
+	"\n" +
+	"AnswerJoin\x12\x16\n" +
+	"\x06member\x18\x01 \x01(\x04R\x06member\x12\x16\n" +
+	"\x06accept\x18\x02 \x01(\bR\x06accept\"\x82\x03\n" +
+	"\tLinkEvent\x129\n" +
+	"\x05rooms\x18\x01 \x01(\v2!.pokeuniverse.social.v1.LinkRoomsH\x00R\x05rooms\x12C\n" +
+	"\n" +
+	"join_asked\x18\x02 \x01(\v2\".pokeuniverse.social.v1.LinkMemberH\x00R\tjoinAsked\x12K\n" +
+	"\rjoin_answered\x18\x03 \x01(\v2$.pokeuniverse.social.v1.JoinAnsweredH\x00R\fjoinAnswered\x129\n" +
+	"\x05start\x18\x04 \x01(\v2!.pokeuniverse.social.v1.LinkStartH\x00R\x05start\x12\x16\n" +
+	"\x05ended\x18\x05 \x01(\bH\x00R\x05ended\x12'\n" +
+	"\x0ejoin_cancelled\x18\x06 \x01(\x04H\x00R\rjoinCancelled\x12#\n" +
+	"\fpartner_left\x18\a \x01(\x04H\x00R\vpartnerLeftB\a\n" +
+	"\x05event\"C\n" +
+	"\tLinkRooms\x126\n" +
+	"\x05rooms\x18\x01 \x03(\v2 .pokeuniverse.social.v1.LinkRoomR\x05rooms\"\x86\x01\n" +
+	"\n" +
+	"LinkMember\x126\n" +
+	"\x06member\x18\x01 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06member\x12@\n" +
+	"\bactivity\x18\x02 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityR\bactivity\"\x81\x01\n" +
+	"\fJoinAnswered\x12\x16\n" +
+	"\x06leader\x18\x01 \x01(\x04R\x06leader\x12\x1a\n" +
+	"\baccepted\x18\x02 \x01(\bR\baccepted\x12=\n" +
+	"\arefusal\x18\x03 \x01(\x0e2#.pokeuniverse.social.v1.JoinRefusalR\arefusal\"\xc5\x01\n" +
+	"\tLinkStart\x12\x12\n" +
+	"\x04room\x18\x01 \x01(\rR\x04room\x12\x10\n" +
+	"\x03map\x18\x02 \x01(\tR\x03map\x12\x16\n" +
+	"\x06leader\x18\x03 \x01(\bR\x06leader\x128\n" +
+	"\apartner\x18\x04 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\apartner\x12@\n" +
+	"\bactivity\x18\x05 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityR\bactivity*\x9a\x01\n" +
 	"\bPresence\x12\x18\n" +
 	"\x14PRESENCE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10PRESENCE_OFFLINE\x10\x01\x12\x13\n" +
@@ -2264,7 +3144,18 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"!CHANNEL_MEMBER_CHANGE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cCHANNEL_MEMBER_CHANGE_JOINED\x10\x01\x12\x1e\n" +
 	"\x1aCHANNEL_MEMBER_CHANGE_LEFT\x10\x02\x12!\n" +
-	"\x1dCHANNEL_MEMBER_CHANGE_REMOVED\x10\x03BCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1b\x06proto3"
+	"\x1dCHANNEL_MEMBER_CHANGE_REMOVED\x10\x03*\xa8\x01\n" +
+	"\fLinkActivity\x12\x1d\n" +
+	"\x19LINK_ACTIVITY_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13LINK_ACTIVITY_TRADE\x10\x01\x12\x1f\n" +
+	"\x1bLINK_ACTIVITY_SINGLE_BATTLE\x10\x02\x12\x1f\n" +
+	"\x1bLINK_ACTIVITY_DOUBLE_BATTLE\x10\x03\x12\x1e\n" +
+	"\x1aLINK_ACTIVITY_MULTI_BATTLE\x10\x04*y\n" +
+	"\vJoinRefusal\x12\x1c\n" +
+	"\x18JOIN_REFUSAL_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15JOIN_REFUSAL_DECLINED\x10\x01\x12\x15\n" +
+	"\x11JOIN_REFUSAL_GONE\x10\x02\x12\x1a\n" +
+	"\x16JOIN_REFUSAL_DIFFERENT\x10\x03BCZApokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1b\x06proto3"
 
 var (
 	file_pokeuniverse_social_v1_social_proto_rawDescOnce sync.Once
@@ -2278,8 +3169,8 @@ func file_pokeuniverse_social_v1_social_proto_rawDescGZIP() []byte {
 	return file_pokeuniverse_social_v1_social_proto_rawDescData
 }
 
-var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 9)
+var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(Presence)(0),                   // 0: pokeuniverse.social.v1.Presence
 	(Relation)(0),                   // 1: pokeuniverse.social.v1.Relation
@@ -2288,77 +3179,103 @@ var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(SendFailedReason)(0),           // 4: pokeuniverse.social.v1.SendFailedReason
 	(ChannelInviteClosedReason)(0),  // 5: pokeuniverse.social.v1.ChannelInviteClosedReason
 	(ChannelMemberChange)(0),        // 6: pokeuniverse.social.v1.ChannelMemberChange
-	(*Friend)(nil),                  // 7: pokeuniverse.social.v1.Friend
-	(*FriendRequest)(nil),           // 8: pokeuniverse.social.v1.FriendRequest
-	(*FriendsList)(nil),             // 9: pokeuniverse.social.v1.FriendsList
-	(*SendFriendRequest)(nil),       // 10: pokeuniverse.social.v1.SendFriendRequest
-	(*SendFriendRequestResult)(nil), // 11: pokeuniverse.social.v1.SendFriendRequestResult
-	(*RequestClosed)(nil),           // 12: pokeuniverse.social.v1.RequestClosed
-	(*PresenceChanged)(nil),         // 13: pokeuniverse.social.v1.PresenceChanged
-	(*SocialEvent)(nil),             // 14: pokeuniverse.social.v1.SocialEvent
-	(*ConversationMessage)(nil),     // 15: pokeuniverse.social.v1.ConversationMessage
-	(*SendMessage)(nil),             // 16: pokeuniverse.social.v1.SendMessage
-	(*SendFailed)(nil),              // 17: pokeuniverse.social.v1.SendFailed
-	(*MarkRead)(nil),                // 18: pokeuniverse.social.v1.MarkRead
-	(*Conversation)(nil),            // 19: pokeuniverse.social.v1.Conversation
-	(*ConversationsList)(nil),       // 20: pokeuniverse.social.v1.ConversationsList
-	(*MessagesPage)(nil),            // 21: pokeuniverse.social.v1.MessagesPage
-	(*Channel)(nil),                 // 22: pokeuniverse.social.v1.Channel
-	(*ChannelInvite)(nil),           // 23: pokeuniverse.social.v1.ChannelInvite
-	(*ChannelInviteClosed)(nil),     // 24: pokeuniverse.social.v1.ChannelInviteClosed
-	(*ChannelMemberChanged)(nil),    // 25: pokeuniverse.social.v1.ChannelMemberChanged
-	(*ChannelGone)(nil),             // 26: pokeuniverse.social.v1.ChannelGone
-	(*ChannelMember)(nil),           // 27: pokeuniverse.social.v1.ChannelMember
-	(*ChannelMembers)(nil),          // 28: pokeuniverse.social.v1.ChannelMembers
-	(*ChannelName)(nil),             // 29: pokeuniverse.social.v1.ChannelName
-	(*ChannelInviteRequest)(nil),    // 30: pokeuniverse.social.v1.ChannelInviteRequest
-	(v1.Gender)(0),                  // 31: pokeuniverse.trainer.v1.Gender
+	(LinkActivity)(0),               // 7: pokeuniverse.social.v1.LinkActivity
+	(JoinRefusal)(0),                // 8: pokeuniverse.social.v1.JoinRefusal
+	(*Friend)(nil),                  // 9: pokeuniverse.social.v1.Friend
+	(*FriendRequest)(nil),           // 10: pokeuniverse.social.v1.FriendRequest
+	(*FriendsList)(nil),             // 11: pokeuniverse.social.v1.FriendsList
+	(*SendFriendRequest)(nil),       // 12: pokeuniverse.social.v1.SendFriendRequest
+	(*SendFriendRequestResult)(nil), // 13: pokeuniverse.social.v1.SendFriendRequestResult
+	(*RequestClosed)(nil),           // 14: pokeuniverse.social.v1.RequestClosed
+	(*PresenceChanged)(nil),         // 15: pokeuniverse.social.v1.PresenceChanged
+	(*SocialEvent)(nil),             // 16: pokeuniverse.social.v1.SocialEvent
+	(*ConversationMessage)(nil),     // 17: pokeuniverse.social.v1.ConversationMessage
+	(*SendMessage)(nil),             // 18: pokeuniverse.social.v1.SendMessage
+	(*SendFailed)(nil),              // 19: pokeuniverse.social.v1.SendFailed
+	(*MarkRead)(nil),                // 20: pokeuniverse.social.v1.MarkRead
+	(*Conversation)(nil),            // 21: pokeuniverse.social.v1.Conversation
+	(*ConversationsList)(nil),       // 22: pokeuniverse.social.v1.ConversationsList
+	(*MessagesPage)(nil),            // 23: pokeuniverse.social.v1.MessagesPage
+	(*Channel)(nil),                 // 24: pokeuniverse.social.v1.Channel
+	(*ChannelInvite)(nil),           // 25: pokeuniverse.social.v1.ChannelInvite
+	(*ChannelInviteClosed)(nil),     // 26: pokeuniverse.social.v1.ChannelInviteClosed
+	(*ChannelMemberChanged)(nil),    // 27: pokeuniverse.social.v1.ChannelMemberChanged
+	(*ChannelGone)(nil),             // 28: pokeuniverse.social.v1.ChannelGone
+	(*ChannelMember)(nil),           // 29: pokeuniverse.social.v1.ChannelMember
+	(*ChannelMembers)(nil),          // 30: pokeuniverse.social.v1.ChannelMembers
+	(*ChannelName)(nil),             // 31: pokeuniverse.social.v1.ChannelName
+	(*ChannelInviteRequest)(nil),    // 32: pokeuniverse.social.v1.ChannelInviteRequest
+	(*LinkRoom)(nil),                // 33: pokeuniverse.social.v1.LinkRoom
+	(*LinkIntent)(nil),              // 34: pokeuniverse.social.v1.LinkIntent
+	(*AnswerJoin)(nil),              // 35: pokeuniverse.social.v1.AnswerJoin
+	(*LinkEvent)(nil),               // 36: pokeuniverse.social.v1.LinkEvent
+	(*LinkRooms)(nil),               // 37: pokeuniverse.social.v1.LinkRooms
+	(*LinkMember)(nil),              // 38: pokeuniverse.social.v1.LinkMember
+	(*JoinAnswered)(nil),            // 39: pokeuniverse.social.v1.JoinAnswered
+	(*LinkStart)(nil),               // 40: pokeuniverse.social.v1.LinkStart
+	(v1.Gender)(0),                  // 41: pokeuniverse.trainer.v1.Gender
 }
 var file_pokeuniverse_social_v1_social_proto_depIdxs = []int32{
-	31, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	41, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
 	0,  // 1: pokeuniverse.social.v1.Friend.presence:type_name -> pokeuniverse.social.v1.Presence
-	7,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
-	7,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
-	8,  // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
-	8,  // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
-	8,  // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
-	7,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
+	9,  // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
+	9,  // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
+	10, // 4: pokeuniverse.social.v1.FriendsList.incoming:type_name -> pokeuniverse.social.v1.FriendRequest
+	10, // 5: pokeuniverse.social.v1.FriendsList.outgoing:type_name -> pokeuniverse.social.v1.FriendRequest
+	10, // 6: pokeuniverse.social.v1.SendFriendRequestResult.request:type_name -> pokeuniverse.social.v1.FriendRequest
+	9,  // 7: pokeuniverse.social.v1.SendFriendRequestResult.friend:type_name -> pokeuniverse.social.v1.Friend
 	2,  // 8: pokeuniverse.social.v1.RequestClosed.reason:type_name -> pokeuniverse.social.v1.RequestClosedReason
 	0,  // 9: pokeuniverse.social.v1.PresenceChanged.presence:type_name -> pokeuniverse.social.v1.Presence
-	8,  // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
-	7,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
-	12, // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
-	13, // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
-	15, // 14: pokeuniverse.social.v1.SocialEvent.message:type_name -> pokeuniverse.social.v1.ConversationMessage
-	17, // 15: pokeuniverse.social.v1.SocialEvent.send_failed:type_name -> pokeuniverse.social.v1.SendFailed
-	23, // 16: pokeuniverse.social.v1.SocialEvent.channel_invite:type_name -> pokeuniverse.social.v1.ChannelInvite
-	24, // 17: pokeuniverse.social.v1.SocialEvent.channel_invite_closed:type_name -> pokeuniverse.social.v1.ChannelInviteClosed
-	22, // 18: pokeuniverse.social.v1.SocialEvent.channel_updated:type_name -> pokeuniverse.social.v1.Channel
-	25, // 19: pokeuniverse.social.v1.SocialEvent.channel_member:type_name -> pokeuniverse.social.v1.ChannelMemberChanged
-	26, // 20: pokeuniverse.social.v1.SocialEvent.channel_gone:type_name -> pokeuniverse.social.v1.ChannelGone
-	4,  // 21: pokeuniverse.social.v1.SendFailed.reason:type_name -> pokeuniverse.social.v1.SendFailedReason
-	3,  // 22: pokeuniverse.social.v1.Conversation.kind:type_name -> pokeuniverse.social.v1.ConversationKind
-	7,  // 23: pokeuniverse.social.v1.Conversation.friend:type_name -> pokeuniverse.social.v1.Friend
-	15, // 24: pokeuniverse.social.v1.Conversation.last:type_name -> pokeuniverse.social.v1.ConversationMessage
-	22, // 25: pokeuniverse.social.v1.Conversation.channel:type_name -> pokeuniverse.social.v1.Channel
-	19, // 26: pokeuniverse.social.v1.ConversationsList.conversations:type_name -> pokeuniverse.social.v1.Conversation
-	23, // 27: pokeuniverse.social.v1.ConversationsList.invites:type_name -> pokeuniverse.social.v1.ChannelInvite
-	15, // 28: pokeuniverse.social.v1.MessagesPage.messages:type_name -> pokeuniverse.social.v1.ConversationMessage
-	22, // 29: pokeuniverse.social.v1.ChannelInvite.channel:type_name -> pokeuniverse.social.v1.Channel
-	7,  // 30: pokeuniverse.social.v1.ChannelInvite.from:type_name -> pokeuniverse.social.v1.Friend
-	5,  // 31: pokeuniverse.social.v1.ChannelInviteClosed.reason:type_name -> pokeuniverse.social.v1.ChannelInviteClosedReason
-	7,  // 32: pokeuniverse.social.v1.ChannelMemberChanged.player:type_name -> pokeuniverse.social.v1.Friend
-	6,  // 33: pokeuniverse.social.v1.ChannelMemberChanged.change:type_name -> pokeuniverse.social.v1.ChannelMemberChange
-	6,  // 34: pokeuniverse.social.v1.ChannelGone.change:type_name -> pokeuniverse.social.v1.ChannelMemberChange
-	7,  // 35: pokeuniverse.social.v1.ChannelMember.player:type_name -> pokeuniverse.social.v1.Friend
-	22, // 36: pokeuniverse.social.v1.ChannelMembers.channel:type_name -> pokeuniverse.social.v1.Channel
-	27, // 37: pokeuniverse.social.v1.ChannelMembers.members:type_name -> pokeuniverse.social.v1.ChannelMember
-	7,  // 38: pokeuniverse.social.v1.ChannelMembers.invited:type_name -> pokeuniverse.social.v1.Friend
-	39, // [39:39] is the sub-list for method output_type
-	39, // [39:39] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	10, // 10: pokeuniverse.social.v1.SocialEvent.request_received:type_name -> pokeuniverse.social.v1.FriendRequest
+	9,  // 11: pokeuniverse.social.v1.SocialEvent.friend_added:type_name -> pokeuniverse.social.v1.Friend
+	14, // 12: pokeuniverse.social.v1.SocialEvent.request_closed:type_name -> pokeuniverse.social.v1.RequestClosed
+	15, // 13: pokeuniverse.social.v1.SocialEvent.presence:type_name -> pokeuniverse.social.v1.PresenceChanged
+	17, // 14: pokeuniverse.social.v1.SocialEvent.message:type_name -> pokeuniverse.social.v1.ConversationMessage
+	19, // 15: pokeuniverse.social.v1.SocialEvent.send_failed:type_name -> pokeuniverse.social.v1.SendFailed
+	25, // 16: pokeuniverse.social.v1.SocialEvent.channel_invite:type_name -> pokeuniverse.social.v1.ChannelInvite
+	26, // 17: pokeuniverse.social.v1.SocialEvent.channel_invite_closed:type_name -> pokeuniverse.social.v1.ChannelInviteClosed
+	24, // 18: pokeuniverse.social.v1.SocialEvent.channel_updated:type_name -> pokeuniverse.social.v1.Channel
+	27, // 19: pokeuniverse.social.v1.SocialEvent.channel_member:type_name -> pokeuniverse.social.v1.ChannelMemberChanged
+	28, // 20: pokeuniverse.social.v1.SocialEvent.channel_gone:type_name -> pokeuniverse.social.v1.ChannelGone
+	36, // 21: pokeuniverse.social.v1.SocialEvent.link:type_name -> pokeuniverse.social.v1.LinkEvent
+	4,  // 22: pokeuniverse.social.v1.SendFailed.reason:type_name -> pokeuniverse.social.v1.SendFailedReason
+	3,  // 23: pokeuniverse.social.v1.Conversation.kind:type_name -> pokeuniverse.social.v1.ConversationKind
+	9,  // 24: pokeuniverse.social.v1.Conversation.friend:type_name -> pokeuniverse.social.v1.Friend
+	17, // 25: pokeuniverse.social.v1.Conversation.last:type_name -> pokeuniverse.social.v1.ConversationMessage
+	24, // 26: pokeuniverse.social.v1.Conversation.channel:type_name -> pokeuniverse.social.v1.Channel
+	21, // 27: pokeuniverse.social.v1.ConversationsList.conversations:type_name -> pokeuniverse.social.v1.Conversation
+	25, // 28: pokeuniverse.social.v1.ConversationsList.invites:type_name -> pokeuniverse.social.v1.ChannelInvite
+	17, // 29: pokeuniverse.social.v1.MessagesPage.messages:type_name -> pokeuniverse.social.v1.ConversationMessage
+	24, // 30: pokeuniverse.social.v1.ChannelInvite.channel:type_name -> pokeuniverse.social.v1.Channel
+	9,  // 31: pokeuniverse.social.v1.ChannelInvite.from:type_name -> pokeuniverse.social.v1.Friend
+	5,  // 32: pokeuniverse.social.v1.ChannelInviteClosed.reason:type_name -> pokeuniverse.social.v1.ChannelInviteClosedReason
+	9,  // 33: pokeuniverse.social.v1.ChannelMemberChanged.player:type_name -> pokeuniverse.social.v1.Friend
+	6,  // 34: pokeuniverse.social.v1.ChannelMemberChanged.change:type_name -> pokeuniverse.social.v1.ChannelMemberChange
+	6,  // 35: pokeuniverse.social.v1.ChannelGone.change:type_name -> pokeuniverse.social.v1.ChannelMemberChange
+	9,  // 36: pokeuniverse.social.v1.ChannelMember.player:type_name -> pokeuniverse.social.v1.Friend
+	24, // 37: pokeuniverse.social.v1.ChannelMembers.channel:type_name -> pokeuniverse.social.v1.Channel
+	29, // 38: pokeuniverse.social.v1.ChannelMembers.members:type_name -> pokeuniverse.social.v1.ChannelMember
+	9,  // 39: pokeuniverse.social.v1.ChannelMembers.invited:type_name -> pokeuniverse.social.v1.Friend
+	9,  // 40: pokeuniverse.social.v1.LinkRoom.leader:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 41: pokeuniverse.social.v1.LinkRoom.activity:type_name -> pokeuniverse.social.v1.LinkActivity
+	7,  // 42: pokeuniverse.social.v1.LinkIntent.open:type_name -> pokeuniverse.social.v1.LinkActivity
+	7,  // 43: pokeuniverse.social.v1.LinkIntent.browse:type_name -> pokeuniverse.social.v1.LinkActivity
+	35, // 44: pokeuniverse.social.v1.LinkIntent.answer:type_name -> pokeuniverse.social.v1.AnswerJoin
+	37, // 45: pokeuniverse.social.v1.LinkEvent.rooms:type_name -> pokeuniverse.social.v1.LinkRooms
+	38, // 46: pokeuniverse.social.v1.LinkEvent.join_asked:type_name -> pokeuniverse.social.v1.LinkMember
+	39, // 47: pokeuniverse.social.v1.LinkEvent.join_answered:type_name -> pokeuniverse.social.v1.JoinAnswered
+	40, // 48: pokeuniverse.social.v1.LinkEvent.start:type_name -> pokeuniverse.social.v1.LinkStart
+	33, // 49: pokeuniverse.social.v1.LinkRooms.rooms:type_name -> pokeuniverse.social.v1.LinkRoom
+	9,  // 50: pokeuniverse.social.v1.LinkMember.member:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 51: pokeuniverse.social.v1.LinkMember.activity:type_name -> pokeuniverse.social.v1.LinkActivity
+	8,  // 52: pokeuniverse.social.v1.JoinAnswered.refusal:type_name -> pokeuniverse.social.v1.JoinRefusal
+	9,  // 53: pokeuniverse.social.v1.LinkStart.partner:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 54: pokeuniverse.social.v1.LinkStart.activity:type_name -> pokeuniverse.social.v1.LinkActivity
+	55, // [55:55] is the sub-list for method output_type
+	55, // [55:55] is the sub-list for method input_type
+	55, // [55:55] is the sub-list for extension type_name
+	55, // [55:55] is the sub-list for extension extendee
+	0,  // [0:55] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_social_v1_social_proto_init() }
@@ -2383,14 +3300,34 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		(*SocialEvent_ChannelUpdated)(nil),
 		(*SocialEvent_ChannelMember)(nil),
 		(*SocialEvent_ChannelGone)(nil),
+		(*SocialEvent_Link)(nil),
+	}
+	file_pokeuniverse_social_v1_social_proto_msgTypes[25].OneofWrappers = []any{
+		(*LinkIntent_Open)(nil),
+		(*LinkIntent_Close)(nil),
+		(*LinkIntent_Browse)(nil),
+		(*LinkIntent_Join)(nil),
+		(*LinkIntent_CancelJoin)(nil),
+		(*LinkIntent_Answer)(nil),
+		(*LinkIntent_Enter)(nil),
+		(*LinkIntent_Leave)(nil),
+	}
+	file_pokeuniverse_social_v1_social_proto_msgTypes[27].OneofWrappers = []any{
+		(*LinkEvent_Rooms)(nil),
+		(*LinkEvent_JoinAsked)(nil),
+		(*LinkEvent_JoinAnswered)(nil),
+		(*LinkEvent_Start)(nil),
+		(*LinkEvent_Ended)(nil),
+		(*LinkEvent_JoinCancelled)(nil),
+		(*LinkEvent_PartnerLeft)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_social_v1_social_proto_rawDesc), len(file_pokeuniverse_social_v1_social_proto_rawDesc)),
-			NumEnums:      7,
-			NumMessages:   24,
+			NumEnums:      9,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

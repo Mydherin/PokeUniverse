@@ -18,7 +18,7 @@ import type { Party } from "../../party/v1/party_pb";
 import { file_pokeuniverse_party_v1_party } from "../../party/v1/party_pb";
 import type { Pokedex } from "../../pokedex/v1/pokedex_pb";
 import { file_pokeuniverse_pokedex_v1_pokedex } from "../../pokedex/v1/pokedex_pb";
-import type { Relation } from "../../social/v1/social_pb";
+import type { LinkActivity, LinkRoom, Relation } from "../../social/v1/social_pb";
 import { file_pokeuniverse_social_v1_social } from "../../social/v1/social_pb";
 import type { Gender } from "../../trainer/v1/trainer_pb";
 import { file_pokeuniverse_trainer_v1_trainer } from "../../trainer/v1/trainer_pb";
@@ -28,7 +28,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/world/v1/world.proto.
  */
 export const file_pokeuniverse_world_v1_world: GenFile = /*@__PURE__*/
-  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIhgKCFNlbmRDaGF0EgwKBHRleHQYASABKAkiHQoISW50ZXJhY3QSEQoJd2Fsa19pbnRvGAEgASgIIhwKClNjcmlwdERvbmUSDgoGc2NyaXB0GAEgASgNIucCCg1Xb3JsZFNuYXBzaG90EgsKA21hcBgBIAEoCRItCgZwbGF5ZXIYAiABKAsyHS5wb2tldW5pdmVyc2Uud29ybGQudjEuQXZhdGFyEg8KB2Nhbl9ydW4YAyABKAgSGQoRcGxheV90aW1lX3NlY29uZHMYBCABKA0SJgoDYmFnGAUgASgLMhkucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnEjEKB3Bva2VkZXgYBiABKAsyIC5wb2tldW5pdmVyc2UucG9rZWRleC52MS5Qb2tlZGV4EisKBXBhcnR5GAcgASgLMhwucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlBhcnR5EjIKBmJhdHRsZRgIIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlVmlldxIyCgZvdGhlcnMYCSADKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuT3RoZXJQbGF5ZXIisgEKBkF2YXRhchIJCgF4GAEgASgNEgkKAXkYAiABKA0SLgoGZmFjaW5nGAMgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SLwoGZ2VuZGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIoABCghGb2xsb3dlchIPCgdzcGVjaWVzGAEgASgNEg0KBXNoaW55GAIgASgIEgkKAXgYAyABKA0SCQoBeRgEIAEoDRIuCgZmYWNpbmcYBSABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIOCgZoaWRkZW4YBiABKAgiRAoPRm9sbG93ZXJDaGFuZ2VkEjEKCGZvbGxvd2VyGAEgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyItMBCgZXYXJwZWQSCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIPCgdjYW5fcnVuGAUgASgIEjEKCGZvbGxvd2VyGAYgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyEjIKBm90aGVycxgHIAMoCzIiLnBva2V1bml2ZXJzZS53b3JsZC52MS5PdGhlclBsYXllciLkAQoLT3RoZXJQbGF5ZXISCgoCaWQYASABKAQSDAoEbmFtZRgCIAEoCRIvCgZnZW5kZXIYAyABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISCQoBeBgEIAEoDRIJCgF5GAUgASgNEi4KBmZhY2luZxgGIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEjEKCGZvbGxvd2VyGAcgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyEhEKCWluX2JhdHRsZRgIIAEoCCI+Cgpab25lRXZlbnRzEjAKBmV2ZW50cxgBIAMoCzIgLnBva2V1bml2ZXJzZS53b3JsZC52MS5ab25lRXZlbnQikAMKCVpvbmVFdmVudBI1CgZqb2luZWQYASABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVySm9pbmVkSAASMQoEbGVmdBgCIAEoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJMZWZ0SAASMwoFbW92ZWQYAyABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyTW92ZWRIABI1CgZ0dXJuZWQYBCABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyVHVybmVkSAASOQoIZm9sbG93ZXIYBSABKAsyJS5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyRm9sbG93ZXJIABI1CgZiYXR0bGUYBiABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyQmF0dGxlSAASMgoEY2hhdBgHIAEoCzIiLnBva2V1bml2ZXJzZS53b3JsZC52MS5DaGF0TWVzc2FnZUgAQgcKBWV2ZW50IkIKDFBsYXllckpvaW5lZBIyCgZwbGF5ZXIYASABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuT3RoZXJQbGF5ZXIiGAoKUGxheWVyTGVmdBIKCgJpZBgBIAEoBCJsCgtQbGF5ZXJNb3ZlZBIKCgJpZBgBIAEoBBIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAUgASgIIkoKDFBsYXllclR1cm5lZBIKCgJpZBgBIAEoBBIuCgZmYWNpbmcYAiABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbiJPCg5QbGF5ZXJGb2xsb3dlchIKCgJpZBgBIAEoBBIxCghmb2xsb3dlchgCIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlciItCgxQbGF5ZXJCYXR0bGUSCgoCaWQYASABKAQSEQoJaW5fYmF0dGxlGAIgASgIIicKC0NoYXRNZXNzYWdlEgoKAmlkGAEgASgEEgwKBHRleHQYAiABKAkikwEKCkNvcnJlY3Rpb24SDAoEc3RlcBgBIAEoDRIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SMQoIZm9sbG93ZXIYBSABKAsyHy5wb2tldW5pdmVyc2Uud29ybGQudjEuRm9sbG93ZXIiUwoGU2NyaXB0EgoKAmlkGAEgASgNEjAKBXN0ZXBzGAIgAygLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdFN0ZXASCwoDbnBjGAMgASgJIqEECgpTY3JpcHRTdGVwEjEKB21lc3NhZ2UYASABKAsyHi5wb2tldW5pdmVyc2Uud29ybGQudjEuTWVzc2FnZUgAEg8KBXNvdW5kGAIgASgJSAASNAoJcGNfc2NyZWVuGAMgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjU2NyZWVuSAASNgoKcGxheWVyc19wYxgEIAEoCzIgLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJzUGNIABIuCgZ5ZXNfbm8YBSABKAsyHC5wb2tldW5pdmVyc2Uud29ybGQudjEuWWVzTm9IABI+Cg50cmFpbmVyX2JhdHRsZRgGIAEoCzIkLnBva2V1bml2ZXJzZS53b3JsZC52MS5UcmFpbmVyQmF0dGxlSAASDwoFbXVzaWMYByABKAlIABIXCg1mYWNlX29yaWdpbmFsGAggASgISAASFQoLd2lsZF9iYXR0bGUYCSABKAhIABI4CgtwbGF5ZXJfbWVudRgKIAEoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJNZW51SAASOQoLbXVsdGljaG9pY2UYCyABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuTXVsdGljaG9pY2VIABIOCgRqdW1wGAwgASgNSAASEgoIYXNrX3NhdmUYDSABKA1IABINCgNlbmQYDiABKAhIAEIICgZhY3Rpb24iJwoLTXVsdGljaG9pY2USDAoEbWVudRgBIAEoCRIKCgJ0bxgCIAMoDSJwCgpQbGF5ZXJNZW51EgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSMgoIcmVsYXRpb24YAyABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlJlbGF0aW9uEhQKDG93bnNfY2hhbm5lbBgEIAEoCCI2CgVZZXNObxItCgJubxgBIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIiAKDVRyYWluZXJCYXR0bGUSDwoHdHJhaW5lchgBIAEoCSIeCgxTY3JpcHRCYXR0bGUSDgoGc2NyaXB0GAEgASgNIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSKSAQoHWm9uZUJ1cxIPCgdyZXBsaWNhGAEgASgJEjIKBWJhdGNoGAIgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlpvbmVFdmVudHNIABI3CghwcmVzZW5jZRgDIAEoCzIjLnBva2V1bml2ZXJzZS53b3JsZC52MS5ab25lUHJlc2VuY2VIAEIJCgdtZXNzYWdlIhsKDFpvbmVQcmVzZW5jZRILCgNpZHMYASADKAQiUQoKWm9uZU1lbWJlchIPCgdyZXBsaWNhGAEgASgJEjIKBnBsYXllchgCIAEoCzIiLnBva2V1bml2ZXJzZS53b3JsZC52MS5PdGhlclBsYXllciooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_social_v1_social, file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiFwb2tldW5pdmVyc2Uvd29ybGQvdjEvd29ybGQucHJvdG8SFXBva2V1bml2ZXJzZS53b3JsZC52MSIfCgpFbnRlcldvcmxkEhEKCXRha2Vfb3ZlchgBIAEoCCJqCgRNb3ZlEgwKBHN0ZXAYASABKA0SMQoJZGlyZWN0aW9uGAIgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAMgASgIEgkKAXgYBCABKA0SCQoBeRgFIAEoDSI5CgRUdXJuEjEKCWRpcmVjdGlvbhgBIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uIlIKB1VzZVdhcnASMQoJZGlyZWN0aW9uGAEgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCQoBeBgCIAEoDRIJCgF5GAMgASgNIhgKCFNlbmRDaGF0EgwKBHRleHQYASABKAkiHQoISW50ZXJhY3QSEQoJd2Fsa19pbnRvGAEgASgIIhwKClNjcmlwdERvbmUSDgoGc2NyaXB0GAEgASgNIucCCg1Xb3JsZFNuYXBzaG90EgsKA21hcBgBIAEoCRItCgZwbGF5ZXIYAiABKAsyHS5wb2tldW5pdmVyc2Uud29ybGQudjEuQXZhdGFyEg8KB2Nhbl9ydW4YAyABKAgSGQoRcGxheV90aW1lX3NlY29uZHMYBCABKA0SJgoDYmFnGAUgASgLMhkucG9rZXVuaXZlcnNlLml0ZW0udjEuQmFnEjEKB3Bva2VkZXgYBiABKAsyIC5wb2tldW5pdmVyc2UucG9rZWRleC52MS5Qb2tlZGV4EisKBXBhcnR5GAcgASgLMhwucG9rZXVuaXZlcnNlLnBhcnR5LnYxLlBhcnR5EjIKBmJhdHRsZRgIIAEoCzIiLnBva2V1bml2ZXJzZS5iYXR0bGUudjEuQmF0dGxlVmlldxIyCgZvdGhlcnMYCSADKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuT3RoZXJQbGF5ZXIisgEKBkF2YXRhchIJCgF4GAEgASgNEgkKAXkYAiABKA0SLgoGZmFjaW5nGAMgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SLwoGZ2VuZGVyGAQgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEjEKCGZvbGxvd2VyGAUgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyIoABCghGb2xsb3dlchIPCgdzcGVjaWVzGAEgASgNEg0KBXNoaW55GAIgASgIEgkKAXgYAyABKA0SCQoBeRgEIAEoDRIuCgZmYWNpbmcYBSABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIOCgZoaWRkZW4YBiABKAgiRAoPRm9sbG93ZXJDaGFuZ2VkEjEKCGZvbGxvd2VyGAEgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyItMBCgZXYXJwZWQSCwoDbWFwGAEgASgJEgkKAXgYAiABKA0SCQoBeRgDIAEoDRIuCgZmYWNpbmcYBCABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbhIPCgdjYW5fcnVuGAUgASgIEjEKCGZvbGxvd2VyGAYgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyEjIKBm90aGVycxgHIAMoCzIiLnBva2V1bml2ZXJzZS53b3JsZC52MS5PdGhlclBsYXllciLkAQoLT3RoZXJQbGF5ZXISCgoCaWQYASABKAQSDAoEbmFtZRgCIAEoCRIvCgZnZW5kZXIYAyABKA4yHy5wb2tldW5pdmVyc2UudHJhaW5lci52MS5HZW5kZXISCQoBeBgEIAEoDRIJCgF5GAUgASgNEi4KBmZhY2luZxgGIAEoDjIeLnBva2V1bml2ZXJzZS5tYXAudjEuRGlyZWN0aW9uEjEKCGZvbGxvd2VyGAcgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLkZvbGxvd2VyEhEKCWluX2JhdHRsZRgIIAEoCCI+Cgpab25lRXZlbnRzEjAKBmV2ZW50cxgBIAMoCzIgLnBva2V1bml2ZXJzZS53b3JsZC52MS5ab25lRXZlbnQi6gMKCVpvbmVFdmVudBI1CgZqb2luZWQYASABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVySm9pbmVkSAASMQoEbGVmdBgCIAEoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJMZWZ0SAASMwoFbW92ZWQYAyABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyTW92ZWRIABI1CgZ0dXJuZWQYBCABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyVHVybmVkSAASOQoIZm9sbG93ZXIYBSABKAsyJS5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyRm9sbG93ZXJIABI1CgZiYXR0bGUYBiABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuUGxheWVyQmF0dGxlSAASMgoEY2hhdBgHIAEoCzIiLnBva2V1bml2ZXJzZS53b3JsZC52MS5DaGF0TWVzc2FnZUgAEjwKEGxpbmtfcm9vbV9vcGVuZWQYCCABKAsyIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtSb29tSAASGgoQbGlua19yb29tX2Nsb3NlZBgJIAEoBEgAQgcKBWV2ZW50IkIKDFBsYXllckpvaW5lZBIyCgZwbGF5ZXIYASABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuT3RoZXJQbGF5ZXIiGAoKUGxheWVyTGVmdBIKCgJpZBgBIAEoBCJsCgtQbGF5ZXJNb3ZlZBIKCgJpZBgBIAEoBBIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SCwoDcnVuGAUgASgIIkoKDFBsYXllclR1cm5lZBIKCgJpZBgBIAEoBBIuCgZmYWNpbmcYAiABKA4yHi5wb2tldW5pdmVyc2UubWFwLnYxLkRpcmVjdGlvbiJPCg5QbGF5ZXJGb2xsb3dlchIKCgJpZBgBIAEoBBIxCghmb2xsb3dlchgCIAEoCzIfLnBva2V1bml2ZXJzZS53b3JsZC52MS5Gb2xsb3dlciItCgxQbGF5ZXJCYXR0bGUSCgoCaWQYASABKAQSEQoJaW5fYmF0dGxlGAIgASgIIicKC0NoYXRNZXNzYWdlEgoKAmlkGAEgASgEEgwKBHRleHQYAiABKAkikwEKCkNvcnJlY3Rpb24SDAoEc3RlcBgBIAEoDRIJCgF4GAIgASgNEgkKAXkYAyABKA0SLgoGZmFjaW5nGAQgASgOMh4ucG9rZXVuaXZlcnNlLm1hcC52MS5EaXJlY3Rpb24SMQoIZm9sbG93ZXIYBSABKAsyHy5wb2tldW5pdmVyc2Uud29ybGQudjEuRm9sbG93ZXIiUwoGU2NyaXB0EgoKAmlkGAEgASgNEjAKBXN0ZXBzGAIgAygLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlNjcmlwdFN0ZXASCwoDbnBjGAMgASgJItsECgpTY3JpcHRTdGVwEjEKB21lc3NhZ2UYASABKAsyHi5wb2tldW5pdmVyc2Uud29ybGQudjEuTWVzc2FnZUgAEg8KBXNvdW5kGAIgASgJSAASNAoJcGNfc2NyZWVuGAMgASgLMh8ucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjU2NyZWVuSAASNgoKcGxheWVyc19wYxgEIAEoCzIgLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJzUGNIABIuCgZ5ZXNfbm8YBSABKAsyHC5wb2tldW5pdmVyc2Uud29ybGQudjEuWWVzTm9IABI+Cg50cmFpbmVyX2JhdHRsZRgGIAEoCzIkLnBva2V1bml2ZXJzZS53b3JsZC52MS5UcmFpbmVyQmF0dGxlSAASDwoFbXVzaWMYByABKAlIABIXCg1mYWNlX29yaWdpbmFsGAggASgISAASFQoLd2lsZF9iYXR0bGUYCSABKAhIABI4CgtwbGF5ZXJfbWVudRgKIAEoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5QbGF5ZXJNZW51SAASOQoLbXVsdGljaG9pY2UYCyABKAsyIi5wb2tldW5pdmVyc2Uud29ybGQudjEuTXVsdGljaG9pY2VIABIOCgRqdW1wGAwgASgNSAASEgoIYXNrX3NhdmUYDSABKA1IABINCgNlbmQYDiABKAhIABI4CglsaW5rX3Jvb20YDyABKAsyIy5wb2tldW5pdmVyc2Uud29ybGQudjEuTGlua1Jvb21TdGVwSABCCAoGYWN0aW9uIlQKDExpbmtSb29tU3RlcBI2CghhY3Rpdml0eRgBIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5EgwKBGxlYWQYAiABKAgiJwoLTXVsdGljaG9pY2USDAoEbWVudRgBIAEoCRIKCgJ0bxgCIAMoDSJwCgpQbGF5ZXJNZW51EgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSMgoIcmVsYXRpb24YAyABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlJlbGF0aW9uEhQKDG93bnNfY2hhbm5lbBgEIAEoCCI2CgVZZXNObxItCgJubxgBIAMoCzIhLnBva2V1bml2ZXJzZS53b3JsZC52MS5TY3JpcHRTdGVwIiAKDVRyYWluZXJCYXR0bGUSDwoHdHJhaW5lchgBIAEoCSIeCgxTY3JpcHRCYXR0bGUSDgoGc2NyaXB0GAEgASgNIj0KCFBjU2NyZWVuEiUKAnBjGAEgASgOMhkucG9rZXVuaXZlcnNlLndvcmxkLnYxLlBjEgoKAm9uGAIgASgIIjkKCVBsYXllcnNQYxIsCgVpdGVtcxgBIAMoCzIdLnBva2V1bml2ZXJzZS5pdGVtLnYxLkJhZ1Nsb3QiJQoHTWVzc2FnZRIMCgR0ZXh0GAEgASgJEgwKBHNpZ24YAiABKAgiMAoMU2Vzc2lvblRha2VuEhIKCmFjY291bnRfaWQYASABKAQSDAoEY29ubhgCIAEoCSKSAQoHWm9uZUJ1cxIPCgdyZXBsaWNhGAEgASgJEjIKBWJhdGNoGAIgASgLMiEucG9rZXVuaXZlcnNlLndvcmxkLnYxLlpvbmVFdmVudHNIABI3CghwcmVzZW5jZRgDIAEoCzIjLnBva2V1bml2ZXJzZS53b3JsZC52MS5ab25lUHJlc2VuY2VIAEIJCgdtZXNzYWdlIhsKDFpvbmVQcmVzZW5jZRILCgNpZHMYASADKAQiUQoKWm9uZU1lbWJlchIPCgdyZXBsaWNhGAEgASgJEjIKBnBsYXllchgCIAEoCzIiLnBva2V1bml2ZXJzZS53b3JsZC52MS5PdGhlclBsYXllciooCgJQYxISCg5QQ19VTlNQRUNJRklFRBAAEg4KClBDX1BMQVlFUlMQAUJBWj9wb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3dvcmxkL3YxO3dvcmxkdjFiBnByb3RvMw", [file_pokeuniverse_battle_v1_view, file_pokeuniverse_item_v1_bag, file_pokeuniverse_map_v1_map, file_pokeuniverse_party_v1_party, file_pokeuniverse_pokedex_v1_pokedex, file_pokeuniverse_social_v1_social, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * Client -> server: put me in the world where my trainer is. Sent after Welcome, and again
@@ -580,6 +580,22 @@ export type ZoneEvent = Message$1<"pokeuniverse.world.v1.ZoneEvent"> & {
      */
     value: ChatMessage;
     case: "chat";
+  } | {
+    /**
+     * A leader opened a link room in the zone (phase-9 D19); shown on the member screen.
+     *
+     * @generated from field: pokeuniverse.social.v1.LinkRoom link_room_opened = 8;
+     */
+    value: LinkRoom;
+    case: "linkRoomOpened";
+  } | {
+    /**
+     * A leader's room closed (the leader's ID).
+     *
+     * @generated from field: uint64 link_room_closed = 9;
+     */
+    value: bigint;
+    case: "linkRoomClosed";
   } | { case: undefined; value?: undefined };
 };
 
@@ -962,6 +978,15 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
      */
     value: boolean;
     case: "end";
+  } | {
+    /**
+     * The leader or member screen (phase-9 D18): cancelled goes on with the next step; a link
+     * ends the script and walks into the room.
+     *
+     * @generated from field: pokeuniverse.world.v1.LinkRoomStep link_room = 15;
+     */
+    value: LinkRoomStep;
+    case: "linkRoom";
   } | { case: undefined; value?: undefined };
 };
 
@@ -971,6 +996,30 @@ export type ScriptStep = Message$1<"pokeuniverse.world.v1.ScriptStep"> & {
  */
 export const ScriptStepSchema: GenMessage<ScriptStep> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_world_v1_world, 24);
+
+/**
+ * @generated from message pokeuniverse.world.v1.LinkRoomStep
+ */
+export type LinkRoomStep = Message$1<"pokeuniverse.world.v1.LinkRoomStep"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.LinkActivity activity = 1;
+   */
+  activity: LinkActivity;
+
+  /**
+   * BECOME LEADER (true) or JOIN GROUP.
+   *
+   * @generated from field: bool lead = 2;
+   */
+  lead: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.world.v1.LinkRoomStep.
+ * Use `create(LinkRoomStepSchema)` to create a new message.
+ */
+export const LinkRoomStepSchema: GenMessage<LinkRoomStep> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_world_v1_world, 25);
 
 /**
  * A menu of choices; `to` holds the step each choice jumps to, in the menu's order, then B's.
@@ -997,7 +1046,7 @@ export type Multichoice = Message$1<"pokeuniverse.world.v1.Multichoice"> & {
  * Use `create(MultichoiceSchema)` to create a new message.
  */
 export const MultichoiceSchema: GenMessage<Multichoice> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 25);
+  messageDesc(file_pokeuniverse_world_v1_world, 26);
 
 /**
  * The player A faced: who, and what they are to the player (phase-9 D4).
@@ -1035,7 +1084,7 @@ export type PlayerMenu = Message$1<"pokeuniverse.world.v1.PlayerMenu"> & {
  * Use `create(PlayerMenuSchema)` to create a new message.
  */
 export const PlayerMenuSchema: GenMessage<PlayerMenu> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 26);
+  messageDesc(file_pokeuniverse_world_v1_world, 27);
 
 /**
  * @generated from message pokeuniverse.world.v1.YesNo
@@ -1054,7 +1103,7 @@ export type YesNo = Message$1<"pokeuniverse.world.v1.YesNo"> & {
  * Use `create(YesNoSchema)` to create a new message.
  */
 export const YesNoSchema: GenMessage<YesNo> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 27);
+  messageDesc(file_pokeuniverse_world_v1_world, 28);
 
 /**
  * @generated from message pokeuniverse.world.v1.TrainerBattle
@@ -1073,7 +1122,7 @@ export type TrainerBattle = Message$1<"pokeuniverse.world.v1.TrainerBattle"> & {
  * Use `create(TrainerBattleSchema)` to create a new message.
  */
 export const TrainerBattleSchema: GenMessage<TrainerBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 28);
+  messageDesc(file_pokeuniverse_world_v1_world, 29);
 
 /**
  * The client reached the running script's TrainerBattle or WildBattle step: the battle starts.
@@ -1092,7 +1141,7 @@ export type ScriptBattle = Message$1<"pokeuniverse.world.v1.ScriptBattle"> & {
  * Use `create(ScriptBattleSchema)` to create a new message.
  */
 export const ScriptBattleSchema: GenMessage<ScriptBattle> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 29);
+  messageDesc(file_pokeuniverse_world_v1_world, 30);
 
 /**
  * AnimatePcTurnOn and AnimatePcTurnOff: the screen of the PC the player faces.
@@ -1116,7 +1165,7 @@ export type PcScreen = Message$1<"pokeuniverse.world.v1.PcScreen"> & {
  * Use `create(PcScreenSchema)` to create a new message.
  */
 export const PcScreenSchema: GenMessage<PcScreen> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 30);
+  messageDesc(file_pokeuniverse_world_v1_world, 31);
 
 /**
  * BedroomPC: ITEM STORAGE (withdraw and deposit, pokeuniverse.item.v1's pc.proto), MAILBOX and
@@ -1138,7 +1187,7 @@ export type PlayersPc = Message$1<"pokeuniverse.world.v1.PlayersPc"> & {
  * Use `create(PlayersPcSchema)` to create a new message.
  */
 export const PlayersPcSchema: GenMessage<PlayersPc> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 31);
+  messageDesc(file_pokeuniverse_world_v1_world, 32);
 
 /**
  * @generated from message pokeuniverse.world.v1.Message
@@ -1164,7 +1213,7 @@ export type Message = Message$1<"pokeuniverse.world.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 32);
+  messageDesc(file_pokeuniverse_world_v1_world, 33);
 
 /**
  * mic-core -> every mic-core (NATS subject world.sessions.taken): a copy of the game took the
@@ -1189,7 +1238,7 @@ export type SessionTaken = Message$1<"pokeuniverse.world.v1.SessionTaken"> & {
  * Use `create(SessionTakenSchema)` to create a new message.
  */
 export const SessionTakenSchema: GenMessage<SessionTaken> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 33);
+  messageDesc(file_pokeuniverse_world_v1_world, 34);
 
 /**
  * mic-core -> the same zone on every other mic-core (NATS subject world.zone.<map>.<phase>, phase-8
@@ -1232,7 +1281,7 @@ export type ZoneBus = Message$1<"pokeuniverse.world.v1.ZoneBus"> & {
  * Use `create(ZoneBusSchema)` to create a new message.
  */
 export const ZoneBusSchema: GenMessage<ZoneBus> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 34);
+  messageDesc(file_pokeuniverse_world_v1_world, 35);
 
 /**
  * The players a replica holds in the zone (the beat).
@@ -1251,7 +1300,7 @@ export type ZonePresence = Message$1<"pokeuniverse.world.v1.ZonePresence"> & {
  * Use `create(ZonePresenceSchema)` to create a new message.
  */
 export const ZonePresenceSchema: GenMessage<ZonePresence> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 35);
+  messageDesc(file_pokeuniverse_world_v1_world, 36);
 
 /**
  * A player in a zone as stored in Redis (hash zone:<map>:<phase>, phase-8 D3): what a player
@@ -1276,7 +1325,7 @@ export type ZoneMember = Message$1<"pokeuniverse.world.v1.ZoneMember"> & {
  * Use `create(ZoneMemberSchema)` to create a new message.
  */
 export const ZoneMemberSchema: GenMessage<ZoneMember> = /*@__PURE__*/
-  messageDesc(file_pokeuniverse_world_v1_world, 36);
+  messageDesc(file_pokeuniverse_world_v1_world, 37);
 
 /**
  * @generated from enum pokeuniverse.world.v1.Pc

@@ -89,6 +89,8 @@ type Player struct {
 	wild      *pokemon.Pokemon
 	// Messages waiting for the next tick, sent once the state they show is saved.
 	out []*realtimev1.ServerMessage
+	// The player's part in a link room (phase-9 M8, link_room.go).
+	link linkState
 }
 
 // Move is a predicted step, received at `at`.

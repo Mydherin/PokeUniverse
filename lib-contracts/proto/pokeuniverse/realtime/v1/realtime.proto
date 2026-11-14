@@ -58,6 +58,7 @@ message ClientMessage {
     pokeuniverse.world.v1.SendChat send_chat = 38;
     pokeuniverse.social.v1.SendMessage send_message = 39;
     pokeuniverse.social.v1.MarkRead mark_read = 40;
+    pokeuniverse.social.v1.LinkIntent link = 41;
   }
 }
 
