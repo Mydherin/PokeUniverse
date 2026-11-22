@@ -29,7 +29,7 @@ import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import { FieldMoveOutcome, FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
-import type { LinkEvent, LinkStart } from "@pokeuniverse/contracts/social/v1/social";
+import { TradeStage, type LinkEvent, type LinkStart, type TradeState } from "@pokeuniverse/contracts/social/v1/social";
 import type { Correction, Follower, FollowerChanged, OtherPlayer, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
@@ -48,7 +48,8 @@ import { LinkScreenRun } from "./link-room";
 import { MENU_NOTHING_CHOSEN, type YesNoMenu } from "./menu";
 import { NpcSprite } from "./npc-sprite";
 import type { Flow } from "./flow";
-import { Assets, WORLD_TEXTS } from "./manifest";
+import { Assets, TRADE_SOUNDS, WORLD_TEXTS } from "./manifest";
+import { startTradeMenu, type TradeMenu, type TradeMenuHost } from "./trade-menu";
 import { PlayerSprite } from "./player-sprite";
 import { FollowerSprite } from "./follower-sprite";
 import { FollowerModel } from "../world/follower";
@@ -249,6 +250,16 @@ interface Running {
   multichoice: ScriptMultichoice | null;
   /** An askSave step's dialog, while it runs. */
   saving: SaveDialog | null;
+  /** A tradeSeat step (phase-9 D21): seated, then the trade menu, until it closes. */
+  trade: TradeSeat | null;
+}
+
+/** A Trade Center seat: waiting for the partner, then the trade menu over the field. */
+interface TradeSeat {
+  phase: "seated" | "opening" | "menu" | "done";
+  menu: TradeMenu | null;
+  /** Link events that came while the menu was loading. */
+  pending: LinkEvent[];
 }
 
 /** A warp under way, from the moment the player leaves until the next map is placed. */
@@ -490,6 +501,8 @@ class Overworld {
     // Nothing said while away is replayed (D13).
     this.flow.chat.clear();
     this.avatar.waiting = false;
+    // The trade menu over the field closes (nothing of it resumes: the link room is gone).
+    this.script?.trade?.menu?.abort();
     this.endScript(false);
     this.linkFlow = null;
     this.linked = null;
@@ -1001,7 +1014,7 @@ class Overworld {
       return;
     }
     if (!s.steps.length) return;
-    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null, linkRoom: null, multichoice: null, saving: null };
+    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null, linkRoom: null, multichoice: null, saving: null, trade: null };
     // A trainer's script: the battle's art and sounds load while they talk.
     if (s.steps.some((step) => step.action.case === "trainerBattle" || step.action.case === "wildBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
@@ -1263,6 +1276,11 @@ class Overworld {
         }
         return;
       }
+      if (step.action.case === "tradeSeat") {
+        if (!this.runTradeSeat(s)) return;
+        s.index++;
+        continue;
+      }
       if (step.action.case === "jump") {
         s.index = step.action.value;
         continue;
@@ -1384,10 +1402,95 @@ class Overworld {
     this.pc = null;
   }
 
+  /**
+   * EnterTradeSeat: "Please wait. B Button: Cancel" until both sit; B stands up (mic-core frees the
+   * seat), a dropped link ends it. True once the seat or the trade menu is left.
+   */
+  private runTradeSeat(s: Running): boolean {
+    const { flow } = this;
+    if (!s.trade) {
+      s.trade = { phase: "seated", menu: null, pending: [] };
+      this.message.show(flow.assets.text("CableClub_Text_PleaseWaitBCancel"), false);
+    }
+    const t = s.trade;
+    if (t.phase === "done") return true;
+    if (t.phase !== "seated") return false;
+    if (this.linkDropped) {
+      this.message.hide();
+      return true;
+    }
+    if (this.message.printing || !flow.gba.input.isPressed(Button.B)) return false;
+    flow.gba.input.pressed &= ~Button.B;
+    flow.link.link({ intent: { case: "tradeCancel", value: {} } });
+    this.message.hide();
+    return true;
+  }
+
+  /** Both seated: the field fades to black and the trade menu opens (CB2_StartCreateTradeMenu). */
+  private openTrade(t: TradeSeat, state: TradeState): void {
+    const { flow } = this;
+    const { gba } = flow;
+    t.phase = "opening";
+    this.message.hide();
+    gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+    this.fieldOpening = () => {
+      this.away = true;
+      const back = () => {
+        t.menu = null;
+        t.phase = "done";
+        this.away = false;
+        this.enter(false);
+        if (this.map.music) gba.sound.playBgm(this.map.music);
+      };
+      Promise.all([flow.assets.loadTrade(), gba.sound.load([...TRADE_SOUNDS], Assets.soundUrl)]).then(
+        () => {
+          t.menu = startTradeMenu(flow, this.tradeHost(), state, back);
+          // A reconnect ended the script meanwhile: the menu closes at once.
+          if (this.script?.trade !== t) t.menu.abort();
+          for (const e of t.pending.splice(0)) t.menu.event(e);
+        },
+        () => {
+          flow.link.link({ intent: { case: "tradeCancel", value: {} } });
+          back();
+        },
+      );
+    };
+  }
+
+  /** The trade menu's way to mic-core and to the summary. */
+  private tradeHost(): TradeMenuHost {
+    const { flow } = this;
+    return {
+      playerName: this.playerName,
+      partnerName: flow.encode(this.linked?.partner?.name ?? ""),
+      summaryHost: (party, name) => ({
+        ...this.partyHost(),
+        party,
+        playerName: name,
+        growth: undefined,
+        useFieldMove: undefined,
+        movesLocked: true,
+        swap: () => {},
+        swapMoves: () => {},
+      }),
+      offer: (slot) => flow.link.link({ intent: { case: "tradeOffer", value: { slot } } }),
+      confirm: (yes) => flow.link.link({ intent: { case: "tradeConfirm", value: { yes } } }),
+      cancel: () => flow.link.link({ intent: { case: "tradeCancel", value: {} } }),
+    };
+  }
+
   /** A link event: the open screen's, or the link ending under the player (the partner left or dropped). */
   private linkEvent(e: LinkEvent): void {
     const screen = this.script?.linkRoom;
     if (screen) return screen.event(e);
+    const trade = this.script?.trade;
+    const { event } = e;
+    if (trade && (event.case === "tradeState" || event.case === "tradeDone" || event.case === "ended")) {
+      if (trade.menu) trade.menu.event(e);
+      else if (trade.phase === "opening") trade.pending.push(e);
+      else if (trade.phase === "seated" && event.case === "tradeState" && event.value.stage === TradeStage.CHOOSING) this.openTrade(trade, event.value);
+      if (event.case !== "ended") return;
+    }
     if (e.event.case !== "ended" || !this.linked) return;
     // Ended before mic-core took the player in: the door's warp won't come.
     if (this.warp && !this.warp.arrival && !LINK_ROOM_MAPS.has(this.map.id)) this.cancelWarp();
