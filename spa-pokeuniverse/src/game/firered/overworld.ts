@@ -59,7 +59,7 @@ import { SaveDialog } from "./save-dialog";
 import { ArrivingStairs, LeavingStairs } from "./stair-warp";
 import { isMultichoice, ScriptMultichoice } from "./script-multichoice";
 import { ArrivingDoor, ArrivingEscalator, Door, LeavingDoor, LeavingEscalator } from "./door-warp";
-import { isEscalator } from "../world/avatar";
+import { ARROW_WARPS, isEscalator } from "../world/avatar";
 import { BagLocation, openItemScreen, startBag, type BagExit, type BagHost } from "./bag";
 import { itemMessage, ItemMessagePlayer, type ItemMessage } from "./item-messages";
 import { startItemPc, type ItemPcHost } from "./item-pc";
@@ -920,7 +920,7 @@ class Overworld {
     this.warp = { leaving: null, arrival: w, loading: false };
   }
 
-  /** A stair, door or escalator warp, predicted: the sprite starts leaving at once. */
+  /** A stair, door, escalator or link room's arrow warp, predicted: the sprite starts leaving at once. */
   private leaveByWarp(d: Direction, x: number, y: number): void {
     const { flow, avatar, sprite, map } = this;
     // A link room's ways out are all dynamic warps mic-core refuses: the link ends instead (TradeCenter_ConfirmLeaveRoom).
@@ -928,6 +928,8 @@ class Overworld {
       this.linkFlow = this.askLeaveRoom();
       return;
     }
+    // mic-core takes no arrow warp yet (they come with Phase 10's maps): the player stays.
+    if (behaviorAt(map, x, y) === ARROW_WARPS[d]) return;
     flow.link.useWarp(d, x, y);
     const here = behaviorAt(map, x, y);
     let leaving: Animation;

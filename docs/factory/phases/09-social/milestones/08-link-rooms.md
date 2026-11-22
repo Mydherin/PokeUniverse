@@ -1,8 +1,8 @@
 ---
 id: 08-link-rooms
 title: "Link rooms"
-status: building
-test: failed
+status: testing
+test: none
 attempts: 1
 depends: [07-pokemon-center-2f, 01-friends-server]
 context: [context/social.md, context/references.md]
@@ -14,11 +14,9 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
-**❌ Test failed (2026-11-22, attempt 1): fix cases 3 and 6 below ([Tests](#tests)), then re-test every case.**
-- **Case 3:** `mic-core/internal/world/link_room.go:208` `joinLinkRoom` sends `JoinAsked{Activity: room.Activity}` (the leader's), so the `DIFFERENT` check at :277 never fires; the `join` intent carries no member activity. Send the member's chosen activity (from its cable club script / a field on the intent).
-- **Case 6:** the room exits are `south_arrow_warp` tiles (`battle_colosseum_2p` (6,8)/(7,8), same in `trade_center`); `spa/src/game/world/avatar.ts` only takes door, stair and escalator warps, so `leaveByWarp` → `askLeaveRoom` never runs: no way out of a room.
-
-**🧪 Built, ready for testing (session 3, 2026-11-22):** every task done; `tsc --noEmit`, Vite build, `go build ./... && go vet ./...` (mic-core) and the text extractor green. Nothing played yet: the next session plays the Manual Test.
+**🧪 Fixed, ready for re-testing (session 4, 2026-11-22):** attempt 1's cases 3 and 6 fixed; `tsc --noEmit`, Vite build, `go build ./... && go vet ./...` green. Next: re-play every case of the Manual Test.
+- **Case 3 fix:** `browse` stores the member's activity (`Player.linkWants`, `link_room.go` `browseLinkRooms`); `joinLinkRoom` asks with it, so the leader's zone answers `DIFFERENT` on a mismatch.
+- **Case 6 fix:** `world/avatar.ts` takes FireRed's arrow warps (`TryArrowWarp`; in the rooms `PlayerIsAtSouthExit`): Down while facing south on the exit tile (`battle_colosseum_2p`/`trade_center` row 8) → `leaveByWarp` → `askLeaveRoom`. Elsewhere `leaveByWarp` ignores arrow warps (mic-core's `warpCell` has none until Phase 10's maps): the players' house mat (4,8) now does nothing instead of bumping.
 
 **How it works (files):**
 - **Contracts** (`social.proto`): `LinkIntent` (`open`, `close`, `browse`, `join`, `cancel_join`, `answer`, `enter`, `leave`), `LinkEvent` (`rooms`, `join_asked`, `join_answered{refusal}`, `start`, `ended`, `join_cancelled`, `partner_left` replica-only), `SocialEvent.link`, `ClientMessage.link`, `ZoneEvent.link_room_opened/closed`, `ScriptStep.link_room` (`LinkRoomStep{activity, lead}`).
@@ -85,3 +83,4 @@ Observations (not this milestone): single `POST /api/dev/bots` spawns land behin
 - 2026-11-22: strings, sounds, extractor source; FireRed's leader/member screens, walk-in and exit looked up and planned in Resume Here.
 - 2026-11-22: client screens, walk-in, leave and dropped link, B back to JOIN/LEAD, bots; all builds green; `testing`.
 - 2026-11-22: end-to-end test ❌ (cases 3, 6 fail; 4, 5, 8 not played); `building`, attempt 1.
+- 2026-11-22: fixed case 3 (join asks with the member's browsed activity) and case 6 (arrow warp exit in the rooms); builds green; `testing`.
