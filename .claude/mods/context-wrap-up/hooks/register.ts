@@ -5,7 +5,7 @@ import type { Stage } from '../types'
 
 const LIMIT_PERCENT = 20
 const PROMPT =
-  'Finish in progress task and update the proper milestone or phase file and the Current Work pointer in AGENTS.md to track the progression and remaining tasks leaving it ready for a new fresh start really efficient'
+  "Finish the task in progress and save progress in its milestone file under docs/factory/phases/ (or the PHASE.md if the phase has none): Resume Here with the exact next step, files touched, build state, gotchas and the commands the next steps use, as docs/factory/FACTORY.md's conventions say, so a fresh session resumes really efficiently"
 
 const stage = atom({ plugin: 'context-wrap-up', key: 'stage' } as const, 'armed' as Stage)
 

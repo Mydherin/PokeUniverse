@@ -4,49 +4,17 @@ Instructions for AI agents working on PokeUniverse.
 
 ## Documentation
 
-| Topic | File | Check when |
-|---|---|---|
-| Vision: purpose, game scope, art direction, non-functional requirements | [docs/vision.md](docs/vision.md) | Any feature, gameplay, art or scope decision |
-| UI / UX: design, responsive, input, mobile keyboard, platforms, PWA | [docs/ui.md](docs/ui.md) | Any UI, screen, layout or interaction work |
-| Maps: text format, tile catalog, tools, workflow | [docs/maps.md](docs/maps.md) | Any map creation, edit or map tooling work |
-| Audio: rendering FireRed's music, sound effects and cries; web formats, loops, playback | [docs/audio.md](docs/audio.md) | Any music, sound or audio tooling work |
-| Phases: MVP plan, principles, how a phase is tracked; progress and milestones per phase | [docs/phases/](docs/phases/README.md) | Planning work, or starting/finishing a phase; to resume, follow [Current Work](#current-work) |
-| Phases index: every phase's current state, milestone counts and open items | [docs/phases/index.md](docs/phases/index.md) | Checking where any phase stands, what's open or moved; whenever a phase's state or an open item changes |
-| Tech stack: structure, naming, languages, libraries, communication, auth, infrastructure, containers | [docs/tech-stack.md](docs/tech-stack.md) | Any technical decision or change |
+The project is built by its Software Factory: every document lives in [docs/factory/](docs/factory/FACTORY.md).
 
+- **Start with [FACTORY.md](docs/factory/FACTORY.md):** it lists every document and when to read it, and the conventions (budget, saving progress, decision numbers).
+- **Where work stands:** [ROADMAP.md](docs/factory/ROADMAP.md)'s front matter (phases), each `PHASE.md`'s (milestones) and each milestone's; to resume, read the milestone's **Resume Here**. Open items: [ROADMAP.md](docs/factory/ROADMAP.md#open-items).
 - Check the relevant doc **before** making any decision or change.
 - Follow what the docs say; don't introduce technologies or patterns that contradict them.
-
-## Current Work
-
-**Now:** [Phase 8](docs/phases/phase-8-multiplayer-world/phase-8-multiplayer-world.md#resume-here) done except the real-phone cases (M1-M6 and M8 ✅; M7 🧪 cases 9-10 and 11's naming screen, M9 🧪 case 6: the user plays them on an iPhone and an Android phone, list in the phase's Resume Here). Next: record the user's phone results (a ❌ gets a fix session) and close Phase 8. [Phase 9](docs/phases/phase-9-social/phase-9-social.md#resume-here) in progress (15 milestones, D1-D29): M1-M7 ✅; [M8](docs/phases/phase-9-social/milestones/m08-link-rooms.md#resume-here) (link rooms) 🔨: contracts and server built, next the client screens, bots and the Manual Test: start from its Resume Here. Keep this one line pointing at the phase or milestone file to resume.
-
-Re-reading files wastes most of a new session, so the phase and milestone files carry the details ([how they're organized](docs/phases/README.md#how-a-phase-is-tracked)):
-
-- **Start:** read only the file named above, down to what its **Resume Here** names. Nothing else up front: no other doc, no code.
-- **Budget:** a session starts at about 6% and the guard fires at 20%, so reading must stay small. Do the first step before reading anything about later ones, and make its first edit by about 8%. Read the lines a step changes (`grep -n`, then `sed -n` or `Read` with a range), not the whole file, and only the section of a `context.md` the step needs. Long deliberation costs as much as reading: decide, then write.
-- **Trust the file:** never re-check ✅ items, the status or its technical details in the code. Read another file only when the step at hand edits it or needs something the file doesn't have, and grep before reading a big one.
-- **Save progress:** at the end of a session, and whenever the user is about to compact the context, write into the milestone file, or the phase file if it has no milestones: tasks done, exact next step, files touched, build state, gotchas, the commands and decisions the next steps use, and whatever you looked up so nobody reads it twice. Then update the phase file (**Resume Here**, milestone status) and the **Now** line above. Replace stale text, don't pile it up.
-- **Phases index:** [docs/phases/index.md](docs/phases/index.md) is the single place for the state of every phase (0-13), the milestone counts and the open items. Update it in the same edit as the change that causes it: a phase's state changes, an item opens, reopens, closes or moves to another phase (also edit both phase files' lines about it). One line per item with a link to the file holding the details; never copy details there. Also keep its **Current** line and milestone counts in step with the **Now** line below. Read only its tables when planning or starting a phase, to pick up the open items aimed at it.
-- **Context guard:** the project mod [`context-wrap-up`](.claude/mods/context-wrap-up/hooks/register.ts) sends this request once the context passes 20%. Delete it when the user lifts this limit.
+- **Context guard:** the project mod [`context-wrap-up`](.claude/mods/context-wrap-up/hooks/register.ts) asks to save progress in the milestone file once the context passes 20% ([D-015](docs/factory/DECISIONS.md#d-015-one-session-per-step-context-guard-kept)).
 
 ## Reference Repositories
 
-Git submodules in `references/`, read only. Empty? Run `git submodule update --init`.
-
-| Path | Repository | What's inside | Check when |
-|---|---|---|---|
-| `references/pokefirered/` | [pret/pokefirered](https://github.com/pret/pokefirered) | FireRed decompilation (C). `src/`: game logic (movement, overworld, menus, battle). `data/maps/`, `data/layouts/`: maps, events, warps, connections. `data/tilesets/`, `graphics/`: art. `data/scripts/`, `data/text/`: events and dialogue. `src/data/`: species, trainers, wild encounters. `include/constants/`: IDs and flags | How a FireRed behavior, map, event or formula works |
-| `references/pokeemerald-expansion/` | [rh-hideout/pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) (tag `expansion/1.17.2`) | Emerald decompilation with every later species in Gen 3 style. `graphics/pokemon/<name>/`: front pics, icons, footprints, overworld sprites. `src/data/pokemon/species_info/gen_4_families.h`: Gen 4 species' Pokédex data and types. `sound/direct_sound_samples/cries/`: cries | Species 387-493 (art, Pokédex text, cries) |
-| `references/pokeheartgold/` | [ctrl-cheeb-del/pokeheartgold](https://github.com/ctrl-cheeb-del/pokeheartgold) | HeartGold and SoulSilver decompilation (C and asm, DS). `src/follow_mon.c`, `src/map_object_follow.c`, `include/field/field_follow_mon.h`: the Pokémon that follows you. `src/`: Gen 4 field and menu logic | How the following Pokémon or a Gen 4 feature FireRed doesn't have behaves. Behavior only: its art and code are never used; its data only where an exception below names it (`files/poketool/personal/personal.json`: the species' wild held items) |
-| `references/pokemon-showdown/` | [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown) | Battle engine (TypeScript). `sim/`: battle flow, actions, Pokémon state. `data/`: moves, abilities, items, species, learnsets, conditions. `data/mods/gen4/`: Gen 4 overrides | How a Gen 4 battle rule or edge case works |
-
-Rules:
-
-- **Read only.** Never modify, build or commit anything inside `references/`. Only update a submodule's pinned commit when the user asks.
-- **Never copy code.** Understand the behavior, then write it from zero with our design ([tech-stack.md](docs/tech-stack.md#code-principles)).
-- **Our docs win** when they disagree with a reference; behavior still follows [FireRed System, Gen 4 Rules](#firered-system-gen-4-rules).
-- Only exception: the build copies FireRed's graphics as they are (`make graphics`, plus `pokeemerald-expansion`'s Gen 4 move category icons, battle animation art and the Heal, Dusk and Quick Ball art, plus the fonts' glyph widths read from `src/text.c` and the item icon table), `make text` encodes its strings (and item, move, ability and nature names and descriptions, Gen 4's and a few Gen 4 battle strings from `pokeemerald-expansion`) with its charmap, `make audio` renders its sound (and every species' cry), `make pokemon` builds every species' art (front, back, shiny palette, icon, footprint) and Pokédex text from `pokefirered` (1-386) and `pokeemerald-expansion` (387-493) (plus every species' following-Pokémon sheet and palettes from `pokeemerald-expansion`, base forms only), and `tool-maps` renders its tilesets (`make maps`); all write to gitignored folders, never committed. `tool-maps convert` also reads `pokefirered` maps as **input** once per map: the text maps it writes to `lib-maps/` are our source code and are committed. The item catalog (`lib-contracts/proto/pokeuniverse/item/v1/catalog.proto`) was converted once from `src/data/items.json` the same way (Gen 4's items by `infra/battle/items.mjs`, whose icons `make graphics` copies from `pokeemerald-expansion`) and is now our source, like the species catalog (`species/v1/catalog.proto`) and the Pokédex habitats (`spa-pokeuniverse/src/game/firered/pokedex-habitats.json`), converted once by `infra/pokemon/catalog.mjs` (and the species' evolutions by `infra/pokemon/evolutions.mjs`, their wild held items by `infra/pokemon/wild-items.mjs` from `pokeheartgold`'s `personal.json` (Gen 4's table, user 2026-11-09), their TM and tutor moves by `infra/pokemon/learnsets.mjs` from `@pkmn/sim`), and the battle catalogs (moves, abilities, natures, species battle facts and learnsets), converted once by `infra/battle/catalog.mjs` from `@pkmn/sim`'s Gen 4 data and both references, and the move animation scripts and their art table (`spa-pokeuniverse/src/game/firered/battle/anims/`, converted once from FireRed's and the expansion's battle animation scripts and tables as data; the behaviors that run them are our own code, phase-5 D9) ([maps.md](docs/maps.md), [audio.md](docs/audio.md), [tech-stack.md](docs/tech-stack.md#firered-as-reference)).
+Git submodules in `references/` (FireRed, the Emerald expansion, HeartGold, Showdown), **read only**: never modify, build or commit anything inside them, never copy their code. What each holds, the asset exceptions and the rules: [context/references.md](docs/factory/context/references.md).
 
 ## Guidelines
 
@@ -63,7 +31,7 @@ Rules:
 Documentation must always reflect the current state of the project.
 
 - **The user's requests are the source of truth.** Docs follow the user, not the other way around.
-- **After every user request**, quickly check which docs the request affects and update **only those**, in the same iteration.
+- **After every user request**, quickly check which docs the request affects and update **only those**, in the same iteration. Inside the factory a decided change arrives as a change request (`CR-<n>`).
 - **On conflict** (the request contradicts a doc):
   1. Point out the conflict briefly and ask the user to confirm.
   2. If confirmed, update the doc to match the new decision.
@@ -74,10 +42,10 @@ Documentation must always reflect the current state of the project.
 ### Testing
 
 - **No automated tests in the repository:** no unit, integration or end-to-end test suites.
-- **Every milestone ends with its Manual Test played in game** by the session that builds it ([how](docs/phases/README.md#how-a-phase-is-tracked)): 🧪 until every case passes, a failed case fixed and re-tested in the same session. Don't commit anything a test leaves behind.
-- **Manual Tests are end to end in the built-in browser:** played like a player through the game UI (clicks, taps, keys), one tab per player when needed, screenshots looked at; APIs, bots and hooks only set up, read or stand in for extra players ([rule](docs/phases/README.md#how-a-phase-is-tracked)).
+- **Every milestone ends with its Manual Test played in game** ([how](docs/factory/ARCHITECTURE.md#testing-policy)): `testing` until every case passes, a failed case fixed and re-tested. Don't commit anything a test leaves behind.
+- **Manual Tests are end to end in the built-in browser:** played like a player through the game UI (clicks, taps, keys), one tab per player when needed, screenshots looked at; APIs, bots and hooks only set up, read or stand in for extra players.
 
 ### Git
 
 - **Work directly on `main`:** develop, build and commit there. Don't create feature branches to merge later (from 2026-11-09, after `gen4-battles` was merged).
-- Commit or push only when the user asks.
+- **The factory commits each step itself**; outside the factory, commit or push only when the user asks ([D-012](docs/factory/DECISIONS.md#d-012-git-on-main-the-factory-commits)).

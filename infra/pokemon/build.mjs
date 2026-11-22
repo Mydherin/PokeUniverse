@@ -1,5 +1,5 @@
 // Builds what the FireRed art style shows of every species up to Gen 4, from the read-only
-// references at build time, into a gitignored folder (docs/tech-stack.md#firered-as-reference):
+// references at build time, into a gitignored folder (docs/factory/ARCHITECTURE.md#firered-as-reference):
 // FireRed's own for 1-386, pokeemerald-expansion's Gen 3-style art and Gen 4 Pokédex data for 387-493.
 // Run by `make pokemon`: node build.mjs <pokefirered> <pokeemerald-expansion> <out dir>.
 //

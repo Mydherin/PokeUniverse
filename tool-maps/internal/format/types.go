@@ -1,5 +1,5 @@
 // Package format is the text format of lib-maps: maps, shared layouts and tile catalogs
-// (docs/maps.md). It only reads and writes files; meaning is checked by validate.
+// (docs/factory/context/maps.md). It only reads and writes files; meaning is checked by validate.
 package format
 
 // Point is a tile coordinate: [x, y] = [column, row], from 0 at the top-left.
@@ -59,7 +59,7 @@ type Map struct {
 	Encounters  *Encounters `yaml:"encounters,omitempty"`
 }
 
-// Encounters is a map's wild Pokémon, one table per kind (docs/maps.md). Slot chances are
+// Encounters is a map's wild Pokémon, one table per kind (docs/factory/context/maps.md). Slot chances are
 // FireRed's, fixed by slot position, so a table lists exactly its kind's slot count.
 type Encounters struct {
 	Land      *WildTable `yaml:"land,omitempty"`

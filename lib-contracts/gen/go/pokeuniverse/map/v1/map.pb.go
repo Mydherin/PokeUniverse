@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: pokeuniverse/map/v1/map.proto
 
-// Runtime maps: compiled by tool-maps from the text maps in lib-maps (docs/maps.md), one file
+// Runtime maps: compiled by tool-maps from the text maps in lib-maps (docs/factory/context/maps.md), one file
 // per map and side. Generated output, never edited by hand.
 
 package mapv1

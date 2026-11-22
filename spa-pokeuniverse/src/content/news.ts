@@ -25,7 +25,7 @@ export const news: NewsEntry[] = [
 
 export type Milestone = { title: string; detail: string; state: "done" | "now" | "next" };
 
-/** Road to the MVP (docs/phases). */
+/** Road to the MVP (docs/factory/ROADMAP.md). */
 export const roadmap: Milestone[] = [
   { title: "Foundations", detail: "Servers, contracts and infrastructure", state: "done" },
   { title: "Web app and accounts", detail: "Sign in, home and sessions", state: "now" },

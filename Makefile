@@ -11,7 +11,7 @@ GO_CACHE := -v pokeuniverse-go-mod:/go/pkg/mod -v pokeuniverse-go-build:/root/.c
 
 .PHONY: help env up down logs ps clean generate contracts sqlc tidy lock breaking assets graphics text pokemon audio emulator maps tool-maps bots-clean
 
-# FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/tech-stack.md#firered-as-reference).
+# FireRed's assets come from the decompilation at build time, into a gitignored folder; never committed (docs/factory/ARCHITECTURE.md#firered-as-reference).
 FIRERED     := references/pokefirered
 FIRERED_OUT := spa-pokeuniverse/public/firered
 FIRERED_GFX := intro title_screen main_menu text_window oak_speech naming_screen items tm_case berry_pouch item_pc pokedex party_menu summary_screen battle_interface battle_anims evolution_scene pokemon_special_anim pokemon_storage
@@ -44,7 +44,7 @@ EXPANSION_GFX := battle_anims
 # The fonts' glyph widths are data in the game's source, not in the images.
 FIRERED_FONTS := Normal:normal Male:male Small:small NormalCopy1:normal_copy_1
 NEED_FIRERED = @test -f $(FIRERED)/Makefile || { echo "$(FIRERED) is empty: run git submodule update --init"; exit 1; }
-# Gen 3-style art and Gen 4 Pokédex data for species 387-493 (docs/tech-stack.md#firered-as-reference).
+# Gen 3-style art and Gen 4 Pokédex data for species 387-493 (docs/factory/ARCHITECTURE.md#firered-as-reference).
 EXPANSION      := references/pokeemerald-expansion
 NEED_EXPANSION = @test -f $(EXPANSION)/Makefile || { echo "$(EXPANSION) is empty: run git submodule update --init"; exit 1; }
 
@@ -114,12 +114,12 @@ pokemon: ## Every species' pictures, footprints, icons, Pokédex text and cry li
 	$(NEED_EXPANSION)
 	$(RUN) --user "$$(id -u):$$(id -g)" $(NODE_IMAGE) node /repo/infra/pokemon/build.mjs /repo/$(FIRERED) /repo/$(EXPANSION) /repo/$(FIRERED_OUT)/pokemon
 
-audio: pokemon ## Render FireRed's music, sound effects and cries (docs/audio.md)
+audio: pokemon ## Render FireRed's music, sound effects and cries (docs/factory/context/audio.md)
 	$(NEED_FIRERED)
 	@docker build -q -t pokeuniverse-audio infra/audio >/dev/null
 	$(RUN) --user "$$(id -u):$$(id -g)" pokeuniverse-audio sh /repo/infra/audio/render.sh
 
-# Maps: text sources in lib-maps, compiled and rendered by tool-maps into gitignored folders (docs/maps.md).
+# Maps: text sources in lib-maps, compiled and rendered by tool-maps into gitignored folders (docs/factory/context/maps.md).
 MAPS := $(RUN) $(GO_CACHE) -w /repo/tool-maps $(GO_IMAGE) go run ./cmd/tool-maps
 
 maps: ## Render the maps' tileset art, then validate and compile lib-maps for the client and mic-core
@@ -127,7 +127,7 @@ maps: ## Render the maps' tileset art, then validate and compile lib-maps for th
 	$(MAPS) tilesets
 	$(MAPS) compile
 
-tool-maps: ## Run a tool-maps command (docs/maps.md#tools), e.g. make tool-maps CMD="preview pallet_town --objects"
+tool-maps: ## Run a tool-maps command (docs/factory/context/maps.md#tools), e.g. make tool-maps CMD="preview pallet_town --objects"
 	$(MAPS) $(CMD)
 
 # The original game in the browser (EmulatorJS + mGBA), to compare with ours. The ROM, EmulatorJS and the states are gitignored.

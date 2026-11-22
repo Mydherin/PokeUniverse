@@ -1,5 +1,5 @@
 // Encodes FireRed's text the way the game's build does (charmap.txt), from the decompilation,
-// so the game prints the original bytes and no game text is committed (docs/tech-stack.md#firered-as-reference).
+// so the game prints the original bytes and no game text is committed (docs/factory/ARCHITECTURE.md#firered-as-reference).
 // Run by `make text`: node extract.mjs <pokefirered> <labels.json> <out dir> <pokeemerald-expansion> <lib-contracts proto dir>.
 // Output: strings.json (label -> bytes, ending in 0xFF), items.json (each item's name and
 // description by item ID, from src/data/items.json; Gen 4's from the expansion), the battle's strings (src/battle_message.c),

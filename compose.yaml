@@ -1,8 +1,8 @@
 # PokeUniverse stack. Start everything with `make up`.
 # Only spa-pokeuniverse is published to the host; everything else stays on the internal network.
-# Also the Mooi development preview (docs/tech-stack.md#development-preview): each variable comes from .env and,
+# Also the Mooi development preview (docs/factory/ARCHITECTURE.md#development-preview): each variable comes from .env and,
 # when .env leaves it empty (Mooi has no .env), from the project's MOOI_DEVELOPMENT_<NAME>, so `make up` is unchanged.
-# Redis saves every write to disk before answering (docs/tech-stack.md#saving-state-resilience).
+# Redis saves every write to disk before answering (docs/factory/ARCHITECTURE.md#saving-state-resilience).
 name: pokeuniverse
 
 services:

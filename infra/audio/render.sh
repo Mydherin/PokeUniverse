@@ -1,5 +1,5 @@
 #!/bin/sh
-# Renders FireRed's sounds exactly from the decompilation (docs/audio.md). Run by `make audio` in infra/audio's image.
+# Renders FireRed's sounds exactly from the decompilation (docs/factory/context/audio.md). Run by `make audio` in infra/audio's image.
 # Input: the sound list (sound ID -> song or cry). Output: <id>.webm (Opus), <id>.m4a (AAC) and manifest.json (loop points).
 # Then every species' cry (make pokemon's cries.json) to cries/<nnn>.webm|.m4a, and its faint cry to
 # cries/<nnn>_faint.webm|.m4a (phase-5 D15), loaded on demand.
@@ -37,7 +37,7 @@ for id in $(jq -r 'keys[]' "$LIST"); do
     player=$(sed -n "s/^[[:space:]]*song $song, \([0-9]\).*/\1/p" /tmp/fr/sound/song_table.inc)
     player=$(echo "bgm se1 se2 se3" | cut -d' ' -f$((player + 1)))
     if grep -q GOTO "/tmp/work/$song.s"; then
-      # Intro + two passes; the loop is the second pass (docs/audio.md#loops).
+      # Intro + two passes; the loop is the second pass (docs/factory/context/audio.md#loops).
       render --song "/tmp/work/$song.s" --player "$player" --loop-count 1 --fadeout 0 --tail 0 --output /tmp/work/one.wav
       render --song "/tmp/work/$song.s" --player "$player" --loop-count 2 --fadeout 0 --tail 0 --output /tmp/work/master.wav
       loop="[$(samples /tmp/work/one.wav), $(samples /tmp/work/master.wav)]"

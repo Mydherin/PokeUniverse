@@ -1,4 +1,4 @@
-// tool-maps converts, checks, compiles and previews the text maps of lib-maps (docs/maps.md).
+// tool-maps converts, checks, compiles and previews the text maps of lib-maps (docs/factory/context/maps.md).
 // Paths default to the repository layout, run from tool-maps/.
 package main
 

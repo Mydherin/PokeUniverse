@@ -1,5 +1,5 @@
 // Run once to write the species catalog and the Pokédex habitats; both are our source from then on,
-// edited by hand like the item catalog (docs/tech-stack.md#firered-as-reference). Kept for reference.
+// edited by hand like the item catalog (docs/factory/ARCHITECTURE.md#firered-as-reference). Kept for reference.
 // node catalog.mjs <pokefirered> <pokeemerald-expansion> <catalog.proto> <pokedex-habitats.json>
 //
 // - catalog.proto: every species up to Gen 4 by national number, with the facts the game plays by

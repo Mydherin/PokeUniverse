@@ -1,6 +1,6 @@
 // Writes which icon and palette each FireRed item shows (src/data/item_icon_table.h, with the
 // files from src/data/graphics/items.h), read from the decompilation at build time like the
-// fonts' widths, so nothing of the game is committed (docs/tech-stack.md#firered-as-reference).
+// fonts' widths, so nothing of the game is committed (docs/factory/ARCHITECTURE.md#firered-as-reference).
 // Items FireRed lacks (Gen 4's) take theirs from pokeemerald-expansion, copied beside the rest.
 // Run by `make graphics`: node item-icons.mjs <pokefirered> <out file> <pokeemerald-expansion> <item catalog> <graphics out>.
 // Output: { "<item ID>": ["items/icons/<icon>.png", "items/icon_palettes/<palette>.pal"] }; "0" is

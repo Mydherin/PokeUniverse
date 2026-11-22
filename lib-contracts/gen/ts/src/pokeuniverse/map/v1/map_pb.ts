@@ -2,7 +2,7 @@
 // @generated from file pokeuniverse/map/v1/map.proto (package pokeuniverse.map.v1, syntax proto3)
 /* eslint-disable */
 
-// Runtime maps: compiled by tool-maps from the text maps in lib-maps (docs/maps.md), one file
+// Runtime maps: compiled by tool-maps from the text maps in lib-maps (docs/factory/context/maps.md), one file
 // per map and side. Generated output, never edited by hand.
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";

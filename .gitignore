@@ -14,7 +14,7 @@ bin/
 .idea/
 .vscode/
 
-# FireRed assets, copied and rendered at build time (docs/tech-stack.md#firered-as-reference)
+# FireRed assets, copied and rendered at build time (docs/factory/ARCHITECTURE.md#firered-as-reference)
 spa-pokeuniverse/public/firered/
 
 # Original FireRed in the emulator: ROM, EmulatorJS and save states, never committed (make emulator)
