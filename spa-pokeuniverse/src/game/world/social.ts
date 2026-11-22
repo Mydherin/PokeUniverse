@@ -11,6 +11,7 @@ import {
   SendFriendRequestSchema,
   type Friend,
   type FriendRequest,
+  type LinkEvent,
   type SocialEvent,
 } from "@pokeuniverse/contracts/social/v1/social";
 import { api, ApiError } from "../../api/client";
@@ -26,6 +27,7 @@ export class SocialState {
   unseen = 0;
   private readonly listeners = new Set<() => void>();
   private readonly noticeListeners = new Set<(r: FriendRequest) => void>();
+  private readonly linkListeners = new Set<(e: LinkEvent) => void>();
 
   onChange(fn: () => void): () => void {
     this.listeners.add(fn);
@@ -36,6 +38,12 @@ export class SocialState {
   onRequest(fn: (r: FriendRequest) => void): () => void {
     this.noticeListeners.add(fn);
     return () => this.noticeListeners.delete(fn);
+  }
+
+  /** A link room event (phase-9 D18-D20): the leader and member screens and the room. */
+  onLink(fn: (e: LinkEvent) => void): () => void {
+    this.linkListeners.add(fn);
+    return () => this.linkListeners.delete(fn);
   }
 
   /** Reads the lists again (on entering the world and after a reconnect). */
@@ -154,6 +162,9 @@ export class SocialState {
         }
         break;
       }
+      case "link":
+        for (const fn of this.linkListeners) fn(ev.value);
+        return;
       default:
         return;
     }
