@@ -84,3 +84,16 @@ func (s *Store) NextLinkRoom(ctx context.Context) (uint32, error) {
 	}
 	return uint32(n%0xFFFFFFFE) + 1, nil
 }
+
+// inZoneScript: KEYS session, pos; ARGV zone. 1 when the player is online in that zone.
+var inZoneScript = redis.NewScript(`
+if redis.call('EXISTS', KEYS[1]) == 1 and redis.call('HGET', KEYS[2], 'zone') == ARGV[1] then return 1 end
+return 0
+`)
+
+// InZone reports whether the player is online in the zone (its Redis hash, ZoneKey): a linked
+// partner whose replica crashed is not (its session expires).
+func (s *Store) InZone(ctx context.Context, id int64, zone string) (bool, error) {
+	n, err := inZoneScript.Run(ctx, s.rdb, []string{sessionKey(id), posKey(id)}, zone).Int()
+	return n == 1, err
+}

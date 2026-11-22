@@ -590,6 +590,8 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "cable_club.explain_battle_modes": "CableClub_Text_ExplainBattleModes",
   "cable_club.choose_group_leader_of_two": "CableClub_Text_ChooseGroupLeaderOfTwo",
   "cable_club.choose_group_leader_of_four": "CableClub_Text_ChooseGroupLeaderOfFour",
+  // The Trade Center's attendant (phase-9 M9, mic-core interact.go)
+  "cable_club.take_seat_start_trade": "Text_TakeSeatStartTrade",
 };
 
 export interface Graphic {

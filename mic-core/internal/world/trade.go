@@ -48,20 +48,10 @@ func (t *tradeMenu) reset() {
 	t.confirm = [2]int{}
 }
 
-// tradeAnswerTimeout: the member's replica waits this long for the leader's replica to answer
-// "Is this trade okay?" YES; past it the leader's replica is taken for gone (a crash): the link
-// ends and the party is read again, so the member sees whether the swap was saved (D23).
-const tradeAnswerTimeout = 10 * time.Second
-
-// TriggerAt is the trigger object on a cell, or nil.
-func (m *Map) TriggerAt(p Point) *mapv1Trigger {
-	for _, o := range m.objects {
-		if t := o.GetTrigger(); t != nil && int(o.X) == p.X && int(o.Y) == p.Y {
-			return t
-		}
-	}
-	return nil
-}
+// partnerWatch: how often a seated side checks that the partner is still online in the room's
+// zone. A partner's replica that crashed never says it left: once gone, the party is read again
+// (the swap may have been saved, D23) and the link ends as a drop.
+const partnerWatch = 5 * time.Second
 
 // tradeSeat is TradeCenter_EventScript_Chair0/1 (EnterTradeSeat): a step onto a seat of the Trade
 // Center while linked for a trade sits the player, facing the way they walked. True when it did.
@@ -75,6 +65,7 @@ func (z *zone) tradeSeat(p *Player) bool {
 	}
 	z.startScript(p, Script{{Action: &worldv1.ScriptStep_TradeSeat{TradeSeat: true}}})
 	p.link.seated = true
+	z.watchPartner(p)
 	if p.link.leader {
 		z.leaderTrade(p).seated[tradeLeader] = true
 		z.openTrade(p)
@@ -114,9 +105,6 @@ func (z *zone) tradeIntent(p *Player, in *socialv1.LinkIntent) {
 		a.Action = &socialv1.TradeMemberAction_Offer{Offer: i.TradeOffer}
 	case *socialv1.LinkIntent_TradeConfirm:
 		a.Action = &socialv1.TradeMemberAction_Confirm{Confirm: i.TradeConfirm}
-		if i.TradeConfirm.GetYes() {
-			z.awaitTrade(p)
-		}
 	case *socialv1.LinkIntent_TradeCancel:
 		a.Action = &socialv1.TradeMemberAction_Cancel{Cancel: i.TradeCancel}
 		if !p.link.menu {
@@ -128,22 +116,30 @@ func (z *zone) tradeIntent(p *Player, in *socialv1.LinkIntent) {
 	z.toLeader(p, a)
 }
 
-// awaitTrade: the member said YES; without an answer in time, the leader's replica is gone.
-func (z *zone) awaitTrade(p *Player) {
-	p.link.awaiting++
-	token := p.link.awaiting
-	room := p.link.room
-	time.AfterFunc(tradeAnswerTimeout, func() {
+// watchPartner checks, while the player sits in this room, that the partner is still in it.
+func (z *zone) watchPartner(p *Player) {
+	p.link.watch++
+	token, room, hash := p.link.watch, p.link.room, z.hash
+	var check func()
+	check = func() {
 		pz := p.zone
 		pz.do(func() {
-			if _, ok := pz.players[p]; !ok || p.link.role != linkLinked || p.link.room != room || p.link.awaiting != token {
+			if _, ok := pz.players[p]; !ok || pz.hash != hash || p.link.role != linkLinked || p.link.room != room || p.link.watch != token || !p.link.seated || p.link.other == 0 {
 				return
 			}
-			pz.w.log.Warn("trade answer timed out", "account_id", p.accountID, "room", room)
+			ctx, cancel := linkCtx()
+			defer cancel()
+			in, err := pz.w.live.InZone(ctx, p.link.other, hash)
+			if err != nil || in {
+				time.AfterFunc(partnerWatch, check)
+				return
+			}
+			pz.w.log.Warn("trade partner gone", "account_id", p.accountID, "partner", p.link.other, "room", room)
 			pz.reloadParty(p)
 			pz.linkEnded(p)
 		})
-	})
+	}
+	time.AfterFunc(partnerWatch, check)
 }
 
 // onTradeMember is the member's action, on the leader's replica.
@@ -338,7 +334,6 @@ func (z *zone) onTradeEvent(p *Player, ev *socialv1.LinkEvent) {
 	if p.link.role != linkLinked || p.link.leader {
 		return
 	}
-	p.link.awaiting++ // Answered.
 	if ev.GetTradeDone() != nil {
 		z.reloadParty(p)
 	}
