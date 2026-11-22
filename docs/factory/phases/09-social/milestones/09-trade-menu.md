@@ -1,8 +1,9 @@
 ---
 id: 09-trade-menu
 title: "Trade: menu and transaction"
-status: testing
-test: none
+status: building
+test: failed
+attempts: 1
 depends: [08-link-rooms]
 context: [context/social.md, context/references.md]
 ---
@@ -12,6 +13,8 @@ context: [context/social.md, context/references.md]
 Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/social.md#trading) D21-D23. References: `trade.c`, `cable_club.c` seats.
 
 ## Resume Here
+
+**Test attempt 1 failed (2026-11-22, see *Tests*):** the preview never opens the trade menu: `infra/assets/graphics.sh` (the `ASSETS=built` build) has no `trade` in `FIRERED_GFX` (the `Makefile` has it), so `firered/graphics/trade/*` is 404. Fix that, then re-test every case.
 
 **Session 3 (2026-11-22): client written; every task done; `tsc --noEmit` and `vite build` green → `testing`, nothing played yet.** Next: play the Manual Test (back up both saves first; run `make graphics audio` so `trade/` and `mus_game_corner` are built).
 
@@ -46,14 +49,29 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Trade | Both pick, both YES | Pokémon swapped in both parties, saved | ⬜ |
-| 2 | SUMMARY | View the other's Pokémon | FireRed's summary, read only | ⬜ |
-| 3 | Change mind | One changes pick after the other said YES | Both asked again | ⬜ |
-| 4 | Cancel | One cancels | Both back to choosing; leaving ends the room | ⬜ |
-| 5 | Last usable | Offer your only usable Pokémon | FireRed's refusal | ⬜ |
-| 6 | Held item, Egg | Trade a holder and an Egg | Item travels; Egg traded | ⬜ |
-| 7 | Crash mid-trade | Kill a replica right after both YES | After reconnect: swapped for both or for neither | ⬜ |
-| 8 | Disconnect | One drops during the menu | Nothing swapped; other returned to the counter | ⬜ |
+| 1 | Trade | Both pick, both YES | Pokémon swapped in both parties, saved | ❌ 2026-11-22 menu never opens (trade graphics 404) |
+| 2 | SUMMARY | View the other's Pokémon | FireRed's summary, read only | ❌ 2026-11-22 blocked by the menu |
+| 3 | Change mind | One changes pick after the other said YES | Both asked again | ❌ 2026-11-22 blocked by the menu |
+| 4 | Cancel | One cancels | Both back to choosing; leaving ends the room | ❌ 2026-11-22 blocked by the menu |
+| 5 | Last usable | Offer your only usable Pokémon | FireRed's refusal | ❌ 2026-11-22 blocked by the menu |
+| 6 | Held item, Egg | Trade a holder and an Egg | Item travels; Egg traded | ❌ 2026-11-22 blocked by the menu |
+| 7 | Crash mid-trade | Kill a replica right after both YES | After reconnect: swapped for both or for neither | ❌ 2026-11-22 blocked by the menu |
+| 8 | Disconnect | One drops during the menu | Nothing swapped; other returned to the counter | ❌ 2026-11-22 blocked by the menu |
+
+## Tests
+
+### 2026-11-22: attempt 1, failed
+
+Preview deployed fine (build and healthchecks green). Played in the browser on desktop (1280×720): two bot accounts (one per window), both teams nicknamed ASH0-5 / GARY0-5 in the DB to tell them apart; bot-1 BECOME LEADER (TRADE CENTER), bot-2 JOIN GROUP, accept, both walk in, each takes a seat.
+
+- **Seats (precondition):** ✅ both sit at `chair_0`/`chair_1`, "Please wait. … … B Button: Cancel" shown.
+- **Cases 1-8:** ❌ the trade menu never opens, so none can be played. Phone viewport not played for the same reason.
+  - **Steps:** two players in a Trade Center room, both seated.
+  - **Expected:** fade, `trade.c` menu with both parties.
+  - **Actual:** no menu on either side; the seated players stay in the room indefinitely (leader's message gone, member's "Please wait" stays), no error shown. DB: parties unchanged, `trades` empty.
+  - **Evidence:** on both pages, 11 console errors `404` for `/preview/<id>/firered/graphics/trade/{menu.png,menu.pal,menu.bin,menu_mon_box.bin,party_box_map.bin,moves_box_map.bin,cursor.pal,cursor.png,stripes_bg2_map.bin,stripes_bg3_map.bin,text.pal}`. The served `firered/graphics/` has no `trade/` folder; `infra/assets/graphics.sh` line 11 `FIRERED_GFX` lacks `trade` (the `Makefile`'s line 17 has it). `mus_game_corner` is served.
+- **Seen in passing (not a case):** the follower is drawn over its seated trainer at the seats.
+- **Preview note:** reach it through `MOOI_DEVELOPMENT_PUBLIC_URL`'s origin (`https://mooi.skypea.dev/preview/<id>/`); from `http://127.0.0.1:8000` the WebSocket gets 403 (origin check). Hidden tabs pause the game: bring each player's page to the front to act.
 
 ## Commands
 
@@ -68,6 +86,7 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Log
 
+- 2026-11-22: test attempt 1 failed: on the preview the trade menu never opens (`trade/` graphics missing from `infra/assets/graphics.sh`); `building`.
 - 2026-11-22: session 3: client (assets, `trade-menu.ts`, overworld seat step and routing); tsc + vite build green; `testing`.
 - 2026-11-22: session 2: server wired (partner watch, seats, attendant, link wiring); Go build + vet green; client looked up (Resume Here), not started.
 - 2026-11-22: session 1: contracts, `trades` table and swap transaction, server trade draft (`world/trade.go`); Go build red (placeholder `TriggerAt` type), next steps in Resume Here.
