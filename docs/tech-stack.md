@@ -65,9 +65,9 @@ PokeUniverse/
 ├── tool-maps/          # Map converter, validator, compiler, previewer (Go)
 ├── tool-emulator/      # The original FireRed in the browser, to compare with ours (`make emulator`)
 ├── references/         # Read-only reference repos (Git submodules)
-├── infra/              # Infrastructure config (e.g. nats/nats.conf; audio/: the `make audio` image; text/: the `make text` encoder and the shared charmap; graphics/: the item icon table for `make graphics`; pokemon/: `make pokemon` and the one-time species catalog conversion; battle/: the one-time battle catalog conversion)
+├── infra/              # Infrastructure config (e.g. nats/: its config and image; assets/: `make graphics` for a build without make (the development preview); audio/: the `make audio` image; text/: the `make text` encoder and the shared charmap; graphics/: the item icon table for `make graphics`; pokemon/: `make pokemon` and the one-time species catalog conversion; battle/: the one-time battle catalog conversion)
 ├── docs/
-├── compose.yaml        # Whole stack
+├── compose.yaml        # Whole stack, for `make up` and the development preview
 ├── Makefile            # Shared commands
 ├── .env.example        # Configuration template (.env is never committed)
 └── package.json, pnpm-workspace.yaml, pnpm-lock.yaml   # TypeScript workspace
@@ -78,6 +78,17 @@ PokeUniverse/
 - **Make** runs every shared command; each tool runs in Docker, so only **Docker and Make** are needed on the host.
 - `make env` (create `.env` with generated secrets), `make up` / `down` / `logs` / `ps` / `clean`, `make generate` (contracts + sqlc), `make tidy`, `make lock`, `make breaking`, `make assets` (`make graphics` + `make text` + `make pokemon` + `make audio` + `make maps`: FireRed's art, text, species, sound and maps into gitignored folders). `make maps` (render the maps' tileset art, validate and compile `lib-maps`) and `make tool-maps CMD="..."` (any map command, [maps.md](maps.md#tools)). `make emulator` (the original game, see below). `make up` runs `make assets` first. `make help` lists them.
 - **pnpm workspaces** for TypeScript packages; Go modules linked with `replace`.
+
+### Development Preview
+
+The Mooi preview of a session runs the same `compose.yaml` as `make up`, with no `.env`, no references and no assets in its checkout.
+
+- **Variables:** each one is `${NAME:-${MOOI_DEVELOPMENT_NAME}}`: `.env` wins, so `make up` is unchanged; the preview takes the project's development variables (secrets generated once, stored encrypted in Mooi, never in the repo).
+- **Assets:** `ASSETS=built` (a development variable) makes `spa-pokeuniverse/build.Dockerfile` and `mic-core/Dockerfile` generate FireRed's art, text, species, sound and the maps in the build, from the references downloaded at their submodules' pinned commits (keep the `*_REF` arguments in step when a submodule moves) with the same scripts as `make assets`. Default `local`: what `make assets` left in the checkout. Each step is cached on its own inputs.
+- **Base path:** the preview serves the app under `/preview/<id>/`: the SPA is built with `BASE_PATH` (Vite `base`); app code writes root paths (`/api/...`, `/play`) and `src/app/base.ts` adds and strips the prefix. Default `/`.
+- **Two SPA services:** `spa-build` builds the static files and copies them into the `spa-dist` volume; `spa-pokeuniverse` (nginx, built from its own folder as Mooi requires) serves them and proxies `/auth`, `/api`, `/ws`.
+- **Google sign-in mock:** `GOOGLE_MOCK=1` (dev only, on in the preview) makes "Continue with Google" open a form that signs in any email: account `mock:<email>`, then the real session flow ([Authentication](#authentication)). Real Google credentials work too (`MOOI_DEVELOPMENT_GOOGLE_CLIENT_ID`/`_SECRET`) once the mock is off. **Never set in production.**
+- `PUBLIC_URL` is the browser origin of Mooi (`MOOI_DEVELOPMENT_PUBLIC_URL`): the WebSocket and auth endpoints check it.
 - **Generated code is committed** (Protocol Buffers, sqlc), so builds never need the generators.
 
 ## Naming
@@ -367,6 +378,7 @@ The login screen has **one button**. One use case covers both sign-up and login:
 4. Player lands on the home screen. Same result, same screen, no extra steps.
 
 - PokeUniverse stores no passwords.
+- **Development only:** `GOOGLE_MOCK=1` replaces Google with a sign-in form for any email ([Development Preview](#development-preview)).
 - Google ID (`sub`) is the account's unique identity (email can change; `sub` never does).
 
 ### Tokens

@@ -11,8 +11,9 @@ import { fetchBin, fetchBytes, fetchPal, fetchPng, toTiles, type IndexedImage } 
 import type { SoundInfo } from "../gba/sound";
 import type { Charmap, Text } from "../gba/text";
 import type { TilesetArt } from "../world/view";
+import { withBase } from "../../app/base";
 
-const ROOT = "/firered";
+const ROOT = withBase("/firered");
 
 interface GraphicFiles {
   png?: string;

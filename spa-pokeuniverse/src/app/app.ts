@@ -3,6 +3,7 @@ import { loginPage } from "../pages/login";
 import { canOpenSection, homeShell, sections } from "../pages/home/shell";
 import { playPage } from "../pages/play";
 import { Router } from "./router";
+import { appPath, withBase } from "./base";
 
 export async function startApp(root: HTMLElement): Promise<void> {
   const router: Router = new Router(
@@ -27,12 +28,12 @@ export async function startApp(root: HTMLElement): Promise<void> {
     await refresh();
   } catch (e) {
     if (!(e instanceof OfflineError)) throw e;
-    if (location.pathname !== "/login") history.replaceState(null, "", "/login?error=offline");
+    if (appPath() !== "/login") history.replaceState(null, "", withBase("/login?error=offline"));
   }
 
   // Signing out (here or in another tab) or an expired session returns to the login screen.
   onSessionChange((session) => {
-    if (!session && location.pathname !== "/login") router.go("/login", true);
+    if (!session && appPath() !== "/login") router.go("/login", true);
   });
 
   await router.render();

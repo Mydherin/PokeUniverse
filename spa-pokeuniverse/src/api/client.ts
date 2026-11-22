@@ -2,6 +2,7 @@
 // Adds the in-memory access token; on 401 it refreshes once and retries.
 
 import { getSession, refresh } from "../auth/session";
+import { withBase } from "../app/base";
 
 /** A non-2xx answer from the API. 401: not signed in; 403: missing role. */
 export class ApiError extends Error {
@@ -24,5 +25,5 @@ export async function api(path: string, init: RequestInit = {}): Promise<Respons
 function send(path: string, init: RequestInit, token: string | undefined): Promise<Response> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  return fetch(path, { ...init, headers, credentials: "same-origin" });
+  return fetch(withBase(path), { ...init, headers, credentials: "same-origin" });
 }

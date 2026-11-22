@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -28,6 +29,8 @@ type Config struct {
 	// Google sign-in is disabled while these are empty.
 	GoogleClientID     string
 	GoogleClientSecret string
+	// GoogleMock (GOOGLE_MOCK, dev only) signs in any email through a form instead of Google. Never set in production.
+	GoogleMock bool
 
 	JWTKeyID      string
 	JWTPrivateKey ed25519.PrivateKey
@@ -72,6 +75,14 @@ func Load() (Config, error) {
 		} else {
 			cfg.PublicURL = &url.URL{Scheme: u.Scheme, Host: u.Host}
 		}
+	}
+
+	if raw := os.Getenv("GOOGLE_MOCK"); raw != "" {
+		on, err := strconv.ParseBool(raw)
+		if err != nil {
+			errs = append(errs, errors.New("GOOGLE_MOCK must be a boolean (1, true, 0, false)"))
+		}
+		cfg.GoogleMock = on
 	}
 
 	if raw := required("JWT_PRIVATE_KEY"); raw != "" {

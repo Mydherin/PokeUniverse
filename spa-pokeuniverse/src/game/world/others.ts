@@ -161,6 +161,8 @@ export class Others {
         this.listener.chat(e.value.id, this.players.get(e.value.id)?.name, e.value.text);
         continue;
       }
+      // Link rooms (phase-9 M8) are the member screen's, not a player's.
+      if (e.case === "linkRoomOpened" || e.case === "linkRoomClosed") continue;
       const id = e.case === "joined" ? e.value.player?.id : e.value.id;
       if (id === undefined || id === this.self) continue;
       const p = this.players.get(id);

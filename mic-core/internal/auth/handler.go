@@ -38,14 +38,20 @@ type Handler struct {
 	Redis         *redis.Client
 	Origin        string
 	SecureCookies bool
-	Log           *slog.Logger
+	// MockGoogle (dev only, GOOGLE_MOCK) replaces Google with mock.go's form.
+	MockGoogle bool
+	Log        *slog.Logger
 }
 
 // RateLimit wraps a handler with a per-IP limit.
 type RateLimit func(name string, limit int, window time.Duration, next http.Handler) http.Handler
 
 func (h *Handler) Register(mux *http.ServeMux, limit RateLimit) {
-	mux.Handle("GET /auth/google", limit("auth-start", 20, time.Minute, http.HandlerFunc(h.start)))
+	if h.MockGoogle {
+		h.registerMock(mux, limit)
+	} else {
+		mux.Handle("GET /auth/google", limit("auth-start", 20, time.Minute, http.HandlerFunc(h.start)))
+	}
 	mux.Handle("GET /auth/google/callback", limit("auth-callback", 20, time.Minute, http.HandlerFunc(h.callback)))
 	mux.Handle("POST /auth/refresh", limit("auth-refresh", 60, time.Minute, http.HandlerFunc(h.refresh)))
 	mux.Handle("POST /auth/logout", limit("auth-logout", 20, time.Minute, http.HandlerFunc(h.logout)))
@@ -110,6 +116,11 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
 		h.toLogin(w, r, "failed")
 		return
 	}
+	h.signIn(w, r, profile)
+}
+
+// signIn creates or loads the profile's account and starts its session.
+func (h *Handler) signIn(w http.ResponseWriter, r *http.Request, profile account.GoogleProfile) {
 	acc, err := h.Accounts.SignInWithGoogle(r.Context(), profile)
 	if err != nil {
 		h.Log.Error("sign in", "err", err)

@@ -1,5 +1,7 @@
 # PokeUniverse stack. Start everything with `make up`.
 # Only spa-pokeuniverse is published to the host; everything else stays on the internal network.
+# Also the Mooi development preview (docs/tech-stack.md#development-preview): each variable comes from .env and,
+# when .env leaves it empty (Mooi has no .env), from the project's MOOI_DEVELOPMENT_<NAME>, so `make up` is unchanged.
 # Redis saves every write to disk before answering (docs/tech-stack.md#saving-state-resilience).
 name: pokeuniverse
 
@@ -8,9 +10,9 @@ services:
     image: postgres:18-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-${MOOI_DEVELOPMENT_POSTGRES_USER}}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-${MOOI_DEVELOPMENT_POSTGRES_PASSWORD}}
+      POSTGRES_DB: ${POSTGRES_DB:-${MOOI_DEVELOPMENT_POSTGRES_DB}}
     volumes:
       - postgres-data:/var/lib/postgresql
     healthcheck:
@@ -24,10 +26,10 @@ services:
     image: redis:8-alpine
     restart: unless-stopped
     # mic-battles' user reaches only battle:* keys (phase-5 D2), with no admin commands.
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes", "--appendfsync", "always", "--maxmemory-policy", "noeviction",
-              "--user", "mic-battles", "on", ">${REDIS_MIC_BATTLES_PASSWORD:?set REDIS_MIC_BATTLES_PASSWORD in .env}", "~battle:*", "resetchannels", "+@connection", "+@read", "+@write", "+@scripting", "-@dangerous"]
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-${MOOI_DEVELOPMENT_REDIS_PASSWORD}}", "--appendonly", "yes", "--appendfsync", "always", "--maxmemory-policy", "noeviction",
+              "--user", "mic-battles", "on", ">${REDIS_MIC_BATTLES_PASSWORD:-${MOOI_DEVELOPMENT_REDIS_MIC_BATTLES_PASSWORD:?set REDIS_MIC_BATTLES_PASSWORD in .env}}", "~battle:*", "resetchannels", "+@connection", "+@read", "+@write", "+@scripting", "-@dangerous"]
     environment:
-      REDISCLI_AUTH: ${REDIS_PASSWORD}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-${MOOI_DEVELOPMENT_REDIS_PASSWORD}}
     volumes:
       - redis-data:/data
     healthcheck:
@@ -37,16 +39,16 @@ services:
       retries: 10
 
   nats:
-    image: nats:2.12-alpine
+    build:
+      context: infra/nats
+      dockerfile: Dockerfile
     restart: unless-stopped
     command: ["-c", "/etc/nats/nats.conf"]
     environment:
-      NATS_MIC_CORE_PASSWORD: ${NATS_MIC_CORE_PASSWORD}
-      NATS_MIC_BATTLES_PASSWORD: ${NATS_MIC_BATTLES_PASSWORD}
-    volumes:
-      - ./infra/nats/nats.conf:/etc/nats/nats.conf:ro
+      NATS_MIC_CORE_PASSWORD: ${NATS_MIC_CORE_PASSWORD:-${MOOI_DEVELOPMENT_NATS_MIC_CORE_PASSWORD}}
+      NATS_MIC_BATTLES_PASSWORD: ${NATS_MIC_BATTLES_PASSWORD:-${MOOI_DEVELOPMENT_NATS_MIC_BATTLES_PASSWORD}}
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8222/healthz"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -55,25 +57,30 @@ services:
     build:
       context: .
       dockerfile: mic-core/Dockerfile
+      args:
+        # "local": the maps `make maps` compiled; "built": compiled in the build (the Mooi preview).
+        ASSETS: ${ASSETS:-${MOOI_DEVELOPMENT_ASSETS:-local}}
     restart: unless-stopped
     # Stateless: any replica takes any player; zones share their events over NATS (phase-8 D2).
     deploy:
       replicas: ${MIC_CORE_REPLICAS:-1}
     environment:
       HTTP_ADDR: ":8081"
-      PUBLIC_URL: ${PUBLIC_URL}
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      PUBLIC_URL: ${PUBLIC_URL:-${MOOI_DEVELOPMENT_PUBLIC_URL}}
+      DATABASE_URL: postgres://${POSTGRES_USER:-${MOOI_DEVELOPMENT_POSTGRES_USER}}:${POSTGRES_PASSWORD:-${MOOI_DEVELOPMENT_POSTGRES_PASSWORD}}@postgres:5432/${POSTGRES_DB:-${MOOI_DEVELOPMENT_POSTGRES_DB}}?sslmode=disable
       REDIS_ADDR: redis:6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-${MOOI_DEVELOPMENT_REDIS_PASSWORD}}
       NATS_URL: nats://nats:4222
       NATS_USER: mic-core
-      NATS_PASSWORD: ${NATS_MIC_CORE_PASSWORD}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      JWT_KEY_ID: ${JWT_KEY_ID}
-      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
-      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
-      BOTS_SECRET: ${BOTS_SECRET:-}
+      NATS_PASSWORD: ${NATS_MIC_CORE_PASSWORD:-${MOOI_DEVELOPMENT_NATS_MIC_CORE_PASSWORD}}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-${MOOI_DEVELOPMENT_GOOGLE_CLIENT_ID:-}}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-${MOOI_DEVELOPMENT_GOOGLE_CLIENT_SECRET:-}}
+      JWT_KEY_ID: ${JWT_KEY_ID:-${MOOI_DEVELOPMENT_JWT_KEY_ID}}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-${MOOI_DEVELOPMENT_JWT_PRIVATE_KEY}}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-${MOOI_DEVELOPMENT_ADMIN_EMAILS:-}}
+      BOTS_SECRET: ${BOTS_SECRET:-${MOOI_DEVELOPMENT_BOTS_SECRET:-}}
+      # Dev only: "1" signs in any email through a form instead of Google (mic-core/internal/auth/mock.go). Never in production.
+      GOOGLE_MOCK: ${GOOGLE_MOCK:-${MOOI_DEVELOPMENT_GOOGLE_MOCK:-}}
     depends_on:
       postgres:
         condition: service_healthy
@@ -97,10 +104,10 @@ services:
       HTTP_PORT: "8082"
       NATS_URL: nats://nats:4222
       NATS_USER: mic-battles
-      NATS_PASSWORD: ${NATS_MIC_BATTLES_PASSWORD}
+      NATS_PASSWORD: ${NATS_MIC_BATTLES_PASSWORD:-${MOOI_DEVELOPMENT_NATS_MIC_BATTLES_PASSWORD}}
       REDIS_ADDR: redis:6379
       REDIS_USER: mic-battles
-      REDIS_PASSWORD: ${REDIS_MIC_BATTLES_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_MIC_BATTLES_PASSWORD:-${MOOI_DEVELOPMENT_REDIS_MIC_BATTLES_PASSWORD}}
     depends_on:
       redis:
         condition: service_healthy
@@ -113,16 +120,38 @@ services:
       retries: 10
       start_period: 5s
 
-  spa-pokeuniverse:
+  # The SPA's static files (spa-pokeuniverse/build.Dockerfile), copied into spa-dist at every start for
+  # spa-pokeuniverse to serve. A separate service because the web server builds from its own folder only.
+  spa-build:
     build:
       context: .
-      dockerfile: spa-pokeuniverse/Dockerfile
+      dockerfile: spa-pokeuniverse/build.Dockerfile
       args:
         # Dev only (phase-8 D16): with BOTS_SECRET set, the build accepts /play?bot=<token>.
-        VITE_BOT_LOGIN: ${BOTS_SECRET:+1}
+        VITE_BOT_LOGIN: ${BOTS_SECRET:+1}${MOOI_DEVELOPMENT_BOTS_SECRET:+1}
+        # "local": FireRed's assets and the maps `make assets` left in public/; "built": generated in the build.
+        ASSETS: ${ASSETS:-${MOOI_DEVELOPMENT_ASSETS:-local}}
+        # The path the app is served under: "/" except in a Mooi preview.
+        BASE_PATH: ${MOOI_PREVIEW_BASE_PATH:-/}
+    restart: unless-stopped
+    init: true
+    volumes:
+      - spa-dist:/out
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+
+  spa-pokeuniverse:
+    build:
+      context: spa-pokeuniverse
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "${SPA_PORT:-8080}:8080"
+    volumes:
+      - spa-dist:/usr/share/nginx/html:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
       interval: 5s
@@ -130,9 +159,12 @@ services:
       retries: 10
       start_period: 5s
     depends_on:
+      spa-build:
+        condition: service_healthy
       mic-core:
         condition: service_healthy
 
 volumes:
   postgres-data:
   redis-data:
+  spa-dist:

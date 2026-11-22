@@ -1,0 +1,3 @@
+# The nginx image (./Dockerfile) needs only its config; the app is built by build.Dockerfile from the repository root.
+*
+!nginx

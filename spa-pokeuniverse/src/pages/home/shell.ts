@@ -13,6 +13,7 @@ import { adminSection } from "./admin";
 import { newsSection } from "./news";
 import { overviewSection } from "./overview";
 import { trainerSection } from "./trainer";
+import { appPath } from "../../app/base";
 
 /** `role`: only accounts with it see the section. The server enforces it again on every API call. */
 type Section = { path: string; label: string; icon: IconName; role?: string; render: () => HTMLElement };
@@ -104,7 +105,7 @@ export function homeShell(path: string, navigate: (path: string) => void): View 
 
   // Swipe between sections on touch screens.
   onSwipe(main, (direction) => {
-    const i = visible.findIndex((s) => s.path === location.pathname);
+    const i = visible.findIndex((s) => s.path === appPath());
     const next = visible[i + (direction === "left" ? 1 : -1)];
     if (next) navigate(next.path);
   });

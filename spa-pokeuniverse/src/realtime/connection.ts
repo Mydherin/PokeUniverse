@@ -20,6 +20,7 @@ import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniver
 import type { SocialEvent } from "@pokeuniverse/contracts/social/v1/social";
 import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
+import { withBase } from "../app/base";
 
 export type ConnectionStatus =
   | { state: "connecting" }
@@ -171,7 +172,7 @@ export class Connection implements WorldLink {
     if (!session) return this.stop({ state: "signed-out" });
     this.onStatus({ state: "connecting" });
 
-    const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
+    const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}${withBase("/ws")}`);
     ws.binaryType = "arraybuffer";
     this.ws = ws;
 

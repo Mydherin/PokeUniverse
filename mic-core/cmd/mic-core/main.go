@@ -106,9 +106,12 @@ func run(log *slog.Logger) error {
 		Redis:         rdb,
 		Origin:        cfg.Origin(),
 		SecureCookies: cfg.SecureCookies(),
+		MockGoogle:    cfg.GoogleMock,
 		Log:           log,
 	}
-	if !authHandler.Google.Enabled() {
+	if authHandler.MockGoogle {
+		log.Warn("mock google sign-in enabled (GOOGLE_MOCK is set): anyone can sign in as any email, never set it in production")
+	} else if !authHandler.Google.Enabled() {
 		log.Warn("google sign-in disabled: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are not set")
 	}
 	go authHandler.CleanupLoop(ctx, time.Hour)

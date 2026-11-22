@@ -3,6 +3,7 @@
 
 import { create, fromJson } from "@bufbuild/protobuf";
 import { AccountSchema, RefreshResponseSchema, type Account } from "@pokeuniverse/contracts/auth/v1/auth";
+import { withBase } from "../app/base";
 
 export type Session = {
   accessToken: string;
@@ -52,7 +53,7 @@ export function refresh(): Promise<Session | null> {
 export async function logout(): Promise<void> {
   if (botToken) return set(null);
   try {
-    await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
+    await fetch(withBase("/auth/logout"), { method: "POST", credentials: "same-origin" });
   } catch {
     // Signing out locally still matters even if the server is unreachable.
   }
@@ -63,7 +64,7 @@ export async function logout(): Promise<void> {
 async function requestRefresh(): Promise<Session | null> {
   let res: Response;
   try {
-    res = await fetch("/auth/refresh", { method: "POST", credentials: "same-origin" });
+    res = await fetch(withBase("/auth/refresh"), { method: "POST", credentials: "same-origin" });
   } catch {
     throw new OfflineError("server unreachable");
   }

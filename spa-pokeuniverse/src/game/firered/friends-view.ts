@@ -8,6 +8,7 @@ import { Gender } from "@pokeuniverse/contracts/trainer/v1/trainer";
 import { h } from "../../ui/dom";
 import type { SocialState } from "../world/social";
 import type { Graphic } from "./manifest";
+import { withBase } from "../../app/base";
 
 /** Pixels of a face: a square portrait (D6). */
 export const FACE_SIZE = 32;
@@ -56,7 +57,7 @@ export class Faces {
       done(src);
     };
     img.onerror = () => done(this.fallback(gender));
-    img.src = `/faces/${face}.png`;
+    img.src = withBase(`/faces/${face}.png`);
   }
 
   private fallback(gender: Gender): HTMLCanvasElement {

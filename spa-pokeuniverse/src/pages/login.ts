@@ -3,6 +3,7 @@ import { Species } from "../assets/sprites";
 import { h, trusted } from "../ui/dom";
 import { horizon, sprite, starfield, wordmark } from "../ui/art";
 import { icon, type IconName } from "../ui/icons";
+import { withBase } from "../app/base";
 
 const errors: Record<string, string> = {
   cancelled: "Sign-in was cancelled. You can try again whenever you're ready.",
@@ -24,7 +25,7 @@ export function loginPage(): View {
   const signIn = h(
     "a",
     {
-      href: "/auth/google",
+      href: withBase("/auth/google"),
       class:
         "btn w-full gap-3 rounded-full border border-[#747775] bg-white text-[15px] font-medium text-[#1f1f1f] hover:bg-[#f2f2f2] font-[Roboto,system-ui,sans-serif]",
       on: { click: () => signIn.setAttribute("aria-busy", "true") },

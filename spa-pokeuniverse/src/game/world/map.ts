@@ -3,12 +3,13 @@
 
 import { fromBinary } from "@bufbuild/protobuf";
 import { ClientMapSchema, TileBehavior, type ClientMap } from "@pokeuniverse/contracts/map/v1/map";
+import { withBase } from "../../app/base";
 
 /** Map cells are 16×16 pixels in every FireRed-sized art style. */
 export const TILE = 16;
 
 export async function loadMap(id: string): Promise<ClientMap> {
-  const res = await fetch(`/maps/${id}.binpb`);
+  const res = await fetch(withBase(`/maps/${id}.binpb`));
   if (!res.ok) throw new Error(`map ${id}: ${res.status}`);
   return fromBinary(ClientMapSchema, new Uint8Array(await res.arrayBuffer()));
 }

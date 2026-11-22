@@ -1,5 +1,7 @@
 // History API router. A view may handle sibling paths itself (e.g. home sections)
-// so its layout stays mounted and only its content changes.
+// so its layout stays mounted and only its content changes. Paths are app paths, without the base path.
+
+import { appPath, withBase } from "./base";
 
 export type View = {
   el: HTMLElement;
@@ -30,25 +32,25 @@ export class Router {
     private readonly guard: Guard,
   ) {
     window.addEventListener("popstate", () => {
-      if (location.pathname + location.search !== this.rendered) void this.render();
+      if (appPath() + location.search !== this.rendered) void this.render();
     });
     // Same-origin links are handled here instead of reloading the page.
     document.addEventListener("click", (e) => {
       const link = (e.target as Element).closest?.("a[data-link]") as HTMLAnchorElement | null;
       if (!link || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
-      this.go(link.pathname + link.search);
+      this.go(appPath(link.pathname) + link.search);
     });
   }
 
   go(path: string, replace = false): void {
-    if (path === location.pathname + location.search) return;
-    history[replace ? "replaceState" : "pushState"](null, "", path);
+    if (path === appPath() + location.search) return;
+    history[replace ? "replaceState" : "pushState"](null, "", withBase(path));
     void this.render();
   }
 
   async render(): Promise<void> {
-    const path = location.pathname;
+    const path = appPath();
     this.rendered = path + location.search;
     const route = this.routes.find((r) => r.paths.includes(path));
     if (!route) return this.go(this.fallback, true);

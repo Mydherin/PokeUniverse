@@ -1,23 +1,7 @@
-# syntax=docker/dockerfile:1
-# Build context: repository root (the SPA uses lib-contracts).
-
-FROM node:26-alpine AS build
-RUN npm install -g pnpm@10.34.9
-WORKDIR /src
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY lib-contracts/gen/ts/package.json lib-contracts/gen/ts/
-COPY spa-pokeuniverse/package.json spa-pokeuniverse/
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --filter spa-pokeuniverse...
-COPY lib-contracts/gen/ts lib-contracts/gen/ts
-COPY spa-pokeuniverse spa-pokeuniverse
-# Dev only (phase-8 D16): "1" when the stack runs with BOTS_SECRET, never in production.
-ARG VITE_BOT_LOGIN=""
-ENV VITE_BOT_LOGIN=$VITE_BOT_LOGIN
-RUN pnpm --filter spa-pokeuniverse build
-
-# Static files only, served by an unprivileged nginx.
+# The public web server: serves the SPA's static files from the spa-dist volume (built by build.Dockerfile,
+# copied there by compose.yaml's spa-build service) and proxies /auth, /api and /ws to mic-core.
+# Build context: this folder (only nginx/ is sent, see .dockerignore).
 FROM nginxinc/nginx-unprivileged:1.29-alpine
-COPY spa-pokeuniverse/nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY spa-pokeuniverse/nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
-COPY --from=build /src/spa-pokeuniverse/dist /usr/share/nginx/html
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 EXPOSE 8080
