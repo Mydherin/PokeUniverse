@@ -30,6 +30,11 @@
 // once its friends are made, invite each friend and each accept; --flood then floods the channel
 // (over SendMessage, the one rate budget) instead of the zone.
 //
+// Link rooms (phase-9 M8): with --map pokemon_center_2f, --lead <trade|single|double> walks each bot
+// to the Direct Corner attendant (10,4), talks to it and opens a room, accepting the first member
+// who asks; --join [--activity <trade|single|double>] (trade by default) asks the first room of that
+// activity in the list. Accepted, both walk in; a bot whose link ends leaves. They don't wander.
+//
 // The secret defaults to BOTS_SECRET from the environment or the repository's .env. Ctrl-C closes
 // every socket. Nothing here is used by the game.
 
@@ -40,7 +45,7 @@ import { create, fromBinary, fromJson, toBinary, toJson, type MessageInitShape }
 import { ReplicaStatsSchema, SpawnBotsSchema, SpawnedBotsSchema, type ReplicaStats, type SpawnedBot } from "../../lib-contracts/gen/ts/src/pokeuniverse/dev/v1/bots_pb.ts";
 import { ClientMapSchema, Direction, TileBehavior, type ClientMap } from "../../lib-contracts/gen/ts/src/pokeuniverse/map/v1/map_pb.ts";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "../../lib-contracts/gen/ts/src/pokeuniverse/realtime/v1/realtime_pb.ts";
-import { SocialEventSchema } from "../../lib-contracts/gen/ts/src/pokeuniverse/social/v1/social_pb.ts";
+import { LinkActivity, LinkIntentSchema, SocialEventSchema, type LinkEvent, type LinkRoom } from "../../lib-contracts/gen/ts/src/pokeuniverse/social/v1/social_pb.ts";
 import type { OtherPlayer, ZoneEvent } from "../../lib-contracts/gen/ts/src/pokeuniverse/world/v1/world_pb.ts";
 import { behaviorAt, elevationAt, warpAt } from "../../spa-pokeuniverse/src/game/world/map.ts";
 import { checkStep, Collision, DELTAS, elevationAfter } from "../../spa-pokeuniverse/src/game/world/rules.ts";
@@ -82,6 +87,9 @@ const { values: args } = parseArgs({
     friend: { type: "string", default: "0" },
     dm: { type: "boolean", default: false },
     channel: { type: "string", default: "" },
+    lead: { type: "string", default: "" },
+    join: { type: "boolean", default: false },
+    activity: { type: "string", default: "trade" },
   },
 });
 const base = new URL(args.url);
@@ -92,6 +100,12 @@ if (!Number.isInteger(count) || count < 1 || count > 500) fail("--count must be 
 if (!Number.isInteger(first) || first < 1 || first > 500) fail("--first must be 1 to 500");
 const stay = args.stay || args.ramp;
 const map2 = args.map2 || (args.map.endsWith("_1f") ? args.map.replace(/_1f$/, "_2f") : args.map.replace(/_2f$/, "_1f"));
+const ACTIVITIES: Record<string, LinkActivity> = { trade: LinkActivity.TRADE, single: LinkActivity.SINGLE_BATTLE, double: LinkActivity.DOUBLE_BATTLE };
+const linkActivity = ACTIVITIES[args.lead || args.activity];
+if ((args.lead || args.join) && linkActivity === undefined) fail("--lead and --activity take trade, single or double");
+const linking = Boolean(args.lead) || args.join;
+/** Where the Direct Corner attendant is talked to, across the counter. */
+const DIRECT_CORNER = { map: "pokemon_center_2f", x: 10, y: 4 };
 const hold = Number(args.hold);
 if (!(hold > 0)) fail("--hold must be a number of seconds");
 
@@ -189,7 +203,8 @@ class Bot {
           this.every(PING_EVERY_MS, () => this.send({ case: "ping", value: { clientTime: BigInt(Date.now()) } }));
           this.startChat();
         }
-        if (!this.walking && !(this.verbose && args.idle)) this.walk();
+        if (linking) this.approach();
+        else if (!this.walking && !(this.verbose && args.idle)) this.walk();
         break;
       }
       case "pong":
@@ -214,6 +229,15 @@ class Bot {
         for (const e of msg.value.events) this.zoneEvent(e);
         break;
       case "script":
+        // The attendant's script stays open: the link screens run inside it.
+        if (this.talking && msg.value.steps.length) {
+          this.talking = false;
+          this.linkScript = msg.value.id;
+          if (args.lead) this.link({ case: "open", value: linkActivity });
+          else this.link({ case: "browse", value: linkActivity });
+          console.log(`bot-${this.n}: ${args.lead ? `leads a ${args.lead} room` : "browses the rooms"}`);
+          break;
+        }
         this.send({ case: "scriptDone", value: { script: msg.value.id } });
         break;
       case "battleStarted":
@@ -222,6 +246,7 @@ class Bot {
         console.warn(`bot-${this.n}: in a battle at ${this.x},${this.y}`);
         break;
       case "social":
+        if (msg.value.event.case === "link") this.linkEvent(msg.value.event.value);
         if (msg.value.event.case === "message" && msg.value.event.value.sender !== this.accountId) stats.dm++;
         if (this.verbose) console.log(`bot-${this.n}: social ${JSON.stringify(toJson(SocialEventSchema, msg.value))}`);
         break;
@@ -278,6 +303,11 @@ class Bot {
   private zoneEvent(e: ZoneEvent): void {
     const ev = e.event;
     if (ev.case === undefined) return;
+    if (ev.case === "linkRoomOpened" || ev.case === "linkRoomClosed") {
+      if (ev.case === "linkRoomOpened" && args.join && this.browsing) this.tryJoin([ev.value]);
+      if (this.verbose) console.log(`bot-${this.n}: ${ev.case === "linkRoomOpened" ? `room opened by ${ev.value.leader?.name}` : `room of ${ev.value} closed`}`);
+      return;
+    }
     const id = ev.case === "joined" ? (ev.value.player?.id ?? 0n) : ev.value.id;
     if (ev.case === "chat") {
       // Own lines too: the client shows its own line only when it comes back (phase-8 M5).
@@ -320,6 +350,124 @@ class Bot {
     }
     if (!o && ev.case !== "joined" && ev.case !== "left") text += " (unknown player)";
     if (this.verbose) console.log(`bot-${this.n}: ${text}`);
+  }
+
+  /** Walking to the attendant, then waiting for its script. */
+  private approaching = false;
+  private talking = false;
+  /** The attendant's script, open while the screens run. */
+  private linkScript = 0;
+  /** The member screen is up, no room asked yet. */
+  private browsing = false;
+  private inLink = false;
+
+  private link(intent: MessageInitShape<typeof LinkIntentSchema>["intent"]): void {
+    this.send({ case: "link", value: { intent } });
+  }
+
+  /** BFS to the Direct Corner's spot, then A on the attendant. */
+  private approach(): void {
+    if (this.approaching || !this.map) return;
+    if (this.map.id !== DIRECT_CORNER.map) {
+      console.warn(`bot-${this.n}: on ${this.map.id}, not ${DIRECT_CORNER.map}: no link`);
+      return;
+    }
+    const path = this.pathTo(DIRECT_CORNER.x, DIRECT_CORNER.y);
+    if (!path) {
+      console.warn(`bot-${this.n}: no way to ${DIRECT_CORNER.x},${DIRECT_CORNER.y}`);
+      return;
+    }
+    this.approaching = true;
+    const stepOn = (i: number) => {
+      if (!this.connected) return;
+      if (i === path.length) {
+        this.facing = Direction.NORTH;
+        this.send({ case: "turn", value: { direction: Direction.NORTH } });
+        this.after(WALK_MS, () => {
+          this.talking = true;
+          this.send({ case: "interact", value: { walkInto: false } });
+        });
+        return;
+      }
+      const d = path[i];
+      this.send({ case: "move", value: { step: ++this.step, direction: d, run: false, x: this.x, y: this.y } });
+      const [dx, dy] = DELTAS[d];
+      this.elevation = elevationAfter(this.map!, this.elevation, this.x, this.y, this.x + dx, this.y + dy);
+      this.x += dx;
+      this.y += dy;
+      this.facing = d;
+      this.after(WALK_MS, () => stepOn(i + 1));
+    };
+    stepOn(0);
+  }
+
+  /** The directions of a shortest walk to (tx, ty) over cells without collision, or null. */
+  private pathTo(tx: number, ty: number): Direction[] | null {
+    const m = this.map!;
+    const key = (x: number, y: number) => y * m.width + x;
+    const from = new Map<number, { prev: number; d: Direction }>();
+    const start = key(this.x, this.y);
+    from.set(start, { prev: -1, d: Direction.UNSPECIFIED });
+    const queue = [[this.x, this.y]];
+    while (queue.length) {
+      const [x, y] = queue.shift()!;
+      if (x === tx && y === ty) {
+        const out: Direction[] = [];
+        for (let k = key(x, y); k !== start; k = from.get(k)!.prev) out.unshift(from.get(k)!.d);
+        return out;
+      }
+      for (const d of DIRECTIONS) {
+        const [dx, dy] = DELTAS[d];
+        const [nx, ny] = [x + dx, y + dy];
+        if (from.has(key(nx, ny)) || checkStep(m, x, y, elevationAt(m, x, y), d) !== Collision.None || this.avoid(nx, ny)) continue;
+        from.set(key(nx, ny), { prev: key(x, y), d });
+        queue.push([nx, ny]);
+      }
+    }
+    return null;
+  }
+
+  private tryJoin(rooms: LinkRoom[]): void {
+    const room = rooms.find((r) => r.leader && r.activity === linkActivity);
+    if (!room) return;
+    this.browsing = false;
+    console.log(`bot-${this.n}: asks to join ${room.leader!.name}`);
+    this.link({ case: "join", value: room.leader!.id });
+  }
+
+  private linkEvent(e: LinkEvent): void {
+    const ev = e.event;
+    switch (ev.case) {
+      case "rooms":
+        this.browsing = true;
+        this.tryJoin(ev.value.rooms);
+        break;
+      case "joinAsked":
+        console.log(`bot-${this.n}: ${ev.value.member?.name} asks to join: accepted`);
+        this.link({ case: "answer", value: { member: ev.value.member!.id, accept: true } });
+        break;
+      case "joinAnswered":
+        if (ev.value.accepted) break;
+        console.log(`bot-${this.n}: refused (${ev.value.refusal}), browsing again`);
+        this.after(2_000, () => this.link({ case: "browse", value: linkActivity }));
+        break;
+      case "start":
+        console.log(`bot-${this.n}: linked with ${ev.value.partner?.name} (room ${ev.value.room}), walking in`);
+        this.send({ case: "scriptDone", value: { script: this.linkScript } });
+        this.inLink = true;
+        // The walk to the door (CableClub_EventScript_EnterWirelessLinkRoom), about 3 s.
+        this.after(3_000, () => this.link({ case: "enter", value: true }));
+        break;
+      case "ended":
+        if (!this.inLink) break;
+        this.inLink = false;
+        console.log(`bot-${this.n}: the link ended: leaving`);
+        this.link({ case: "leave", value: true });
+        break;
+      case "joinCancelled":
+        console.log(`bot-${this.n}: the member stopped waiting`);
+        break;
+    }
   }
 
   private entered = false;
@@ -391,6 +539,7 @@ class Bot {
   private closed(code: number, reason: string): void {
     const wasConnected = this.connected;
     this.connected = false;
+    this.approaching = this.talking = this.browsing = this.inLink = false;
     this.walking = false;
     this.clearTimers();
     if (stopping) return;
