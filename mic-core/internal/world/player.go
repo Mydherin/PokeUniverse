@@ -6,6 +6,7 @@ import (
 
 	mapv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/map/v1"
 	realtimev1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/realtime/v1"
+	socialv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1"
 	trainerv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/encounter"
@@ -91,6 +92,8 @@ type Player struct {
 	out []*realtimev1.ServerMessage
 	// The player's part in a link room (phase-9 M8, link_room.go).
 	link linkState
+	// The activity of the member screen (JOIN GROUP's browse), asked with each join.
+	linkWants socialv1.LinkActivity
 }
 
 // Move is a predicted step, received at `at`.

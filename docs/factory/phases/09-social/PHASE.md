@@ -8,7 +8,7 @@ milestones: [01-friends-server, 02-player-actions, 03-social-shell, 04-friends-l
 
 ## Resume Here
 
-**In progress.** M1-M7 ✅ (M7 2026-11-14, every case played in the built-in browser pane). [M8](milestones/08-link-rooms.md#resume-here) (link rooms) `building`: contracts and server built, client, bots and the Manual Test next: resume from its Resume Here; the pane setup for Manual Tests is in [M6's Resume Here](milestones/06-private-channels.md#resume-here). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context/social.md](../../context/social.md) sections it names.
+**In progress.** M1-M7 ✅ (M7 2026-11-14, every case played in the built-in browser pane). [M8](milestones/08-link-rooms.md#resume-here) (link rooms) `testing`: built, attempt 1's failures (cases 3, 6) fixed, the Manual Test re-played next: resume from its Resume Here; the pane setup for Manual Tests is in [M6's Resume Here](milestones/06-private-channels.md#resume-here). The scope was refined with the user: parties dropped (private channels replace them), the other player's trainer card left for later, trade and PvP in FireRed's Cable Club. Questions answered 2026-11-12 (Q1-Q4). Start each milestone by reading only its file, then the [context/social.md](../../context/social.md) sections it names.
 
 Carried in: O14 (from Phase 8, rewritten: parties became private channels and the trainer card moved out, D1, D2).
 

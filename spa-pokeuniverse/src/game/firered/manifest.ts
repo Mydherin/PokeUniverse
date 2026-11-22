@@ -468,6 +468,9 @@ export const NEW_GAME_SOUNDS = [
   // Door and escalator warps (door-warp.ts)
   "se_sliding_door",
   "se_escalator",
+  // The link rooms (link-room.ts)
+  "se_click",
+  "se_pokenav_on",
 ] as const;
 /** The battle's music and sounds, loaded with the battle set. */
 export const BATTLE_SOUNDS = [

@@ -84,7 +84,7 @@ func (p *Player) Link(in *socialv1.LinkIntent) {
 	case *socialv1.LinkIntent_Close:
 		z.do(func() { z.closeLinkRoom(p) })
 	case *socialv1.LinkIntent_Browse:
-		p.browseLinkRooms(z)
+		p.browseLinkRooms(z, i.Browse)
 	case *socialv1.LinkIntent_Join:
 		z.do(func() { z.joinLinkRoom(p, int64(i.Join)) })
 	case *socialv1.LinkIntent_CancelJoin:
@@ -146,10 +146,15 @@ func (z *zone) closeLinkRoom(p *Player) {
 
 // browseLinkRooms answers the member screen with the rooms in range: the leaders in the same 2F
 // zone, friends first, then by time opened (D19).
-func (p *Player) browseLinkRooms(z *zone) {
+func (p *Player) browseLinkRooms(z *zone, wants socialv1.LinkActivity) {
 	var key ZoneKey
 	ok := false
-	z.call(func() { key, ok = z.key, z.canLink(p) })
+	z.call(func() {
+		key, ok = z.key, z.canLink(p)
+		if ok {
+			p.linkWants = wants
+		}
+	})
 	if !ok {
 		return
 	}
@@ -204,8 +209,9 @@ func (z *zone) joinLinkRoom(p *Player, leader int64) {
 		refuse(socialv1.JoinRefusal_JOIN_REFUSAL_GONE)
 		return
 	}
-	p.link = linkState{role: linkJoining, activity: room.Activity, at: z.key, other: leader}
-	z.w.social.Link(leader, &socialv1.LinkEvent{Event: &socialv1.LinkEvent_JoinAsked{JoinAsked: &socialv1.LinkMember{Member: p.friend(), Activity: room.Activity}}})
+	// The member's own selection: the leader answers DIFFERENT when it isn't the room's (D18).
+	p.link = linkState{role: linkJoining, activity: p.linkWants, at: z.key, other: leader}
+	z.w.social.Link(leader, &socialv1.LinkEvent{Event: &socialv1.LinkEvent_JoinAsked{JoinAsked: &socialv1.LinkMember{Member: p.friend(), Activity: p.linkWants}}})
 }
 
 // cancelJoin: the member stops waiting (B), or leaves the screen.

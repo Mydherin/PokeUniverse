@@ -197,5 +197,7 @@
   "se_shiny": { "song": "se_shiny" },
   "mus_poke_center": { "song": "mus_poke_center" },
   "se_sliding_door": { "song": "se_sliding_door" },
-  "se_escalator": { "song": "se_escalator" }
+  "se_escalator": { "song": "se_escalator" },
+  "se_click": { "song": "se_click" },
+  "se_pokenav_on": { "song": "se_pokenav_on" }
 }

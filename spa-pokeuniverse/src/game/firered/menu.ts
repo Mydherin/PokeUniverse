@@ -277,6 +277,11 @@ export class YesNoMenu {
     if (result !== MENU_NOTHING_CHOSEN) clearStdWindowAndFrameToTransparent(this.menu.win);
     return result;
   }
+
+  /** Gone unanswered (what it asked about stopped mattering). */
+  close(): void {
+    clearStdWindowAndFrameToTransparent(this.menu.win);
+  }
 }
 
 /** The New Game screens' top bar: a title and the button hints, right-aligned. */

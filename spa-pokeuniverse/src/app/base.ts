@@ -2,7 +2,8 @@
 // "/" normally, a prefix such as "/preview/<id>/" in a Mooi development preview. Always ends with "/".
 // App paths stay root-relative ("/play", "/api/trainer"); these turn them into URLs and back.
 
-export const BASE = import.meta.env.BASE_URL;
+// Outside Vite (the dev bots import the map rules under Node) there is no env: "/".
+export const BASE: string = import.meta.env?.BASE_URL ?? "/";
 
 /** The URL of an app path ("/api/trainer") under the base path. */
 export function withBase(path: string): string {

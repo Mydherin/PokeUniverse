@@ -40,7 +40,7 @@ export interface AvatarInput {
 export interface AvatarLink {
   move(step: number, direction: Direction, run: boolean, x: number, y: number): void;
   turn(direction: Direction): void;
-  /** Taking a warp: the stair warp stood on going its way, the door in front going north, or the escalator just stepped on. */
+  /** Taking a warp: the stair or arrow warp stood on going its way, the door in front going north, or the escalator just stepped on. */
   warp(direction: Direction, x: number, y: number): void;
   interact(walkInto: boolean): void;
   /** START, standing still between steps: the START menu opens. */
@@ -175,6 +175,20 @@ export class Avatar {
     this.start("walk", WALK_FRAMES);
   }
 
+  /**
+   * A script's walk mic-core never sees (phase-9 M8: through the Direct Corner's barrier to the
+   * link room's door, which the server keeps blocked): no step sent, no collision.
+   */
+  scriptWalk(d: Direction): void {
+    this.facing = d;
+    const [dx, dy] = DELTAS[d];
+    this.elevation = elevationAfter(this.map, this.elevation, this.x, this.y, this.x + dx, this.y + dy);
+    if (this.elevation !== 0 && this.elevation !== 15) this.layerElevation = this.elevation;
+    this.x += dx;
+    this.y += dy;
+    this.start("walk", WALK_FRAMES);
+  }
+
   /** CheckMovementInputNotOnBike and what follows it. */
   private decide({ direction: d, run }: AvatarInput): void {
     if (d === Direction.UNSPECIFIED) {
@@ -188,6 +202,12 @@ export class Avatar {
       return;
     }
     this.running = Running.Moving;
+    // TryArrowWarp (the link rooms' PlayerIsAtSouthExit): going the arrow's way on an arrow warp.
+    if (d === this.facing && behaviorAt(this.map, this.x, this.y) === ARROW_WARPS[d] && warpAt(this.map, this.x, this.y)) {
+      this.running = Running.Still;
+      this.link.warp(d, this.x, this.y);
+      return;
+    }
     // TryDoorWarp: going north into a door takes its warp.
     if (d === Direction.NORTH && behaviorAt(this.map, this.x, this.y - 1) === TileBehavior.WARP_DOOR && warpAt(this.map, this.x, this.y - 1)) {
       this.running = Running.Still;
@@ -243,6 +263,14 @@ export class Avatar {
     if (kind !== "bump") this.foot ^= 1;
   }
 }
+
+/** The arrow warp each direction takes (IsArrowWarpMetatileBehavior). */
+export const ARROW_WARPS: Partial<Record<Direction, TileBehavior>> = {
+  [Direction.NORTH]: TileBehavior.NORTH_ARROW_WARP,
+  [Direction.SOUTH]: TileBehavior.SOUTH_ARROW_WARP,
+  [Direction.WEST]: TileBehavior.WEST_ARROW_WARP,
+  [Direction.EAST]: TileBehavior.EAST_ARROW_WARP,
+};
 
 export function isEscalator(b: TileBehavior): boolean {
   return b === TileBehavior.UP_ESCALATOR || b === TileBehavior.DOWN_ESCALATOR;

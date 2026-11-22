@@ -127,15 +127,17 @@ func directCornerAttendant(party pokemon.Party) Script {
 		b.jump("save_double")
 	}
 	b.label("battle_info").add(message("cable_club.explain_battle_modes")).jump("battle")
-	// CableClub_EventScript_SaveAndChooseLinkLeader, then _ChooseLinkLeaderFrom2.
+	// CableClub_EventScript_SaveAndChooseLinkLeader, then _ChooseLinkLeaderFrom2; a screen
+	// cancelled with B (LINKUP_FAILED) comes back to JOIN GROUP / BECOME LEADER.
 	for _, a := range []struct {
 		name     string
 		activity socialv1.LinkActivity
 	}{{"trade", socialv1.LinkActivity_LINK_ACTIVITY_TRADE}, {"single", socialv1.LinkActivity_LINK_ACTIVITY_SINGLE_BATTLE}, {"double", socialv1.LinkActivity_LINK_ACTIVITY_DOUBLE_BATTLE}} {
-		b.label("save_"+a.name).askSave("abort").add(message("cable_club.choose_group_leader_of_two")).
+		b.label("save_"+a.name).askSave("abort").
+			label("choose_"+a.name).add(message("cable_club.choose_group_leader_of_two")).
 			choose("join_or_lead", "join_"+a.name, "lead_"+a.name, "abort", "abort").
-			label("join_"+a.name).add(linkRoom(a.activity, false)).jump("abort").
-			label("lead_"+a.name).add(linkRoom(a.activity, true)).jump("abort")
+			label("join_"+a.name).add(linkRoom(a.activity, false)).jump("choose_"+a.name).
+			label("lead_"+a.name).add(linkRoom(a.activity, true)).jump("choose_"+a.name)
 	}
 	return b.
 		// _ChooseLinkLeaderFrom4: MULTI (M13).

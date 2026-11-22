@@ -17,7 +17,7 @@ import type { BoxAction } from "./box-action";
 import type { FieldMoveResult, LearnMoveResult, PartyChanged, PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
 import { ClientMessageSchema, ErrorCode, ServerMessageSchema } from "@pokeuniverse/contracts/realtime/v1/realtime";
-import type { SocialEvent } from "@pokeuniverse/contracts/social/v1/social";
+import type { LinkIntentSchema, SocialEvent } from "@pokeuniverse/contracts/social/v1/social";
 import type { Correction, FollowerChanged, Script, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { getSession, onSessionChange, refresh } from "../auth/session";
 import { withBase } from "../app/base";
@@ -80,6 +80,8 @@ export interface WorldLink {
   turn(direction: Direction): void;
   /** Through the warp the player stands on: answered with Warped, or a Correction when refused. */
   useWarp(direction: Direction, x: number, y: number): void;
+  /** The link room screens and the room (phase-9 D18-D20): answered with SocialEvent.link. */
+  link(intent: MessageInitShape<typeof LinkIntentSchema>): void;
   interact(walkInto: boolean): void;
   /** A line for the zone's chat; it shows once it comes back in ZoneEvents (phase-8 D13). */
   sendChat(text: string): void;
@@ -218,6 +220,10 @@ export class Connection implements WorldLink {
 
   useWarp(direction: Direction, x: number, y: number): void {
     if (this.inWorld) this.send({ case: "useWarp", value: { direction, x, y } });
+  }
+
+  link(intent: MessageInitShape<typeof LinkIntentSchema>): void {
+    if (this.inWorld) this.send({ case: "link", value: intent });
   }
 
   interact(walkInto: boolean): void {
