@@ -91,3 +91,4 @@ Preview deployed fine (build and healthchecks green). Played in the browser on d
 - 2026-11-22: session 3: client (assets, `trade-menu.ts`, overworld seat step and routing); tsc + vite build green; `testing`.
 - 2026-11-22: session 2: server wired (partner watch, seats, attendant, link wiring); Go build + vet green; client looked up (Resume Here), not started.
 - 2026-11-22: session 1: contracts, `trades` table and swap transaction, server trade draft (`world/trade.go`); Go build red (placeholder `TriggerAt` type), next steps in Resume Here.
+- Recovery needed (tester, step 6a1ac95e-9ec8-4907-ae25-4cbbbf9564d7): The provider's usage limits ran out; Mooi stopped the session and saved its work. *State* may be stale; see the last `chore(factory): checkpoint` commit.
