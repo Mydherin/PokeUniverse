@@ -1,8 +1,9 @@
 ---
 id: 08-link-rooms
 title: "Link rooms"
-status: testing
-test: none
+status: building
+test: failed
+attempts: 1
 depends: [07-pokemon-center-2f, 01-friends-server]
 context: [context/social.md, context/references.md]
 ---
@@ -12,6 +13,10 @@ context: [context/social.md, context/references.md]
 Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/social.md#link-rooms) D18-D20, D7. References: `union_room.c` leader and member screens, `cable_club.inc` enter/exit link room.
 
 ## Resume Here
+
+**❌ Test failed (2026-11-22, attempt 1): fix cases 3 and 6 below ([Tests](#tests)), then re-test every case.**
+- **Case 3:** `mic-core/internal/world/link_room.go:208` `joinLinkRoom` sends `JoinAsked{Activity: room.Activity}` (the leader's), so the `DIFFERENT` check at :277 never fires; the `join` intent carries no member activity. Send the member's chosen activity (from its cable club script / a field on the intent).
+- **Case 6:** the room exits are `south_arrow_warp` tiles (`battle_colosseum_2p` (6,8)/(7,8), same in `trade_center`); `spa/src/game/world/avatar.ts` only takes door, stair and escalator warps, so `leaveByWarp` → `askLeaveRoom` never runs: no way out of a room.
 
 **🧪 Built, ready for testing (session 3, 2026-11-22):** every task done; `tsc --noEmit`, Vite build, `go build ./... && go vet ./...` (mic-core) and the text extractor green. Nothing played yet: the next session plays the Manual Test.
 
@@ -55,8 +60,28 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 | 9 | Busy | Friend's status during the room | BUSY_LINK | ⬜ |
 | 10 | Many rooms | 20 bot leaders | List scrolls, friends first | ⬜ |
 
+## Tests
+
+### 2026-11-22: ❌ failed (desktop 1280×720; phone not reached)
+Played on the preview at `https://mooi.skypea.dev/preview/<id>/` (the `127.0.0.1:8000` origin gets `login?error=offline`: `PUBLIC_URL` check). Players are bot accounts taken over by `/play?bot=<token>`, spawned with `POST /api/dev/bots {count:6, first:120, map:pokemon_center_2f}` (BOT123 tab 1, BOT125 tab 2); extra leaders by `infra/bots/bots.ts --lead` through a local proxy adding the preview prefix and `Origin: PUBLIC_URL` (the bots build root URLs).
+| # | Result |
+|---|---|
+| 1 | ✅ BOT123 BECOME LEADER (trade), BOT125 JOIN GROUP lists "BOT123 POKéMON TRADES"; A, "contacted you… Accept?" YES; "I'll direct you…", barrier, walk to the door, both in `trade_center` seeing only each other (+ attendant). |
+| 2 | ✅ Leader B on the ask → member "BOT123 replied, 'No…'", A → back in the list. |
+| 3 | ❌ BOT301 single-battle room shown grayed "SINGLE BATTLE" ✅, but BOT125 (trade) A on it → accepted, both warped into `battle_colosseum_2p`. Expected `CableClub_Text_PlayersMadeDifferentSelections`. Cause: see Resume Here. |
+| 4 | ⬜ not played (only one 2F map exists; a different phase not set up). |
+| 5 | ⬜ not played (rooms appear live ✅ when 22 bots opened; disappearing not checked). |
+| 6 | ❌ In `battle_colosseum_2p` and `trade_center`, Down on the arrival door tile (and stepping in and back onto it) does nothing: no `Text_TerminateLinkIfYouLeaveRoom`, players stuck until disconnect. |
+| 7 | ✅ Closing the member tab: bot partner got `ended` and left; BOT125 reconnected on `pokemon_center_2f` at the counter. Closing the leader tab: member shows "The link with your friend has been dropped…", A → back on the 2F at the counter. |
+| 8 | ⬜ not playable: `compose.yaml` `replicas: ${MIC_CORE_REPLICAS:-1}` has no development variable, the preview runs one replica. |
+| 9 | ✅ BOT124 (friend) `GET /api/social/friends` during the room: BOT125 `PRESENCE_BUSY_LINK`. |
+| 10 | ✅ 20 trade + 2 single bot leaders: list updates live, 16 rows, D-pad scrolls, friend BOT216 first then by time opened. |
+
+Observations (not this milestone): single `POST /api/dev/bots` spawns land behind the 2F counter at (0,1)-(0,2), unreachable (bots print "no way to 10,4"); a bot spawned there is stuck. Text prints slowly in the headless browser (several seconds per box).
+
 ## Log
 
 - 2026-11-14: contracts and server (594a7e4).
 - 2026-11-22: strings, sounds, extractor source; FireRed's leader/member screens, walk-in and exit looked up and planned in Resume Here.
 - 2026-11-22: client screens, walk-in, leave and dropped link, B back to JOIN/LEAD, bots; all builds green; `testing`.
+- 2026-11-22: end-to-end test ❌ (cases 3, 6 fail; 4, 5, 8 not played); `building`, attempt 1.
