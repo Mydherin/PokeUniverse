@@ -8,6 +8,8 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Party } from "../../party/v1/party_pb";
+import { file_pokeuniverse_party_v1_party } from "../../party/v1/party_pb";
 import type { Gender } from "../../trainer/v1/trainer_pb";
 import { file_pokeuniverse_trainer_v1_trainer } from "../../trainer/v1/trainer_pb";
 import type { Message } from "@bufbuild/protobuf";
@@ -16,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file pokeuniverse/social/v1/social.proto.
  */
 export const file_pokeuniverse_social_v1_social: GenFile = /*@__PURE__*/
-  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIqcGCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAEj8KDmNoYW5uZWxfaW52aXRlGAggASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlSAASTAoVY2hhbm5lbF9pbnZpdGVfY2xvc2VkGAkgASgLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkSAASOgoPY2hhbm5lbF91cGRhdGVkGAogASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSAASRgoOY2hhbm5lbF9tZW1iZXIYCyABKAsyLC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNoYW5uZWxNZW1iZXJDaGFuZ2VkSAASOwoMY2hhbm5lbF9nb25lGAwgASgLMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsR29uZUgAEjEKBGxpbmsYDSABKAsyIS5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtFdmVudEgAQgcKBWV2ZW50Ip8BChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEEhMKC3NlbmRlcl9uYW1lGAggASgJIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQimAIKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZRIwCgdjaGFubmVsGAcgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsIogBChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24SNgoHaW52aXRlcxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbEludml0ZSJbCgxNZXNzYWdlc1BhZ2USPQoIbWVzc2FnZXMYASADKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2USDAoEbW9yZRgCIAEoCCJDCgdDaGFubmVsEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSDQoFb3duZXIYAyABKAQSDwoHbWVtYmVycxgEIAEoDSKAAQoNQ2hhbm5lbEludml0ZRIwCgdjaGFubmVsGAEgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsEiwKBGZyb20YAiABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBIPCgdzZW50X2F0GAMgASgDInkKE0NoYW5uZWxJbnZpdGVDbG9zZWQSDwoHY2hhbm5lbBgBIAEoBBIOCgZwbGF5ZXIYAiABKAQSQQoGcmVhc29uGAMgASgOMjEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uIpQBChRDaGFubmVsTWVtYmVyQ2hhbmdlZBIPCgdjaGFubmVsGAEgASgEEi4KBnBsYXllchgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjsKBmNoYW5nZRgDIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJbCgtDaGFubmVsR29uZRIPCgdjaGFubmVsGAEgASgEEjsKBmNoYW5nZRgCIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJSCg1DaGFubmVsTWVtYmVyEi4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhEKCWpvaW5lZF9hdBgCIAEoAyKrAQoOQ2hhbm5lbE1lbWJlcnMSMAoHY2hhbm5lbBgBIAEoCzIfLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbBI2CgdtZW1iZXJzGAIgAygLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsTWVtYmVyEi8KB2ludml0ZWQYAyADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZCIbCgtDaGFubmVsTmFtZRIMCgRuYW1lGAEgASgJIiIKFENoYW5uZWxJbnZpdGVSZXF1ZXN0EgoKAmlkGAEgASgEIoUBCghMaW5rUm9vbRIuCgZsZWFkZXIYASABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI2CghhY3Rpdml0eRgCIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5EhEKCW9wZW5lZF9hdBgDIAEoAyKUAgoKTGlua0ludGVudBI0CgRvcGVuGAEgASgOMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rQWN0aXZpdHlIABIPCgVjbG9zZRgCIAEoCEgAEjYKBmJyb3dzZRgDIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5SAASDgoEam9pbhgEIAEoBEgAEhUKC2NhbmNlbF9qb2luGAUgASgISAASNAoGYW5zd2VyGAYgASgLMiIucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5BbnN3ZXJKb2luSAASDwoFZW50ZXIYByABKAhIABIPCgVsZWF2ZRgIIAEoCEgAQggKBmludGVudCIsCgpBbnN3ZXJKb2luEg4KBm1lbWJlchgBIAEoBBIOCgZhY2NlcHQYAiABKAgiuAIKCUxpbmtFdmVudBIyCgVyb29tcxgBIAEoCzIhLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua1Jvb21zSAASOAoKam9pbl9hc2tlZBgCIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua01lbWJlckgAEj0KDWpvaW5fYW5zd2VyZWQYAyABKAsyJC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkpvaW5BbnN3ZXJlZEgAEjIKBXN0YXJ0GAQgASgLMiEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rU3RhcnRIABIPCgVlbmRlZBgFIAEoCEgAEhgKDmpvaW5fY2FuY2VsbGVkGAYgASgESAASFgoMcGFydG5lcl9sZWZ0GAcgASgESABCBwoFZXZlbnQiPAoJTGlua1Jvb21zEi8KBXJvb21zGAEgAygLMiAucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rUm9vbSJ0CgpMaW5rTWVtYmVyEi4KBm1lbWJlchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjYKCGFjdGl2aXR5GAIgASgOMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rQWN0aXZpdHkiZgoMSm9pbkFuc3dlcmVkEg4KBmxlYWRlchgBIAEoBBIQCghhY2NlcHRlZBgCIAEoCBI0CgdyZWZ1c2FsGAMgASgOMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Kb2luUmVmdXNhbCKfAQoJTGlua1N0YXJ0EgwKBHJvb20YASABKA0SCwoDbWFwGAIgASgJEg4KBmxlYWRlchgDIAEoCBIvCgdwYXJ0bmVyGAQgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmQSNgoIYWN0aXZpdHkYBSABKA4yJC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtBY3Rpdml0eSqaAQoIUHJlc2VuY2USGAoUUFJFU0VOQ0VfVU5TUEVDSUZJRUQQABIUChBQUkVTRU5DRV9PRkZMSU5FEAESEwoPUFJFU0VOQ0VfT05MSU5FEAISGAoUUFJFU0VOQ0VfQlVTWV9CQVRUTEUQAxIXChNQUkVTRU5DRV9CVVNZX1RSQURFEAQSFgoSUFJFU0VOQ0VfQlVTWV9MSU5LEAUqhgEKCFJlbGF0aW9uEhgKFFJFTEFUSU9OX1VOU1BFQ0lGSUVEEAASEQoNUkVMQVRJT05fTk9ORRABEhMKD1JFTEFUSU9OX0ZSSUVORBACEhkKFVJFTEFUSU9OX1JFUVVFU1RfU0VOVBADEh0KGVJFTEFUSU9OX1JFUVVFU1RfUkVDRUlWRUQQBCqoAQoTUmVxdWVzdENsb3NlZFJlYXNvbhIlCiFSRVFVRVNUX0NMT1NFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIiCh5SRVFVRVNUX0NMT1NFRF9SRUFTT05fREVDTElORUQQARIjCh9SRVFVRVNUX0NMT1NFRF9SRUFTT05fQ0FOQ0VMTEVEEAISIQodUkVRVUVTVF9DTE9TRURfUkVBU09OX0RST1BQRUQQAypyChBDb252ZXJzYXRpb25LaW5kEiEKHUNPTlZFUlNBVElPTl9LSU5EX1VOU1BFQ0lGSUVEEAASHAoYQ09OVkVSU0FUSU9OX0tJTkRfRElSRUNUEAESHQoZQ09OVkVSU0FUSU9OX0tJTkRfQ0hBTk5FTBACKrUBChBTZW5kRmFpbGVkUmVhc29uEiIKHlNFTkRfRkFJTEVEX1JFQVNPTl9VTlNQRUNJRklFRBAAEiIKHlNFTkRfRkFJTEVEX1JFQVNPTl9OT1RfQUxMT1dFRBABEhsKF1NFTkRfRkFJTEVEX1JFQVNPTl9SQVRFEAISHgoaU0VORF9GQUlMRURfUkVBU09OX0lOVkFMSUQQAxIcChhTRU5EX0ZBSUxFRF9SRUFTT05fRVJST1IQBCrJAQoZQ2hhbm5lbEludml0ZUNsb3NlZFJlYXNvbhIsCihDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASKQolQ0hBTk5FTF9JTlZJVEVfQ0xPU0VEX1JFQVNPTl9BQ0NFUFRFRBABEikKJUNIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fREVDTElORUQQAhIoCiRDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX0RFTEVURUQQAyqhAQoTQ2hhbm5lbE1lbWJlckNoYW5nZRIlCiFDSEFOTkVMX01FTUJFUl9DSEFOR0VfVU5TUEVDSUZJRUQQABIgChxDSEFOTkVMX01FTUJFUl9DSEFOR0VfSk9JTkVEEAESHgoaQ0hBTk5FTF9NRU1CRVJfQ0hBTkdFX0xFRlQQAhIhCh1DSEFOTkVMX01FTUJFUl9DSEFOR0VfUkVNT1ZFRBADKqgBCgxMaW5rQWN0aXZpdHkSHQoZTElOS19BQ1RJVklUWV9VTlNQRUNJRklFRBAAEhcKE0xJTktfQUNUSVZJVFlfVFJBREUQARIfChtMSU5LX0FDVElWSVRZX1NJTkdMRV9CQVRUTEUQAhIfChtMSU5LX0FDVElWSVRZX0RPVUJMRV9CQVRUTEUQAxIeChpMSU5LX0FDVElWSVRZX01VTFRJX0JBVFRMRRAEKnkKC0pvaW5SZWZ1c2FsEhwKGEpPSU5fUkVGVVNBTF9VTlNQRUNJRklFRBAAEhkKFUpPSU5fUkVGVVNBTF9ERUNMSU5FRBABEhUKEUpPSU5fUkVGVVNBTF9HT05FEAISGgoWSk9JTl9SRUZVU0FMX0RJRkZFUkVOVBADQkNaQXBva2V1bml2ZXJzZS9saWItY29udHJhY3RzL2dlbi9nby9wb2tldW5pdmVyc2Uvc29jaWFsL3YxO3NvY2lhbHYxYgZwcm90bzM", [file_pokeuniverse_trainer_v1_trainer]);
+  fileDesc("CiNwb2tldW5pdmVyc2Uvc29jaWFsL3YxL3NvY2lhbC5wcm90bxIWcG9rZXVuaXZlcnNlLnNvY2lhbC52MSKoAQoGRnJpZW5kEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSLwoGZ2VuZGVyGAMgASgOMh8ucG9rZXVuaXZlcnNlLnRyYWluZXIudjEuR2VuZGVyEgwKBGZhY2UYBCABKA0SMgoIcHJlc2VuY2UYBSABKA4yIC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlEhEKCWxhc3Rfc2VlbhgGIAEoAyJQCg1GcmllbmRSZXF1ZXN0Ei4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEg8KB3NlbnRfYXQYAiABKAMisAEKC0ZyaWVuZHNMaXN0Ei8KB2ZyaWVuZHMYASADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI3CghpbmNvbWluZxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdBI3CghvdXRnb2luZxgDIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdCIfChFTZW5kRnJpZW5kUmVxdWVzdBIKCgJpZBgBIAEoBCKPAQoXU2VuZEZyaWVuZFJlcXVlc3RSZXN1bHQSOAoHcmVxdWVzdBgBIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kUmVxdWVzdEgAEjAKBmZyaWVuZBgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kSABCCAoGcmVzdWx0IlgKDVJlcXVlc3RDbG9zZWQSCgoCaWQYASABKAQSOwoGcmVhc29uGAIgASgOMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5SZXF1ZXN0Q2xvc2VkUmVhc29uImQKD1ByZXNlbmNlQ2hhbmdlZBIKCgJpZBgBIAEoBBIyCghwcmVzZW5jZRgCIAEoDjIgLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUHJlc2VuY2USEQoJbGFzdF9zZWVuGAMgASgDIqcGCgtTb2NpYWxFdmVudBJBChByZXF1ZXN0X3JlY2VpdmVkGAEgASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRSZXF1ZXN0SAASNgoMZnJpZW5kX2FkZGVkGAIgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmRIABI/Cg5yZXF1ZXN0X2Nsb3NlZBgDIAEoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuUmVxdWVzdENsb3NlZEgAEhgKDmZyaWVuZF9yZW1vdmVkGAQgASgESAASOwoIcHJlc2VuY2UYBSABKAsyJy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlByZXNlbmNlQ2hhbmdlZEgAEj4KB21lc3NhZ2UYBiABKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2VIABI5CgtzZW5kX2ZhaWxlZBgHIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuU2VuZEZhaWxlZEgAEj8KDmNoYW5uZWxfaW52aXRlGAggASgLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlSAASTAoVY2hhbm5lbF9pbnZpdGVfY2xvc2VkGAkgASgLMisucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkSAASOgoPY2hhbm5lbF91cGRhdGVkGAogASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSAASRgoOY2hhbm5lbF9tZW1iZXIYCyABKAsyLC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNoYW5uZWxNZW1iZXJDaGFuZ2VkSAASOwoMY2hhbm5lbF9nb25lGAwgASgLMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsR29uZUgAEjEKBGxpbmsYDSABKAsyIS5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtFdmVudEgAQgcKBWV2ZW50Ip8BChNDb252ZXJzYXRpb25NZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQSDgoGc2VuZGVyGAMgASgEEgwKBHRleHQYBCABKAkSDwoHc2VudF9hdBgFIAEoAxIRCgljbGllbnRfaWQYBiABKAkSDgoGZnJpZW5kGAcgASgEEhMKC3NlbmRlcl9uYW1lGAggASgJIlQKC1NlbmRNZXNzYWdlEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBIOCgZmcmllbmQYAiABKAQSDAoEdGV4dBgDIAEoCRIRCgljbGllbnRfaWQYBCABKAkiWQoKU2VuZEZhaWxlZBIRCgljbGllbnRfaWQYASABKAkSOAoGcmVhc29uGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5TZW5kRmFpbGVkUmVhc29uIi0KCE1hcmtSZWFkEhQKDGNvbnZlcnNhdGlvbhgBIAEoBBILCgNzZXEYAiABKAQimAIKDENvbnZlcnNhdGlvbhIKCgJpZBgBIAEoBBI2CgRraW5kGAIgASgOMigucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb25LaW5kEi4KBmZyaWVuZBgDIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhAKCGxhc3Rfc2VxGAQgASgEEhUKDWxhc3RfcmVhZF9zZXEYBSABKAQSOQoEbGFzdBgGIAEoCzIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ29udmVyc2F0aW9uTWVzc2FnZRIwCgdjaGFubmVsGAcgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsIogBChFDb252ZXJzYXRpb25zTGlzdBI7Cg1jb252ZXJzYXRpb25zGAEgAygLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Db252ZXJzYXRpb24SNgoHaW52aXRlcxgCIAMoCzIlLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbEludml0ZSJbCgxNZXNzYWdlc1BhZ2USPQoIbWVzc2FnZXMYASADKAsyKy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkNvbnZlcnNhdGlvbk1lc3NhZ2USDAoEbW9yZRgCIAEoCCJDCgdDaGFubmVsEgoKAmlkGAEgASgEEgwKBG5hbWUYAiABKAkSDQoFb3duZXIYAyABKAQSDwoHbWVtYmVycxgEIAEoDSKAAQoNQ2hhbm5lbEludml0ZRIwCgdjaGFubmVsGAEgASgLMh8ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsEiwKBGZyb20YAiABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBIPCgdzZW50X2F0GAMgASgDInkKE0NoYW5uZWxJbnZpdGVDbG9zZWQSDwoHY2hhbm5lbBgBIAEoBBIOCgZwbGF5ZXIYAiABKAQSQQoGcmVhc29uGAMgASgOMjEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uIpQBChRDaGFubmVsTWVtYmVyQ2hhbmdlZBIPCgdjaGFubmVsGAEgASgEEi4KBnBsYXllchgCIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjsKBmNoYW5nZRgDIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJbCgtDaGFubmVsR29uZRIPCgdjaGFubmVsGAEgASgEEjsKBmNoYW5nZRgCIAEoDjIrLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbE1lbWJlckNoYW5nZSJSCg1DaGFubmVsTWVtYmVyEi4KBnBsYXllchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEhEKCWpvaW5lZF9hdBgCIAEoAyKrAQoOQ2hhbm5lbE1lbWJlcnMSMAoHY2hhbm5lbBgBIAEoCzIfLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuQ2hhbm5lbBI2CgdtZW1iZXJzGAIgAygLMiUucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5DaGFubmVsTWVtYmVyEi8KB2ludml0ZWQYAyADKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZCIbCgtDaGFubmVsTmFtZRIMCgRuYW1lGAEgASgJIiIKFENoYW5uZWxJbnZpdGVSZXF1ZXN0EgoKAmlkGAEgASgEIoUBCghMaW5rUm9vbRIuCgZsZWFkZXIYASABKAsyHi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkZyaWVuZBI2CghhY3Rpdml0eRgCIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5EhEKCW9wZW5lZF9hdBgDIAEoAyLLAwoKTGlua0ludGVudBI0CgRvcGVuGAEgASgOMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rQWN0aXZpdHlIABIPCgVjbG9zZRgCIAEoCEgAEjYKBmJyb3dzZRgDIAEoDjIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua0FjdGl2aXR5SAASDgoEam9pbhgEIAEoBEgAEhUKC2NhbmNlbF9qb2luGAUgASgISAASNAoGYW5zd2VyGAYgASgLMiIucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5BbnN3ZXJKb2luSAASDwoFZW50ZXIYByABKAhIABIPCgVsZWF2ZRgIIAEoCEgAEjkKC3RyYWRlX29mZmVyGAkgASgLMiIucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5UcmFkZU9mZmVySAASPQoNdHJhZGVfY29uZmlybRgKIAEoCzIkLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuVHJhZGVDb25maXJtSAASOwoMdHJhZGVfY2FuY2VsGAsgASgLMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5UcmFkZUNhbmNlbEgAQggKBmludGVudCIsCgpBbnN3ZXJKb2luEg4KBm1lbWJlchgBIAEoBBIOCgZhY2NlcHQYAiABKAgi7wMKCUxpbmtFdmVudBIyCgVyb29tcxgBIAEoCzIhLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua1Jvb21zSAASOAoKam9pbl9hc2tlZBgCIAEoCzIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuTGlua01lbWJlckgAEj0KDWpvaW5fYW5zd2VyZWQYAyABKAsyJC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkpvaW5BbnN3ZXJlZEgAEjIKBXN0YXJ0GAQgASgLMiEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rU3RhcnRIABIPCgVlbmRlZBgFIAEoCEgAEhgKDmpvaW5fY2FuY2VsbGVkGAYgASgESAASFgoMcGFydG5lcl9sZWZ0GAcgASgESAASOQoLdHJhZGVfc3RhdGUYCCABKAsyIi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlRyYWRlU3RhdGVIABI3Cgp0cmFkZV9kb25lGAkgASgLMiEucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5UcmFkZURvbmVIABJBCgx0cmFkZV9tZW1iZXIYCiABKAsyKS5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlRyYWRlTWVtYmVyQWN0aW9uSABCBwoFZXZlbnQiPAoJTGlua1Jvb21zEi8KBXJvb21zGAEgAygLMiAucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rUm9vbSJ0CgpMaW5rTWVtYmVyEi4KBm1lbWJlchgBIAEoCzIeLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuRnJpZW5kEjYKCGFjdGl2aXR5GAIgASgOMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5MaW5rQWN0aXZpdHkiZgoMSm9pbkFuc3dlcmVkEg4KBmxlYWRlchgBIAEoBBIQCghhY2NlcHRlZBgCIAEoCBI0CgdyZWZ1c2FsGAMgASgOMiMucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5Kb2luUmVmdXNhbCKfAQoJTGlua1N0YXJ0EgwKBHJvb20YASABKA0SCwoDbWFwGAIgASgJEg4KBmxlYWRlchgDIAEoCBIvCgdwYXJ0bmVyGAQgASgLMh4ucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5GcmllbmQSNgoIYWN0aXZpdHkYBSABKA4yJC5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLkxpbmtBY3Rpdml0eSIaCgpUcmFkZU9mZmVyEgwKBHNsb3QYASABKA0iGwoMVHJhZGVDb25maXJtEgsKA3llcxgBIAEoCCINCgtUcmFkZUNhbmNlbCL+AQoKVHJhZGVTdGF0ZRIxCgVzdGFnZRgBIAEoDjIiLnBva2V1bml2ZXJzZS5zb2NpYWwudjEuVHJhZGVTdGFnZRIvCglvd25fcGFydHkYAiABKAsyHC5wb2tldW5pdmVyc2UucGFydHkudjEuUGFydHkSMQoLb3RoZXJfcGFydHkYAyABKAsyHC5wb2tldW5pdmVyc2UucGFydHkudjEuUGFydHkSEAoIb3duX3BpY2sYBCABKA0SEgoKb3RoZXJfcGljaxgFIAEoDRIzCgZub3RpY2UYBiABKA4yIy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlRyYWRlTm90aWNlIkMKCVRyYWRlRG9uZRIQCgh0cmFkZV9pZBgBIAEoCRIQCghvd25fc2xvdBgCIAEoDRISCgpvdGhlcl9zbG90GAMgASgNIuQBChFUcmFkZU1lbWJlckFjdGlvbhIOCgZtZW1iZXIYASABKAQSEAoGc2VhdGVkGAIgASgDSAASMwoFb2ZmZXIYAyABKAsyIi5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlRyYWRlT2ZmZXJIABI3Cgdjb25maXJtGAQgASgLMiQucG9rZXVuaXZlcnNlLnNvY2lhbC52MS5UcmFkZUNvbmZpcm1IABI1CgZjYW5jZWwYBSABKAsyIy5wb2tldW5pdmVyc2Uuc29jaWFsLnYxLlRyYWRlQ2FuY2VsSABCCAoGYWN0aW9uKpoBCghQcmVzZW5jZRIYChRQUkVTRU5DRV9VTlNQRUNJRklFRBAAEhQKEFBSRVNFTkNFX09GRkxJTkUQARITCg9QUkVTRU5DRV9PTkxJTkUQAhIYChRQUkVTRU5DRV9CVVNZX0JBVFRMRRADEhcKE1BSRVNFTkNFX0JVU1lfVFJBREUQBBIWChJQUkVTRU5DRV9CVVNZX0xJTksQBSqGAQoIUmVsYXRpb24SGAoUUkVMQVRJT05fVU5TUEVDSUZJRUQQABIRCg1SRUxBVElPTl9OT05FEAESEwoPUkVMQVRJT05fRlJJRU5EEAISGQoVUkVMQVRJT05fUkVRVUVTVF9TRU5UEAMSHQoZUkVMQVRJT05fUkVRVUVTVF9SRUNFSVZFRBAEKqgBChNSZXF1ZXN0Q2xvc2VkUmVhc29uEiUKIVJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9VTlNQRUNJRklFRBAAEiIKHlJFUVVFU1RfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBABEiMKH1JFUVVFU1RfQ0xPU0VEX1JFQVNPTl9DQU5DRUxMRUQQAhIhCh1SRVFVRVNUX0NMT1NFRF9SRUFTT05fRFJPUFBFRBADKnIKEENvbnZlcnNhdGlvbktpbmQSIQodQ09OVkVSU0FUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIcChhDT05WRVJTQVRJT05fS0lORF9ESVJFQ1QQARIdChlDT05WRVJTQVRJT05fS0lORF9DSEFOTkVMEAIqtQEKEFNlbmRGYWlsZWRSZWFzb24SIgoeU0VORF9GQUlMRURfUkVBU09OX1VOU1BFQ0lGSUVEEAASIgoeU0VORF9GQUlMRURfUkVBU09OX05PVF9BTExPV0VEEAESGwoXU0VORF9GQUlMRURfUkVBU09OX1JBVEUQAhIeChpTRU5EX0ZBSUxFRF9SRUFTT05fSU5WQUxJRBADEhwKGFNFTkRfRkFJTEVEX1JFQVNPTl9FUlJPUhAEKskBChlDaGFubmVsSW52aXRlQ2xvc2VkUmVhc29uEiwKKENIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fVU5TUEVDSUZJRUQQABIpCiVDSEFOTkVMX0lOVklURV9DTE9TRURfUkVBU09OX0FDQ0VQVEVEEAESKQolQ0hBTk5FTF9JTlZJVEVfQ0xPU0VEX1JFQVNPTl9ERUNMSU5FRBACEigKJENIQU5ORUxfSU5WSVRFX0NMT1NFRF9SRUFTT05fREVMRVRFRBADKqEBChNDaGFubmVsTWVtYmVyQ2hhbmdlEiUKIUNIQU5ORUxfTUVNQkVSX0NIQU5HRV9VTlNQRUNJRklFRBAAEiAKHENIQU5ORUxfTUVNQkVSX0NIQU5HRV9KT0lORUQQARIeChpDSEFOTkVMX01FTUJFUl9DSEFOR0VfTEVGVBACEiEKHUNIQU5ORUxfTUVNQkVSX0NIQU5HRV9SRU1PVkVEEAMqqAEKDExpbmtBY3Rpdml0eRIdChlMSU5LX0FDVElWSVRZX1VOU1BFQ0lGSUVEEAASFwoTTElOS19BQ1RJVklUWV9UUkFERRABEh8KG0xJTktfQUNUSVZJVFlfU0lOR0xFX0JBVFRMRRACEh8KG0xJTktfQUNUSVZJVFlfRE9VQkxFX0JBVFRMRRADEh4KGkxJTktfQUNUSVZJVFlfTVVMVElfQkFUVExFEAQqeQoLSm9pblJlZnVzYWwSHAoYSk9JTl9SRUZVU0FMX1VOU1BFQ0lGSUVEEAASGQoVSk9JTl9SRUZVU0FMX0RFQ0xJTkVEEAESFQoRSk9JTl9SRUZVU0FMX0dPTkUQAhIaChZKT0lOX1JFRlVTQUxfRElGRkVSRU5UEAMqkAEKClRyYWRlU3RhZ2USGwoXVFJBREVfU1RBR0VfVU5TUEVDSUZJRUQQABIYChRUUkFERV9TVEFHRV9DSE9PU0lORxABEhoKFlRSQURFX1NUQUdFX0NPTkZJUk1JTkcQAhIYChRUUkFERV9TVEFHRV9DQU5DRUxFRBADEhUKEVRSQURFX1NUQUdFX0VOREVEEAQqiQEKC1RyYWRlTm90aWNlEhwKGFRSQURFX05PVElDRV9VTlNQRUNJRklFRBAAEhkKFVRSQURFX05PVElDRV9DQU5DRUxFRBABEiYKIlRSQURFX05PVElDRV9GUklFTkRfV0FOVFNfVE9fVFJBREUQAhIZChVUUkFERV9OT1RJQ0VfT05MWV9NT04QA0JDWkFwb2tldW5pdmVyc2UvbGliLWNvbnRyYWN0cy9nZW4vZ28vcG9rZXVuaXZlcnNlL3NvY2lhbC92MTtzb2NpYWx2MWIGcHJvdG8z", [file_pokeuniverse_party_v1_party, file_pokeuniverse_trainer_v1_trainer]);
 
 /**
  * A player as the social panel shows them.
@@ -947,6 +949,30 @@ export type LinkIntent = Message<"pokeuniverse.social.v1.LinkIntent"> & {
      */
     value: boolean;
     case: "leave";
+  } | {
+    /**
+     * Phase-9 M9, the trade menu: TRADE on one of the player's Pokémon.
+     *
+     * @generated from field: pokeuniverse.social.v1.TradeOffer trade_offer = 9;
+     */
+    value: TradeOffer;
+    case: "tradeOffer";
+  } | {
+    /**
+     * "Is this trade okay?" YES or NO.
+     *
+     * @generated from field: pokeuniverse.social.v1.TradeConfirm trade_confirm = 10;
+     */
+    value: TradeConfirm;
+    case: "tradeConfirm";
+  } | {
+    /**
+     * CANCEL's "Cancel trade?" YES in the menu, or B while waiting in the seat (stands up).
+     *
+     * @generated from field: pokeuniverse.social.v1.TradeCancel trade_cancel = 11;
+     */
+    value: TradeCancel;
+    case: "tradeCancel";
   } | { case: undefined; value?: undefined };
 };
 
@@ -1044,6 +1070,30 @@ export type LinkEvent = Message<"pokeuniverse.social.v1.LinkEvent"> & {
      */
     value: bigint;
     case: "partnerLeft";
+  } | {
+    /**
+     * Phase-9 M9: the trade menu as this player sees it (decided on the leader's replica).
+     *
+     * @generated from field: pokeuniverse.social.v1.TradeState trade_state = 8;
+     */
+    value: TradeState;
+    case: "tradeState";
+  } | {
+    /**
+     * Both said YES and the swap is saved (D23); a TradeState with both parties follows.
+     *
+     * @generated from field: pokeuniverse.social.v1.TradeDone trade_done = 9;
+     */
+    value: TradeDone;
+    case: "tradeDone";
+  } | {
+    /**
+     * Replica to replica only: what the member does in the Trade Center, for the leader's replica.
+     *
+     * @generated from field: pokeuniverse.social.v1.TradeMemberAction trade_member = 10;
+     */
+    value: TradeMemberAction;
+    case: "tradeMember";
   } | { case: undefined; value?: undefined };
 };
 
@@ -1160,6 +1210,187 @@ export type LinkStart = Message<"pokeuniverse.social.v1.LinkStart"> & {
  */
 export const LinkStartSchema: GenMessage<LinkStart> = /*@__PURE__*/
   messageDesc(file_pokeuniverse_social_v1_social, 31);
+
+/**
+ * Client -> server: TRADE on a party Pokémon (slot from 0), FireRed's READY_TO_TRADE.
+ *
+ * @generated from message pokeuniverse.social.v1.TradeOffer
+ */
+export type TradeOffer = Message<"pokeuniverse.social.v1.TradeOffer"> & {
+  /**
+   * @generated from field: uint32 slot = 1;
+   */
+  slot: number;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.TradeOffer.
+ * Use `create(TradeOfferSchema)` to create a new message.
+ */
+export const TradeOfferSchema: GenMessage<TradeOffer> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 32);
+
+/**
+ * Client -> server: the answer to "Is this trade okay?".
+ *
+ * @generated from message pokeuniverse.social.v1.TradeConfirm
+ */
+export type TradeConfirm = Message<"pokeuniverse.social.v1.TradeConfirm"> & {
+  /**
+   * @generated from field: bool yes = 1;
+   */
+  yes: boolean;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.TradeConfirm.
+ * Use `create(TradeConfirmSchema)` to create a new message.
+ */
+export const TradeConfirmSchema: GenMessage<TradeConfirm> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 33);
+
+/**
+ * Client -> server: cancel (the menu's CANCEL, or standing up from the seat).
+ *
+ * @generated from message pokeuniverse.social.v1.TradeCancel
+ */
+export type TradeCancel = Message<"pokeuniverse.social.v1.TradeCancel"> & {
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.TradeCancel.
+ * Use `create(TradeCancelSchema)` to create a new message.
+ */
+export const TradeCancelSchema: GenMessage<TradeCancel> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 34);
+
+/**
+ * @generated from message pokeuniverse.social.v1.TradeState
+ */
+export type TradeState = Message<"pokeuniverse.social.v1.TradeState"> & {
+  /**
+   * @generated from field: pokeuniverse.social.v1.TradeStage stage = 1;
+   */
+  stage: TradeStage;
+
+  /**
+   * CHOOSING when the menu opens and after a trade: both parties, in order (the partner's as
+   * its summary shows it, read only). Unset otherwise: unchanged.
+   *
+   * @generated from field: pokeuniverse.party.v1.Party own_party = 2;
+   */
+  ownParty?: Party | undefined;
+
+  /**
+   * @generated from field: pokeuniverse.party.v1.Party other_party = 3;
+   */
+  otherParty?: Party | undefined;
+
+  /**
+   * CONFIRMING: the slots picked, from 0.
+   *
+   * @generated from field: uint32 own_pick = 4;
+   */
+  ownPick: number;
+
+  /**
+   * @generated from field: uint32 other_pick = 5;
+   */
+  otherPick: number;
+
+  /**
+   * @generated from field: pokeuniverse.social.v1.TradeNotice notice = 6;
+   */
+  notice: TradeNotice;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.TradeState.
+ * Use `create(TradeStateSchema)` to create a new message.
+ */
+export const TradeStateSchema: GenMessage<TradeState> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 35);
+
+/**
+ * @generated from message pokeuniverse.social.v1.TradeDone
+ */
+export type TradeDone = Message<"pokeuniverse.social.v1.TradeDone"> & {
+  /**
+   * The swap's ID (trades.id): applied once, however often it is retried (D23).
+   *
+   * @generated from field: string trade_id = 1;
+   */
+  tradeId: string;
+
+  /**
+   * The slots swapped, from 0: each received Pokémon takes the place of the one given.
+   *
+   * @generated from field: uint32 own_slot = 2;
+   */
+  ownSlot: number;
+
+  /**
+   * @generated from field: uint32 other_slot = 3;
+   */
+  otherSlot: number;
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.TradeDone.
+ * Use `create(TradeDoneSchema)` to create a new message.
+ */
+export const TradeDoneSchema: GenMessage<TradeDone> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 36);
+
+/**
+ * Replica to replica only: the member's part of the trade.
+ *
+ * @generated from message pokeuniverse.social.v1.TradeMemberAction
+ */
+export type TradeMemberAction = Message<"pokeuniverse.social.v1.TradeMemberAction"> & {
+  /**
+   * @generated from field: uint64 member = 1;
+   */
+  member: bigint;
+
+  /**
+   * @generated from oneof pokeuniverse.social.v1.TradeMemberAction.action
+   */
+  action: {
+    /**
+     * Sat down: the member's save (trainers.created_at, Unix microseconds) the swap is checked against.
+     *
+     * @generated from field: int64 seated = 2;
+     */
+    value: bigint;
+    case: "seated";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.social.v1.TradeOffer offer = 3;
+     */
+    value: TradeOffer;
+    case: "offer";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.social.v1.TradeConfirm confirm = 4;
+     */
+    value: TradeConfirm;
+    case: "confirm";
+  } | {
+    /**
+     * @generated from field: pokeuniverse.social.v1.TradeCancel cancel = 5;
+     */
+    value: TradeCancel;
+    case: "cancel";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message pokeuniverse.social.v1.TradeMemberAction.
+ * Use `create(TradeMemberActionSchema)` to create a new message.
+ */
+export const TradeMemberActionSchema: GenMessage<TradeMemberAction> = /*@__PURE__*/
+  messageDesc(file_pokeuniverse_social_v1_social, 37);
 
 /**
  * Where a player is (phase-9 D7). Busy players can't be asked to trade, battle or join a room.
@@ -1493,4 +1724,87 @@ export enum JoinRefusal {
  */
 export const JoinRefusalSchema: GenEnum<JoinRefusal> = /*@__PURE__*/
   enumDesc(file_pokeuniverse_social_v1_social, 8);
+
+/**
+ * @generated from enum pokeuniverse.social.v1.TradeStage
+ */
+export enum TradeStage {
+  /**
+   * @generated from enum value: TRADE_STAGE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * The menu opens (or comes back): choose a Pokémon. Both parties are set.
+   *
+   * @generated from enum value: TRADE_STAGE_CHOOSING = 1;
+   */
+  CHOOSING = 1,
+
+  /**
+   * Both picked: the two Pokémon shown, "Is this trade okay?" (own_pick, other_pick).
+   *
+   * @generated from enum value: TRADE_STAGE_CONFIRMING = 2;
+   */
+  CONFIRMING = 2,
+
+  /**
+   * The offer fell through (notice says how); A goes back to choosing.
+   *
+   * @generated from enum value: TRADE_STAGE_CANCELED = 3;
+   */
+  CANCELED = 3,
+
+  /**
+   * Both chose CANCEL: the menu closes, back to the room.
+   *
+   * @generated from enum value: TRADE_STAGE_ENDED = 4;
+   */
+  ENDED = 4,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.TradeStage.
+ */
+export const TradeStageSchema: GenEnum<TradeStage> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 9);
+
+/**
+ * The trade menu's messages (trade.c sMessages).
+ *
+ * @generated from enum pokeuniverse.social.v1.TradeNotice
+ */
+export enum TradeNotice {
+  /**
+   * @generated from enum value: TRADE_NOTICE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * gText_TradeHasBeenCanceled.
+   *
+   * @generated from enum value: TRADE_NOTICE_CANCELED = 1;
+   */
+  CANCELED = 1,
+
+  /**
+   * gText_FriendWantsToTrade: the player cancelled while the partner had picked.
+   *
+   * @generated from enum value: TRADE_NOTICE_FRIEND_WANTS_TO_TRADE = 2;
+   */
+  FRIEND_WANTS_TO_TRADE = 2,
+
+  /**
+   * gText_OnlyPkmnForBattle: the player's only usable Pokémon (D22); only this player is told.
+   *
+   * @generated from enum value: TRADE_NOTICE_ONLY_MON = 3;
+   */
+  ONLY_MON = 3,
+}
+
+/**
+ * Describes the enum pokeuniverse.social.v1.TradeNotice.
+ */
+export const TradeNoticeSchema: GenEnum<TradeNotice> = /*@__PURE__*/
+  enumDesc(file_pokeuniverse_social_v1_social, 10);
 

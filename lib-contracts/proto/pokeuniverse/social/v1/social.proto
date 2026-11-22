@@ -5,6 +5,7 @@ syntax = "proto3";
 // on each online player's NATS inbox, social.player.<id> (phase-9 D9).
 package pokeuniverse.social.v1;
 
+import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/trainer/v1/trainer.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1";
@@ -326,6 +327,12 @@ message LinkIntent {
     bool enter = 7;
     // The player leaves the room (TradeCenter_ConfirmLeaveRoom YES): the link ends for both.
     bool leave = 8;
+    // Phase-9 M9, the trade menu: TRADE on one of the player's Pokémon.
+    TradeOffer trade_offer = 9;
+    // "Is this trade okay?" YES or NO.
+    TradeConfirm trade_confirm = 10;
+    // CANCEL's "Cancel trade?" YES in the menu, or B while waiting in the seat (stands up).
+    TradeCancel trade_cancel = 11;
   }
 }
 
@@ -351,6 +358,12 @@ message LinkEvent {
     uint64 join_cancelled = 6;
     // Replica to replica only: the partner left or dropped; end the link here too.
     uint64 partner_left = 7;
+    // Phase-9 M9: the trade menu as this player sees it (decided on the leader's replica).
+    TradeState trade_state = 8;
+    // Both said YES and the swap is saved (D23); a TradeState with both parties follows.
+    TradeDone trade_done = 9;
+    // Replica to replica only: what the member does in the Trade Center, for the leader's replica.
+    TradeMemberAction trade_member = 10;
   }
 }
 
@@ -387,4 +400,76 @@ message LinkStart {
   bool leader = 3;
   Friend partner = 4;
   LinkActivity activity = 5;
+}
+
+// Phase-9 M9 (D21-D23): the Trade Center's seats and trade menu (trade.c). The offer lives on the
+// leader's replica; the member's replica forwards the member's intents (TradeMemberAction) and
+// the states back.
+
+// Client -> server: TRADE on a party Pokémon (slot from 0), FireRed's READY_TO_TRADE.
+message TradeOffer {
+  uint32 slot = 1;
+}
+
+// Client -> server: the answer to "Is this trade okay?".
+message TradeConfirm {
+  bool yes = 1;
+}
+
+// Client -> server: cancel (the menu's CANCEL, or standing up from the seat).
+message TradeCancel {}
+
+enum TradeStage {
+  TRADE_STAGE_UNSPECIFIED = 0;
+  // The menu opens (or comes back): choose a Pokémon. Both parties are set.
+  TRADE_STAGE_CHOOSING = 1;
+  // Both picked: the two Pokémon shown, "Is this trade okay?" (own_pick, other_pick).
+  TRADE_STAGE_CONFIRMING = 2;
+  // The offer fell through (notice says how); A goes back to choosing.
+  TRADE_STAGE_CANCELED = 3;
+  // Both chose CANCEL: the menu closes, back to the room.
+  TRADE_STAGE_ENDED = 4;
+}
+
+// The trade menu's messages (trade.c sMessages).
+enum TradeNotice {
+  TRADE_NOTICE_UNSPECIFIED = 0;
+  // gText_TradeHasBeenCanceled.
+  TRADE_NOTICE_CANCELED = 1;
+  // gText_FriendWantsToTrade: the player cancelled while the partner had picked.
+  TRADE_NOTICE_FRIEND_WANTS_TO_TRADE = 2;
+  // gText_OnlyPkmnForBattle: the player's only usable Pokémon (D22); only this player is told.
+  TRADE_NOTICE_ONLY_MON = 3;
+}
+
+message TradeState {
+  TradeStage stage = 1;
+  // CHOOSING when the menu opens and after a trade: both parties, in order (the partner's as
+  // its summary shows it, read only). Unset otherwise: unchanged.
+  pokeuniverse.party.v1.Party own_party = 2;
+  pokeuniverse.party.v1.Party other_party = 3;
+  // CONFIRMING: the slots picked, from 0.
+  uint32 own_pick = 4;
+  uint32 other_pick = 5;
+  TradeNotice notice = 6;
+}
+
+message TradeDone {
+  // The swap's ID (trades.id): applied once, however often it is retried (D23).
+  string trade_id = 1;
+  // The slots swapped, from 0: each received Pokémon takes the place of the one given.
+  uint32 own_slot = 2;
+  uint32 other_slot = 3;
+}
+
+// Replica to replica only: the member's part of the trade.
+message TradeMemberAction {
+  uint64 member = 1;
+  oneof action {
+    // Sat down: the member's save (trainers.created_at, Unix microseconds) the swap is checked against.
+    int64 seated = 2;
+    TradeOffer offer = 3;
+    TradeConfirm confirm = 4;
+    TradeCancel cancel = 5;
+  }
 }
