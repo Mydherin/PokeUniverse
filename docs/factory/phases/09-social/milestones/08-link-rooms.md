@@ -14,6 +14,11 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
+**🧪 Re-test in progress (tester session 1, 2026-11-22), see Tests' top entry.** Passed: 1, 2, 3, 5 (cancel), 6, 9; 10 partly (live, 16 rows, D-pad; friends-first not confirmed). 4 and 8 can't be set up on the preview (same as attempt 1). **Next:** redeploy if stopped, fresh bot tokens, then case 10 friends-first (befriend in the game UI, or before opening the list, then re-open JOIN GROUP), case 5 leader-disconnect variant, case 7 (close a tab in the room), the phone viewport (mobile preset) for one case; then write the verdict.
+- **Tester gotchas:** play on `https://mooi.skypea.dev/preview/<id>/play?bot=<token>` (127.0.0.1:8000 fails `PUBLIC_URL`). Bot tokens last 15 min and `/play?bot=` can't refresh: get new ones (`POST /api/dev/bots {count, first, refreshOnly:true}`, `X-Bots-Secret` = `MOOI_DEVELOPMENT_BOTS_SECRET`) and reload. `{count:6, first:N, map:pokemon_center_2f}`: bots N+3 and N+5 land in the open area. Taps under ~100 ms only turn; hold ~230 ms to step. Players don't block: the member stands on (10,4) with the leader. Text is slow: press Z every 2.5-4 s and screenshot.
+- **Bot leaders:** `npx -y pnpm@10 install --frozen-lockfile`; maps from `<preview>/maps/<id>.binpb` into `spa-pokeuniverse/public/maps/` (gitignored); a local proxy (`/tmp/proxy/proxy.mjs`, recreate: forwards `http://127.0.0.1:18080/*` and the WS upgrade to `https://mooi.skypea.dev/preview/<id>/*` with `Origin: https://mooi.skypea.dev`); `BOTS_SECRET=… node infra/bots/bots.ts --count 20 --first 420 --map pokemon_center_2f --lead trade --url http://127.0.0.1:18080` (18 lead, 2 spawn behind the counter).
+- **Friends-first note:** the client re-sorts with `flow.social.friends` (`link-room.ts` `sortRooms`); friendships made through the HTTP API from another client don't reach it until reload, so befriend through the game or reload before browsing. `sortRooms` also cuts `this.rooms` to 16 for good: a room past 16 stays hidden after one above it closes, until re-browsed (check if it matters).
+
 **🧪 Fixed, ready for re-testing (session 4, 2026-11-22):** attempt 1's cases 3 and 6 fixed; `tsc --noEmit`, Vite build, `go build ./... && go vet ./...` green. Next: re-play every case of the Manual Test.
 - **Case 3 fix:** `browse` stores the member's activity (`Player.linkWants`, `link_room.go` `browseLinkRooms`); `joinLinkRoom` asks with it, so the leader's zone answers `DIFFERENT` on a mismatch.
 - **Case 6 fix:** `world/avatar.ts` takes FireRed's arrow warps (`TryArrowWarp`; in the rooms `PlayerIsAtSouthExit`): Down while facing south on the exit tile (`battle_colosseum_2p`/`trade_center` row 8) → `leaveByWarp` → `askLeaveRoom`. Elsewhere `leaveByWarp` ignores arrow warps (mic-core's `warpCell` has none until Phase 10's maps): the players' house mat (4,8) now does nothing instead of bumping.
@@ -59,6 +64,21 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 | 10 | Many rooms | 20 bot leaders | List scrolls, friends first | ⬜ |
 
 ## Tests
+
+### 2026-11-22: 🧪 re-test in progress (desktop 1280×720; phone not reached yet)
+Preview `https://mooi.skypea.dev/preview/<id>/`; BOT403 tab 1 (leader), BOT405 tab 2 (member), bots spawned with `POST /api/dev/bots {count:6, first:400, map:pokemon_center_2f}`.
+| # | Result |
+|---|---|
+| 1 | ✅ BOT403 BECOME LEADER (trade); BOT405 JOIN GROUP lists "BOT403 POKéMON TRADES"; "contacted you… Accept?" YES; "I'll direct you…"; both in `trade_center`, only each other + attendant. |
+| 2 | ✅ Leader B on the ask → member "BOT403 replied, 'No…'", back in the list. |
+| 3 | ✅ Fixed: BOT405 COLOSSEUM › SINGLE BATTLE sees BOT403's trade room grayed; A → "The link partners appear to have made different selections."; leader never asked. |
+| 4 | ⬜ not playable on the preview: one 2F map, phase always 0 (Phase 8 D19). |
+| 5 | ✅ (cancel) leader B on the awaiting screen → room gone live from BOT405's open list. Leader disconnect variant not played yet. |
+| 6 | ✅ Fixed: Down on the Trade Center exit → `Text_TerminateLinkIfYouLeaveRoom` YES → "Terminating link…"; BOT405 back at (9,4) facing south; BOT403 got "The link with your friend has been dropped…", A → back at the counter. |
+| 7 | ⬜ not played yet (BOT405 reloaded the page and continued at the counter ✅). |
+| 8 | ⬜ not playable: `replicas: ${MIC_CORE_REPLICAS:-1}` has no development variable. |
+| 9 | ✅ Friend BOT404 `GET /api/social/friends` during the room: BOT405 `PRESENCE_BUSY_LINK`. |
+| 10 | 🟡 18 bot leaders appear live on the open list, 16 rows, D-pad scrolls. Friends first not confirmed: BOT437 (friend via API while BOT405 was online) wasn't listed first; BOT405's client still showed it as "Wants to be friends" (test setup, see Resume Here); re-check after a reload/befriending in game. |
 
 ### 2026-11-22: ❌ failed (desktop 1280×720; phone not reached)
 Played on the preview at `https://mooi.skypea.dev/preview/<id>/` (the `127.0.0.1:8000` origin gets `login?error=offline`: `PUBLIC_URL` check). Players are bot accounts taken over by `/play?bot=<token>`, spawned with `POST /api/dev/bots {count:6, first:120, map:pokemon_center_2f}` (BOT123 tab 1, BOT125 tab 2); extra leaders by `infra/bots/bots.ts --lead` through a local proxy adding the preview prefix and `Origin: PUBLIC_URL` (the bots build root URLs).
