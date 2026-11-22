@@ -29,6 +29,7 @@ import type { PcChanged } from "@pokeuniverse/contracts/item/v1/pc";
 import { BoxViewSchema, type BoxView } from "@pokeuniverse/contracts/party/v1/box";
 import { FieldMoveOutcome, FieldMoveResultSchema, LearnMoveResultSchema, PokemonEvolvedSchema, type FieldMoveResult, type LearnMoveResult, type PartyChanged, type PokemonEvolved } from "@pokeuniverse/contracts/party/v1/party";
 import type { PokedexChanged } from "@pokeuniverse/contracts/pokedex/v1/pokedex";
+import type { LinkEvent, LinkStart } from "@pokeuniverse/contracts/social/v1/social";
 import type { Correction, Follower, FollowerChanged, OtherPlayer, PcScreen, PlayersPc, Script, ScriptStep, Warped, WorldSnapshot, ZoneEvents } from "@pokeuniverse/contracts/world/v1/world";
 import { Button } from "../gba/input";
 import { PALETTES_ALL } from "../gba/palette";
@@ -43,6 +44,7 @@ import { behaviorAt, loadMap, TILE } from "../world/map";
 import { DELTAS } from "../world/rules";
 import { FieldMessage, fieldYesNo } from "./field-message";
 import { PlayerMenuRun } from "./player-menu";
+import { LinkScreenRun } from "./link-room";
 import { MENU_NOTHING_CHOSEN, type YesNoMenu } from "./menu";
 import { NpcSprite } from "./npc-sprite";
 import type { Flow } from "./flow";
@@ -88,6 +90,14 @@ interface SweetScent {
   frames: number;
   script: Script | null;
 }
+
+/** The link rooms (phase-9 D20): their maps, and the Direct Corner's barrier and door on the 2F. */
+const LINK_ROOM_MAPS = new Set(["trade_center", "battle_colosseum_2p"]);
+/** CableClub_EventScript_OpenDirectCornerBarrier: the counter's gap at (9, 3) opens (METATILE_PokemonCenter_CounterBarrier). */
+const BARRIER = { x: 9, y: 3, open: 0x2c5 };
+const LINK_ROOM_DOOR = { x: 9, y: 1 };
+/** Movement_PlayerApproachLinkRoomLeft. */
+const APPROACH_LINK_ROOM = [Direction.WEST, Direction.NORTH, Direction.NORTH];
 
 /** The player's cell on screen: 7 tiles in, under the BG scrolled 40 pixels down (field_camera.c). */
 const PLAYER_X = 7 * TILE;
@@ -233,6 +243,8 @@ interface Running {
   battling: boolean;
   /** The menu on another player of a playerMenu step (phase-9 D4), while it is open. */
   playerMenu: PlayerMenuRun | null;
+  /** The leader or member screen of a linkRoom step (phase-9 D18), while it is open. */
+  linkRoom: LinkScreenRun | null;
   /** A multichoice step's menu, while it is open. */
   multichoice: ScriptMultichoice | null;
   /** An askSave step's dialog, while it runs. */
@@ -322,6 +334,13 @@ class Overworld {
   private pc: OpenPc | null = null;
   private pcScreen: PcScreenTile | null = null;
   private pcFlicker: Task | undefined;
+  /** Walking into the link room, asking to leave it or the dropped link's message (phase-9 D20). */
+  private linkFlow: Generator<void, void, void> | null = null;
+  /** The link mic-core started: walking in or in the room. */
+  private linked: LinkStart | null = null;
+  /** The partner left or dropped: the link ends once the player stands still. */
+  private linkDropped = false;
+  private readonly unlink: () => void;
 
   constructor(
     private readonly flow: Flow,
@@ -342,6 +361,7 @@ class Overworld {
     if (map.music) gba.sound.playBgm(map.music);
     this.enter(false);
     if (snapshot.battle) this.showBattle(snapshot.battle, [], false);
+    this.unlink = flow.social.onLink((e) => this.linkEvent(e));
   }
 
   /** No map's id while the next one loads: any snapshot then starts over from what it says. */
@@ -471,6 +491,9 @@ class Overworld {
     this.flow.chat.clear();
     this.avatar.waiting = false;
     this.endScript(false);
+    this.linkFlow = null;
+    this.linked = null;
+    this.linkDropped = false;
     if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
     this.pcScreen = null;
     this.flow.gba.tasks.destroy(this.pcFlicker);
@@ -525,6 +548,7 @@ class Overworld {
   }
 
   zoneEvents(z: ZoneEvents): void {
+    this.script?.linkRoom?.zone(z);
     if (this.warp?.arrival) this.nextZone.push(z);
     else this.others.apply(z);
   }
@@ -899,6 +923,11 @@ class Overworld {
   /** A stair, door or escalator warp, predicted: the sprite starts leaving at once. */
   private leaveByWarp(d: Direction, x: number, y: number): void {
     const { flow, avatar, sprite, map } = this;
+    // A link room's ways out are all dynamic warps mic-core refuses: the link ends instead (TradeCenter_ConfirmLeaveRoom).
+    if (LINK_ROOM_MAPS.has(map.id)) {
+      this.linkFlow = this.askLeaveRoom();
+      return;
+    }
     flow.link.useWarp(d, x, y);
     const here = behaviorAt(map, x, y);
     let leaving: Animation;
@@ -970,7 +999,7 @@ class Overworld {
       return;
     }
     if (!s.steps.length) return;
-    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null, multichoice: null, saving: null };
+    this.script = { id: s.id, npc: s.npc, steps: s.steps, index: 0, waiting: false, yesNo: null, battling: false, playerMenu: null, linkRoom: null, multichoice: null, saving: null };
     // A trainer's script: the battle's art and sounds load while they talk.
     if (s.steps.some((step) => step.action.case === "trainerBattle" || step.action.case === "wildBattle")) void prepareBattle(this.flow).catch(() => {});
     const facing = FACING_PLAYER[this.avatar.facing];
@@ -979,6 +1008,7 @@ class Overworld {
 
   destroy(): void {
     this.destroyed = true;
+    this.unlink();
     this.flow.chat.field = null;
     this.destroySprites();
     this.message.hide();
@@ -1017,6 +1047,8 @@ class Overworld {
       this.caughtAsk = null;
       this.message.hide();
     }
+    if (!this.linkFlow && this.linkDropped && this.linked && !this.warp && !this.arriving && !this.script) this.linkFlow = this.dropLink();
+    if (this.linkFlow && !this.away && this.linkFlow.next().done) this.linkFlow = null;
     // The button that closes the menu doesn't also act in the world.
     const menuOpen = this.menu !== null;
     if (this.menu) this.runMenu();
@@ -1029,7 +1061,7 @@ class Overworld {
       select: input.isPressed(Button.Select),
     };
     // Messages and menus lock the player, and so does being offline: steps the server can't check aren't taken.
-    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.sweetScent !== null || this.battle !== null || this.fieldItem !== null || this.caughtAsk !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
+    const locked = this.warp !== null || this.arriving !== null || this.script !== null || this.sweetScent !== null || this.battle !== null || this.fieldItem !== null || this.caughtAsk !== null || this.linkFlow !== null || menuOpen || !this.flow.link.inWorld || this.flow.gba.palettes.fadeActive;
     this.avatar.update(controls, locked);
     this.follower.update();
     this.draw();
@@ -1211,6 +1243,24 @@ class Overworld {
         s.index++;
         continue;
       }
+      if (step.action.case === "linkRoom") {
+        s.linkRoom ??= new LinkScreenRun(this.flow, this.message, step.action.value);
+        const outcome = s.linkRoom.update();
+        if (outcome === null) return;
+        s.linkRoom = null;
+        if (outcome === "cancel") {
+          s.index++;
+          continue;
+        }
+        // The script ends first: mic-core takes no steps while one runs.
+        this.endScript(true);
+        if (outcome === "dropped") this.linkFlow = this.dropLink();
+        else {
+          this.linked = outcome;
+          this.linkFlow = this.enterLinkRoom(s.npc);
+        }
+        return;
+      }
       if (step.action.case === "jump") {
         s.index = step.action.value;
         continue;
@@ -1311,6 +1361,7 @@ class Overworld {
 
   private endScript(done: boolean): void {
     this.script?.playerMenu?.close();
+    this.script?.linkRoom?.close();
     this.script?.multichoice?.close();
     if (this.script && done) this.flow.link.scriptDone(this.script.id);
     this.script = null;
@@ -1329,6 +1380,78 @@ class Overworld {
       this.message.hide();
     }
     this.pc = null;
+  }
+
+  /** A link event: the open screen's, or the link ending under the player (the partner left or dropped). */
+  private linkEvent(e: LinkEvent): void {
+    const screen = this.script?.linkRoom;
+    if (screen) return screen.event(e);
+    if (e.event.case !== "ended" || !this.linked) return;
+    // Ended before mic-core took the player in: the door's warp won't come.
+    if (this.warp && !this.warp.arrival && !LINK_ROOM_MAPS.has(this.map.id)) this.cancelWarp();
+    this.linkDropped = true;
+  }
+
+  /**
+   * CableClub_EventScript_EnterWirelessLinkRoom: "I'll direct you to your room now.", the barrier
+   * opens, the attendant turns and the player walks to the door, which takes them in. The walk is
+   * the client's alone (mic-core keeps the counter blocked; its `enter` warps from where it has the
+   * player); the door's warp is mic-core's answer to `enter`.
+   */
+  private *enterLinkRoom(npc: string): Generator<void, void, void> {
+    const { flow } = this;
+    this.message.show(flow.assets.text("CableClub_Text_DirectYouToYourRoom"), false);
+    while (this.message.printing) yield;
+    for (let i = 0; i < 60; i++) yield;
+    this.message.hide();
+    flow.world.setTile(BARRIER.x, BARRIER.y, BARRIER.open);
+    flow.play("se_click");
+    for (let i = 0; i < 60; i++) yield;
+    // Movement_AttendantFaceLeft.
+    this.npcs.find((n) => n.npc.id === npc)?.face(Direction.WEST);
+    for (const d of APPROACH_LINK_ROOM) {
+      this.follower.follow(this.avatar.x, this.avatar.y, false);
+      this.avatar.scriptWalk(d);
+      while (this.avatar.action) yield;
+    }
+    if (this.linkDropped) return yield* this.dropLink();
+    const door = this.doors.find((d) => d.x === LINK_ROOM_DOOR.x && d.y === LINK_ROOM_DOOR.y);
+    this.warp = { leaving: new LeavingDoor(flow, this.avatar, this.sprite, door), arrival: null, loading: false };
+    flow.link.link({ intent: { case: "enter", value: true } });
+  }
+
+  /** TradeCenter_ConfirmLeaveRoom: "The link will be terminated…" YES/NO; YES ends the link for both. */
+  private *askLeaveRoom(): Generator<void, void, void> {
+    const { flow } = this;
+    const { gba } = flow;
+    this.message.show(flow.assets.text("Text_TerminateLinkIfYouLeaveRoom"), false);
+    while (this.message.printing) yield;
+    const menu = fieldYesNo(flow);
+    let answer: number;
+    while ((answer = menu.processInput()) === MENU_NOTHING_CHOSEN) yield;
+    gba.input.pressed &= ~(Button.A | Button.B);
+    if (answer !== 0) return this.message.hide();
+    // TradeCenter_TerminateLink: autoscrolled, then mic-core takes both out (ExitLinkRoom).
+    this.message.show(flow.assets.text("Text_TerminateLinkConfirmation"), false);
+    while (this.message.printing) yield;
+    this.linked = null;
+    this.linkDropped = false;
+    flow.link.link({ intent: { case: "leave", value: true } });
+    this.avatar.waiting = true;
+  }
+
+  /** The partner left or dropped: "The link with your friend has been dropped…", then back to the counter. */
+  private *dropLink(): Generator<void, void, void> {
+    const { flow } = this;
+    const { input } = flow.gba;
+    this.linked = null;
+    this.linkDropped = false;
+    this.message.show(flow.assets.text("gText_UR_LinkWithFriendDropped"), false);
+    while (this.message.printing || !input.isPressed(Button.A | Button.B)) yield;
+    input.pressed &= ~(Button.A | Button.B);
+    this.message.hide();
+    flow.link.link({ intent: { case: "leave", value: true } });
+    this.avatar.waiting = true;
   }
 
   /**

@@ -175,6 +175,20 @@ export class Avatar {
     this.start("walk", WALK_FRAMES);
   }
 
+  /**
+   * A script's walk mic-core never sees (phase-9 M8: through the Direct Corner's barrier to the
+   * link room's door, which the server keeps blocked): no step sent, no collision.
+   */
+  scriptWalk(d: Direction): void {
+    this.facing = d;
+    const [dx, dy] = DELTAS[d];
+    this.elevation = elevationAfter(this.map, this.elevation, this.x, this.y, this.x + dx, this.y + dy);
+    if (this.elevation !== 0 && this.elevation !== 15) this.layerElevation = this.elevation;
+    this.x += dx;
+    this.y += dy;
+    this.start("walk", WALK_FRAMES);
+  }
+
   /** CheckMovementInputNotOnBike and what follows it. */
   private decide({ direction: d, run }: AvatarInput): void {
     if (d === Direction.UNSPECIFIED) {
