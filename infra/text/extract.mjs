@@ -25,7 +25,7 @@ const literals = (s) => [...s.matchAll(/"((?:\\.|[^"\\])*)"/g)].map((m) => m[1].
 
 const found = new Map();
 // C: const u8 gName[] = _("...");  The macro ends the string.
-for (const file of ["src/strings.c", "src/keyboard_text.c", "src/battle_message.c"]) {
+for (const file of ["src/strings.c", "src/keyboard_text.c", "src/battle_message.c", "src/union_room_message.c"]) {
   for (const m of readFileSync(join(src, file), "utf8").matchAll(/(\w+)\[\]\s*=\s*_\(((?:\s*"(?:\\.|[^"\\])*")+)\s*\)/g))
     found.set(m[1], () => [...encode(literals(m[2]), m[1]), 0xff]);
 }

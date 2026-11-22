@@ -149,5 +149,11 @@
   "Text_TrainerTooBusyToNotice",
   "PU_Text_AddFriend", "PU_Text_Message", "PU_Text_Invite", "PU_Text_SentFriendRequest", "PU_Text_NowFriends",
   "PU_Text_AlreadyRequested", "PU_Text_FriendRequestFailed", "PU_Text_WantsToBeFriends",
-  "CableClub_Text_AskAboutLinking", "CableClub_Text_ExplainWirelessClub", "CableClub_Text_HopeYouEnjoyWirelessSystem", "CableClub_Text_WelcomeUnionRoomEnter", "CableClub_Text_UnionRoomInfo", "PU_Text_UnionRoomJoke", "CableClub_Text_PleaseVisitAgain", "CableClub_Text_WelcomeWhichDirectCornerRoom", "CableClub_Text_TradePokemon", "CableClub_Text_NeedTwoMonsToTrade", "CableClub_Text_PlayWhichBattleMode", "CableClub_Text_NeedTwoMonsForDoubleBattle", "CableClub_Text_ExplainBattleModes", "CableClub_Text_ChooseGroupLeaderOfTwo", "CableClub_Text_ChooseGroupLeaderOfFour", "gText_Yes", "gText_No", "gText_Info", "gText_TradeCenter", "gText_Colosseum_2", "gText_SingleBattle", "gText_DoubleBattle", "gText_MultiBattle", "gText_JoinGroup", "gText_BecomeLeader"
+  "CableClub_Text_AskAboutLinking", "CableClub_Text_ExplainWirelessClub", "CableClub_Text_HopeYouEnjoyWirelessSystem", "CableClub_Text_WelcomeUnionRoomEnter", "CableClub_Text_UnionRoomInfo", "PU_Text_UnionRoomJoke", "CableClub_Text_PleaseVisitAgain", "CableClub_Text_WelcomeWhichDirectCornerRoom", "CableClub_Text_TradePokemon", "CableClub_Text_NeedTwoMonsToTrade", "CableClub_Text_PlayWhichBattleMode", "CableClub_Text_NeedTwoMonsForDoubleBattle", "CableClub_Text_ExplainBattleModes", "CableClub_Text_ChooseGroupLeaderOfTwo", "CableClub_Text_ChooseGroupLeaderOfFour", "gText_Yes", "gText_No", "gText_Info", "gText_TradeCenter", "gText_Colosseum_2", "gText_SingleBattle", "gText_DoubleBattle", "gText_MultiBattle", "gText_JoinGroup", "gText_BecomeLeader",
+  "gText_UR_AwaitingCommunication", "gText_UR_BButtonCancel", "gText_UR_PlayerContactedYouForXAccept", "gText_UR_AnOKWasSentToPlayer",
+  "gText_UR_PokemonTrades", "gText_UR_SingleBattle", "gText_UR_DoubleBattle", "sText_1PlayerNeeded", "sText_2PlayerMode", "sText_OtherTrainerUnavailableNow",
+  "gText_UR_ChooseJoinCancel", "sText_ChooseTrainerSingleBattle", "sText_ChooseTrainerDoubleBattle", "sText_ChooseTrainerToTradeWith",
+  "gText_UR_AwaitingPlayersResponse", "gText_UR_PlayerSentBackOK", "sText_PlayerRepliedNo", "gText_UR_QuitBeingMember", "gText_UR_Colon", "gText_UR_ID",
+  "gText_UR_LinkWithFriendDropped", "CableClub_Text_PlayersMadeDifferentSelections", "CableClub_Text_DirectYouToYourRoom",
+  "Text_TerminateLinkIfYouLeaveRoom", "Text_TerminateLinkConfirmation"
 ]
