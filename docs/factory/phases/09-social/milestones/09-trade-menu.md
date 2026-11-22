@@ -1,8 +1,8 @@
 ---
 id: 09-trade-menu
 title: "Trade: menu and transaction"
-status: building
-test: failed
+status: testing
+test: none
 attempts: 1
 depends: [08-link-rooms]
 context: [context/social.md, context/references.md]
@@ -14,7 +14,7 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
-**Test attempt 1 failed (2026-11-22, see *Tests*):** the preview never opens the trade menu: `infra/assets/graphics.sh` (the `ASSETS=built` build) has no `trade` in `FIRERED_GFX` (the `Makefile` has it), so `firered/graphics/trade/*` is 404. Fix that, then re-test every case.
+**Session 4 (2026-11-22): attempt 1's bug fixed → `testing`.** `infra/assets/graphics.sh` `FIRERED_GFX` += `trade` (all 11 files the client loads exist in `references/pokefirered/graphics/trade/`; the rest of its lists match the `Makefile`). Next: re-test every case on the preview. Not fixed (seen in passing, not a case): the follower drawn over its seated trainer at the seats.
 
 **Session 3 (2026-11-22): client written; every task done; `tsc --noEmit` and `vite build` green → `testing`, nothing played yet.** Next: play the Manual Test (back up both saves first; run `make graphics audio` so `trade/` and `mus_game_corner` are built).
 
@@ -86,6 +86,7 @@ Preview deployed fine (build and healthchecks green). Played in the browser on d
 
 ## Log
 
+- 2026-11-22: session 4: `trade` added to `infra/assets/graphics.sh` (preview build); `testing`.
 - 2026-11-22: test attempt 1 failed: on the preview the trade menu never opens (`trade/` graphics missing from `infra/assets/graphics.sh`); `building`.
 - 2026-11-22: session 3: client (assets, `trade-menu.ts`, overworld seat step and routing); tsc + vite build green; `testing`.
 - 2026-11-22: session 2: server wired (partner watch, seats, attendant, link wiring); Go build + vet green; client looked up (Resume Here), not started.
