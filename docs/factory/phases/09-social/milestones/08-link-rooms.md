@@ -104,3 +104,4 @@ Observations (not this milestone): single `POST /api/dev/bots` spawns land behin
 - 2026-11-22: client screens, walk-in, leave and dropped link, B back to JOIN/LEAD, bots; all builds green; `testing`.
 - 2026-11-22: end-to-end test ❌ (cases 3, 6 fail; 4, 5, 8 not played); `building`, attempt 1.
 - 2026-11-22: fixed case 3 (join asks with the member's browsed activity) and case 6 (arrow warp exit in the rooms); builds green; `testing`.
+- 2026-11-22: re-test started: 1, 2, 3, 5, 6, 9 ✅; 10 partly; 7, phone and friends-first left (context checkpoint).
