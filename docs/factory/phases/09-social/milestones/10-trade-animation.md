@@ -50,3 +50,4 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 - 2026-11-23: session 1 checkpoint: FireRed's wireless scene read and noted in Resume Here; client next.
 - 2026-11-23: session 1: server (contracts, trade evolution, Pokédex in the swap, menu held until both scenes end); Go build + vet green.
+- Recovery needed (builder, step cbf208b9-663f-423c-8cb3-be926e1c16f1): The provider's usage limits ran out; Mooi stopped the session and saved its work. *State* may be stale; see the last `chore(factory): checkpoint` commit.
