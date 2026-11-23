@@ -27,6 +27,7 @@ import { copyTiles, CursorMenu, drawStdFrame, MENU_B_PRESSED, MENU_NOTHING_CHOSE
 import { iconAnimForHp, MonIcon } from "./mon-icon";
 import { monName, shownGender, type PartyHost } from "./party-menu";
 import { startSummary } from "./summary";
+import { startTradeScene, type TradeScene, type TradeSceneMons } from "./trade-scene";
 
 /** What the menu asks mic-core, and the summary's way to a side's Pokémon; the overworld answers. */
 export interface TradeMenuHost {
@@ -342,7 +343,12 @@ export class TradeMenu {
     if (event.case === "ended") return this.close("dropped");
     if (event.case === "tradeDone") {
       this.closeMenus();
-      this.traded = true;
+      const v = event.value;
+      this.traded = {
+        scene: { own: this.parties[PLAYER][v.ownSlot], received: this.parties[PARTNER][v.otherSlot], partnerName: this.host.partnerName },
+        slot: v.ownSlot,
+        evolvesTo: v.evolvesTo ?? 0,
+      };
       let frames = AFTER_TRADE_FRAMES;
       this.step = () => {
         if (--frames > 0) return;
@@ -366,11 +372,67 @@ export class TradeMenu {
     }
   }
 
-  /** Back to the menu once black, with the parties mic-core sent after the trade. */
+  /** Once black, FireRed's trade scene (CB2_LinkTrade), then the trade evolution or the save (CB2_SaveAndEndTrade). */
   private afterTrade(): void {
+    const traded = this.traded;
+    if (this.flow.gba.palettes.fadeActive || !traded) return;
+    this.step = () => {};
+    startTradeScene(this.flow, traded.scene, (scene) => {
+      if (traded.evolvesTo) {
+        this.host.evolve(traded.slot, traded.evolvesTo, () => {
+          // phase-6's scene ends on black: wait there for the partner (CB2_WaitTradeComplete).
+          this.music = false;
+          this.step = () => this.reopen();
+          this.flow.gba.setMain(() => {
+            this.afterScene();
+            this.flow.runFrame();
+          });
+          this.host.sceneDone();
+        });
+        return;
+      }
+      scene.print("gText_CommunicationStandby5");
+      this.step = () => this.saveAfterTrade(scene);
+      scene.after = () => this.afterScene();
+      this.host.sceneDone();
+    });
+  }
+
+  /** After the scene the menu's update task is gone (gba.reset): mic-core's events, then the step. */
+  private afterScene(): void {
+    if (!this.closing && !this.flow.gba.palettes.fadeActive) {
+      const e = this.queue.shift();
+      if (e) return this.handle(e);
+    }
+    this.step();
+  }
+
+  /** CB2_SaveAndEndTrade: once the partner's scene ended too, "SAVING…", the fade and the music's. */
+  private saveAfterTrade(scene: TradeScene): void {
+    if (!this.next) return;
+    const { gba } = this.flow;
+    scene.print("gText_SavingDontTurnOffThePower2");
+    let frames = SAVING_FRAMES;
+    this.step = () => {
+      if (--frames > 0) return;
+      gba.palettes.beginFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
+      this.step = () => {
+        if (gba.palettes.fadeActive) return;
+        gba.sound.fadeOutBgm(3);
+        this.step = () => {
+          if (!gba.sound.bgmStopped) return;
+          this.music = false;
+          this.reopen();
+        };
+      };
+    };
+  }
+
+  /** Back to the menu, on black, with the parties mic-core sent once both scenes ended. */
+  private reopen(): void {
     const next = this.next;
-    if (this.flow.gba.palettes.fadeActive || !next) return;
-    this.traded = false;
+    if (!next) return;
+    this.traded = null;
     this.next = null;
     this.parties = [next.ownParty?.pokemon ?? [], next.otherParty?.pokemon ?? []];
     this.cursor = 0;

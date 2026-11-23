@@ -68,6 +68,7 @@ import { beginPcScreenFlicker, PC_SCREEN_TILES, pcScreenOffset, PcChoice, Player
 import { startOptionMenu } from "./option-menu";
 import { startStorage, type StorageHost } from "./storage/storage";
 import type { BoxAction } from "../../realtime/box-action";
+import { startFieldEvolution } from "./field-evolution";
 import { startPartyMenu, type PartyHost } from "./party-menu";
 import { startPokedex } from "./pokedex";
 import { StartMenu, StartMenuEntry } from "./start-menu";
@@ -1482,6 +1483,11 @@ class Overworld {
       offer: (slot) => flow.link.link({ intent: { case: "tradeOffer", value: { slot } } }),
       confirm: (yes) => flow.link.link({ intent: { case: "tradeConfirm", value: { yes } } }),
       cancel: () => flow.link.link({ intent: { case: "tradeCancel", value: {} } }),
+      sceneDone: () => flow.link.link({ intent: { case: "tradeSceneDone", value: {} } }),
+      evolve: (slot, species, done) => {
+        const host = this.partyHost();
+        startFieldEvolution(flow, host, { ...host.growth!, mapMusic: () => {} }, { slot, species }, done);
+      },
     };
   }
 
