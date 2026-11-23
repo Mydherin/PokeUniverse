@@ -198,11 +198,11 @@ export class ExpTracker {
     if (start.kind === BattleKind.TRAINER) exp = Math.floor(exp * 1.5);
     if (item === "luckyegg") exp = Math.floor(exp * 1.5);
     exp = Math.max(exp, 1);
-    return this.give(side, slot, exp, pokemon, mon);
+    return this.give(side, slot, exp, pokemon, mon, mon.traded);
   }
 
   /** The bar in stretches, one per level (Task_GiveExpWithExpBar), each level up with its moves. */
-  private give(side: number, slot: number, amount: number, pokemon: Pokemon, mon: BattleMon): BattleEvent[] {
+  private give(side: number, slot: number, amount: number, pokemon: Pokemon, mon: BattleMon, boosted = false): BattleEvent[] {
     const { state } = this;
     const gain = state.gains[side][slot];
     const rate = INFOS[mon.species].growthRate;
@@ -219,7 +219,7 @@ export class ExpTracker {
       const levelExp = expAt(rate, pokemon.level);
       const nextLevelExp = expAt(rate, pokemon.level + 1);
       const reaches = pokemon.level < MAX_LEVEL && after >= nextLevelExp;
-      add({ case: "exp", value: { battler, amount: shown, exp: reaches ? nextLevelExp : after, levelExp, nextLevelExp } });
+      add({ case: "exp", value: { battler, amount: shown, boosted: shown > 0 && boosted, exp: reaches ? nextLevelExp : after, levelExp, nextLevelExp } });
       shown = 0;
       if (!reaches) break;
       const was = statsOf(pokemon);

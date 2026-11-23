@@ -3531,9 +3531,11 @@ type Exp struct {
 	Battler *Battler               `protobuf:"bytes,1,opt,name=battler,proto3" json:"battler,omitempty"`
 	Amount  uint32                 `protobuf:"varint,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	// Where the bar stops: a total, and the totals its level starts and ends at.
-	Exp           uint32 `protobuf:"varint,3,opt,name=exp,proto3" json:"exp,omitempty"`
-	LevelExp      uint32 `protobuf:"varint,4,opt,name=level_exp,json=levelExp,proto3" json:"level_exp,omitempty"`
-	NextLevelExp  uint32 `protobuf:"varint,5,opt,name=next_level_exp,json=nextLevelExp,proto3" json:"next_level_exp,omitempty"`
+	Exp          uint32 `protobuf:"varint,3,opt,name=exp,proto3" json:"exp,omitempty"`
+	LevelExp     uint32 `protobuf:"varint,4,opt,name=level_exp,json=levelExp,proto3" json:"level_exp,omitempty"`
+	NextLevelExp uint32 `protobuf:"varint,5,opt,name=next_level_exp,json=nextLevelExp,proto3" json:"next_level_exp,omitempty"`
+	// Boosted by trade (Gen 4's 1.5×): "gained a boosted … EXP. Points!" (FireRed's Cmd_getexp).
+	Boosted       bool `protobuf:"varint,6,opt,name=boosted,proto3" json:"boosted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3601,6 +3603,13 @@ func (x *Exp) GetNextLevelExp() uint32 {
 		return x.NextLevelExp
 	}
 	return 0
+}
+
+func (x *Exp) GetBoosted() bool {
+	if x != nil {
+		return x.Boosted
+	}
+	return false
 }
 
 // The reader's Pokémon reached a level. Its HP and stats in the battle already changed with it.
@@ -4224,13 +4233,14 @@ const file_pokeuniverse_battle_v1_event_proto_rawDesc = "" +
 	"\vFormeChange\x129\n" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\x12\x14\n" +
 	"\x05forme\x18\x02 \x01(\rR\x05forme\x122\n" +
-	"\x04from\x18\x03 \x01(\v2\x1e.pokeuniverse.battle.v1.EffectR\x04from\"\xad\x01\n" +
+	"\x04from\x18\x03 \x01(\v2\x1e.pokeuniverse.battle.v1.EffectR\x04from\"\xc7\x01\n" +
 	"\x03Exp\x129\n" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\rR\x06amount\x12\x10\n" +
 	"\x03exp\x18\x03 \x01(\rR\x03exp\x12\x1b\n" +
 	"\tlevel_exp\x18\x04 \x01(\rR\blevelExp\x12$\n" +
-	"\x0enext_level_exp\x18\x05 \x01(\rR\fnextLevelExp\"\x80\x02\n" +
+	"\x0enext_level_exp\x18\x05 \x01(\rR\fnextLevelExp\x12\x18\n" +
+	"\aboosted\x18\x06 \x01(\bR\aboosted\"\x80\x02\n" +
 	"\aLevelUp\x129\n" +
 	"\abattler\x18\x01 \x01(\v2\x1f.pokeuniverse.battle.v1.BattlerR\abattler\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\rR\x05level\x126\n" +

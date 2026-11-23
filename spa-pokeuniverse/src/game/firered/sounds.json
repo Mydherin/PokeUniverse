@@ -12,6 +12,7 @@
   "se_ball_open": { "song": "se_ball_open" },
   "se_ball_trade": { "song": "se_ball_trade" },
   "se_warp_in": { "song": "se_warp_in" },
+  "se_warp_out": { "song": "se_warp_out" },
   "se_win_open": { "song": "se_win_open" },
   "se_wall_hit": { "song": "se_wall_hit" },
   "se_save": { "song": "se_save" },

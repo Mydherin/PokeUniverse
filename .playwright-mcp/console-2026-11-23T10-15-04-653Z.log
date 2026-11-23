@@ -1,0 +1,4 @@
+[     621ms] [WARNING] [.WebGL-0x1ab400174e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ https://mooi.skypea.dev/preview/aojdm6htyl22duuxbldbyjfmbl626cu6/play:0
+[     638ms] [WARNING] [.WebGL-0x1ab400174e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ https://mooi.skypea.dev/preview/aojdm6htyl22duuxbldbyjfmbl626cu6/play:0
+[     675ms] [WARNING] [.WebGL-0x1ab400174e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels @ https://mooi.skypea.dev/preview/aojdm6htyl22duuxbldbyjfmbl626cu6/play:0
+[     685ms] [WARNING] [.WebGL-0x1ab400174e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat) @ https://mooi.skypea.dev/preview/aojdm6htyl22duuxbldbyjfmbl626cu6/play:0

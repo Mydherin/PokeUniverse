@@ -6,7 +6,7 @@
 // (`BALLS`); the battle's throw is battle/anims/behaviors/ball.ts.
 
 import { Item } from "@pokeuniverse/contracts/item/v1/catalog";
-import type { AnimCmd, AffineCmd, Sprite, SpriteTemplate } from "../gba/sprites";
+import { callbackDummy, type AnimCmd, type AffineCmd, type Sprite, type SpriteTemplate } from "../gba/sprites";
 import type { Task } from "../gba/tasks";
 import { SIN, s16 } from "../gba/trig";
 import { rgb, RGB_WHITE } from "../gba/video";
@@ -352,7 +352,7 @@ export class PokeBalls {
       mon.invisible = true;
       ball.data[TIMER] = 0;
       ball.callback = (b) => {
-        if (b.animEnded) b.callback = () => {};
+        if (b.animEnded) b.callback = callbackDummy;
       };
     } else {
       mon.data[1] += 96;

@@ -59,6 +59,21 @@ func (pt Party) ItemEvolution(slot int, id itemv1.Item) *speciesv1.Evolution {
 	return nil
 }
 
+// TradeEvolution is who the Pokémon in the slot evolves into on being traded (EVO_MODE_TRADE,
+// phase-9 D24): Gen 4's trade evolutions, alone or holding their item; none with an EVERSTONE.
+func (pt Party) TradeEvolution(slot int) *speciesv1.Evolution {
+	p := pt.At(slot)
+	if p == nil || p.HeldItem == itemv1.Item_ITEM_EVERSTONE {
+		return nil
+	}
+	for _, e := range p.info().GetEvolutions() {
+		if e.GetMethod() == speciesv1.EvolutionMethod_EVOLUTION_METHOD_TRADE && (e.GetItem() == 0 || e.GetItem() == uint32(p.HeldItem)) {
+			return e
+		}
+	}
+	return nil
+}
+
 // LevelEvolution is who the Pokémon in the slot evolves into at its level now (EVO_MODE_NORMAL).
 func (pt Party) LevelEvolution(slot int, night bool) *speciesv1.Evolution {
 	p := pt.At(slot)
@@ -138,7 +153,8 @@ type Evolved struct {
 // Evolve changes the Pokémon in the slot (CalculateMonStats: HP rises with max HP, a fainted one
 // stays fainted; the nickname stays), teaches it the new species' moves at its level
 // (MonTryLearningNewMove) and leaves Shedinja behind when there's room and a ball (CreateShedinja;
-// it copies the moves known now, before any answer to ToLearn). A held item it needed is gone.
+// it copies the moves known now, before any answer to ToLearn). A held item it needed (a level or
+// trade evolution's) is gone.
 func (pt *Party) Evolve(slot int, evo *speciesv1.Evolution, hasBall bool) Evolved {
 	p := pt.At(slot)
 	if p == nil {
@@ -150,7 +166,7 @@ func (pt *Party) Evolve(slot int, evo *speciesv1.Evolution, hasBall bool) Evolve
 	if p.HP > 0 {
 		p.HP += p.Stats()[0] - maxHP
 	}
-	if evo.GetMethod() == speciesv1.EvolutionMethod_EVOLUTION_METHOD_LEVEL && evo.GetItem() != 0 {
+	if m := evo.GetMethod(); (m == speciesv1.EvolutionMethod_EVOLUTION_METHOD_LEVEL || m == speciesv1.EvolutionMethod_EVOLUTION_METHOD_TRADE) && evo.GetItem() != 0 {
 		p.HeldItem = itemv1.Item_ITEM_UNSPECIFIED
 	}
 	done := Evolved{Species: []speciesv1.Species{p.Species}}

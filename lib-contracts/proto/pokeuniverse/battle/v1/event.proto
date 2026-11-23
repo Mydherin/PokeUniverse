@@ -427,6 +427,8 @@ message Exp {
   uint32 exp = 3;
   uint32 level_exp = 4;
   uint32 next_level_exp = 5;
+  // Boosted by trade (Gen 4's 1.5×): "gained a boosted … EXP. Points!" (FireRed's Cmd_getexp).
+  bool boosted = 6;
 }
 
 // The reader's Pokémon reached a level. Its HP and stats in the battle already changed with it.

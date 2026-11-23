@@ -592,8 +592,10 @@ class Summary {
   }
 
   /**
-   * PokeSum_PrintTrainerMemo_Mon: its nature, and where and at what level it was met; "Apparently
-   * met" when the trainer isn't its OT. Met maps get their names with catching (Phase 7).
+   * PokeSum_PrintTrainerMemo_Mon: its nature, and where and at what level it was met; "Met in a
+   * trade." when the trainer isn't its OT (PokeSum_PrintTrainerMemo_Mon_NotHeldByOT's text for a
+   * Pokémon from another game: phase-9 M10, every trade's here). Met maps get their names with
+   * catching (Phase 7).
    */
   private printTrainerMemo(): void {
     const { flow } = this;
@@ -605,7 +607,7 @@ class Summary {
     let text: TextId;
     if (!mon.metMap) text = "gText_PokeSum_FatefulEncounterMet";
     else if (ownOt) text = "gText_PokeSum_Met";
-    else text = "gText_PokeSum_ApparentlyMet";
+    else text = "gText_PokeSum_MetInATrade";
     const memo = expandDynamic(assets.text(text), [nature, level, assets.text("gText_Somewhere")]);
     this.win(4)?.print(flow.fonts[FontId.Normal], 0, 3, COLORS_TEXT, memo, 0, 0);
   }

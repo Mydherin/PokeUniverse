@@ -6,6 +6,7 @@ syntax = "proto3";
 package pokeuniverse.social.v1;
 
 import "pokeuniverse/party/v1/party.proto";
+import "pokeuniverse/species/v1/catalog.proto";
 import "pokeuniverse/trainer/v1/trainer.proto";
 
 option go_package = "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1;socialv1";
@@ -333,6 +334,9 @@ message LinkIntent {
     TradeConfirm trade_confirm = 10;
     // CANCEL's "Cancel trade?" YES in the menu, or B while waiting in the seat (stands up).
     TradeCancel trade_cancel = 11;
+    // Phase-9 M10: the trade scene (and the evolution after it) is over; the menu comes back
+    // once both sides are done (CB2_WaitTradeComplete's READY_FINISH_TRADE).
+    TradeSceneDone trade_scene_done = 12;
   }
 }
 
@@ -419,6 +423,9 @@ message TradeConfirm {
 // Client -> server: cancel (the menu's CANCEL, or standing up from the seat).
 message TradeCancel {}
 
+// Client -> server: this side's trade scene and evolution are over (phase-9 M10).
+message TradeSceneDone {}
+
 enum TradeStage {
   TRADE_STAGE_UNSPECIFIED = 0;
   // The menu opens (or comes back): choose a Pokémon. Both parties are set.
@@ -460,6 +467,10 @@ message TradeDone {
   // The slots swapped, from 0: each received Pokémon takes the place of the one given.
   uint32 own_slot = 2;
   uint32 other_slot = 3;
+  // Phase-9 M10 (D24): who the received Pokémon evolves into by being traded (Gen 4, not with an
+  // EVERSTONE), decided with the swap; unset for none. The scene plays, then the evolution's,
+  // answered with party.v1.EvolvePokemon unless B stops it.
+  pokeuniverse.species.v1.Species evolves_to = 4;
 }
 
 // Replica to replica only: the member's part of the trade.
@@ -471,5 +482,6 @@ message TradeMemberAction {
     TradeOffer offer = 3;
     TradeConfirm confirm = 4;
     TradeCancel cancel = 5;
+    TradeSceneDone scene_done = 6;
   }
 }

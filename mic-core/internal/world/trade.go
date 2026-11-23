@@ -10,8 +10,10 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	socialv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/social/v1"
+	speciesv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 	worldv1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/world/v1"
 	"pokeuniverse/mic-core/internal/db"
+	"pokeuniverse/mic-core/internal/pokedex"
 	"pokeuniverse/mic-core/internal/pokemon"
 )
 
@@ -41,6 +43,9 @@ type tradeMenu struct {
 	pick    [2]int
 	// "Is this trade okay?": 0 not answered, 1 YES.
 	confirm [2]int
+	// After a swap, the sides still in the trade scene or its evolution (phase-9 M10): the menu
+	// comes back once neither is (CB2_WaitTradeComplete); nothing else is taken meanwhile.
+	scene [2]bool
 }
 
 func (t *tradeMenu) reset() {
@@ -110,6 +115,8 @@ func (z *zone) tradeIntent(p *Player, in *socialv1.LinkIntent) {
 		if !p.link.menu {
 			p.link.seated = false // Stood up before the menu opened.
 		}
+	case *socialv1.LinkIntent_TradeSceneDone:
+		a.Action = &socialv1.TradeMemberAction_SceneDone{SceneDone: i.TradeSceneDone}
 	default:
 		return
 	}
@@ -158,6 +165,8 @@ func (z *zone) onTradeMember(p *Player, a *socialv1.TradeMemberAction) {
 		z.leaderIntent(p, tradeMember, &socialv1.LinkIntent{Intent: &socialv1.LinkIntent_TradeConfirm{TradeConfirm: act.Confirm}})
 	case *socialv1.TradeMemberAction_Cancel:
 		z.leaderIntent(p, tradeMember, &socialv1.LinkIntent{Intent: &socialv1.LinkIntent_TradeCancel{TradeCancel: act.Cancel}})
+	case *socialv1.TradeMemberAction_SceneDone:
+		z.leaderIntent(p, tradeMember, &socialv1.LinkIntent{Intent: &socialv1.LinkIntent_TradeSceneDone{TradeSceneDone: act.SceneDone}})
 	}
 }
 
@@ -216,6 +225,13 @@ func (z *zone) leaderIntent(p *Player, side int, in *socialv1.LinkIntent) {
 			if side == tradeLeader {
 				p.link.seated = false
 			}
+		}
+		return
+	}
+	if t.scene[tradeLeader] || t.scene[tradeMember] {
+		if in.GetTradeSceneDone() != nil && t.scene[side] {
+			t.scene[side] = false
+			z.backToMenu(p)
 		}
 		return
 	}
@@ -289,18 +305,28 @@ func (z *zone) cancelOffer(p *Player, leader, member socialv1.TradeNotice) {
 }
 
 // swap: both said YES. The two Pokémon change trainers in one transaction keyed by a new trade
-// ID (D23); then both get TradeDone and the menu back with both parties as saved.
+// ID (D23), each received one marked seen and caught in its trainer's Pokédex in the same
+// transaction (UpdatePokedexForReceivedMon); its trade evolution is decided then (D24). Both get
+// TradeDone and play the scene; the menu comes back once both are done (backToMenu).
 func (z *zone) swap(p *Player) {
 	t := p.link.trade
 	id := newTradeID()
 	leader := pokemon.TradeSide{AccountID: p.accountID, Save: time.UnixMicro(p.gen), Slot: t.pick[tradeLeader], Offered: t.parties[tradeLeader].At(t.pick[tradeLeader])}
 	member := pokemon.TradeSide{AccountID: p.link.other, Save: time.UnixMicro(t.memberSave), Slot: t.pick[tradeMember], Offered: t.parties[tradeMember].At(t.pick[tradeMember])}
 	var a, b pokemon.Party
+	var dex pokedex.Pokedex
 	ctx, cancel := context.WithTimeout(context.Background(), saveTimeout)
 	defer cancel()
 	err := pgx.BeginFunc(ctx, z.w.pool, func(tx pgx.Tx) error {
+		q := db.New(tx)
 		var err error
-		a, b, err = pokemon.Trade(ctx, db.New(tx), id, leader, member)
+		if a, b, err = pokemon.Trade(ctx, q, id, leader, member); err != nil {
+			return err
+		}
+		if dex, err = catchReceived(ctx, q, leader, a); err != nil {
+			return err
+		}
+		_, err = catchReceived(ctx, q, member, b)
 		return err
 	})
 	if err != nil {
@@ -311,14 +337,68 @@ func (z *zone) swap(p *Player) {
 		return
 	}
 	p.party = a.Clone()
-	p.syncFollower()
 	z.sendParty(p)
+	z.tradeReceived(p, leader.Slot, dex)
 	t.parties = [2]pokemon.Party{a, b}
 	t.reset()
+	t.scene = [2]bool{true, true}
 	z.sendTrade(p, tradeLeader, &socialv1.LinkEvent{Event: &socialv1.LinkEvent_TradeDone{TradeDone: &socialv1.TradeDone{
-		TradeId: id, OwnSlot: uint32(leader.Slot), OtherSlot: uint32(member.Slot)}}})
+		TradeId: id, OwnSlot: uint32(leader.Slot), OtherSlot: uint32(member.Slot), EvolvesTo: evolvesTo(a, leader.Slot)}}})
 	z.sendTrade(p, tradeMember, &socialv1.LinkEvent{Event: &socialv1.LinkEvent_TradeDone{TradeDone: &socialv1.TradeDone{
-		TradeId: id, OwnSlot: uint32(member.Slot), OtherSlot: uint32(leader.Slot)}}})
+		TradeId: id, OwnSlot: uint32(member.Slot), OtherSlot: uint32(leader.Slot), EvolvesTo: evolvesTo(b, member.Slot)}}})
+}
+
+// catchReceived marks the Pokémon a side received seen and caught in its Pokédex, read and saved
+// inside the swap's transaction; the Pokédex as saved.
+func catchReceived(ctx context.Context, q *db.Queries, side pokemon.TradeSide, party pokemon.Party) (pokedex.Pokedex, error) {
+	row, err := q.GetTrainer(ctx, side.AccountID)
+	if err != nil {
+		return pokedex.Pokedex{}, err
+	}
+	dex := pokedex.Load(row)
+	if mon := party.At(side.Slot); mon != nil {
+		dex = dex.Catch(mon.Species)
+	}
+	n, err := q.UpdateTrainerPokedex(ctx, db.UpdateTrainerPokedexParams{AccountID: side.AccountID, PokedexSeen: dex.Seen, PokedexCaught: dex.Caught, CreatedAt: side.Save})
+	if err == nil && n == 0 {
+		err = pokemon.ErrStaleSave
+	}
+	return dex, err
+}
+
+func evolvesTo(party pokemon.Party, slot int) speciesv1.Species {
+	return speciesv1.Species(party.TradeEvolution(slot).GetSpecies())
+}
+
+// tradeReceived follows a swap on the player's own replica, its party already the saved one and sent: the
+// Pokédex as saved, sent when it changed, and the trade evolution offered to the scene (EvolvePokemon
+// answers it; B leaves it, and the next party change drops it). The follower follows the new lead
+// on the next tick (showChanges).
+func (z *zone) tradeReceived(p *Player, slot int, dex pokedex.Pokedex) {
+	if !dex.Same(p.pokedex) {
+		p.pokedex = dex
+		z.sendPokedex(p)
+	}
+	p.evolving = evolving{}
+	p.evolving.offer(slot, p.party.TradeEvolution(slot))
+}
+
+// backToMenu brings the menu back to both once both scenes are over, with both parties as they
+// are now (an evolution may have changed either; the member's is read from PostgreSQL, where it
+// was saved before its scene ended).
+func (z *zone) backToMenu(p *Player) {
+	t := p.link.trade
+	if t.scene[tradeLeader] || t.scene[tradeMember] {
+		return
+	}
+	ctx, cancel := linkCtx()
+	defer cancel()
+	member, err := pokemon.Load(ctx, db.New(z.w.pool), p.link.other)
+	if err != nil {
+		z.w.log.Error("trade: load member party", "account_id", p.link.other, "err", err)
+		member = t.parties[tradeMember]
+	}
+	t.parties = [2]pokemon.Party{p.party.Clone(), member}
 	z.sendMenu(p)
 }
 
@@ -334,8 +414,14 @@ func (z *zone) onTradeEvent(p *Player, ev *socialv1.LinkEvent) {
 	if p.link.role != linkLinked || p.link.leader {
 		return
 	}
-	if ev.GetTradeDone() != nil {
+	if done := ev.GetTradeDone(); done != nil {
 		z.reloadParty(p)
+		// The swap saved the Pokédex with the Pokémon received (catchReceived).
+		dex := p.pokedex
+		if mon := p.party.At(int(done.GetOwnSlot())); mon != nil {
+			dex = dex.Catch(mon.Species)
+		}
+		z.tradeReceived(p, int(done.GetOwnSlot()), dex)
 	}
 	if s := ev.GetTradeState(); s != nil {
 		switch s.GetStage() {
@@ -358,6 +444,5 @@ func (z *zone) reloadParty(p *Player) {
 		return
 	}
 	p.party = party
-	p.syncFollower()
 	z.sendParty(p)
 }

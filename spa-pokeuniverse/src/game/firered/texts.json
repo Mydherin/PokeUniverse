@@ -118,7 +118,7 @@
   "sText_PkmnGrewToLv", "sText_PkmnLearnedMove", "sText_TryToLearnMove1", "sText_TryToLearnMove2", "sText_TryToLearnMove3", "sText_StopLearningMove", "sText_DidNotLearnMove", "sText_123Poof", "sText_PkmnForgotMove", "sText_AndEllipsis",
   "gText_PokeSum_HmMovesCantBeForgotten", "gText_PokeSum_Controls_PickDelete", "gText_PkmnIsEvolving", "gText_CongratsPkmnEvolved", "gText_PkmnStoppedEvolving", "gText_EllipsisQuestionMark", "gText_BattleYesNoChoice",
   "gText_LevelUp_MaxHP", "gText_LevelUp_Attack", "gText_LevelUp_Defense", "gText_LevelUp_SpAtk", "gText_LevelUp_SpDef", "gText_LevelUp_Speed", "gText_LevelUp_Plus", "gText_LevelUp_Minus",
-  "sText_PkmnGainedEXP", "sText_PlayerDefeatedLinkTrainerTrainer1", "sText_Trainer1LoseText", "sText_PlayerGotMoney", "sText_PlayerWhiteout", "sText_PlayerLostAgainstTrainer1", "sText_PlayerPaidAsPrizeMoney",
+  "sText_PkmnGainedEXP", "sText_ABoosted", "sText_PlayerDefeatedLinkTrainerTrainer1", "sText_Trainer1LoseText", "sText_PlayerGotMoney", "sText_PlayerWhiteout", "sText_PlayerLostAgainstTrainer1", "sText_PlayerPaidAsPrizeMoney",
   "gText_Sleep", "gText_Poison", "gText_Burn", "gText_Paralysis", "gText_Ice", "gText_Confusion", "gText_Love",
   "gText_Shift", "gText_PkmnAlreadyInBattle", "gText_PkmnAlreadySelected", "gText_PkmnHasNoEnergy",
   "sText_AllyPkmnPrefix", "sText_FoePkmnPrefix2",
@@ -156,5 +156,6 @@
   "gText_UR_AwaitingPlayersResponse", "gText_UR_PlayerSentBackOK", "sText_PlayerRepliedNo", "gText_UR_QuitBeingMember", "gText_UR_Colon", "gText_UR_ID",
   "gText_UR_LinkWithFriendDropped", "CableClub_Text_PlayersMadeDifferentSelections", "CableClub_Text_DirectYouToYourRoom",
   "Text_TerminateLinkIfYouLeaveRoom", "Text_TerminateLinkConfirmation",
-  "Text_TakeSeatStartTrade", "CableClub_Text_PleaseWaitBCancel", "gText_IsThisTradeOkay", "gText_CancelTrade", "gText_TradeAction_Summary", "gText_TradeAction_Trade", "gTradeText_Cancel", "gTradeText_ChooseAPokemon", "gText_Trade_CommunicationStandby", "gText_TradeHasBeenCanceled", "gText_Trade_OnlyPkmnForBattle", "gText_WaitingForFriendToFinish", "gText_FriendWantsToTrade"
+  "Text_TakeSeatStartTrade", "CableClub_Text_PleaseWaitBCancel", "gText_IsThisTradeOkay", "gText_CancelTrade", "gText_TradeAction_Summary", "gText_TradeAction_Trade", "gTradeText_Cancel", "gTradeText_ChooseAPokemon", "gText_Trade_CommunicationStandby", "gText_TradeHasBeenCanceled", "gText_Trade_OnlyPkmnForBattle", "gText_WaitingForFriendToFinish", "gText_FriendWantsToTrade",
+  "gText_XWillBeSentToY", "gText_ByeByeVar1", "gText_XSentOverY", "gText_TakeGoodCareOfX", "gText_CommunicationStandby5", "gText_SavingDontTurnOffThePower2"
 ]
