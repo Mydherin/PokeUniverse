@@ -14,6 +14,10 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
+**Test attempt 3 (2026-11-23), in progress, checkpointed:** session 5's fix works. Cases 1-5 and 6 (held item) passed on desktop (see *Tests*). **Next (tester):** fresh preview (redeploy), redo the setup below, then play case 4's "leaving ends the room" (one walks out of the Trade Center), case 7 (crash: `docker restart` this preview's `mic-core-1` right after both YES; only one replica in the preview), case 8 (close one page in the menu), and the phone viewports (390×844, 844×390) on the open menu. Then write the attempt 3 entry in *Tests* and set the front matter.
+- **Setup that works:** `POST <preview>/api/dev/bots` `{"count":2,"map":"pokemon_center_2f"}` with `X-Bots-Secret` (tokens last 15 min); in PG move bot-1 off `0,2` (`update trainers set x=4,y=6 where account_id=1`) and seed parties (bot-1 BULBASAUR Lv5 holding ORAN BERRY 139 + PIDGEY Lv3; bot-2 CHARMANDER Lv5 + RATTATA Lv3 at 0 HP); open `https://mooi.skypea.dev/preview/<id>/play?bot=<token>` per tab, Enter, Enter, A ×3 to load.
+- **Driving it:** keys via `page.keyboard.down/up` (80 ms hold; Z = A, X = B, Enter = START); text prints slowly in the headless browser, wait 2-4 s per A. The Direct Corner attendant is the **right** one at (10,2): stand at (10,3) facing up. Its menu: TRADE CENTER, then the save dialog, then JOIN GROUP / **BECOME LEADER** (second) / EXIT. Trade Center seats: from the entrance, leader went up 1, left 1, up 2 to `chair_0`; the other up 2, right 1, up 1 to `chair_1`. In the menu Down from the own Pokémon goes to CANCEL.
+
 **Session 5 (2026-11-23): attempt 2's bug fixed → `testing`.** `overworld.ts`: a `TradeState{CHOOSING}` that comes before the seat step runs (the second to sit gets it with its seat script) is kept in `tradeOpening` and opens the menu as soon as `runTradeSeat` starts; cleared on `ended`, reconnect, leave and drop. The tester's "partner's menu stays on Choose a POKéMON." was the stuck side's B counted as its CANCEL pick (the server's FireRed flow), gone with the fix. tsc + vite build green. Next: re-test every case on the preview.
 
 **Session 4 (2026-11-22): attempt 1's bug fixed → `testing`.** `infra/assets/graphics.sh` `FIRERED_GFX` += `trade` (all 11 files the client loads exist in `references/pokefirered/graphics/trade/`; the rest of its lists match the `Makefile`). Next: re-test every case on the preview. Not fixed (seen in passing, not a case): the follower drawn over its seated trainer at the seats.
@@ -62,6 +66,18 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Tests
 
+### 2026-11-23: attempt 3, in progress (checkpointed, no verdict yet)
+
+Preview deployed fine. Desktop 1280×720, one tab per bot, BOT2 leader, BOT1 member; BOT2 sat first, BOT1 second.
+- **Seats / attempt 2's bug:** ✅ the second to sit (BOT1) gets the menu right after sitting; both see both parties, held mark on BULBASAUR.
+- **Case 2 SUMMARY:** ✅ BOT2 on BOT1's BULBASAUR → POKéMON INFO (OT BOT1, ITEM ORAN BERRY), B back.
+- **Case 5 Last usable:** ✅ BOT2 CHARMANDER → TRADE → "That's your only POKéMON for battle.", A back.
+- **Case 3 Change mind:** ✅ BOT2 RATTATA / BOT1 PIDGEY, "Is this trade okay?" on both; BOT2 YES ("Communication standby… Please wait."), BOT1 NO → both "The trade has been canceled.", A → choosing; next picks asked again on both.
+- **Case 1 Trade + case 6 held item:** ✅ BOT1 BULBASAUR (ORAN BERRY) ↔ BOT2 RATTATA, both YES → both back on the menu with swapped parties; PG: bot-2 slot 1 BULBASAUR held_item 139, bot-1 slot 0 RATTATA, one `trades` row. Egg half not playable (no Eggs).
+- **Case 4 Cancel:** ✅ so far: BOT1 picked RATTATA, BOT2 CANCEL → YES: BOT2 "Your friend wants to trade POKéMON.", BOT1 "The trade has been canceled.", A → both choosing; BOT2 CANCEL → "Waiting for your friend to finish…", BOT1 CANCEL → both back seated in the room. "Leaving ends the room" not played yet.
+- **Not played yet:** case 4's leaving, case 7, case 8, phone viewports.
+- **Seen in passing (not cases):** the SUMMARY/TRADE box's lower part stays behind the YES/NO box on "Is this trade okay?" (documented gotcha); followers drawn over their seated trainers.
+
 ### 2026-11-23: attempt 2, failed
 
 Preview deployed fine (build and healthchecks green; `firered/graphics/trade/*` now served, 200). Played in the browser at 1280×720 through `https://mooi.skypea.dev/preview/<id>/`, one tab per bot. Setup: bots 1-2 spawned on `pokemon_center_2f`; their parties seeded in the preview DB (bot-1 BULBASAUR Lv5 holding ORAN BERRY + PIDGEY Lv3; bot-2 CHARMANDER Lv5 + RATTATA Lv3 at 0 HP); bot-1 moved off an unreachable spawn tile (`0,2`, behind the counter). Direct Corner → TRADE CENTER → leader/join → both walk in → each sits.
@@ -104,6 +120,7 @@ Preview deployed fine (build and healthchecks green). Played in the browser on d
 
 ## Log
 
+- 2026-11-23: test attempt 3 checkpointed: cases 1, 2, 3, 5, 6 (held item) and most of 4 pass; next: 4's leaving, 7, 8, phone.
 - 2026-11-23: session 5: the second sitter's early `tradeState` kept until its seat step runs (`tradeOpening`); `testing`.
 - 2026-11-23: test attempt 2 failed: the second player to sit never gets the trade menu (`tradeState` dropped before the seat step runs); cases 2, 5, 8 pass; `building`.
 - 2026-11-22: session 4: `trade` added to `infra/assets/graphics.sh` (preview build); `testing`.
