@@ -1,0 +1,10 @@
+- main [ref=e2]:
+  - application "Game" [ref=e3]
+  - generic:
+    - link "Back to home" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e7]: Home
+    - generic [ref=e8]:
+      - status [ref=e9]:
+        - generic [ref=e11]: Online · 6 ms
+      - button "Toggle fullscreen" [ref=e12]
