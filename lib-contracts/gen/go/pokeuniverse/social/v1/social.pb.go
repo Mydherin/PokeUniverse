@@ -13,6 +13,7 @@ package socialv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	v13 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/battle/v1"
 	v11 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/party/v1"
 	v12 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/species/v1"
 	v1 "pokeuniverse/lib-contracts/gen/go/pokeuniverse/trainer/v1"
@@ -2436,6 +2437,7 @@ type LinkIntent struct {
 	//	*LinkIntent_TradeConfirm
 	//	*LinkIntent_TradeCancel
 	//	*LinkIntent_TradeSceneDone
+	//	*LinkIntent_ColosseumCancel
 	Intent        isLinkIntent_Intent `protobuf_oneof:"intent"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2586,6 +2588,15 @@ func (x *LinkIntent) GetTradeSceneDone() *TradeSceneDone {
 	return nil
 }
 
+func (x *LinkIntent) GetColosseumCancel() bool {
+	if x != nil {
+		if x, ok := x.Intent.(*LinkIntent_ColosseumCancel); ok {
+			return x.ColosseumCancel
+		}
+	}
+	return false
+}
+
 type isLinkIntent_Intent interface {
 	isLinkIntent_Intent()
 }
@@ -2651,6 +2662,11 @@ type LinkIntent_TradeSceneDone struct {
 	TradeSceneDone *TradeSceneDone `protobuf:"bytes,12,opt,name=trade_scene_done,json=tradeSceneDone,proto3,oneof"`
 }
 
+type LinkIntent_ColosseumCancel struct {
+	// Phase-9 M11: B while waiting on a Colosseum spot (stands up).
+	ColosseumCancel bool `protobuf:"varint,13,opt,name=colosseum_cancel,json=colosseumCancel,proto3,oneof"`
+}
+
 func (*LinkIntent_Open) isLinkIntent_Intent() {}
 
 func (*LinkIntent_Close) isLinkIntent_Intent() {}
@@ -2674,6 +2690,8 @@ func (*LinkIntent_TradeConfirm) isLinkIntent_Intent() {}
 func (*LinkIntent_TradeCancel) isLinkIntent_Intent() {}
 
 func (*LinkIntent_TradeSceneDone) isLinkIntent_Intent() {}
+
+func (*LinkIntent_ColosseumCancel) isLinkIntent_Intent() {}
 
 type AnswerJoin struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -2742,6 +2760,7 @@ type LinkEvent struct {
 	//	*LinkEvent_TradeState
 	//	*LinkEvent_TradeDone
 	//	*LinkEvent_TradeMember
+	//	*LinkEvent_Colosseum
 	Event         isLinkEvent_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2874,6 +2893,15 @@ func (x *LinkEvent) GetTradeMember() *TradeMemberAction {
 	return nil
 }
 
+func (x *LinkEvent) GetColosseum() *ColosseumAction {
+	if x != nil {
+		if x, ok := x.Event.(*LinkEvent_Colosseum); ok {
+			return x.Colosseum
+		}
+	}
+	return nil
+}
+
 type isLinkEvent_Event interface {
 	isLinkEvent_Event()
 }
@@ -2928,6 +2956,11 @@ type LinkEvent_TradeMember struct {
 	TradeMember *TradeMemberAction `protobuf:"bytes,10,opt,name=trade_member,json=tradeMember,proto3,oneof"`
 }
 
+type LinkEvent_Colosseum struct {
+	// Phase-9 M11, replica to replica only: the Colosseum's link battle.
+	Colosseum *ColosseumAction `protobuf:"bytes,11,opt,name=colosseum,proto3,oneof"`
+}
+
 func (*LinkEvent_Rooms) isLinkEvent_Event() {}
 
 func (*LinkEvent_JoinAsked) isLinkEvent_Event() {}
@@ -2947,6 +2980,8 @@ func (*LinkEvent_TradeState) isLinkEvent_Event() {}
 func (*LinkEvent_TradeDone) isLinkEvent_Event() {}
 
 func (*LinkEvent_TradeMember) isLinkEvent_Event() {}
+
+func (*LinkEvent_Colosseum) isLinkEvent_Event() {}
 
 type LinkRooms struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -3646,11 +3681,273 @@ func (*TradeMemberAction_Cancel) isTradeMemberAction_Action() {}
 
 func (*TradeMemberAction_SceneDone) isTradeMemberAction_Action() {}
 
+// Phase-9 M11 (D25-D28): the Colosseum. The leader's replica starts the battle once both sit; after
+// that either replica plays a step once the choices it needs are in (Redis pvp:<battle>) and tells
+// the other one. Replica to replica only, on the other player's inbox.
+type ColosseumAction struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Who sends it.
+	From uint64 `protobuf:"varint,1,opt,name=from,proto3" json:"from,omitempty"`
+	// Types that are valid to be assigned to Action:
+	//
+	//	*ColosseumAction_Seated
+	//	*ColosseumAction_Stood
+	//	*ColosseumAction_Started
+	//	*ColosseumAction_Step
+	//	*ColosseumAction_Back
+	Action        isColosseumAction_Action `protobuf_oneof:"action"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ColosseumAction) Reset() {
+	*x = ColosseumAction{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ColosseumAction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ColosseumAction) ProtoMessage() {}
+
+func (x *ColosseumAction) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ColosseumAction.ProtoReflect.Descriptor instead.
+func (*ColosseumAction) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ColosseumAction) GetFrom() uint64 {
+	if x != nil {
+		return x.From
+	}
+	return 0
+}
+
+func (x *ColosseumAction) GetAction() isColosseumAction_Action {
+	if x != nil {
+		return x.Action
+	}
+	return nil
+}
+
+func (x *ColosseumAction) GetSeated() *ColosseumSeated {
+	if x != nil {
+		if x, ok := x.Action.(*ColosseumAction_Seated); ok {
+			return x.Seated
+		}
+	}
+	return nil
+}
+
+func (x *ColosseumAction) GetStood() bool {
+	if x != nil {
+		if x, ok := x.Action.(*ColosseumAction_Stood); ok {
+			return x.Stood
+		}
+	}
+	return false
+}
+
+func (x *ColosseumAction) GetStarted() *v13.BattleUpdate {
+	if x != nil {
+		if x, ok := x.Action.(*ColosseumAction_Started); ok {
+			return x.Started
+		}
+	}
+	return nil
+}
+
+func (x *ColosseumAction) GetStep() *ColosseumStep {
+	if x != nil {
+		if x, ok := x.Action.(*ColosseumAction_Step); ok {
+			return x.Step
+		}
+	}
+	return nil
+}
+
+func (x *ColosseumAction) GetBack() bool {
+	if x != nil {
+		if x, ok := x.Action.(*ColosseumAction_Back); ok {
+			return x.Back
+		}
+	}
+	return false
+}
+
+type isColosseumAction_Action interface {
+	isColosseumAction_Action()
+}
+
+type ColosseumAction_Seated struct {
+	// Member -> leader: sat on a spot.
+	Seated *ColosseumSeated `protobuf:"bytes,2,opt,name=seated,proto3,oneof"`
+}
+
+type ColosseumAction_Stood struct {
+	// Member -> leader: stood up before the battle started (B).
+	Stood bool `protobuf:"varint,3,opt,name=stood,proto3,oneof"`
+}
+
+type ColosseumAction_Started struct {
+	// Leader -> member: the battle started (the member's battle.Active is saved): its first update.
+	Started *v13.BattleUpdate `protobuf:"bytes,4,opt,name=started,proto3,oneof"`
+}
+
+type ColosseumAction_Step struct {
+	// A step played on the sender's replica.
+	Step *ColosseumStep `protobuf:"bytes,5,opt,name=step,proto3,oneof"`
+}
+
+type ColosseumAction_Back struct {
+	// The sender came back to the battle after a drop (D28).
+	Back bool `protobuf:"varint,6,opt,name=back,proto3,oneof"`
+}
+
+func (*ColosseumAction_Seated) isColosseumAction_Action() {}
+
+func (*ColosseumAction_Stood) isColosseumAction_Action() {}
+
+func (*ColosseumAction_Started) isColosseumAction_Action() {}
+
+func (*ColosseumAction_Step) isColosseumAction_Action() {}
+
+func (*ColosseumAction_Back) isColosseumAction_Action() {}
+
+type ColosseumSeated struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The member's save (trainers.created_at, Unix microseconds) and the spot taken (0 left, 1 right).
+	Save int64  `protobuf:"varint,1,opt,name=save,proto3" json:"save,omitempty"`
+	Spot uint32 `protobuf:"varint,2,opt,name=spot,proto3" json:"spot,omitempty"`
+	// As the opponent's view shows them.
+	Member        *Friend `protobuf:"bytes,3,opt,name=member,proto3" json:"member,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ColosseumSeated) Reset() {
+	*x = ColosseumSeated{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ColosseumSeated) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ColosseumSeated) ProtoMessage() {}
+
+func (x *ColosseumSeated) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ColosseumSeated.ProtoReflect.Descriptor instead.
+func (*ColosseumSeated) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ColosseumSeated) GetSave() int64 {
+	if x != nil {
+		return x.Save
+	}
+	return 0
+}
+
+func (x *ColosseumSeated) GetSpot() uint32 {
+	if x != nil {
+		return x.Spot
+	}
+	return 0
+}
+
+func (x *ColosseumSeated) GetMember() *Friend {
+	if x != nil {
+		return x.Member
+	}
+	return nil
+}
+
+type ColosseumStep struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Update *v13.BattleUpdate      `protobuf:"bytes,1,opt,name=update,proto3" json:"update,omitempty"`
+	// When the next choices are due, Unix milliseconds.
+	Deadline      int64 `protobuf:"varint,2,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ColosseumStep) Reset() {
+	*x = ColosseumStep{}
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ColosseumStep) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ColosseumStep) ProtoMessage() {}
+
+func (x *ColosseumStep) ProtoReflect() protoreflect.Message {
+	mi := &file_pokeuniverse_social_v1_social_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ColosseumStep.ProtoReflect.Descriptor instead.
+func (*ColosseumStep) Descriptor() ([]byte, []int) {
+	return file_pokeuniverse_social_v1_social_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ColosseumStep) GetUpdate() *v13.BattleUpdate {
+	if x != nil {
+		return x.Update
+	}
+	return nil
+}
+
+func (x *ColosseumStep) GetDeadline() int64 {
+	if x != nil {
+		return x.Deadline
+	}
+	return 0
+}
+
 var File_pokeuniverse_social_v1_social_proto protoreflect.FileDescriptor
 
 const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\n" +
-	"#pokeuniverse/social/v1/social.proto\x12\x16pokeuniverse.social.v1\x1a!pokeuniverse/party/v1/party.proto\x1a%pokeuniverse/species/v1/catalog.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\"\xd4\x01\n" +
+	"#pokeuniverse/social/v1/social.proto\x12\x16pokeuniverse.social.v1\x1a#pokeuniverse/battle/v1/battle.proto\x1a!pokeuniverse/party/v1/party.proto\x1a%pokeuniverse/species/v1/catalog.proto\x1a%pokeuniverse/trainer/v1/trainer.proto\"\xd4\x01\n" +
 	"\x06Friend\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x127\n" +
@@ -3765,7 +4062,7 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\bLinkRoom\x126\n" +
 	"\x06leader\x18\x01 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06leader\x12@\n" +
 	"\bactivity\x18\x02 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityR\bactivity\x12\x1b\n" +
-	"\topened_at\x18\x03 \x01(\x03R\bopenedAt\"\x83\x05\n" +
+	"\topened_at\x18\x03 \x01(\x03R\bopenedAt\"\xb0\x05\n" +
 	"\n" +
 	"LinkIntent\x12:\n" +
 	"\x04open\x18\x01 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityH\x00R\x04open\x12\x16\n" +
@@ -3782,12 +4079,13 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\rtrade_confirm\x18\n" +
 	" \x01(\v2$.pokeuniverse.social.v1.TradeConfirmH\x00R\ftradeConfirm\x12H\n" +
 	"\ftrade_cancel\x18\v \x01(\v2#.pokeuniverse.social.v1.TradeCancelH\x00R\vtradeCancel\x12R\n" +
-	"\x10trade_scene_done\x18\f \x01(\v2&.pokeuniverse.social.v1.TradeSceneDoneH\x00R\x0etradeSceneDoneB\b\n" +
+	"\x10trade_scene_done\x18\f \x01(\v2&.pokeuniverse.social.v1.TradeSceneDoneH\x00R\x0etradeSceneDone\x12+\n" +
+	"\x10colosseum_cancel\x18\r \x01(\bH\x00R\x0fcolosseumCancelB\b\n" +
 	"\x06intent\"<\n" +
 	"\n" +
 	"AnswerJoin\x12\x16\n" +
 	"\x06member\x18\x01 \x01(\x04R\x06member\x12\x16\n" +
-	"\x06accept\x18\x02 \x01(\bR\x06accept\"\xdd\x04\n" +
+	"\x06accept\x18\x02 \x01(\bR\x06accept\"\xa6\x05\n" +
 	"\tLinkEvent\x129\n" +
 	"\x05rooms\x18\x01 \x01(\v2!.pokeuniverse.social.v1.LinkRoomsH\x00R\x05rooms\x12C\n" +
 	"\n" +
@@ -3802,7 +4100,8 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\n" +
 	"trade_done\x18\t \x01(\v2!.pokeuniverse.social.v1.TradeDoneH\x00R\ttradeDone\x12N\n" +
 	"\ftrade_member\x18\n" +
-	" \x01(\v2).pokeuniverse.social.v1.TradeMemberActionH\x00R\vtradeMemberB\a\n" +
+	" \x01(\v2).pokeuniverse.social.v1.TradeMemberActionH\x00R\vtradeMember\x12G\n" +
+	"\tcolosseum\x18\v \x01(\v2'.pokeuniverse.social.v1.ColosseumActionH\x00R\tcolosseumB\a\n" +
 	"\x05event\"C\n" +
 	"\tLinkRooms\x126\n" +
 	"\x05rooms\x18\x01 \x03(\v2 .pokeuniverse.social.v1.LinkRoomR\x05rooms\"\x86\x01\n" +
@@ -3852,7 +4151,22 @@ const file_pokeuniverse_social_v1_social_proto_rawDesc = "" +
 	"\x06cancel\x18\x05 \x01(\v2#.pokeuniverse.social.v1.TradeCancelH\x00R\x06cancel\x12G\n" +
 	"\n" +
 	"scene_done\x18\x06 \x01(\v2&.pokeuniverse.social.v1.TradeSceneDoneH\x00R\tsceneDoneB\b\n" +
-	"\x06action*\x9a\x01\n" +
+	"\x06action\"\x9f\x02\n" +
+	"\x0fColosseumAction\x12\x12\n" +
+	"\x04from\x18\x01 \x01(\x04R\x04from\x12A\n" +
+	"\x06seated\x18\x02 \x01(\v2'.pokeuniverse.social.v1.ColosseumSeatedH\x00R\x06seated\x12\x16\n" +
+	"\x05stood\x18\x03 \x01(\bH\x00R\x05stood\x12@\n" +
+	"\astarted\x18\x04 \x01(\v2$.pokeuniverse.battle.v1.BattleUpdateH\x00R\astarted\x12;\n" +
+	"\x04step\x18\x05 \x01(\v2%.pokeuniverse.social.v1.ColosseumStepH\x00R\x04step\x12\x14\n" +
+	"\x04back\x18\x06 \x01(\bH\x00R\x04backB\b\n" +
+	"\x06action\"q\n" +
+	"\x0fColosseumSeated\x12\x12\n" +
+	"\x04save\x18\x01 \x01(\x03R\x04save\x12\x12\n" +
+	"\x04spot\x18\x02 \x01(\rR\x04spot\x126\n" +
+	"\x06member\x18\x03 \x01(\v2\x1e.pokeuniverse.social.v1.FriendR\x06member\"i\n" +
+	"\rColosseumStep\x12<\n" +
+	"\x06update\x18\x01 \x01(\v2$.pokeuniverse.battle.v1.BattleUpdateR\x06update\x12\x1a\n" +
+	"\bdeadline\x18\x02 \x01(\x03R\bdeadline*\x9a\x01\n" +
 	"\bPresence\x12\x18\n" +
 	"\x14PRESENCE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10PRESENCE_OFFLINE\x10\x01\x12\x13\n" +
@@ -3928,7 +4242,7 @@ func file_pokeuniverse_social_v1_social_proto_rawDescGZIP() []byte {
 }
 
 var file_pokeuniverse_social_v1_social_proto_enumTypes = make([]protoimpl.EnumInfo, 11)
-var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_pokeuniverse_social_v1_social_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(Presence)(0),                   // 0: pokeuniverse.social.v1.Presence
 	(Relation)(0),                   // 1: pokeuniverse.social.v1.Relation
@@ -3980,12 +4294,16 @@ var file_pokeuniverse_social_v1_social_proto_goTypes = []any{
 	(*TradeState)(nil),              // 47: pokeuniverse.social.v1.TradeState
 	(*TradeDone)(nil),               // 48: pokeuniverse.social.v1.TradeDone
 	(*TradeMemberAction)(nil),       // 49: pokeuniverse.social.v1.TradeMemberAction
-	(v1.Gender)(0),                  // 50: pokeuniverse.trainer.v1.Gender
-	(*v11.Party)(nil),               // 51: pokeuniverse.party.v1.Party
-	(v12.Species)(0),                // 52: pokeuniverse.species.v1.Species
+	(*ColosseumAction)(nil),         // 50: pokeuniverse.social.v1.ColosseumAction
+	(*ColosseumSeated)(nil),         // 51: pokeuniverse.social.v1.ColosseumSeated
+	(*ColosseumStep)(nil),           // 52: pokeuniverse.social.v1.ColosseumStep
+	(v1.Gender)(0),                  // 53: pokeuniverse.trainer.v1.Gender
+	(*v11.Party)(nil),               // 54: pokeuniverse.party.v1.Party
+	(v12.Species)(0),                // 55: pokeuniverse.species.v1.Species
+	(*v13.BattleUpdate)(nil),        // 56: pokeuniverse.battle.v1.BattleUpdate
 }
 var file_pokeuniverse_social_v1_social_proto_depIdxs = []int32{
-	50, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
+	53, // 0: pokeuniverse.social.v1.Friend.gender:type_name -> pokeuniverse.trainer.v1.Gender
 	0,  // 1: pokeuniverse.social.v1.Friend.presence:type_name -> pokeuniverse.social.v1.Presence
 	11, // 2: pokeuniverse.social.v1.FriendRequest.player:type_name -> pokeuniverse.social.v1.Friend
 	11, // 3: pokeuniverse.social.v1.FriendsList.friends:type_name -> pokeuniverse.social.v1.Friend
@@ -4041,26 +4359,32 @@ var file_pokeuniverse_social_v1_social_proto_depIdxs = []int32{
 	47, // 53: pokeuniverse.social.v1.LinkEvent.trade_state:type_name -> pokeuniverse.social.v1.TradeState
 	48, // 54: pokeuniverse.social.v1.LinkEvent.trade_done:type_name -> pokeuniverse.social.v1.TradeDone
 	49, // 55: pokeuniverse.social.v1.LinkEvent.trade_member:type_name -> pokeuniverse.social.v1.TradeMemberAction
-	35, // 56: pokeuniverse.social.v1.LinkRooms.rooms:type_name -> pokeuniverse.social.v1.LinkRoom
-	11, // 57: pokeuniverse.social.v1.LinkMember.member:type_name -> pokeuniverse.social.v1.Friend
-	7,  // 58: pokeuniverse.social.v1.LinkMember.activity:type_name -> pokeuniverse.social.v1.LinkActivity
-	8,  // 59: pokeuniverse.social.v1.JoinAnswered.refusal:type_name -> pokeuniverse.social.v1.JoinRefusal
-	11, // 60: pokeuniverse.social.v1.LinkStart.partner:type_name -> pokeuniverse.social.v1.Friend
-	7,  // 61: pokeuniverse.social.v1.LinkStart.activity:type_name -> pokeuniverse.social.v1.LinkActivity
-	9,  // 62: pokeuniverse.social.v1.TradeState.stage:type_name -> pokeuniverse.social.v1.TradeStage
-	51, // 63: pokeuniverse.social.v1.TradeState.own_party:type_name -> pokeuniverse.party.v1.Party
-	51, // 64: pokeuniverse.social.v1.TradeState.other_party:type_name -> pokeuniverse.party.v1.Party
-	10, // 65: pokeuniverse.social.v1.TradeState.notice:type_name -> pokeuniverse.social.v1.TradeNotice
-	52, // 66: pokeuniverse.social.v1.TradeDone.evolves_to:type_name -> pokeuniverse.species.v1.Species
-	43, // 67: pokeuniverse.social.v1.TradeMemberAction.offer:type_name -> pokeuniverse.social.v1.TradeOffer
-	44, // 68: pokeuniverse.social.v1.TradeMemberAction.confirm:type_name -> pokeuniverse.social.v1.TradeConfirm
-	45, // 69: pokeuniverse.social.v1.TradeMemberAction.cancel:type_name -> pokeuniverse.social.v1.TradeCancel
-	46, // 70: pokeuniverse.social.v1.TradeMemberAction.scene_done:type_name -> pokeuniverse.social.v1.TradeSceneDone
-	71, // [71:71] is the sub-list for method output_type
-	71, // [71:71] is the sub-list for method input_type
-	71, // [71:71] is the sub-list for extension type_name
-	71, // [71:71] is the sub-list for extension extendee
-	0,  // [0:71] is the sub-list for field type_name
+	50, // 56: pokeuniverse.social.v1.LinkEvent.colosseum:type_name -> pokeuniverse.social.v1.ColosseumAction
+	35, // 57: pokeuniverse.social.v1.LinkRooms.rooms:type_name -> pokeuniverse.social.v1.LinkRoom
+	11, // 58: pokeuniverse.social.v1.LinkMember.member:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 59: pokeuniverse.social.v1.LinkMember.activity:type_name -> pokeuniverse.social.v1.LinkActivity
+	8,  // 60: pokeuniverse.social.v1.JoinAnswered.refusal:type_name -> pokeuniverse.social.v1.JoinRefusal
+	11, // 61: pokeuniverse.social.v1.LinkStart.partner:type_name -> pokeuniverse.social.v1.Friend
+	7,  // 62: pokeuniverse.social.v1.LinkStart.activity:type_name -> pokeuniverse.social.v1.LinkActivity
+	9,  // 63: pokeuniverse.social.v1.TradeState.stage:type_name -> pokeuniverse.social.v1.TradeStage
+	54, // 64: pokeuniverse.social.v1.TradeState.own_party:type_name -> pokeuniverse.party.v1.Party
+	54, // 65: pokeuniverse.social.v1.TradeState.other_party:type_name -> pokeuniverse.party.v1.Party
+	10, // 66: pokeuniverse.social.v1.TradeState.notice:type_name -> pokeuniverse.social.v1.TradeNotice
+	55, // 67: pokeuniverse.social.v1.TradeDone.evolves_to:type_name -> pokeuniverse.species.v1.Species
+	43, // 68: pokeuniverse.social.v1.TradeMemberAction.offer:type_name -> pokeuniverse.social.v1.TradeOffer
+	44, // 69: pokeuniverse.social.v1.TradeMemberAction.confirm:type_name -> pokeuniverse.social.v1.TradeConfirm
+	45, // 70: pokeuniverse.social.v1.TradeMemberAction.cancel:type_name -> pokeuniverse.social.v1.TradeCancel
+	46, // 71: pokeuniverse.social.v1.TradeMemberAction.scene_done:type_name -> pokeuniverse.social.v1.TradeSceneDone
+	51, // 72: pokeuniverse.social.v1.ColosseumAction.seated:type_name -> pokeuniverse.social.v1.ColosseumSeated
+	56, // 73: pokeuniverse.social.v1.ColosseumAction.started:type_name -> pokeuniverse.battle.v1.BattleUpdate
+	52, // 74: pokeuniverse.social.v1.ColosseumAction.step:type_name -> pokeuniverse.social.v1.ColosseumStep
+	11, // 75: pokeuniverse.social.v1.ColosseumSeated.member:type_name -> pokeuniverse.social.v1.Friend
+	56, // 76: pokeuniverse.social.v1.ColosseumStep.update:type_name -> pokeuniverse.battle.v1.BattleUpdate
+	77, // [77:77] is the sub-list for method output_type
+	77, // [77:77] is the sub-list for method input_type
+	77, // [77:77] is the sub-list for extension type_name
+	77, // [77:77] is the sub-list for extension extendee
+	0,  // [0:77] is the sub-list for field type_name
 }
 
 func init() { file_pokeuniverse_social_v1_social_proto_init() }
@@ -4100,6 +4424,7 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		(*LinkIntent_TradeConfirm)(nil),
 		(*LinkIntent_TradeCancel)(nil),
 		(*LinkIntent_TradeSceneDone)(nil),
+		(*LinkIntent_ColosseumCancel)(nil),
 	}
 	file_pokeuniverse_social_v1_social_proto_msgTypes[27].OneofWrappers = []any{
 		(*LinkEvent_Rooms)(nil),
@@ -4112,6 +4437,7 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		(*LinkEvent_TradeState)(nil),
 		(*LinkEvent_TradeDone)(nil),
 		(*LinkEvent_TradeMember)(nil),
+		(*LinkEvent_Colosseum)(nil),
 	}
 	file_pokeuniverse_social_v1_social_proto_msgTypes[38].OneofWrappers = []any{
 		(*TradeMemberAction_Seated)(nil),
@@ -4120,13 +4446,20 @@ func file_pokeuniverse_social_v1_social_proto_init() {
 		(*TradeMemberAction_Cancel)(nil),
 		(*TradeMemberAction_SceneDone)(nil),
 	}
+	file_pokeuniverse_social_v1_social_proto_msgTypes[39].OneofWrappers = []any{
+		(*ColosseumAction_Seated)(nil),
+		(*ColosseumAction_Stood)(nil),
+		(*ColosseumAction_Started)(nil),
+		(*ColosseumAction_Step)(nil),
+		(*ColosseumAction_Back)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pokeuniverse_social_v1_social_proto_rawDesc), len(file_pokeuniverse_social_v1_social_proto_rawDesc)),
 			NumEnums:      11,
-			NumMessages:   39,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

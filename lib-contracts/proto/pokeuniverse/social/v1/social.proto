@@ -5,6 +5,7 @@ syntax = "proto3";
 // on each online player's NATS inbox, social.player.<id> (phase-9 D9).
 package pokeuniverse.social.v1;
 
+import "pokeuniverse/battle/v1/battle.proto";
 import "pokeuniverse/party/v1/party.proto";
 import "pokeuniverse/species/v1/catalog.proto";
 import "pokeuniverse/trainer/v1/trainer.proto";
@@ -337,6 +338,8 @@ message LinkIntent {
     // Phase-9 M10: the trade scene (and the evolution after it) is over; the menu comes back
     // once both sides are done (CB2_WaitTradeComplete's READY_FINISH_TRADE).
     TradeSceneDone trade_scene_done = 12;
+    // Phase-9 M11: B while waiting on a Colosseum spot (stands up).
+    bool colosseum_cancel = 13;
   }
 }
 
@@ -368,6 +371,8 @@ message LinkEvent {
     TradeDone trade_done = 9;
     // Replica to replica only: what the member does in the Trade Center, for the leader's replica.
     TradeMemberAction trade_member = 10;
+    // Phase-9 M11, replica to replica only: the Colosseum's link battle.
+    ColosseumAction colosseum = 11;
   }
 }
 
@@ -484,4 +489,38 @@ message TradeMemberAction {
     TradeCancel cancel = 5;
     TradeSceneDone scene_done = 6;
   }
+}
+
+// Phase-9 M11 (D25-D28): the Colosseum. The leader's replica starts the battle once both sit; after
+// that either replica plays a step once the choices it needs are in (Redis pvp:<battle>) and tells
+// the other one. Replica to replica only, on the other player's inbox.
+message ColosseumAction {
+  // Who sends it.
+  uint64 from = 1;
+  oneof action {
+    // Member -> leader: sat on a spot.
+    ColosseumSeated seated = 2;
+    // Member -> leader: stood up before the battle started (B).
+    bool stood = 3;
+    // Leader -> member: the battle started (the member's battle.Active is saved): its first update.
+    pokeuniverse.battle.v1.BattleUpdate started = 4;
+    // A step played on the sender's replica.
+    ColosseumStep step = 5;
+    // The sender came back to the battle after a drop (D28).
+    bool back = 6;
+  }
+}
+
+message ColosseumSeated {
+  // The member's save (trainers.created_at, Unix microseconds) and the spot taken (0 left, 1 right).
+  int64 save = 1;
+  uint32 spot = 2;
+  // As the opponent's view shows them.
+  Friend member = 3;
+}
+
+message ColosseumStep {
+  pokeuniverse.battle.v1.BattleUpdate update = 1;
+  // When the next choices are due, Unix milliseconds.
+  int64 deadline = 2;
 }

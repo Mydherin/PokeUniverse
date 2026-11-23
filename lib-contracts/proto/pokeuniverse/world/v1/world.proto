@@ -277,6 +277,10 @@ message ScriptStep {
     // both sit, then the trade menu (social.v1 TradeState); the script goes on once it closes or B
     // stands the player up (TradeCancel).
     bool trade_seat = 16;
+    // A Colosseum player spot (phase-9 D25, EnterColosseumPlayerSpot): "Please wait. B Button:
+    // Cancel" until both sit, then the link battle (BattleStarted); the script ends once it's over,
+    // or goes on when B stands the player up (LinkIntent.colosseum_cancel).
+    bool colosseum_seat = 17;
   }
 }
 

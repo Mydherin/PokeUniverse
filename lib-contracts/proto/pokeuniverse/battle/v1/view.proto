@@ -22,6 +22,9 @@ enum BattleKind {
   BATTLE_KIND_TRAINER = 1;
   // Against one wild Pokémon (Phase 7): RUN, escape items and balls; no money but Pay Day.
   BATTLE_KIND_WILD = 2;
+  // Against another player in the Colosseum (phase-9 D25-D28): no bag, RUN forfeits, no EXP or
+  // money, nothing saved. BattleView.trainer is the opponent (no class, pic "red" or "leaf").
+  BATTLE_KIND_LINK = 3;
 }
 
 // What the party balls show for one Pokémon.
@@ -259,6 +262,8 @@ message BattleChoice {
 message BattleStarted {
   BattleView view = 1;
   repeated BattleEvent events = 2;
+  // A link battle's request: seconds left to choose (phase-9 D27); 0 when there's no timer.
+  uint32 seconds_left = 3;
 }
 
 // Server -> client: what happened after a choice, then the next request (WAIT once it's over).
@@ -266,6 +271,8 @@ message BattleTurn {
   string battle_id = 1;
   repeated BattleEvent events = 2;
   BattleRequest request = 3;
+  // As BattleStarted.seconds_left.
+  uint32 seconds_left = 4;
 }
 
 enum BattleResult {

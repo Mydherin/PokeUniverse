@@ -1768,6 +1768,7 @@ type ScriptStep struct {
 	//	*ScriptStep_End
 	//	*ScriptStep_LinkRoom
 	//	*ScriptStep_TradeSeat
+	//	*ScriptStep_ColosseumSeat
 	Action        isScriptStep_Action `protobuf_oneof:"action"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1954,6 +1955,15 @@ func (x *ScriptStep) GetTradeSeat() bool {
 	return false
 }
 
+func (x *ScriptStep) GetColosseumSeat() bool {
+	if x != nil {
+		if x, ok := x.Action.(*ScriptStep_ColosseumSeat); ok {
+			return x.ColosseumSeat
+		}
+	}
+	return false
+}
+
 type isScriptStep_Action interface {
 	isScriptStep_Action()
 }
@@ -2047,6 +2057,13 @@ type ScriptStep_TradeSeat struct {
 	TradeSeat bool `protobuf:"varint,16,opt,name=trade_seat,json=tradeSeat,proto3,oneof"`
 }
 
+type ScriptStep_ColosseumSeat struct {
+	// A Colosseum player spot (phase-9 D25, EnterColosseumPlayerSpot): "Please wait. B Button:
+	// Cancel" until both sit, then the link battle (BattleStarted); the script ends once it's over,
+	// or goes on when B stands the player up (LinkIntent.colosseum_cancel).
+	ColosseumSeat bool `protobuf:"varint,17,opt,name=colosseum_seat,json=colosseumSeat,proto3,oneof"`
+}
+
 func (*ScriptStep_Message) isScriptStep_Action() {}
 
 func (*ScriptStep_Sound) isScriptStep_Action() {}
@@ -2078,6 +2095,8 @@ func (*ScriptStep_End) isScriptStep_Action() {}
 func (*ScriptStep_LinkRoom) isScriptStep_Action() {}
 
 func (*ScriptStep_TradeSeat) isScriptStep_Action() {}
+
+func (*ScriptStep_ColosseumSeat) isScriptStep_Action() {}
 
 type LinkRoomStep struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
@@ -2911,7 +2930,7 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\x06Script\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x127\n" +
 	"\x05steps\x18\x02 \x03(\v2!.pokeuniverse.world.v1.ScriptStepR\x05steps\x12\x10\n" +
-	"\x03npc\x18\x03 \x01(\tR\x03npc\"\x8f\x06\n" +
+	"\x03npc\x18\x03 \x01(\tR\x03npc\"\xb8\x06\n" +
 	"\n" +
 	"ScriptStep\x12:\n" +
 	"\amessage\x18\x01 \x01(\v2\x1e.pokeuniverse.world.v1.MessageH\x00R\amessage\x12\x16\n" +
@@ -2934,7 +2953,8 @@ const file_pokeuniverse_world_v1_world_proto_rawDesc = "" +
 	"\x03end\x18\x0e \x01(\bH\x00R\x03end\x12B\n" +
 	"\tlink_room\x18\x0f \x01(\v2#.pokeuniverse.world.v1.LinkRoomStepH\x00R\blinkRoom\x12\x1f\n" +
 	"\n" +
-	"trade_seat\x18\x10 \x01(\bH\x00R\ttradeSeatB\b\n" +
+	"trade_seat\x18\x10 \x01(\bH\x00R\ttradeSeat\x12'\n" +
+	"\x0ecolosseum_seat\x18\x11 \x01(\bH\x00R\rcolosseumSeatB\b\n" +
 	"\x06action\"d\n" +
 	"\fLinkRoomStep\x12@\n" +
 	"\bactivity\x18\x01 \x01(\x0e2$.pokeuniverse.social.v1.LinkActivityR\bactivity\x12\x12\n" +
@@ -3140,6 +3160,7 @@ func file_pokeuniverse_world_v1_world_proto_init() {
 		(*ScriptStep_End)(nil),
 		(*ScriptStep_LinkRoom)(nil),
 		(*ScriptStep_TradeSeat)(nil),
+		(*ScriptStep_ColosseumSeat)(nil),
 	}
 	file_pokeuniverse_world_v1_world_proto_msgTypes[35].OneofWrappers = []any{
 		(*ZoneBus_Batch)(nil),

@@ -39,6 +39,9 @@ const (
 	BattleKind_BATTLE_KIND_TRAINER BattleKind = 1
 	// Against one wild Pokémon (Phase 7): RUN, escape items and balls; no money but Pay Day.
 	BattleKind_BATTLE_KIND_WILD BattleKind = 2
+	// Against another player in the Colosseum (phase-9 D25-D28): no bag, RUN forfeits, no EXP or
+	// money, nothing saved. BattleView.trainer is the opponent (no class, pic "red" or "leaf").
+	BattleKind_BATTLE_KIND_LINK BattleKind = 3
 )
 
 // Enum value maps for BattleKind.
@@ -47,11 +50,13 @@ var (
 		0: "BATTLE_KIND_UNSPECIFIED",
 		1: "BATTLE_KIND_TRAINER",
 		2: "BATTLE_KIND_WILD",
+		3: "BATTLE_KIND_LINK",
 	}
 	BattleKind_value = map[string]int32{
 		"BATTLE_KIND_UNSPECIFIED": 0,
 		"BATTLE_KIND_TRAINER":     1,
 		"BATTLE_KIND_WILD":        2,
+		"BATTLE_KIND_LINK":        3,
 	}
 )
 
@@ -1749,9 +1754,11 @@ func (x *BattleChoice) GetPartner() *BattleAction {
 
 // Server -> client: a battle started. Draw `view`, then play `events` (the send-outs).
 type BattleStarted struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	View          *BattleView            `protobuf:"bytes,1,opt,name=view,proto3" json:"view,omitempty"`
-	Events        []*BattleEvent         `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	View   *BattleView            `protobuf:"bytes,1,opt,name=view,proto3" json:"view,omitempty"`
+	Events []*BattleEvent         `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	// A link battle's request: seconds left to choose (phase-9 D27); 0 when there's no timer.
+	SecondsLeft   uint32 `protobuf:"varint,3,opt,name=seconds_left,json=secondsLeft,proto3" json:"seconds_left,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1800,12 +1807,21 @@ func (x *BattleStarted) GetEvents() []*BattleEvent {
 	return nil
 }
 
+func (x *BattleStarted) GetSecondsLeft() uint32 {
+	if x != nil {
+		return x.SecondsLeft
+	}
+	return 0
+}
+
 // Server -> client: what happened after a choice, then the next request (WAIT once it's over).
 type BattleTurn struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	BattleId      string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
-	Events        []*BattleEvent         `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
-	Request       *BattleRequest         `protobuf:"bytes,3,opt,name=request,proto3" json:"request,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	BattleId string                 `protobuf:"bytes,1,opt,name=battle_id,json=battleId,proto3" json:"battle_id,omitempty"`
+	Events   []*BattleEvent         `protobuf:"bytes,2,rep,name=events,proto3" json:"events,omitempty"`
+	Request  *BattleRequest         `protobuf:"bytes,3,opt,name=request,proto3" json:"request,omitempty"`
+	// As BattleStarted.seconds_left.
+	SecondsLeft   uint32 `protobuf:"varint,4,opt,name=seconds_left,json=secondsLeft,proto3" json:"seconds_left,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1859,6 +1875,13 @@ func (x *BattleTurn) GetRequest() *BattleRequest {
 		return x.Request
 	}
 	return nil
+}
+
+func (x *BattleTurn) GetSecondsLeft() uint32 {
+	if x != nil {
+		return x.SecondsLeft
+	}
+	return 0
 }
 
 // Server -> client: the battle is over (after the last BattleTurn). The party follows as
@@ -2174,15 +2197,17 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12\x12\n" +
 	"\x04step\x18\x02 \x01(\rR\x04step\x12<\n" +
 	"\x06action\x18\x03 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\x06action\x12>\n" +
-	"\apartner\x18\x04 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\apartner\"\x84\x01\n" +
+	"\apartner\x18\x04 \x01(\v2$.pokeuniverse.battle.v1.BattleActionR\apartner\"\xa7\x01\n" +
 	"\rBattleStarted\x126\n" +
 	"\x04view\x18\x01 \x01(\v2\".pokeuniverse.battle.v1.BattleViewR\x04view\x12;\n" +
-	"\x06events\x18\x02 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\"\xa7\x01\n" +
+	"\x06events\x18\x02 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\x12!\n" +
+	"\fseconds_left\x18\x03 \x01(\rR\vsecondsLeft\"\xca\x01\n" +
 	"\n" +
 	"BattleTurn\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12;\n" +
 	"\x06events\x18\x02 \x03(\v2#.pokeuniverse.battle.v1.BattleEventR\x06events\x12?\n" +
-	"\arequest\x18\x03 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\"\x9f\x02\n" +
+	"\arequest\x18\x03 \x01(\v2%.pokeuniverse.battle.v1.BattleRequestR\arequest\x12!\n" +
+	"\fseconds_left\x18\x04 \x01(\rR\vsecondsLeft\"\x9f\x02\n" +
 	"\vBattleEnded\x12\x1b\n" +
 	"\tbattle_id\x18\x01 \x01(\tR\bbattleId\x12<\n" +
 	"\x06result\x18\x02 \x01(\x0e2$.pokeuniverse.battle.v1.BattleResultR\x06result\x12\x14\n" +
@@ -2201,12 +2226,13 @@ const file_pokeuniverse_battle_v1_view_proto_rawDesc = "" +
 	"\x0fbox_full_before\x18\x06 \x01(\bR\rboxFullBefore\x12$\n" +
 	"\x0enew_in_pokedex\x18\a \x01(\bR\fnewInPokedex\x12\x12\n" +
 	"\x04slot\x18\b \x01(\rR\x04slot\x12\"\n" +
-	"\rfull_box_name\x18\t \x01(\tR\vfullBoxName*X\n" +
+	"\rfull_box_name\x18\t \x01(\tR\vfullBoxName*n\n" +
 	"\n" +
 	"BattleKind\x12\x1b\n" +
 	"\x17BATTLE_KIND_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13BATTLE_KIND_TRAINER\x10\x01\x12\x14\n" +
-	"\x10BATTLE_KIND_WILD\x10\x02*n\n" +
+	"\x10BATTLE_KIND_WILD\x10\x02\x12\x14\n" +
+	"\x10BATTLE_KIND_LINK\x10\x03*n\n" +
 	"\tPartyBall\x12\x1a\n" +
 	"\x16PARTY_BALL_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12PARTY_BALL_HEALTHY\x10\x01\x12\x15\n" +
