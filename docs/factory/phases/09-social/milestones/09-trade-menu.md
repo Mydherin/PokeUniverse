@@ -1,9 +1,9 @@
 ---
 id: 09-trade-menu
 title: "Trade: menu and transaction"
-status: testing
-test: none
-attempts: 1
+status: building
+test: failed
+attempts: 2
 depends: [08-link-rooms]
 context: [context/social.md, context/references.md]
 ---
@@ -49,16 +49,32 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Trade | Both pick, both YES | Pokémon swapped in both parties, saved | ❌ 2026-11-22 menu never opens (trade graphics 404) |
-| 2 | SUMMARY | View the other's Pokémon | FireRed's summary, read only | ❌ 2026-11-22 blocked by the menu |
-| 3 | Change mind | One changes pick after the other said YES | Both asked again | ❌ 2026-11-22 blocked by the menu |
-| 4 | Cancel | One cancels | Both back to choosing; leaving ends the room | ❌ 2026-11-22 blocked by the menu |
-| 5 | Last usable | Offer your only usable Pokémon | FireRed's refusal | ❌ 2026-11-22 blocked by the menu |
-| 6 | Held item, Egg | Trade a holder and an Egg | Item travels; Egg traded | ❌ 2026-11-22 blocked by the menu |
-| 7 | Crash mid-trade | Kill a replica right after both YES | After reconnect: swapped for both or for neither | ❌ 2026-11-22 blocked by the menu |
-| 8 | Disconnect | One drops during the menu | Nothing swapped; other returned to the counter | ❌ 2026-11-22 blocked by the menu |
+| 1 | Trade | Both pick, both YES | Pokémon swapped in both parties, saved | ❌ 2026-11-23 the second player to sit never gets the menu |
+| 2 | SUMMARY | View the other's Pokémon | FireRed's summary, read only | ✅ 2026-11-23 one side only: bot-2's menu, A on BOT1's BULBASAUR → POKéMON INFO, OT BOT1, ITEM ORAN BERRY; B back |
+| 3 | Change mind | One changes pick after the other said YES | Both asked again | ❌ 2026-11-23 blocked: only one side gets the menu |
+| 4 | Cancel | One cancels | Both back to choosing; leaving ends the room | ❌ 2026-11-23 blocked: only one side gets the menu |
+| 5 | Last usable | Offer your only usable Pokémon | FireRed's refusal | ✅ 2026-11-23 bot-2 (CHARMANDER + fainted RATTATA): CHARMANDER, TRADE → "That's your only POKéMON for battle.", A back to choosing |
+| 6 | Held item, Egg | Trade a holder and an Egg | Item travels; Egg traded | ❌ 2026-11-23 blocked: only one side gets the menu (held mark shown on BULBASAUR's icon) |
+| 7 | Crash mid-trade | Kill a replica right after both YES | After reconnect: swapped for both or for neither | ❌ 2026-11-23 blocked: only one side gets the menu |
+| 8 | Disconnect | One drops during the menu | Nothing swapped; other returned to the counter | ✅ 2026-11-23 bot-1 closed its page in the menu: bot-2 (seated) "The link with your friend has been dropped…", back in front of the counter; bot-1 back at the counter on reconnect; parties unchanged, `trades` empty |
 
 ## Tests
+
+### 2026-11-23: attempt 2, failed
+
+Preview deployed fine (build and healthchecks green; `firered/graphics/trade/*` now served, 200). Played in the browser at 1280×720 through `https://mooi.skypea.dev/preview/<id>/`, one tab per bot. Setup: bots 1-2 spawned on `pokemon_center_2f`; their parties seeded in the preview DB (bot-1 BULBASAUR Lv5 holding ORAN BERRY + PIDGEY Lv3; bot-2 CHARMANDER Lv5 + RATTATA Lv3 at 0 HP); bot-1 moved off an unreachable spawn tile (`0,2`, behind the counter). Direct Corner → TRADE CENTER → leader/join → both walk in → each sits.
+
+- **Blocking bug: the second player to sit never gets the trade menu.** ❌ cases 1, 3, 4, 6, 7.
+  - **Steps:** two players in a Trade Center room; A sits (`chair_0` or `chair_1`), "Please wait. … … B Button: Cancel" finishes printing; then B sits.
+  - **Expected:** both fade to `trade.c`'s menu with both parties.
+  - **Actual:** A's menu opens (both parties, cursor, held mark, "Choose a POKéMON."); B keeps "Please wait. … … B Button: Cancel" forever, no error in the console, nothing in `mic-core`'s log. Reproduced 3 times: leader first (member stuck, twice: after B and stepping off and on again) and member first (leader stuck), so it's sit order, not role.
+  - **Cause (read, not fixed):** `overworld.ts` `linkEvent` routes `tradeState` only once `this.script.trade` exists, i.e. once `runTradeSeat` has run; the second sitter gets `TradeState{CHOOSING}` from mic-core right when its seat script arrives, before the client reaches the `tradeSeat` step, so the event falls through and is dropped (no replay). The first sitter is already `seated` when it comes.
+  - **Also seen:** when the waiting player stands up (B), the partner's open menu stays on "Choose a POKéMON." with no notice.
+- **Case 2 SUMMARY:** ✅ (one side): partner's BULBASAUR → FireRed POKéMON INFO, OT BOT1, ITEM ORAN BERRY; B returns.
+- **Case 5 Last usable:** ✅ "That's your only POKéMON for battle.", A back to choosing.
+- **Case 8 Disconnect:** ✅ partner seated (not in its menu, see the bug) gets "The link with your friend has been dropped…" and is put back at the counter; the dropped one is back at the counter on reconnect; DB parties unchanged, `trades` empty.
+- **Phone:** the open menu fits portrait (390×844) and landscape (844×390); nothing else could be played.
+- **Seen in passing (not cases):** after the link room both followers are gone in the 2F until something redraws them; bots can spawn on `pokemon_center_2f` tiles behind the counter (`0,2`).
 
 ### 2026-11-22: attempt 1, failed
 
@@ -86,6 +102,7 @@ Preview deployed fine (build and healthchecks green). Played in the browser on d
 
 ## Log
 
+- 2026-11-23: test attempt 2 failed: the second player to sit never gets the trade menu (`tradeState` dropped before the seat step runs); cases 2, 5, 8 pass; `building`.
 - 2026-11-22: session 4: `trade` added to `infra/assets/graphics.sh` (preview build); `testing`.
 - 2026-11-22: test attempt 1 failed: on the preview the trade menu never opens (`trade/` graphics missing from `infra/assets/graphics.sh`); `building`.
 - 2026-11-22: session 3: client (assets, `trade-menu.ts`, overworld seat step and routing); tsc + vite build green; `testing`.
