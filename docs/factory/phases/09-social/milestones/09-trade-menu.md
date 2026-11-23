@@ -75,7 +75,8 @@ Preview deployed fine. Desktop 1280×720, one tab per bot, BOT2 leader, BOT1 mem
 - **Case 3 Change mind:** ✅ BOT2 RATTATA / BOT1 PIDGEY, "Is this trade okay?" on both; BOT2 YES ("Communication standby… Please wait."), BOT1 NO → both "The trade has been canceled.", A → choosing; next picks asked again on both.
 - **Case 1 Trade + case 6 held item:** ✅ BOT1 BULBASAUR (ORAN BERRY) ↔ BOT2 RATTATA, both YES → both back on the menu with swapped parties; PG: bot-2 slot 1 BULBASAUR held_item 139, bot-1 slot 0 RATTATA, one `trades` row. Egg half not playable (no Eggs).
 - **Case 4 Cancel:** ✅ so far: BOT1 picked RATTATA, BOT2 CANCEL → YES: BOT2 "Your friend wants to trade POKéMON.", BOT1 "The trade has been canceled.", A → both choosing; BOT2 CANCEL → "Waiting for your friend to finish…", BOT1 CANCEL → both back seated in the room. "Leaving ends the room" not played yet.
-- **Not played yet:** case 4's leaving, case 7, case 8, phone viewports.
+- **Session 2 (fresh preview, same setup):** BOT2 sat first, BOT1 second: both menus open. **Case 4 leaving:** ✅ both CANCEL → both seated in the room; BOT1 walks to the exit → "The link will be terminated if you leave the room. Is that okay?" YES → "Terminating link… You will be escorted out…", back at the 2F counter; BOT2 (seated) "The link with your friend has been dropped…", back at the counter. **Phone:** ✅ the open menu fits 390×844 (top of the screen; the page's Home/Online/fullscreen buttons overlap the name tabs, as on every game screen) and 844×390.
+- **Not played yet:** case 7, case 8 (re-play after the fix).
 - **Seen in passing (not cases):** the SUMMARY/TRADE box's lower part stays behind the YES/NO box on "Is this trade okay?" (documented gotcha); followers drawn over their seated trainers.
 
 ### 2026-11-23: attempt 2, failed
