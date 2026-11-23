@@ -1,7 +1,7 @@
 ---
 id: 11-colosseum-single
 title: "Colosseum: single battles"
-status: planned
+status: building
 depends: [08-link-rooms]
 context: [context/social.md, context/references.md]
 ---
