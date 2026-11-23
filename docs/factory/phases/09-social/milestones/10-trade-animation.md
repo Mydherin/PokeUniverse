@@ -2,7 +2,7 @@
 id: 10-trade-animation
 title: "Trade: animation and after"
 status: testing
-test: none
+test: passed
 attempts: 1
 depends: [09-trade-menu]
 context: [context/social.md, context/references.md]
@@ -48,10 +48,19 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 | 4 | Everstone | Kadabra holding Everstone | No evolution | ✅ 2026-11-23 BOT2 KADABRA+EVERSTONE stays KADABRA, item kept |
 | 5 | Cancel evolution | B during the evolution | Stays; item kept | ✅ 2026-11-23 BOT2 B during ONIX's evolution: ONIX (95), METAL COAT (199) kept |
 | 6 | Summary, Pokédex | Check the received one | "Met in a trade", OT the other; Pokédex caught | ✅ 2026-11-23 KADABRA on BOT2: OT BOT1, IDNo 44291, "Met in a trade."; caught bits 64 / 95, 208 |
-| 7 | EXP | Battle with it | 1.5× EXP | ❌ 2026-11-23 BOT2's traded KADABRA L10 beat a wild PIKACHU L7: 123 EXP (= floor(82·7/7·1.5)), saved 560 → 683; but the text is "KADABRA gained 123 EXP. Points!", FireRed's is "KADABRA gained a boosted 123 EXP. Points!" |
+| 7 | EXP | Battle with it | 1.5× EXP | ✅ 2026-11-23 (attempt 2) traded KADABRA L10 (OT BOT2): "KADABRA gained a boosted / 36 EXP. Points!" vs RATTATA L3 (desktop), "…a boosted / 33 EXP. Points!" vs CATERPIE L3 (phone); saved 560 → 596 → 629 |
 | 8 | Follower | Trade the lead | Follower changes | ✅ 2026-11-23 after the lead trade: BOT1 STEELIX, BOT2 KADABRA, in the room and after relogin |
 
 ## Tests
+
+### 2026-11-23: attempt 2, passed (case 7 re-tested)
+
+Tester session 4. Preview deployed (build and healthchecks green, `previewUrl` `/preview/aojdm6htyl22duuxbldbyjfmbl626cu6/`, opened via `https://mooi.skypea.dev`). Fresh DB: one bot, BOT1 (trainer id 321358371), given before login a KADABRA L10 (exp 560, CONFUSION/TELEPORT) with OT BOT2 (4030209877), placed at `pallet_town_players_house_1f` (11,7).
+- **Cases 1-6 and 8:** ✅ unchanged since attempt 1 (table); the fix touched only the EXP message.
+- **Case 7 EXP, desktop 1280×720:** ✅ walked the test grass, wild RATTATA L3, CONFUSION: "Wild RATTATA fainted!", "KADABRA gained a boosted / 36 EXP. Points!" (FireRed's `sText_PkmnGainedEXP` with `sText_ABoosted`, same line break). 36 = floor(floor(57·3/7)·1.5); `exp` 560 → 596.
+- **Case 7 EXP, phone 390×844:** ✅ wild CATERPIE L3: "KADABRA gained a boosted / 33 EXP. Points!" (= floor(floor(53·3/7)·1.5)), fits the text box; `exp` 596 → 629.
+- **Console:** 0 errors (4 warnings, unrelated to the battle).
+- **Not checked:** a non-traded Pokémon's plain message (attempt 1 already showed the plain text before the fix's flag existed).
 
 ### 2026-11-23: attempt 1, failed (case 7's message)
 
@@ -100,3 +109,4 @@ Preview deployed fine (build and healthchecks green). Desktop 1280×720, one tab
 - 2026-11-23: tester session 2 checkpoint: preview redeployed (fresh DB, set up again); cases 3, 4, 5, 6, 8 pass; left: SAVING… flow watched once, case 7 EXP, phone check (plan in *Tests*).
 - 2026-11-23: tester session 3: SAVING… flow, phone SUMMARY pass; case 7 EXP is 1.5× but lacks FireRed's "a boosted" text → `test: failed`, `status: building`, attempt 1.
 - 2026-11-23: session 5: case 7 fix: `Exp.boosted` contract field (buf via `npx @bufbuild/buf@1.59.0`, Docker mounts don't see the workspace), set for traded Pokémon, client prints `sText_ABoosted`; tsc (mic-battles, spa) + vite build green (no Go toolchain here); `status: testing`.
+- 2026-11-23: tester session 4: case 7 re-tested on desktop and phone: "gained a boosted" and 1.5× EXP saved → `test: passed`.
