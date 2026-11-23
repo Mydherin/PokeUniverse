@@ -351,6 +351,8 @@ class Overworld {
   private linked: LinkStart | null = null;
   /** The partner left or dropped: the link ends once the player stands still. */
   private linkDropped = false;
+  /** The menu's first state, come before the seat step ran (the second to sit gets it with the step). */
+  private tradeOpening: TradeState | null = null;
   private readonly unlink: () => void;
 
   constructor(
@@ -507,6 +509,7 @@ class Overworld {
     this.linkFlow = null;
     this.linked = null;
     this.linkDropped = false;
+    this.tradeOpening = null;
     if (this.pcScreen) this.flow.world.setTile(this.pcScreen.x, this.pcScreen.y, this.pcScreen.tile);
     this.pcScreen = null;
     this.flow.gba.tasks.destroy(this.pcFlicker);
@@ -1411,6 +1414,9 @@ class Overworld {
     if (!s.trade) {
       s.trade = { phase: "seated", menu: null, pending: [] };
       this.message.show(flow.assets.text("CableClub_Text_PleaseWaitBCancel"), false);
+      const opening = this.tradeOpening;
+      this.tradeOpening = null;
+      if (opening && !this.linkDropped) this.openTrade(s.trade, opening);
     }
     const t = s.trade;
     if (t.phase === "done") return true;
@@ -1491,6 +1497,12 @@ class Overworld {
       else if (trade.phase === "seated" && event.case === "tradeState" && event.value.stage === TradeStage.CHOOSING) this.openTrade(trade, event.value);
       if (event.case !== "ended") return;
     }
+    if (event.case === "tradeState") {
+      // The seat step hasn't run yet: its menu opens when it does.
+      this.tradeOpening = event.value.stage === TradeStage.CHOOSING && this.linked ? event.value : null;
+      return;
+    }
+    if (event.case === "ended") this.tradeOpening = null;
     if (e.event.case !== "ended" || !this.linked) return;
     // Ended before mic-core took the player in: the door's warp won't come.
     if (this.warp && !this.warp.arrival && !LINK_ROOM_MAPS.has(this.map.id)) this.cancelWarp();
@@ -1540,6 +1552,7 @@ class Overworld {
     this.message.show(flow.assets.text("Text_TerminateLinkConfirmation"), false);
     while (this.message.printing) yield;
     this.linked = null;
+    this.tradeOpening = null;
     this.linkDropped = false;
     flow.link.link({ intent: { case: "leave", value: true } });
     this.avatar.waiting = true;
@@ -1550,6 +1563,7 @@ class Overworld {
     const { flow } = this;
     const { input } = flow.gba;
     this.linked = null;
+    this.tradeOpening = null;
     this.linkDropped = false;
     this.message.show(flow.assets.text("gText_UR_LinkWithFriendDropped"), false);
     while (this.message.printing || !input.isPressed(Button.A | Button.B)) yield;

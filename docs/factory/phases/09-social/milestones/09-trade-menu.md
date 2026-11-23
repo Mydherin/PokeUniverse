@@ -1,8 +1,8 @@
 ---
 id: 09-trade-menu
 title: "Trade: menu and transaction"
-status: building
-test: failed
+status: testing
+test: none
 attempts: 2
 depends: [08-link-rooms]
 context: [context/social.md, context/references.md]
@@ -13,6 +13,8 @@ context: [context/social.md, context/references.md]
 Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/social.md#trading) D21-D23. References: `trade.c`, `cable_club.c` seats.
 
 ## Resume Here
+
+**Session 5 (2026-11-23): attempt 2's bug fixed → `testing`.** `overworld.ts`: a `TradeState{CHOOSING}` that comes before the seat step runs (the second to sit gets it with its seat script) is kept in `tradeOpening` and opens the menu as soon as `runTradeSeat` starts; cleared on `ended`, reconnect, leave and drop. The tester's "partner's menu stays on Choose a POKéMON." was the stuck side's B counted as its CANCEL pick (the server's FireRed flow), gone with the fix. tsc + vite build green. Next: re-test every case on the preview.
 
 **Session 4 (2026-11-22): attempt 1's bug fixed → `testing`.** `infra/assets/graphics.sh` `FIRERED_GFX` += `trade` (all 11 files the client loads exist in `references/pokefirered/graphics/trade/`; the rest of its lists match the `Makefile`). Next: re-test every case on the preview. Not fixed (seen in passing, not a case): the follower drawn over its seated trainer at the seats.
 
@@ -102,6 +104,7 @@ Preview deployed fine (build and healthchecks green). Played in the browser on d
 
 ## Log
 
+- 2026-11-23: session 5: the second sitter's early `tradeState` kept until its seat step runs (`tradeOpening`); `testing`.
 - 2026-11-23: test attempt 2 failed: the second player to sit never gets the trade menu (`tradeState` dropped before the seat step runs); cases 2, 5, 8 pass; `building`.
 - 2026-11-22: session 4: `trade` added to `infra/assets/graphics.sh` (preview build); `testing`.
 - 2026-11-22: test attempt 1 failed: on the preview the trade menu never opens (`trade/` graphics missing from `infra/assets/graphics.sh`); `building`.
