@@ -27,9 +27,19 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 | M11-D7 | **No outcome saved** (D26): `finishLink` clears Active, sends `BattleEnded` (money 0) and the unchanged party; presence back to BUSY_LINK; both stay in the Colosseum, seats free to battle again. No `battle_outcomes` row (its key is the battle ID, one per battle). |
 | M11-D8 | **Seats:** triggers `player_spot_0/1` (EnterColosseumPlayerSpot) → script step `colosseum_seat` ("Please wait. B Button: Cancel"; B → `LinkIntent.colosseum_cancel`); the attendant says `Text_TakeSeatStartBattle`. The client's seat step ends at BattleStarted and the battle runs with the link intro; after it the script ends. |
 
-### Next step
+### State
 
-Task 1 (contracts + seats).
+- **Done:** design above; contracts committed and generated (`1214d0d`): `BATTLE_KIND_LINK`, `BattleStarted/BattleTurn.seconds_left`, `ScriptStep.colosseum_seat` (17), `LinkIntent.colosseum_cancel` (13), `LinkEvent.colosseum` (11) = `ColosseumAction{from; seated{save, spot, member Friend} | stood | started BattleUpdate | step{update, deadline} | back}` (social.proto now imports battle.proto). `go build ./... && go vet ./...` green with them.
+- **Next step:** Task 1+2 server, in `mic-core/internal/`:
+  1. `battle/pvp.go`: on `*battle.Store` (Redis, `w.active`): `LinkInit/LinkAdvance(id, step, need, deadline)` (only forward; clears `c0`/`c1`; TTL a week, an hour once over), `LinkChoose(id, step, side, SideChoice bytes)` (Lua: stale step → -1; HSETNX `c<side>`; all of `need` in → return them), `LinkDeadline(id)`. `battle.Active` gains `Side int` and `Link *LinkInfo{Room, Partner, PartnerName, PartnerGender, Leader, Activity, Seat}`; `battle.NewLinkStart(leader, member Party)` (healed clones, `team(party, 0)`, kind LINK, no shift style).
+  2. `world/colosseum.go` (mirror `trade.go`): `colosseumSeat(p)` called next to `tradeSeat` in `encounter.go:20` (triggers `player_spot_0/1` on `battle_colosseum_2p`, activity SINGLE); `startScript(p, Script{{ColosseumSeat}})`, `p.link.seated`, `watchPartner`; leader keeps `p.link.colosseum{seated [2], memberSave, member Friend, memberSpot}`; member sends `ColosseumAction.seated` via `z.w.social.Link(p.link.other, …)`; `colosseum_cancel` → stood. Dispatch `LinkEvent_Colosseum` in `link_room.go onLinkHere`, intent in `Player.Link`.
+  3. Start on the leader's replica (`z.ask`): load member party (`pokemon.Load`), both `CanBattle`, SetActive both, `battles.Start`, `LinkInit` (need = sides whose request ≠ WAIT, deadline now+60 s), show own side, send member `started`; member's replica reads its Active from Redis and shows side 1. Presence BUSY_BATTLE.
+  4. `battleChoice` for link (`b.Link != nil`): items refused, RUN → `battles.forfeit` own side; else `LinkChoose` → complete → `battles.Turn(all choices)` → `LinkAdvance` → send partner `step{update, deadline}` → own `linkPlayed` (dedupe on request step; `seconds_left` on BattleTurn; arm timer). Partner's `step` → same `linkPlayed`. Every `battle.PlayerSide` use in `battle.go` (played, ask's side check, joinBattle `View`, resumeBattle, withStart) must use `b.Side`; `withStart` fills `view.Trainer` from `Link` (class "", pic red/leaf).
+  5. Timer (M11-D4), disconnect (M11-D5: `world.go Leave` skips `abandonBattle` for link; `linkGone` still sends PartnerLeft; `onLinkHere PartnerLeft` and `watchPartner` count a drop in a link battle; Join with a link Active resumes even on take-over, placed on `Link.Seat` in zone `{battle_colosseum_2p, Room}` (`place`/`phaseOf` in `world.go` ~173-192), `p.link` rebuilt, `back` sent), `finishLink` (M11-D7; no `battle.Record`, `battle_outcomes` is keyed by battle ID).
+  6. Attendant: `"battle_colosseum_2p.attendant": {message("cable_club.take_seat_start_battle")}` in `interact.go npcScripts`.
+- **Then Task 3 client** (`spa-pokeuniverse/src/game/firered/`): `overworld.ts` seat step like `runTradeSeat` (~1413; BattleStarted during it → battle with intro, `battleStarted` ~588), `manifest.ts` (`cable_club.take_seat_start_battle` → `Text_TakeSeatStartBattle` ~626; `BATTLE_GRAPHICS` + `TRAINER_PICS` red/leaf front pics ~364-372, files `trainers/front_pics/red_front_pic.png`, `leaf_front_pic.png`), `texts.json` labels: `Text_TakeSeatStartBattle`, `sText_LinkTrainerWantsToBattle`, `sText_LinkTrainerSentOutPkmn`, `sText_LinkTrainerSentOutPkmn2`, `sText_LinkTrainer1WithdrewPkmn`, `sText_PlayerDefeatedLinkTrainer`, `sText_PlayerLostAgainstLinkTrainer`, `sText_PlayerBattledToDrawLinkTrainer`, `sText_WildFled`, `gText_LinkStandby` (all in pokefirered `src/battle_message.c` 320-412, 1281); `infra/text/extract.mjs OUR_STRINGS` + `PU_Text_ForfeitMatch`. `battle/screen.ts`: intro (~282 text, ~203 music `mus_vs_trainer`), BAG (~375) and RUN (~378) for LINK, `endJob` (~419) link texts, "Link standby…" after `send` (~406), countdown window ≤ 10 s, a newer turn (server auto-pick) cancels the open choice.
+- **Gotchas:** `make contracts` / `make` with bind mounts fail on the shared Docker engine (paths not on the host); no local Go or buf. Copy files in and out instead: buf = `docker create … bufbuild/buf:1.59.0 sh -c "buf lint && buf generate"`, `tar … lib-contracts/{buf.yaml,buf.gen.yaml,proto} | docker cp - C:/repo`, start, copy `gen/go` and `gen/ts/src` back. Go = a `golang:1.27-alpine` container labelled `com.docker.compose.project=$COMPOSE_PROJECT_NAME`, tar `mic-core` + `lib-contracts/{go.mod,go.sum,gen/go}` in, `touch maps/placeholder.binpb` (embed needs the gitignored maps), `go build ./... && go vet ./...`. The rtk output filter truncates long grep/ls output: use Read with ranges. References: `git submodule update --init --depth 1 references/pokefirered`.
+
 ## Tasks
 
 - [ ] **Seats:** Colosseum seats as the Trade Center's; both seated → `Text_TakeSeatStartBattle`, the battle starts.
@@ -39,7 +49,7 @@ Task 1 (contracts + seats).
 
 ## Log
 
-- 2026-11-23: building; design M11-D1..D8 decided.
+- 2026-11-23: building; design M11-D1..D8 decided; contracts added (session stopped at the context limit before server code).
 
 ## Manual Test
 
