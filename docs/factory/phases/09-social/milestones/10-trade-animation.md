@@ -1,8 +1,8 @@
 ---
 id: 10-trade-animation
 title: "Trade: animation and after"
-status: building
-test: failed
+status: testing
+test: none
 attempts: 1
 depends: [09-trade-menu]
 context: [context/social.md, context/references.md]
@@ -14,7 +14,7 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
-**Built (sessions 1-4, 2026-11-23); test attempt 1 failed on one point: case 7's EXP message lacks FireRed's " a boosted" for a traded Pokémon (top *Tests* entry). Next: pass `buff2` = `sText_ABoosted` when the gain was boosted by trade (`spa-pokeuniverse/src/game/firered/battle/messages.ts:360` always sends `[EOS]`; the EXP event needs to say it was traded, e.g. a flag from `mic-battles/src/exp.ts` `award` where `mon.traded`), then `status: testing` for a re-test of case 7 only (everything else passed).**
+**Built (sessions 1-5, 2026-11-23); attempt 1's one failure fixed in session 5: the EXP message now says " a boosted" for a traded Pokémon (`battle.v1.Exp.boosted`, set in `mic-battles/src/exp.ts` `give` from `mon.traded` on the first, shown stretch; `messages.ts` passes `sText_ABoosted` as `buff2`, added to `texts.json`). Next: re-test case 7 only (everything else passed); `make text` (build time) encodes the new string.**
 - **Client, as built:** `firered/trade-scene.ts` (FireRed's `DoTradeAnim_Wireless` state by state; `startTradeScene(flow, {own, received, partnerName}, ended)`; once ended it keeps running and calls `scene.after()` each frame; `scene.print(textId)` = DrawTextOnTradeWindow). Its art in `manifest.ts` `TRADE_GRAPHICS`, sounds in `TRADE_SOUNDS` (+ `se_warp_out` in `sounds.json`), the six scene/save texts in `texts.json`. `PokeBalls.sendOff` ends on `callbackDummy`.
 - **`trade-menu.ts`:** `tradeDone` keeps `traded = {scene, slot: ownSlot, evolvesTo}`, fades to black, `afterTrade` runs the scene (`gba.reset` kills the menu's update task, so `afterScene` drains `queue` and runs `step` each frame). No evolution: "Communication standby…", `host.sceneDone()`, wait for CHOOSING (`next`), "SAVING… DON'T TURN OFF THE POWER." 110 frames, fade, `fadeOutBgm(3)` until stopped, `reopen()` (mus_game_corner restarts). Evolution: `host.evolve(slot, species, done)` then on black `sceneDone`, wait CHOOSING, `reopen()`. A link `ended` meanwhile → `close("dropped")`.
 - **`overworld.ts` `tradeHost()`:** `sceneDone` → `LinkIntent.tradeSceneDone`; `evolve` → `startFieldEvolution(flow, partyHost(), {...growth, mapMusic: () => {}}, {slot, species}, done)` (phase-6's scene, B stops it, asks `EvolvePokemon`).
@@ -27,6 +27,7 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 - [x] **Scene:** FireRed's wireless trade scene with both Pokémon (front pics, Poké Balls, the signal, cries, music and sounds), the "{NAME} sent over {MON}" / "Take good care of {MON}" texts; art from `make graphics`.
 - [x] **Evolution:** the server decides the Gen 4 trade evolutions (D24, held item used up, Everstone) with the swap and saves it in the same transaction; the client plays Phase 6's evolution scene after the trade scene (B cancels as FireRed: the evolution doesn't happen and the item isn't used).
+- [x] **Fix (attempt 1):** case 7's EXP message lacks FireRed's " a boosted" for a traded Pokémon (`Cmd_getexp`, `STRINGID_ABOOSTED`).
 - [x] **After:** OT and met data kept, "Met in a trade" in SUMMARY when OT differs; 1.5× EXP flag (Gen 4) used by battle EXP; Pokédex seen and caught; follower updated if the lead changed; both back in the trade menu.
 
 ## Decisions
@@ -98,3 +99,4 @@ Preview deployed fine (build and healthchecks green). Desktop 1280×720, one tab
 - 2026-11-23: tester session 1 checkpoint: preview green; cases 1-2 pass; case 3's first "……?" traced to FireRed's National Dex lock (bots given the National Dex, question for the planner); rest of the plan in *Tests*.
 - 2026-11-23: tester session 2 checkpoint: preview redeployed (fresh DB, set up again); cases 3, 4, 5, 6, 8 pass; left: SAVING… flow watched once, case 7 EXP, phone check (plan in *Tests*).
 - 2026-11-23: tester session 3: SAVING… flow, phone SUMMARY pass; case 7 EXP is 1.5× but lacks FireRed's "a boosted" text → `test: failed`, `status: building`, attempt 1.
+- 2026-11-23: session 5: case 7 fix: `Exp.boosted` contract field (buf via `npx @bufbuild/buf@1.59.0`, Docker mounts don't see the workspace), set for traded Pokémon, client prints `sText_ABoosted`; tsc (mic-battles, spa) + vite build green (no Go toolchain here); `status: testing`.

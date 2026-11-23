@@ -357,7 +357,7 @@ export function eventMessages(texts: BattleTexts, e: BattleEvent, recent: Recent
     case "exp":
       // Amount 0: the bar goes on after a level up, with no message.
       if (!k.value.amount) return [];
-      return msg("sText_PkmnGainedEXP", { buff1: texts.name(k.value.battler), buff2: [EOS], buff3: num(k.value.amount) });
+      return msg("sText_PkmnGainedEXP", { buff1: texts.name(k.value.battler), buff2: k.value.boosted ? texts.text("sText_ABoosted") : [EOS], buff3: num(k.value.amount) });
     default:
       return [];
   }
