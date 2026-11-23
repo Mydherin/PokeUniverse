@@ -99,7 +99,7 @@ func (p *Player) Link(in *socialv1.LinkIntent) {
 		p.enterLinkRoom()
 	case *socialv1.LinkIntent_Leave:
 		p.leaveLinkRoom()
-	case *socialv1.LinkIntent_TradeOffer, *socialv1.LinkIntent_TradeConfirm, *socialv1.LinkIntent_TradeCancel:
+	case *socialv1.LinkIntent_TradeOffer, *socialv1.LinkIntent_TradeConfirm, *socialv1.LinkIntent_TradeCancel, *socialv1.LinkIntent_TradeSceneDone:
 		z.do(func() { z.tradeIntent(p, in) })
 	}
 }
