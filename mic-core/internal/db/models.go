@@ -98,6 +98,15 @@ type Role struct {
 	Name string
 }
 
+type Trade struct {
+	ID         string
+	Leader     int64
+	Member     int64
+	LeaderSlot int16
+	MemberSlot int16
+	TradedAt   time.Time
+}
+
 type Trainer struct {
 	AccountID       int64
 	Name            string

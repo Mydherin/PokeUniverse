@@ -50,6 +50,8 @@ func trainerBattle(trainer string) *worldv1.ScriptStep {
 
 // npcScripts are the scripts of NPC objects, by map and name (lib-maps objects' `script`).
 var npcScripts = map[string]Script{
+	// TradeCenter_EventScript_Attendant (TradeCenter_Text_TakeSeatStartTrade).
+	"trade_center.attendant": {message("cable_club.take_seat_start_trade")},
 	// PalletTown_PlayersHouse_1F_EventScript_Mom; healing after the rival's battle comes with the story flags (Phase 10).
 	"pallet_town_players_house_1f.mom": {message("pallet_town_players_house_1f.mom"), faceOriginal()},
 	// Test content (phase-5): removed in Phase 10. Asks, heals both teams

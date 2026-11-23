@@ -17,6 +17,9 @@ import (
 // scripts first (TryStartStepBasedScript: a warp's cell, then Repel's counter, whose message
 // takes the step), then the wild encounter test (CheckStandardWildEncounter).
 func (z *zone) stepped(p *Player) {
+	if z.tradeSeat(p) {
+		return
+	}
 	if z.m.WarpAt(p.pos) != nil {
 		return
 	}

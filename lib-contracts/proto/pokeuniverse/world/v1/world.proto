@@ -273,6 +273,10 @@ message ScriptStep {
     // The leader or member screen (phase-9 D18): cancelled goes on with the next step; a link
     // ends the script and walks into the room.
     LinkRoomStep link_room = 15;
+    // A Trade Center seat (phase-9 D21, EnterTradeSeat): "Please wait. B Button: Cancel" until
+    // both sit, then the trade menu (social.v1 TradeState); the script goes on once it closes or B
+    // stands the player up (TradeCancel).
+    bool trade_seat = 16;
   }
 }
 

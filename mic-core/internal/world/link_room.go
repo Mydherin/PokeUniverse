@@ -60,6 +60,10 @@ type linkState struct {
 	roomMap string
 	leader  bool
 	entered bool
+	// Trade Center: sitting, the menu open, the offer (the leader's), the partner watch's token.
+	seated, menu bool
+	trade        *tradeMenu
+	watch        uint32
 }
 
 func (p *Player) friend() *socialv1.Friend {
@@ -95,6 +99,8 @@ func (p *Player) Link(in *socialv1.LinkIntent) {
 		p.enterLinkRoom()
 	case *socialv1.LinkIntent_Leave:
 		p.leaveLinkRoom()
+	case *socialv1.LinkIntent_TradeOffer, *socialv1.LinkIntent_TradeConfirm, *socialv1.LinkIntent_TradeCancel:
+		z.do(func() { z.tradeIntent(p, in) })
 	}
 }
 
@@ -328,6 +334,10 @@ func (z *zone) onLinkHere(p *Player, ev *socialv1.LinkEvent) {
 		if p.link.role == linkLinked && p.link.other == int64(e.PartnerLeft) {
 			z.linkEnded(p)
 		}
+	case *socialv1.LinkEvent_TradeMember:
+		z.onTradeMember(p, e.TradeMember)
+	case *socialv1.LinkEvent_TradeState, *socialv1.LinkEvent_TradeDone:
+		z.onTradeEvent(p, ev)
 	}
 }
 
@@ -335,6 +345,7 @@ func (z *zone) onLinkHere(p *Player, ev *socialv1.LinkEvent) {
 // which puts the player back at the counter.
 func (z *zone) linkEnded(p *Player) {
 	p.link.other = 0
+	p.link.trade, p.link.seated, p.link.menu = nil, false, false
 	p.sendLink(&socialv1.LinkEvent{Event: &socialv1.LinkEvent_Ended{Ended: true}})
 }
 

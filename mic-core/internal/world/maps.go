@@ -116,6 +116,16 @@ func (m *Map) SignAt(p Point) *mapv1.Sign {
 	return nil
 }
 
+// TriggerAt is the trigger object on a cell, or nil.
+func (m *Map) TriggerAt(p Point) *mapv1.Trigger {
+	for _, o := range m.objects {
+		if t := o.GetTrigger(); t != nil && int(o.X) == p.X && int(o.Y) == p.Y {
+			return t
+		}
+	}
+	return nil
+}
+
 // HiddenItemNear reports whether a hidden item lies within the ITEMFINDER's range of p
 // (7 tiles across, 5 up or down). Found items are tracked with the story flags (Phase 10).
 func (m *Map) HiddenItemNear(p Point) bool {

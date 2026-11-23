@@ -411,11 +411,24 @@ const STORAGE_GRAPHICS = {
   storageWaveform: { png: "pokemon_storage/waveform.png", bpp4: true },
 };
 
+/** The trade menu (trade.c), with the party set (its SUMMARY and held item marks). */
+const TRADE_GRAPHICS = {
+  tradeMenu: { png: "trade/menu.png", pal: "trade/menu.pal", bin: "trade/menu.bin", bpp4: true },
+  tradeMonBox: { bin: "trade/menu_mon_box.bin" },
+  tradePartyBox: { bin: "trade/party_box_map.bin" },
+  tradeMovesBox: { bin: "trade/moves_box_map.bin" },
+  tradeStripes2: { bin: "trade/stripes_bg2_map.bin" },
+  tradeStripes3: { bin: "trade/stripes_bg3_map.bin" },
+  tradeCursor: { png: "trade/cursor.png", pal: "trade/cursor.pal", meta: [8, 4] },
+  tradeTextPal: { pal: "trade/text.pal" },
+} satisfies Record<string, GraphicFiles>;
+
 /** FireRed's wallpapers, by number. */
 const WALLPAPERS = ["forest", "city", "desert", "savanna", "crag", "volcano", "snow", "cave", "beach", "seafloor", "river", "sky", "stars", "pokecenter", "tiles", "simple"];
 
 export type GraphicId =
   | keyof typeof STORAGE_GRAPHICS
+  | keyof typeof TRADE_GRAPHICS
   | keyof typeof BOOT_GRAPHICS
   | keyof typeof NEW_GAME_GRAPHICS
   | keyof typeof POKEDEX_GRAPHICS
@@ -529,9 +542,11 @@ export const BATTLE_SOUNDS = [
   "se_m_dragon_rage",
   "se_m_bite",
 ] as const;
+/** The trade menu's music (CB2_CreateTradeMenu), loaded when it opens. */
+export const TRADE_SOUNDS = ["mus_game_corner"] as const;
 /** Script music (ScriptStep.music), loaded when a script plays it. */
 export const SCRIPT_MUSIC = ["mus_encounter_boy"] as const;
-export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number] | (typeof BATTLE_SOUNDS)[number] | (typeof SCRIPT_MUSIC)[number];
+export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number] | (typeof BATTLE_SOUNDS)[number] | (typeof TRADE_SOUNDS)[number] | (typeof SCRIPT_MUSIC)[number];
 
 /** The game's strings `make text` encodes (src/game/firered/texts.json lists them). */
 export type TextId = string;
@@ -590,6 +605,8 @@ export const WORLD_TEXTS: Record<string, TextId> = {
   "cable_club.explain_battle_modes": "CableClub_Text_ExplainBattleModes",
   "cable_club.choose_group_leader_of_two": "CableClub_Text_ChooseGroupLeaderOfTwo",
   "cable_club.choose_group_leader_of_four": "CableClub_Text_ChooseGroupLeaderOfFour",
+  // The Trade Center's attendant (phase-9 M9, mic-core interact.go)
+  "cable_club.take_seat_start_trade": "Text_TakeSeatStartTrade",
 };
 
 export interface Graphic {
@@ -715,6 +732,7 @@ export class Assets {
   private pokedex: Promise<void> | null = null;
   private party: Promise<void> | null = null;
   private storage: Promise<void> | null = null;
+  private trade: Promise<void> | null = null;
   private readonly wallpapers = new Map<number, Promise<Graphic>>();
   private speciesSet: Promise<void> | null = null;
   private speciesTexts: Record<string, SpeciesText> = {};
@@ -800,6 +818,15 @@ export class Assets {
     });
     this.storage.catch(() => (this.storage = null));
     return this.storage;
+  }
+
+  /** The trade menu's set, with the party set (its SUMMARY); loaded once. */
+  loadTrade(): Promise<void> {
+    this.trade ??= Promise.all([loadGraphics(TRADE_GRAPHICS), this.loadParty()]).then(([entries]) => {
+      for (const [id, g] of entries) this.graphics.set(id, g);
+    });
+    this.trade.catch(() => (this.trade = null));
+    return this.trade;
   }
 
   /** A wallpaper's tiles, tilemap and 32 colors, by FireRed's number; each loaded once, when a box first shows it. */
