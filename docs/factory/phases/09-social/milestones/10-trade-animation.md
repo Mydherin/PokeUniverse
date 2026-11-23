@@ -1,7 +1,7 @@
 ---
 id: 10-trade-animation
 title: "Trade: animation and after"
-status: planned
+status: building
 depends: [09-trade-menu]
 context: [context/social.md, context/references.md]
 ---
