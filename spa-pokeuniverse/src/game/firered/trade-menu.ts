@@ -3,7 +3,8 @@
 // SUMMARY/TRADE, A on the partner's shows its summary (read only), CANCEL asks "Cancel trade?".
 // mic-core decides (phase-9 D21-D23): once both picked, both Pokémon move up with their moves and
 // "Is this trade okay?" asks YES/NO; a NO or a cancel brings both back to choosing, both cancels
-// end the menu. After a trade the menu comes back with the new parties (M10 adds the scene).
+// end the menu. After a trade FireRed's trade scene plays (trade-scene.ts), then the trade evolution
+// mic-core decided, if any; once both sides' scenes ended the menu comes back with the new parties.
 
 import { LinkEventSchema, TradeNotice, TradeStage, type LinkEvent, type TradeState } from "@pokeuniverse/contracts/social/v1/social";
 import { PartySchema, type Pokemon } from "@pokeuniverse/contracts/party/v1/party";
@@ -36,6 +37,10 @@ export interface TradeMenuHost {
   offer(slot: number): void;
   confirm(yes: boolean): void;
   cancel(): void;
+  /** The trade scene (and its evolution) ended: mic-core brings both back once both say so. */
+  sceneDone(): void;
+  /** The trade evolution's scene (phase-6's, B stops it), on the received Pokémon's slot; `done` on black. */
+  evolve(slot: number, species: number, done: () => void): void;
 }
 
 /** Why it closed: both canceled (`ended`), or the link ended under it (`dropped`). */
@@ -133,8 +138,10 @@ const SELECTED_MOVE_FRAMES = 20;
 const CONFIRM_DELAY = 120;
 /** QUEUE_DELAY_MSG. */
 const MESSAGE_DELAY = 3;
-/** After a trade, before the screen fades (M10's scene goes there). */
+/** After a trade, before the screen fades to the scene. */
 const AFTER_TRADE_FRAMES = 16;
+/** CB2_SaveAndEndTrade: "SAVING…" stays this long (the link save's steps) before the fade. */
+const SAVING_FRAMES = 110;
 
 const CURSOR_TEMPLATE: SpriteTemplate = {
   sheet: "tradeCursor",
@@ -187,8 +194,8 @@ export class TradeMenu {
   /** Off in the summary, or set up again: events wait. */
   private away = false;
   private closing = false;
-  /** A trade went through: the menu comes back on the CHOOSING after it. */
-  private traded = false;
+  /** A trade went through: the scene plays, the menu comes back on the CHOOSING after it. */
+  private traded: { scene: TradeSceneMons; slot: number; evolvesTo: number } | null = null;
   private next: TradeState | null = null;
   private music = false;
 

@@ -156,5 +156,6 @@
   "gText_UR_AwaitingPlayersResponse", "gText_UR_PlayerSentBackOK", "sText_PlayerRepliedNo", "gText_UR_QuitBeingMember", "gText_UR_Colon", "gText_UR_ID",
   "gText_UR_LinkWithFriendDropped", "CableClub_Text_PlayersMadeDifferentSelections", "CableClub_Text_DirectYouToYourRoom",
   "Text_TerminateLinkIfYouLeaveRoom", "Text_TerminateLinkConfirmation",
-  "Text_TakeSeatStartTrade", "CableClub_Text_PleaseWaitBCancel", "gText_IsThisTradeOkay", "gText_CancelTrade", "gText_TradeAction_Summary", "gText_TradeAction_Trade", "gTradeText_Cancel", "gTradeText_ChooseAPokemon", "gText_Trade_CommunicationStandby", "gText_TradeHasBeenCanceled", "gText_Trade_OnlyPkmnForBattle", "gText_WaitingForFriendToFinish", "gText_FriendWantsToTrade"
+  "Text_TakeSeatStartTrade", "CableClub_Text_PleaseWaitBCancel", "gText_IsThisTradeOkay", "gText_CancelTrade", "gText_TradeAction_Summary", "gText_TradeAction_Trade", "gTradeText_Cancel", "gTradeText_ChooseAPokemon", "gText_Trade_CommunicationStandby", "gText_TradeHasBeenCanceled", "gText_Trade_OnlyPkmnForBattle", "gText_WaitingForFriendToFinish", "gText_FriendWantsToTrade",
+  "gText_XWillBeSentToY", "gText_ByeByeVar1", "gText_XSentOverY", "gText_TakeGoodCareOfX", "gText_CommunicationStandby5", "gText_SavingDontTurnOffThePower2"
 ]

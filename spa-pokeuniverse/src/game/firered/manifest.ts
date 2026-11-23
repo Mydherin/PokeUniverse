@@ -421,6 +421,23 @@ const TRADE_GRAPHICS = {
   tradeStripes3: { bin: "trade/stripes_bg3_map.bin" },
   tradeCursor: { png: "trade/cursor.png", pal: "trade/cursor.pal", meta: [8, 4] },
   tradeTextPal: { pal: "trade/text.pal" },
+  // The wireless trade scene (trade_scene.c, DoTradeAnim_Wireless).
+  tradeGba: { png: "trade/gba.png", bpp4: true },
+  tradeGbaPal2: { pal: "trade/gba_pal2.pal" },
+  tradeShadowMap: { bin: "trade/shadow_map.bin" },
+  tradeGbaMapWireless: { bin: "trade/gba_map_wireless.bin" },
+  tradeSignalCloseupMap: { bin: "trade/wireless_signal_closeup.bin" },
+  tradeGbaAffine: { png: "trade/gba_affine.png" },
+  tradeGbaAffineMapWireless: { bytes: "trade/gba_affine_map_wireless.bin" },
+  tradeSignal: { png: "trade/wireless_signal.png", bin: "trade/wireless_signal.bin", bpp4: true },
+  tradeSignalOffPal: { pal: "trade/black.pal" },
+  tradeSignalSendPal: { pal: "trade/wireless_signal_send.pal" },
+  tradeSignalReceivePal: { pal: "trade/wireless_signal_receive.pal" },
+  tradeBall: { png: "trade/pokeball.png", meta: [2, 2] },
+  tradeLinkMonGlow: { png: "trade/link_mon_glow.png" },
+  tradeLinkMonShadow: { png: "trade/link_mon_shadow.png", meta: [2, 4] },
+  tradeLinkMonPal: { pal: "trade/link_mon.pal" },
+  tradeGbaScreen: { png: "trade/gba_screen.png", pal: "trade/gba.pal", meta: [8, 4] },
 } satisfies Record<string, GraphicFiles>;
 
 /** FireRed's wallpapers, by number. */
@@ -543,7 +560,7 @@ export const BATTLE_SOUNDS = [
   "se_m_bite",
 ] as const;
 /** The trade menu's music (CB2_CreateTradeMenu), loaded when it opens. */
-export const TRADE_SOUNDS = ["mus_game_corner"] as const;
+export const TRADE_SOUNDS = ["mus_game_corner", "se_warp_out", "se_m_minimize", "se_m_heal_bell"] as const;
 /** Script music (ScriptStep.music), loaded when a script plays it. */
 export const SCRIPT_MUSIC = ["mus_encounter_boy"] as const;
 export type SoundId = (typeof SOUNDS)[number] | (typeof NEW_GAME_SOUNDS)[number] | (typeof BATTLE_SOUNDS)[number] | (typeof TRADE_SOUNDS)[number] | (typeof SCRIPT_MUSIC)[number];
