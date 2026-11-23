@@ -1,8 +1,9 @@
 ---
 id: 10-trade-animation
 title: "Trade: animation and after"
-status: testing
-test: none
+status: building
+test: failed
+attempts: 1
 depends: [09-trade-menu]
 context: [context/social.md, context/references.md]
 ---
@@ -13,7 +14,7 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
-**Built (sessions 1-4, 2026-11-23): server, scene, wiring and SUMMARY memo; `tsc --noEmit` + `vite build` green. Manual Test in progress: cases 1-6 and 8 pass (tester sessions 1-2); next: the "Next" list of the top *Tests* entry (SAVING… flow seen once, case 7 EXP, phone check).**
+**Built (sessions 1-4, 2026-11-23); test attempt 1 failed on one point: case 7's EXP message lacks FireRed's " a boosted" for a traded Pokémon (top *Tests* entry). Next: pass `buff2` = `sText_ABoosted` when the gain was boosted by trade (`spa-pokeuniverse/src/game/firered/battle/messages.ts:360` always sends `[EOS]`; the EXP event needs to say it was traded, e.g. a flag from `mic-battles/src/exp.ts` `award` where `mon.traded`), then `status: testing` for a re-test of case 7 only (everything else passed).**
 - **Client, as built:** `firered/trade-scene.ts` (FireRed's `DoTradeAnim_Wireless` state by state; `startTradeScene(flow, {own, received, partnerName}, ended)`; once ended it keeps running and calls `scene.after()` each frame; `scene.print(textId)` = DrawTextOnTradeWindow). Its art in `manifest.ts` `TRADE_GRAPHICS`, sounds in `TRADE_SOUNDS` (+ `se_warp_out` in `sounds.json`), the six scene/save texts in `texts.json`. `PokeBalls.sendOff` ends on `callbackDummy`.
 - **`trade-menu.ts`:** `tradeDone` keeps `traded = {scene, slot: ownSlot, evolvesTo}`, fades to black, `afterTrade` runs the scene (`gba.reset` kills the menu's update task, so `afterScene` drains `queue` and runs `step` each frame). No evolution: "Communication standby…", `host.sceneDone()`, wait for CHOOSING (`next`), "SAVING… DON'T TURN OFF THE POWER." 110 frames, fade, `fadeOutBgm(3)` until stopped, `reopen()` (mus_game_corner restarts). Evolution: `host.evolve(slot, species, done)` then on black `sceneDone`, wait CHOOSING, `reopen()`. A link `ended` meanwhile → `close("dropped")`.
 - **`overworld.ts` `tradeHost()`:** `sceneDone` → `LinkIntent.tradeSceneDone`; `evolve` → `startFieldEvolution(flow, partyHost(), {...growth, mapMusic: () => {}}, {slot, species}, done)` (phase-6's scene, B stops it, asks `EvolvePokemon`).
@@ -46,10 +47,22 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 | 4 | Everstone | Kadabra holding Everstone | No evolution | ✅ 2026-11-23 BOT2 KADABRA+EVERSTONE stays KADABRA, item kept |
 | 5 | Cancel evolution | B during the evolution | Stays; item kept | ✅ 2026-11-23 BOT2 B during ONIX's evolution: ONIX (95), METAL COAT (199) kept |
 | 6 | Summary, Pokédex | Check the received one | "Met in a trade", OT the other; Pokédex caught | ✅ 2026-11-23 KADABRA on BOT2: OT BOT1, IDNo 44291, "Met in a trade."; caught bits 64 / 95, 208 |
-| 7 | EXP | Battle with it | 1.5× EXP | ⬜ |
+| 7 | EXP | Battle with it | 1.5× EXP | ❌ 2026-11-23 BOT2's traded KADABRA L10 beat a wild PIKACHU L7: 123 EXP (= floor(82·7/7·1.5)), saved 560 → 683; but the text is "KADABRA gained 123 EXP. Points!", FireRed's is "KADABRA gained a boosted 123 EXP. Points!" |
 | 8 | Follower | Trade the lead | Follower changes | ✅ 2026-11-23 after the lead trade: BOT1 STEELIX, BOT2 KADABRA, in the room and after relogin |
 
 ## Tests
+
+### 2026-11-23: attempt 1, failed (case 7's message)
+
+Tester session 3. Preview redeployed (it had stopped; fresh DB, build and healthchecks green, `previewUrl` `/preview/ic2ju36k6yt44idxzr4sovpghmdgybib/`, opened via `https://mooi.skypea.dev`). Desktop 1280×720, phone 390×844. Bots set up again (PG parties: BOT1 KADABRA+EVERSTONE, PIDGEY; BOT2 RATTATA ×2; National Dex).
+- **Cases 1-6 and 8:** ✅ (sessions 1-2, table).
+- **SAVING… flow (case 1/4, non-evolving sides):** ✅ BOT1 KADABRA+EVERSTONE ↔ BOT2 RATTATA, BOT1's tab watched: scene, then "Communication standby…", "SAVING… DON'T TURN OFF THE POWER.", fade to black, back to the trade menu with RATTATA(OT BOT2) on BOT1 and KADABRA(OT BOT1, item kept) on BOT2; `trades` 1 row. BOT2's CONTINUE screen afterwards: POKéDEX 1 (KADABRA caught by the trade).
+- **Case 7 EXP:** ❌ on the message only. BOT2 (KADABRA lead, OT BOT1) in the `pallet_town_players_house_1f` test grass beat a wild PIKACHU L7 with CONFUSION: "KADABRA gained 123 EXP. Points!", `exp` 560 → 683. 123 = floor(floor(82·7/7)·1.5): the 1.5× is right.
+  - **Expected (FireRed):** "KADABRA gained a boosted 123 EXP. Points!": `Cmd_getexp` (`battle_script_commands.c:3236-3244`) buffers `STRINGID_ABOOSTED` (`sText_ABoosted` " a boosted") into `sText_PkmnGainedEXP`'s `{B_BUFF2}` for a traded Pokémon.
+  - **Actual:** the plain text; `spa-pokeuniverse/src/game/firered/battle/messages.ts:360` always passes `buff2: [EOS]`. No console errors.
+  - **Steps:** trade a Pokémon, lead with the received one, win a wild battle; read the EXP message.
+- **Phone 390×844:** ✅ SUMMARY of the traded KADABRA: OT BOT1, IDNo 63959 (BOT1's), ITEM EVERSTONE, "CALM nature. / Met in a trade.", fits the screen.
+- **Setup gotcha:** a bot's position lives in Redis `player:<id>:pos` (hash: map, x, y, facing): with the game closed, `HSET` it as well as PG, else the login puts it back.
 
 ### 2026-11-23: attempt 1, in progress (tester session 2 checkpointed)
 
@@ -84,3 +97,4 @@ Preview deployed fine (build and healthchecks green). Desktop 1280×720, one tab
 - 2026-11-23: session 4: trade menu wired to the scene, the evolution and the save; overworld host `sceneDone`/`evolve`; SUMMARY "Met in a trade."; tsc + vite build green; `status: testing`.
 - 2026-11-23: tester session 1 checkpoint: preview green; cases 1-2 pass; case 3's first "……?" traced to FireRed's National Dex lock (bots given the National Dex, question for the planner); rest of the plan in *Tests*.
 - 2026-11-23: tester session 2 checkpoint: preview redeployed (fresh DB, set up again); cases 3, 4, 5, 6, 8 pass; left: SAVING… flow watched once, case 7 EXP, phone check (plan in *Tests*).
+- 2026-11-23: tester session 3: SAVING… flow, phone SUMMARY pass; case 7 EXP is 1.5× but lacks FireRed's "a boosted" text → `test: failed`, `status: building`, attempt 1.
