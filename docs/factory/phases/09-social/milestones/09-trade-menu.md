@@ -2,7 +2,7 @@
 id: 09-trade-menu
 title: "Trade: menu and transaction"
 status: testing
-test: none
+test: passed
 attempts: 2
 depends: [08-link-rooms]
 context: [context/social.md, context/references.md]
@@ -14,7 +14,7 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 ## Resume Here
 
-**Test attempt 3 (2026-11-23), in progress, checkpointed (tester session 2):** every case passes except **case 8, the only one left** (see *Tests*). **Next (tester):** redeploy (DB volume kept: the bots and their parties already exist; bot-1 BULBASAUR+RATTATA, bot-2 CHARMANDER+PIDGEY; both at `pokemon_center_2f` (10,4)), get tokens with `{"count":2,"refreshOnly":true}`, load both pages, set up a room, open the menu on both, close BOT1's page (or navigate it away) while in the menu; check BOT2 gets "The link with your friend has been dropped…" and goes back to the counter, BOT1 at the counter on reload, PG parties unchanged and `trades` still 1 row. Then write the verdict: attempt 3 entry title, Manual Test results column (still attempt 2's), front matter `test: passed`, Log line, commit, report `completed`.
+**Test attempt 3 (2026-11-23): passed.** Every case passes (see *Tests*); case 6's Egg half can't be played (no Eggs). Nothing left for this milestone.
 - **Setup that works:** `POST <preview>/api/dev/bots` with `X-Bots-Secret` (from the dev environment `MOOI_DEVELOPMENT_BOTS_SECRET`; call it from inside the `spa-pokeuniverse` container: `wget ... http://127.0.0.1:8080/api/dev/bots`; tokens last 15 min). A fresh DB needs `{"count":2,"map":"pokemon_center_2f"}`, bot-1 moved off `0,2` (`update trainers set x=4,y=6 where account_id=1`) and parties inserted into `trainer_pokemon` (bots start empty). Open `https://mooi.skypea.dev/preview/<id>/play?bot=<token>` per page, Enter, Enter, A ×4 to load.
 - **Driving it (Playwright `browser_run_code_unsafe`):** globals don't persist between calls: take `[P1,P2] = page.context().pages()` each time and save screenshots with `p.screenshot({path:'/tmp/sN.png'})`, then Read them. After `bringToFront` **click the canvas (400,600) once** or keys are lost. Keys via `keyboard.down/up`: 80-100 ms hold turns/taps, 200-250 ms walks one tile; Z = A, X = B, Enter = START. Text prints slowly: wait 3-4 s per A, ~10 s after the save YES. Players don't collide. The attendant is the **right** one: stand under it facing up (after a link ends players are put one tile left of it: Right, Up). Its flow: TRADE CENTER, YES, save YES, overwrite YES, then JOIN GROUP / **BECOME LEADER** (Down) / EXIT; leader first, then the member JOINs, A on the leader's name, leader YES. Seats from the entrance: leader up 1, left 1, up 2 (`chair_0`); member up 2, right 1, up 1 (`chair_1`). In the menu: Right = 2nd Pokémon, A → SUMMARY/TRADE (Down, A); Down from the own Pokémon goes to CANCEL.
 - **Don't restart `mic-core` again:** Mooi then marks the preview failed and drops its route (see *Tests*).
@@ -56,20 +56,20 @@ Part of [Phase 9](../PHASE.md). Decisions: [context/social.md](../../../context/
 
 | # | Case | Steps | Expected | Result |
 |---|---|---|---|---|
-| 1 | Trade | Both pick, both YES | Pokémon swapped in both parties, saved | ❌ 2026-11-23 the second player to sit never gets the menu |
-| 2 | SUMMARY | View the other's Pokémon | FireRed's summary, read only | ✅ 2026-11-23 one side only: bot-2's menu, A on BOT1's BULBASAUR → POKéMON INFO, OT BOT1, ITEM ORAN BERRY; B back |
-| 3 | Change mind | One changes pick after the other said YES | Both asked again | ❌ 2026-11-23 blocked: only one side gets the menu |
-| 4 | Cancel | One cancels | Both back to choosing; leaving ends the room | ❌ 2026-11-23 blocked: only one side gets the menu |
-| 5 | Last usable | Offer your only usable Pokémon | FireRed's refusal | ✅ 2026-11-23 bot-2 (CHARMANDER + fainted RATTATA): CHARMANDER, TRADE → "That's your only POKéMON for battle.", A back to choosing |
-| 6 | Held item, Egg | Trade a holder and an Egg | Item travels; Egg traded | ❌ 2026-11-23 blocked: only one side gets the menu (held mark shown on BULBASAUR's icon) |
-| 7 | Crash mid-trade | Kill a replica right after both YES | After reconnect: swapped for both or for neither | ❌ 2026-11-23 blocked: only one side gets the menu |
-| 8 | Disconnect | One drops during the menu | Nothing swapped; other returned to the counter | ✅ 2026-11-23 bot-1 closed its page in the menu: bot-2 (seated) "The link with your friend has been dropped…", back in front of the counter; bot-1 back at the counter on reconnect; parties unchanged, `trades` empty |
+| 1 | Trade | Both pick, both YES | Pokémon swapped in both parties, saved | ✅ 2026-11-23 BOT1 BULBASAUR (ORAN BERRY) ↔ BOT2 RATTATA, both back on the menu with swapped parties; PG swapped, one `trades` row |
+| 2 | SUMMARY | View the other's Pokémon | FireRed's summary, read only | ✅ 2026-11-23 BOT2 on BOT1's BULBASAUR → POKéMON INFO (OT BOT1, ITEM ORAN BERRY), B back |
+| 3 | Change mind | One changes pick after the other said YES | Both asked again | ✅ 2026-11-23 BOT2 YES, BOT1 NO → both "The trade has been canceled.", back to choosing, next picks asked again on both |
+| 4 | Cancel | One cancels | Both back to choosing; leaving ends the room | ✅ 2026-11-23 pick vs CANCEL → both notices, back to choosing; both CANCEL → seated in the room; leaving → terminate prompt, partner gets link dropped, both at the counter |
+| 5 | Last usable | Offer your only usable Pokémon | FireRed's refusal | ✅ 2026-11-23 "That's your only POKéMON for battle.", A back to choosing |
+| 6 | Held item, Egg | Trade a holder and an Egg | Item travels; Egg traded | ✅ 2026-11-23 held item: BULBASAUR kept ORAN BERRY after the trade (PG held_item 139). Egg half not playable: no Eggs exist yet |
+| 7 | Crash mid-trade | Kill a replica right after both YES | After reconnect: swapped for both or for neither | ✅ 2026-11-23 mic-core restarted 1.8 s after both YES: swap already saved, both reconnect with it applied (game and PG) |
+| 8 | Disconnect | One drops during the menu | Nothing swapped; other returned to the counter | ✅ 2026-11-23 (attempt 3) BOT1's page closed with both menus open: BOT2's menu closes, "The link with your friend has been dropped…", back at the counter; BOT1 at the counter on reconnect; parties unchanged, `trades` empty |
 
 ## Tests
 
-### 2026-11-23: attempt 3, in progress (checkpointed, no verdict yet)
+### 2026-11-23: attempt 3, passed
 
-Preview deployed fine. Desktop 1280×720, one tab per bot, BOT2 leader, BOT1 member; BOT2 sat first, BOT1 second.
+Every case passes (case 6's Egg half not playable: no Eggs). Played over three tester sessions. Preview deployed fine. Desktop 1280×720, one tab per bot, BOT2 leader, BOT1 member; BOT2 sat first, BOT1 second.
 - **Seats / attempt 2's bug:** ✅ the second to sit (BOT1) gets the menu right after sitting; both see both parties, held mark on BULBASAUR.
 - **Case 2 SUMMARY:** ✅ BOT2 on BOT1's BULBASAUR → POKéMON INFO (OT BOT1, ITEM ORAN BERRY), B back.
 - **Case 5 Last usable:** ✅ BOT2 CHARMANDER → TRADE → "That's your only POKéMON for battle.", A back.
@@ -78,7 +78,7 @@ Preview deployed fine. Desktop 1280×720, one tab per bot, BOT2 leader, BOT1 mem
 - **Case 4 Cancel:** ✅ so far: BOT1 picked RATTATA, BOT2 CANCEL → YES: BOT2 "Your friend wants to trade POKéMON.", BOT1 "The trade has been canceled.", A → both choosing; BOT2 CANCEL → "Waiting for your friend to finish…", BOT1 CANCEL → both back seated in the room. "Leaving ends the room" not played yet.
 - **Session 2 (fresh preview, same setup):** BOT2 sat first, BOT1 second: both menus open. **Case 4 leaving:** ✅ both CANCEL → both seated in the room; BOT1 walks to the exit → "The link will be terminated if you leave the room. Is that okay?" YES → "Terminating link… You will be escorted out…", back at the 2F counter; BOT2 (seated) "The link with your friend has been dropped…", back at the counter. **Phone:** ✅ the open menu fits 390×844 (top of the screen; the page's Home/Online/fullscreen buttons overlap the name tabs, as on every game screen) and 844×390.
 - **Case 7 Crash:** ✅ new room (BOT1 sat first this time, both menus open); BOT1 PIDGEY ↔ BOT2 RATTATA, BOT2 YES, BOT1 YES at 00:58:25.9, `docker restart` of `mic-core-1` at 00:58:27.7. The `trades` row was saved at 00:58:25.93 (before the crash); both reconnected at 00:58:29 at the 2F counter; START → POKéMON: BOT1 BULBASAUR + RATTATA, BOT2 CHARMANDER + PIDGEY, same as PG (swapped for both).
-- **Not played yet:** case 8 (re-play after the fix).
+- **Session 3 (fresh preview, fresh DB: bots and parties seeded again):** BOT2 leader sat first, BOT1 second: both menus open with both parties. **Case 8 Disconnect:** ✅ BOT1's page closed at 01:10:01 with both in the menu: BOT2's menu closes, back in the Trade Center seated, "The link with your friend has been dropped…", A → in front of the 2F counter. BOT1 reloaded: CONTINUE → in front of the 2F counter. PG: both parties unchanged (BULBASAUR still holds ORAN BERRY), `trades` 0 rows. No console errors, no mic-core errors. (PG `trainers` still showed BOT1's last saved tile in `trade_center` right after the reconnect; in game it was at the counter.)
 - **Preview note:** restarting `mic-core` makes Mooi mark the deployment `failed` (`health_check_failed`) and drop the preview route a few minutes later (`/ws` 404, page shows "Reconnecting…"). That came from the test, not the project: redeploying (same volumes, data kept) gives a new preview URL.
 - **Seen in passing (not cases):** the SUMMARY/TRADE box's lower part stays behind the YES/NO box on "Is this trade okay?" (documented gotcha); followers drawn over their seated trainers.
 
@@ -124,6 +124,7 @@ Preview deployed fine (build and healthchecks green). Played in the browser on d
 
 ## Log
 
+- 2026-11-23: test attempt 3 passed: every case (case 8 re-played on a fresh preview); case 6's Egg half not playable (no Eggs).
 - 2026-11-23: test attempt 3 checkpointed again: case 4's leaving, case 7 and phone pass; only case 8 is left.
 - 2026-11-23: test attempt 3 checkpointed: cases 1, 2, 3, 5, 6 (held item) and most of 4 pass; next: 4's leaving, 7, 8, phone.
 - 2026-11-23: session 5: the second sitter's early `tradeState` kept until its seat step runs (`tradeOpening`); `testing`.
